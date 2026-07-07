@@ -758,7 +758,7 @@ function assessLiveIPO(item,temperature){
     score,
     vc,
     verdict,
-    reason:`${knownFacts.join('，')||'核心招股资料已发布'}。当前评分只使用港交所公开事实，尚未计入认购倍数和配发结果。`,
+    reason:`${knownFacts.join('，')||'核心招股资料已发布'}。当前判断只使用港交所公开事实，尚未计入认购倍数和配发结果。`,
     strategy:vc==='buy'
       ?'官方基础条件相对完整，可在核对估值、业务风险和资金占用后考虑小仓申购；认购数据公布后需重新判断。'
       :vc==='caution'
@@ -1164,7 +1164,7 @@ function renderEntry(){
     ?'恢复后查看最新招股结论'
     :hkLive
     ?`<b>${top.name}</b> · <b>${top.verdict}</b>`
-    :`<b>${top.name}</b> · 评分 <b>${top.score}</b> · 暗盘预测 <b>${pct(top.dark[2])}</b>`;
+    :`<b>${top.name}</b> · 结论 <b>${top.verdict}</b> · 暗盘预测 <b>${pct(top.dark[2])}</b>`;
   $('#app').innerHTML=header()+levelPath(['一级：选择市场'])+`
   <div class="doors">
   <div class="door hk-d" onclick="go('#/hk')">
@@ -1507,7 +1507,7 @@ function renderIPO(x){
     <h2>${x.name} 值不值得打？</h2>
     <div class="share-grid">
       <div class="share-item"><span>结论</span><b>${x.verdict}</b></div>
-      <div class="share-item"><span>打新评分</span><b>${x.score}</b></div>
+      <div class="share-item"><span>质量状态</span><b>${x.verdict}</b></div>
       <div class="share-item"><span>${term('中签率')}</span><b>${x.win}</b></div>
       <div class="share-item"><span>${term('暗盘')}</span><b>${pct(x.dark[2])}</b></div>
     </div>
@@ -1524,10 +1524,6 @@ function renderIPO(x){
   </div>
   <div style="margin-top:16px">${rangeBar('暗盘预测',x.dark[0],x.dark[1],x.dark[2])}${rangeBar('首日预测',x.day[0],x.day[1],x.day[2])}</div>
   </div></div>
-
-  <div class="d-sec"><h4>评分拆解</h4><div class="card">${bars(x.bd)}</div></div>
-
-  <div class="d-sec"><h4>申购策略</h4><div class="advice"><b>望潮策略：</b>${x.strategy}</div></div>
 
   <div class="d-sec"><h4>亮点与风险</h4><div class="card">
   <ul class="list pro">${x.pros.map(p=>`<li>${p}</li>`).join('')}</ul>

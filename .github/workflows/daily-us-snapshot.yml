@@ -1,0 +1,35 @@
+name: Daily US market snapshot
+
+on:
+  schedule:
+    # 09:30 China Standard Time on trading days, after the US session has closed.
+    - cron: "30 1 * * 2-6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout public site
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Capture point-in-time signal
+        run: node scripts/pages-capture-us-history.mjs
+      - name: Commit daily history
+        run: |
+          git config user.name "aurumer-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/live-snapshot.json data/us-signal-snapshots.json
+          if git diff --cached --quiet; then
+            echo "No snapshot changes"
+          else
+            git commit -m "capture US market snapshot $(date -u +%F)"
+            git push
+          fi

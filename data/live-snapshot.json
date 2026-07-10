@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-07-10T02:58:34.636Z",
-  "durationMs": 12139,
+  "updatedAt": "2026-07-10T03:18:21.186Z",
+  "durationMs": 15396,
   "sources": [
     {
       "id": "yahoo",
@@ -3941,6 +3941,60 @@
       "value": 60,
       "label": "偏乐观",
       "hint": "VIX 15.84，标普500相对近60日均线 +2.3%——该温度由真实行情计算，不是官方指数"
+    },
+    "strategyBacktest": {
+      "status": "insufficient_history",
+      "releaseReady": false,
+      "tradingDays": 1,
+      "firstSignalDate": "2026-07-10",
+      "lastSignalDate": "2026-07-10",
+      "minimumTradingDays": 60,
+      "holdingDays": [
+        5,
+        20
+      ],
+      "transactionCostBps": 10,
+      "horizons": {
+        "5": {
+          "horizon": 5,
+          "sampleCount": 0,
+          "winRate": null,
+          "return": {
+            "average": null,
+            "median": null,
+            "minimum": null,
+            "maximum": null
+          },
+          "drawdown": {
+            "average": null,
+            "median": null,
+            "minimum": null,
+            "maximum": null
+          },
+          "transactionCostBps": 10,
+          "examples": []
+        },
+        "20": {
+          "horizon": 20,
+          "sampleCount": 0,
+          "winRate": null,
+          "return": {
+            "average": null,
+            "median": null,
+            "minimum": null,
+            "maximum": null
+          },
+          "drawdown": {
+            "average": null,
+            "median": null,
+            "minimum": null,
+            "maximum": null
+          },
+          "transactionCostBps": 10,
+          "examples": []
+        }
+      },
+      "methodology": "每个信号日只使用当日已保存的财务、热度与价格字段；使用未来交易日价格计算持有期收益、胜率和路径最大回撤，并双边扣除交易成本。样本不足时不发布策略结论。"
     }
   },
   "hk": {
@@ -5867,9 +5921,67 @@
     },
     "us": {
       "releaseReady": false,
-      "status": "not_ready",
-      "note": "当前只保存最新一份财务、热度和技术区间，缺少按交易日保存的历史信号快照。用今天的财务条件回测过去会产生前视偏差，因此美股只作为研究筛选，不发布“可赚钱”的策略结论。",
-      "eligibleCount": 16
+      "status": "insufficient_history",
+      "note": "已保存 1 个交易日快照；至少需要 60 个交易日，完成无前视回测后才评估收益、回撤、胜率和交易成本。当前仍不承诺盈利。",
+      "eligibleCount": 16,
+      "candidateReady": false,
+      "snapshotDays": 1,
+      "firstSignalDate": "2026-07-10",
+      "lastSignalDate": "2026-07-10",
+      "backtest": {
+        "status": "insufficient_history",
+        "releaseReady": false,
+        "tradingDays": 1,
+        "firstSignalDate": "2026-07-10",
+        "lastSignalDate": "2026-07-10",
+        "minimumTradingDays": 60,
+        "holdingDays": [
+          5,
+          20
+        ],
+        "transactionCostBps": 10,
+        "horizons": {
+          "5": {
+            "horizon": 5,
+            "sampleCount": 0,
+            "winRate": null,
+            "return": {
+              "average": null,
+              "median": null,
+              "minimum": null,
+              "maximum": null
+            },
+            "drawdown": {
+              "average": null,
+              "median": null,
+              "minimum": null,
+              "maximum": null
+            },
+            "transactionCostBps": 10,
+            "examples": []
+          },
+          "20": {
+            "horizon": 20,
+            "sampleCount": 0,
+            "winRate": null,
+            "return": {
+              "average": null,
+              "median": null,
+              "minimum": null,
+              "maximum": null
+            },
+            "drawdown": {
+              "average": null,
+              "median": null,
+              "minimum": null,
+              "maximum": null
+            },
+            "transactionCostBps": 10,
+            "examples": []
+          }
+        },
+        "methodology": "每个信号日只使用当日已保存的财务、热度与价格字段；使用未来交易日价格计算持有期收益、胜率和路径最大回撤，并双边扣除交易成本。样本不足时不发布策略结论。"
+      }
     }
   }
 }

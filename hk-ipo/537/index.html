@@ -1228,6 +1228,7 @@ function renderEntry(){
     :`<b>${top.name}</b> · 结论 <b>${top.verdict}</b> · 暗盘预测 <b>${pct(top.dark[2])}</b>`;
   const usEligible=qualityStocks.length;
   const usStrategyReady=Boolean(LIVE.strategyHealth?.us?.releaseReady);
+  const usSnapshotDays=Number(LIVE.strategyHealth?.us?.snapshotDays||0);
   $('#app').innerHTML=header()+levelPath(['一级：选择市场'])+`
   <section class="decision-hero">
     <div class="decision-kicker">TODAY'S DECISION</div>
@@ -1237,7 +1238,7 @@ function renderEntry(){
       <div class="decision-metric"><b>${hkUnavailable?'—':buyN}</b><span>可直接申购</span></div>
       <div class="decision-metric"><b>${hkUnavailable?'—':pendingN}</b><span>港股待核验</span></div>
       <div class="decision-metric"><b>${usUnavailable?'—':usEligible}</b><span>美股财务过筛</span></div>
-      <div class="decision-metric"><b>${usStrategyReady?'已验证':'未验证'}</b><span>美股收益策略</span></div>
+      <div class="decision-metric"><b>${usStrategyReady?'已验证':`${usSnapshotDays} 天`}</b><span>${usStrategyReady?'美股收益策略':'已留存美股快照'}</span></div>
     </div>
   </section>
   <div class="section-intro"><div><h3>选择一个市场</h3></div><p>一级页面只保留两个入口，进去后再看逐只结论。</p></div>
@@ -1457,6 +1458,7 @@ function renderUS(){
   const risky=visibleStocks.filter(x=>x.score<50).map(x=>x.t);
   const strategyHealth=LIVE.strategyHealth?.us;
   const strategyReady=Boolean(strategyHealth?.releaseReady);
+  const snapshotDays=Number(strategyHealth?.snapshotDays||0);
   $('#app').innerHTML=`<button class="back" onclick="go('')">‹ 首页</button>
   ${levelPath(['一级：首页','二级：美股热度前十'])}
   <div class="d-head"><h1>🇺🇸 美股投资</h1>
@@ -1469,7 +1471,7 @@ function renderUS(){
     <div class="decision-metrics">
       <div class="decision-metric"><b>${eligibleStocks.length}</b><span>财务过筛</span></div>
       <div class="decision-metric"><b>${Math.min(10,eligibleStocks.length)}</b><span>展示热度前十</span></div>
-      <div class="decision-metric"><b>${strategyReady?'通过':'未通过'}</b><span>收益策略验证</span></div>
+      <div class="decision-metric"><b>${strategyReady?'通过':`${snapshotDays} 天`}</b><span>${strategyReady?'收益策略验证':'已留存交易日快照'}</span></div>
     </div>
   </section>
   <div class="section-intro"><h3>热度前十</h3><p>同时满足至少两项：现金充足、利润质量高、营收增长快。</p></div>

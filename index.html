@@ -941,7 +941,8 @@ function applyLiveData(payload){
   });
 }
 async function loadLiveData(){
-  const sources=['/api/live','./data/live-snapshot.json'];
+  const publicBase=location.hostname.endsWith('.github.io')?'/aurumer/':'/';
+  const sources=['/api/live',`${publicBase}data/live-snapshot.json`];
   let lastError;
   for(const source of sources){
     try{
@@ -1039,7 +1040,8 @@ let usSort='hot';
 let hkFilter='all';
 let guruFilter='all';
 function routeFromPath(pathname){
-  const parts=pathname.split('/').filter(Boolean).map(decodeURIComponent);
+  const normalizedPath=pathname.replace(/^\/aurumer(?=\/|$)/,'');
+  const parts=normalizedPath.split('/').filter(Boolean).map(decodeURIComponent);
   if(parts[0]==='hk-ipo')return parts[1]?`ipo/${parts[1]}`:'hk';
   if(parts[0]==='us-stocks')return 'us';
   if(parts[0]==='stocks'&&parts[1])return `stock/${parts[1].toUpperCase()}`;

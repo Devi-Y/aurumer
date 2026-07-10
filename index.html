@@ -1473,11 +1473,6 @@ function renderIPO(x){
       ${validation?`<div class="t2" style="margin-top:10px">历史滚动验证：暗盘区间覆盖率 ${validation.greyMarket.intervalCoverage.toFixed(1)}%，首日区间覆盖率 ${validation.firstDay.intervalCoverage.toFixed(1)}%。</div>`:''}
     </div></div>`:''}
 
-    <div class="card click research-entry" onclick="go('#/history')">
-      <div><div class="t1">第四级：模型准确性监控</div><div class="t2">只看历史覆盖率、方向准确率和误差，不公开规则或权重。</div></div>
-      <span class="arrow">›</span>
-    </div>
-
     <div class="d-sec"><h4>数据边界</h4><div class="card">
     <ul class="list pro">${x.pros.map(p=>`<li>${p}</li>`).join('')}</ul>
     <div style="height:8px"></div>

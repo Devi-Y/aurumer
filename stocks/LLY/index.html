@@ -1013,19 +1013,22 @@ function rangeBar(title,lo,hi,mid){
   <div class="rb-track"><div class="rb-fill" style="left:${P(lo)};width:${((hi-lo)/sp*100).toFixed(1)}%;background:linear-gradient(90deg,${col}33,${col})"></div>
   <div class="rb-zero" style="left:${P(0)}"></div><div class="rb-mid" style="left:${P(mid)}"></div></div></div>`;
 }
-function bandChart(s){
+function bandChart(s,verified){
   const dmin=s.stop*.93,dmax=s.tp[1]*1.05,sp=dmax-dmin;
   const P=v=>((v-dmin)/sp*100).toFixed(1)+'%';
   const W=(a,b)=>((b-a)/sp*100).toFixed(1)+'%';
+  const labels=verified
+    ?{buy:'买入',stop:'止损',tpEnd:'止盈止',tpStart:'止盈始'}
+    :{buy:'观察价',stop:'风险下沿',tpEnd:'上方压力',tpStart:'压力起点'};
   return `<div class="band-wrap"><div class="band">
   <div class="zone" style="left:0;width:${W(dmin,s.stop)};background:var(--up-soft)"></div>
   <div class="zone" style="left:${P(s.stop)};width:${W(s.stop,s.buy)};background:var(--down-soft)"></div>
   <div class="zone" style="left:${P(s.tp[0])};width:${W(s.tp[0],s.tp[1])};background:var(--amber-soft)"></div>
   <div class="marker" style="left:${P(s.price)}"><div class="m-lab num">现价 ${s.price}</div><div class="m-dot"></div></div>
-  <div class="tick" style="left:${P(s.stop)}"><b class="num">${s.stop}</b>止损</div>
-  <div class="tick" style="left:${P(s.buy)}"><b class="num">≤${s.buy}</b>买入</div>
-  <div class="tick" style="left:${P(s.tp[0])}"><b class="num">${s.tp[0]}</b>止盈始</div>
-  <div class="tick" style="left:${P(s.tp[1])}"><b class="num">${s.tp[1]}</b>止盈止</div>
+  <div class="tick" style="left:${P(s.stop)}"><b class="num">${s.stop}</b>${labels.stop}</div>
+  <div class="tick" style="left:${P(s.buy)}"><b class="num">≤${s.buy}</b>${labels.buy}</div>
+  <div class="tick" style="left:${P(s.tp[0])}"><b class="num">${s.tp[0]}</b>${labels.tpStart}</div>
+  <div class="tick" style="left:${P(s.tp[1])}"><b class="num">${s.tp[1]}</b>${labels.tpEnd}</div>
   </div></div>`;
 }
 function lineChart(data,w,h){
@@ -1357,7 +1360,7 @@ function stockCard(x,i){
     <div class="answer-line"><strong>为什么热</strong><span>${stockHeatReason(x)}</span></div>
     <div class="answer-line"><strong>财务筛选</strong><span>满足 ${x.qualityMatchCount}/3：${qualityCriteriaLabels(x).filter(item=>item.pass).map(item=>item.label).join('；')}</span></div>
     <div class="answer-line"><strong>风险</strong><span>${x.cons[0]}</span></div>
-    <div class="answer-line"><strong>下一步</strong><b>查看性价比、买入价和止盈止损</b></div>
+    <div class="answer-line"><strong>下一步</strong><b>${LIVE.strategyHealth?.us?.releaseReady?'查看性价比、买入价和止盈止损':'查看性价比与价格风险参考'}</b></div>
   </div>
   <div style="margin:8px 0 2px">${sparkSVG(spk,300,40,spc)}</div>
   <div class="row" style="margin-top:10px;justify-content:space-between">
@@ -1569,6 +1572,10 @@ function renderIPO(x){
 function renderStock(x){
   const spk=x.history?.length?x.history:walk(x.seed,60,x.drift,.03);
   const spc=spk[spk.length-1]>=spk[0]?'#C93A2B':'#177E52';
+  const strategyVerified=Boolean(LIVE.strategyHealth?.us?.releaseReady);
+  const finalGuidance=strategyVerified
+    ?x.advice
+    :'美股筛选尚未完成无前视偏差的收益、回撤和交易成本回测；仅用于跟踪基本面和价格位置，不建立买卖仓位结论。';
   detailShell(
   `${levelPath(['一级：首页','二级：美股热度','三级：价格与性价比'])}
   <div class="d-head"><h1>${x.t}<span class="code" style="font-size:15px">${x.n}</span></h1>
@@ -1580,9 +1587,9 @@ function renderStock(x){
     <div class="share-grid">
       <div class="share-item"><span>当前观察</span><b>${stockAction(x)}</b></div>
       <div class="share-item"><span>${term('性价比')}</span><b>${x.score} · ${x.verdict}</b></div>
-      <div class="share-item"><span>${term('买入区间')}</span><b>≤ $${x.buy}</b></div>
-      <div class="share-item"><span>${term('止盈')}</span><b>$${x.tp[0]}-$${x.tp[1]}</b></div>
-      <div class="share-item"><span>${term('止损')}</span><b>$${x.stop}</b></div>
+      <div class="share-item"><span>${strategyVerified?term('买入区间'):'观察区间'}</span><b>≤ $${x.buy}</b></div>
+      <div class="share-item"><span>${strategyVerified?term('止盈'):'上方压力'}</span><b>$${x.tp[0]}-$${x.tp[1]}</b></div>
+      <div class="share-item"><span>${strategyVerified?term('止损'):'风险下沿'}</span><b>$${x.stop}</b></div>
       <div class="share-item"><span>当前价格</span><b>$${x.price}</b></div>
     </div>
     <div class="share-risk"><b>最大风险：</b>${x.cons[0]}</div>
@@ -1591,11 +1598,11 @@ function renderStock(x){
   <div style="margin:-4px 0 14px">${sparkSVG(spk,600,80,spc)}</div>
 
   <div class="d-sec"><h4>价格参考</h4><div class="card">
-  ${bandChart(x)}
+  ${bandChart(x,strategyVerified)}
   <div class="stats g3" style="margin-top:6px">
-    <div class="stat"><b class="num">≤ $${x.buy}</b><span>建议买入价</span></div>
-    <div class="stat"><b class="num dnc">$${x.stop}</b><span>止损位</span></div>
-    <div class="stat"><b class="num upc">$${x.tp[0]} – ${x.tp[1]}</b><span>止盈区间</span></div>
+    <div class="stat"><b class="num">≤ $${x.buy}</b><span>${strategyVerified?'建议买入价':'观察价格'}</span></div>
+    <div class="stat"><b class="num dnc">$${x.stop}</b><span>${strategyVerified?'止损位':'风险下沿'}</span></div>
+    <div class="stat"><b class="num upc">$${x.tp[0]} – ${x.tp[1]}</b><span>${strategyVerified?'止盈区间':'上方压力'}</span></div>
   </div>
   <p style="font-size:12.5px;color:var(--ink2);margin-top:12px;line-height:1.7">💡 <b style="color:var(--ink)">测算逻辑：</b>${x.atr?`买入、止损和止盈区间已按真实近 20 日日线与 ATR ${x.atr} 重新计算；`:''}${x.logic} 这只是价格风险参考，不是已验证的交易系统。</p>
   </div></div>
@@ -1638,7 +1645,7 @@ function renderStock(x){
   <ul class="list con">${x.cons.map(c=>`<li>${c}</li>`).join('')}</ul>
   </div></div>
 
-  <div class="d-sec"><h4>综合建议</h4><div class="advice"><b>望潮建议：</b>${x.advice}</div></div>`);
+  <div class="d-sec"><h4>${strategyVerified?'综合建议':'研究边界'}</h4><div class="advice"><b>望潮提示：</b>${finalGuidance}</div></div>`);
 }
 function renderInvestor(v){
   const act=a=>a.includes('减')||a.includes('卖')?'rich':a.includes('增')||a.includes('新')||a.includes('买')?'cheap':'tag';

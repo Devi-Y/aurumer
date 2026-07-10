@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-10T14:43:14.785Z",
+  "autoApply": false,
+  "hk": {
+    "sampleCount": 97,
+    "fiveDaySampleCount": 0,
+    "priceAnswersReleased": false
+  },
+  "us": {
+    "status": "collecting_history",
+    "autoApply": false,
+    "snapshotDays": 1,
+    "minimumTradingDays": 60,
+    "minimumSamples": 100,
+    "holdingDays": [
+      5,
+      20
+    ],
+    "transactionCostBps": 10,
+    "candidates": [
+      {
+        "id": "quality_top_10",
+        "name": "财务达标且热度前十",
+        "horizons": {
+          "5": {
+            "sampleCount": 0,
+            "winRate": null,
+            "averageNetReturn": null,
+            "averageMaxDrawdown": null,
+            "worstMaxDrawdown": null,
+            "pricePlanSampleCount": 0,
+            "targetHitRate": null,
+            "stopHitRate": null
+          },
+          "20": {
+            "sampleCount": 0,
+            "winRate": null,
+            "averageNetReturn": null,
+            "averageMaxDrawdown": null,
+            "worstMaxDrawdown": null,
+            "pricePlanSampleCount": 0,
+            "targetHitRate": null,
+            "stopHitRate": null
+          }
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "quality_top_5",
+        "name": "财务达标且热度前五",
+        "horizons": {
+          "5": {
+            "sampleCount": 0,
+            "winRate": null,
+            "averageNetReturn": null,
+            "averageMaxDrawdown": null,
+            "worstMaxDrawdown": null,
+            "pricePlanSampleCount": 0,
+            "targetHitRate": null,
+            "stopHitRate": null
+          },
+          "20": {
+            "sampleCount": 0,
+            "winRate": null,
+            "averageNetReturn": null,
+            "averageMaxDrawdown": null,
+            "worstMaxDrawdown": null,
+            "pricePlanSampleCount": 0,
+            "targetHitRate": null,
+            "stopHitRate": null
+          }
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "quality_top_3",
+        "name": "财务达标且热度前三",
+        "horizons": {
+          "5": {
+            "sampleCount": 0,
+            "winRate": null,
+            "averageNetReturn": null,
+            "averageMaxDrawdown": null,
+            "worstMaxDrawdown": null,
+            "pricePlanSampleCount": 0,
+            "targetHitRate": null,
+            "stopHitRate": null
+          },
+          "20": {
+            "sampleCount": 0,
+            "winRate": null,
+            "averageNetReturn": null,
+            "averageMaxDrawdown": null,
+            "worstMaxDrawdown": null,
+            "pricePlanSampleCount": 0,
+            "targetHitRate": null,
+            "stopHitRate": null
+          }
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "high_quality_top_10",
+        "name": "三项财务条件均满足且热度前十",
+        "horizons": {
+          "5": {
+            "sampleCount": 0,
+            "winRate": null,
+            "averageNetReturn": null,
+            "averageMaxDrawdown": null,
+            "worstMaxDrawdown": null,
+            "pricePlanSampleCount": 0,
+            "targetHitRate": null,
+            "stopHitRate": null
+          },
+          "20": {
+            "sampleCount": 0,
+            "winRate": null,
+            "averageNetReturn": null,
+            "averageMaxDrawdown": null,
+            "worstMaxDrawdown": null,
+            "pricePlanSampleCount": 0,
+            "targetHitRate": null,
+            "stopHitRate": null
+          }
+        },
+        "eligibleForReview": false
+      }
+    ],
+    "candidateForReview": null,
+    "note": "持续收集交易日快照，样本满足门槛后才生成待复核候选。"
+  }
+}

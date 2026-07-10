@@ -4,10 +4,12 @@ import { resolve } from "node:path";
 import {
   appendUSSnapshot,
   readUSSnapshotHistory,
+  writeStrategyAudit,
 } from "../lib/us-snapshot-history.mjs";
 
 const livePath = resolve("data/live-snapshot.json");
 const historyPath = resolve("data/us-signal-snapshots.json");
+const strategyAuditPath = resolve("data/strategy-audit.json");
 const live = JSON.parse(await readFile(livePath, "utf8"));
 const symbols = (live.us?.stocks || []).map((stock) => stock.symbol);
 
@@ -134,6 +136,11 @@ payload.strategyHealth = {
   },
 };
 payload.us.strategyBacktest = history.health.backtest;
+await writeStrategyAudit(strategyAuditPath, {
+  history: history.history,
+  hkBacktest: live.hk?.backtest,
+  generatedAt: payload.updatedAt,
+});
 payload.sources = (live.sources || []).map((source) =>
   source.id === "yahoo" ? { ...source, ok: true, error: null } : source,
 );

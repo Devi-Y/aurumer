@@ -1,0 +1,25 @@
+{
+  "name": "wangchao-market",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "audit:release": "node scripts/audit-release.mjs",
+    "audit:responsive": "node scripts/audit-responsive.mjs",
+    "audit:strategies": "node scripts/audit-strategies.mjs",
+    "audit:candidates": "node scripts/audit-strategy-candidates.mjs",
+    "check:public": "node scripts/check-public.mjs",
+    "check:data": "node scripts/check-live-data.mjs",
+    "capture:us": "node scripts/capture-us-snapshot.mjs",
+    "audit:us-history": "node scripts/audit-us-history.mjs",
+    "check:pages": "BASE_URL=https://devi-y.github.io/aurumer/ USE_HASH_ROUTES=1 node scripts/audit-responsive.mjs",
+    "publish:pages": "node scripts/publish-pages.mjs",
+    "release:pages": "node scripts/release-pages.mjs",
+    "snapshot": "node scripts/write-live-snapshot.mjs"
+  },
+  "dependencies": {
+    "opencc-js": "^1.4.0",
+    "pdf-parse": "^1.1.1"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-07-10T08:53:34.135Z",
-  "durationMs": 12684,
+  "updatedAt": "2026-07-10T14:43:14.785Z",
+  "durationMs": 10683,
   "sources": [
     {
       "id": "yahoo",
@@ -36,17 +36,16 @@
     "stocks": [
       {
         "symbol": "NVDA",
-        "price": 202.8,
-        "changePercent": -0.66,
-        "weeklyChange": 2.63,
-        "volumeRatio": 0.88,
-        "heatScore": 40,
+        "price": 207.3,
+        "changePercent": 2.21,
+        "weeklyChange": 6.38,
+        "volumeRatio": 0.28,
+        "heatScore": 36,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:00.000Z",
+        "asOf": "2026-07-10T14:43:04.000Z",
         "history": [
-          196.5,
           198.9,
           198.4,
           201.7,
@@ -105,31 +104,31 @@
           195.6,
           196.9,
           204.1,
-          202.8
+          202.8,
+          207.3
         ],
         "technicalPlan": {
-          "atr": 6.39,
+          "atr": 6.4,
           "buy": 192,
           "stop": 184.7,
           "tp": [
-            215.6,
-            223.2
+            220,
+            227.7
           ]
         }
       },
       {
         "symbol": "MSFT",
-        "price": 384.4,
-        "changePercent": 0.27,
-        "weeklyChange": 0.02,
-        "volumeRatio": 0.64,
-        "heatScore": 24,
+        "price": 382.5,
+        "changePercent": -0.49,
+        "weeklyChange": -2.06,
+        "volumeRatio": 0.14,
+        "heatScore": 12,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:43:04.000Z",
         "history": [
-          393.1,
           411.2,
           420.3,
           422.8,
@@ -188,31 +187,31 @@
           386.7,
           388.8,
           383.3,
-          384.4
+          384.4,
+          382.5
         ],
         "technicalPlan": {
-          "atr": 12.35,
-          "buy": 353.5,
-          "stop": 339.3,
+          "atr": 12.17,
+          "buy": 359.7,
+          "stop": 345.7,
           "tp": [
-            409.1,
-            423.9
+            406.8,
+            421.4
           ]
         }
       },
       {
         "symbol": "AAPL",
-        "price": 316.2,
-        "changePercent": 0.9,
-        "weeklyChange": 7.42,
-        "volumeRatio": 0.72,
-        "heatScore": 46,
+        "price": 312.7,
+        "changePercent": -1.12,
+        "weeklyChange": 1.32,
+        "volumeRatio": 0.12,
+        "heatScore": 14,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:00.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          258.8,
           266.4,
           263.4,
           270.2,
@@ -271,31 +270,31 @@
           312.7,
           310.7,
           313.4,
-          316.2
+          316.2,
+          312.7
         ],
         "technicalPlan": {
-          "atr": 8.49,
-          "buy": 276.7,
-          "stop": 267,
+          "atr": 8.32,
+          "buy": 277.1,
+          "stop": 267.6,
           "tp": [
-            333.2,
-            343.4
+            329.3,
+            339.3
           ]
         }
       },
       {
         "symbol": "GOOGL",
-        "price": 358.9,
-        "changePercent": -0.84,
-        "weeklyChange": -0.64,
-        "volumeRatio": 0.68,
-        "heatScore": 30,
+        "price": 354.4,
+        "changePercent": -1.25,
+        "weeklyChange": -1.53,
+        "volumeRatio": 0.14,
+        "heatScore": 15,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          332.9,
           337.1,
           336,
           341.7,
@@ -354,31 +353,31 @@
           366.5,
           367,
           361.9,
-          358.9
+          358.9,
+          354.4
         ],
         "technicalPlan": {
-          "atr": 11.74,
-          "buy": 334.3,
-          "stop": 320.8,
+          "atr": 11.37,
+          "buy": 334.2,
+          "stop": 321.1,
           "tp": [
-            382.4,
-            396.4
+            377.2,
+            390.8
           ]
         }
       },
       {
         "symbol": "AMZN",
-        "price": 247,
-        "changePercent": 1.4,
-        "weeklyChange": 2.21,
-        "volumeRatio": 0.61,
-        "heatScore": 34,
+        "price": 245.2,
+        "changePercent": -0.73,
+        "weeklyChange": 1.05,
+        "volumeRatio": 0.13,
+        "heatScore": 11,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          249,
           248.5,
           249.7,
           250.6,
@@ -437,31 +436,31 @@
           244.2,
           246,
           243.6,
-          247
+          247,
+          245.2
         ],
         "technicalPlan": {
-          "atr": 8.2,
-          "buy": 228.4,
-          "stop": 219,
+          "atr": 8.19,
+          "buy": 229,
+          "stop": 219.6,
           "tp": [
-            263.4,
-            273.3
+            261.6,
+            271.4
           ]
         }
       },
       {
         "symbol": "META",
-        "price": 631.5,
-        "changePercent": 4.7,
-        "weeklyChange": 3.03,
-        "volumeRatio": 1.41,
-        "heatScore": 83,
+        "price": 667.9,
+        "changePercent": 5.76,
+        "weeklyChange": 14.57,
+        "volumeRatio": 0.92,
+        "heatScore": 96,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          662.5,
           671.6,
           676.9,
           688.5,
@@ -520,31 +519,31 @@
           600.3,
           615.6,
           603.1,
-          631.5
+          631.5,
+          667.9
         ],
         "technicalPlan": {
-          "atr": 24.15,
-          "buy": 548.6,
-          "stop": 520.9,
+          "atr": 25.8,
+          "buy": 549.4,
+          "stop": 519.8,
           "tp": [
-            679.8,
-            708.8
+            719.4,
+            750.4
           ]
         }
       },
       {
         "symbol": "TSLA",
-        "price": 406.6,
-        "changePercent": 3.17,
-        "weeklyChange": -4.41,
-        "volumeRatio": 0.78,
-        "heatScore": 55,
+        "price": 407.6,
+        "changePercent": 0.25,
+        "weeklyChange": 3.58,
+        "volumeRatio": 0.22,
+        "heatScore": 16,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:00.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          364.2,
           392,
           388.9,
           400.6,
@@ -603,31 +602,31 @@
           419.8,
           402.9,
           394.1,
-          406.5
+          406.5,
+          407.5
         ],
         "technicalPlan": {
-          "atr": 19.07,
-          "buy": 375.3,
-          "stop": 353.3,
+          "atr": 18.59,
+          "buy": 375.1,
+          "stop": 353.7,
           "tp": [
             444.7,
-            467.6
+            467
           ]
         }
       },
       {
         "symbol": "AMD",
-        "price": 546.7,
-        "changePercent": 5.66,
-        "weeklyChange": 1.08,
-        "volumeRatio": 0.86,
-        "heatScore": 66,
+        "price": 549,
+        "changePercent": 0.41,
+        "weeklyChange": 6.02,
+        "volumeRatio": 0.21,
+        "heatScore": 22,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:43:02.000Z",
         "history": [
-          255.1,
           258.1,
           278.3,
           278.4,
@@ -686,31 +685,31 @@
           552,
           516.1,
           517.4,
-          546.7
+          546.7,
+          549
         ],
         "technicalPlan": {
-          "atr": 38.21,
-          "buy": 508.7,
-          "stop": 464.8,
+          "atr": 37.05,
+          "buy": 508.3,
+          "stop": 465.7,
           "tp": [
             623.1,
-            669
+            667.5
           ]
         }
       },
       {
         "symbol": "AVGO",
-        "price": 401.1,
-        "changePercent": 3.2,
-        "weeklyChange": 8.6,
-        "volumeRatio": 0.91,
-        "heatScore": 68,
+        "price": 398.5,
+        "changePercent": -0.65,
+        "weeklyChange": 10.55,
+        "volumeRatio": 0.12,
+        "heatScore": 29,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:43:02.000Z",
         "history": [
-          380.8,
           396.7,
           398.5,
           406.5,
@@ -769,31 +768,31 @@
           373.9,
           370.8,
           388.7,
-          401.1
+          401.1,
+          398.5
         ],
         "technicalPlan": {
-          "atr": 16.56,
-          "buy": 362.2,
-          "stop": 343.2,
+          "atr": 15.91,
+          "buy": 362,
+          "stop": 343.7,
           "tp": [
-            434.2,
-            454.1
+            430.3,
+            449.4
           ]
         }
       },
       {
         "symbol": "PLTR",
-        "price": 129,
-        "changePercent": -2.41,
-        "weeklyChange": 2.63,
-        "volumeRatio": 0.78,
-        "heatScore": 47,
+        "price": 126.4,
+        "changePercent": -2.07,
+        "weeklyChange": -2.27,
+        "volumeRatio": 0.21,
+        "heatScore": 24,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:00.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          135.7,
           142.1,
           142.8,
           146.4,
@@ -852,31 +851,31 @@
           132.5,
           134.4,
           132.2,
-          129
+          129,
+          126.4
         ],
         "technicalPlan": {
-          "atr": 6.66,
-          "buy": 108.7,
-          "stop": 101,
+          "atr": 6.77,
+          "buy": 110.8,
+          "stop": 103.1,
           "tp": [
-            142.4,
-            150.4
+            139.9,
+            148
           ]
         }
       },
       {
         "symbol": "SMCI",
-        "price": 28.24,
-        "changePercent": 0.25,
-        "weeklyChange": 2.13,
-        "volumeRatio": 0.45,
-        "heatScore": 21,
+        "price": 28.54,
+        "changePercent": 1.06,
+        "weeklyChange": 4.85,
+        "volumeRatio": 0.12,
+        "heatScore": 20,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:00.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          27.2,
           27.29,
           28.4,
           28.56,
@@ -935,31 +934,31 @@
           27.19,
           26.25,
           28.17,
-          28.24
+          28.24,
+          28.54
         ],
         "technicalPlan": {
-          "atr": 2.38,
-          "buy": 26.24,
-          "stop": 23.51,
+          "atr": 2.26,
+          "buy": 26.2,
+          "stop": 23.61,
           "tp": [
-            33,
-            35.85
+            33.05,
+            35.76
           ]
         }
       },
       {
         "symbol": "ARM",
-        "price": 327.9,
-        "changePercent": 9.2,
-        "weeklyChange": -2.84,
-        "volumeRatio": 0.67,
-        "heatScore": 84,
+        "price": 320.8,
+        "changePercent": -2.17,
+        "weeklyChange": 1.74,
+        "volumeRatio": 0.09,
+        "heatScore": 20,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:42:53.000Z",
         "history": [
-          161.2,
           159.3,
           162.3,
           166.7,
@@ -1018,31 +1017,31 @@
           322.2,
           300.4,
           300.2,
-          327.9
+          327.9,
+          320.8
         ],
         "technicalPlan": {
-          "atr": 35.12,
-          "buy": 302.7,
-          "stop": 262.4,
+          "atr": 33.69,
+          "buy": 302.2,
+          "stop": 263.5,
           "tp": [
-            398.1,
-            440.3
+            388.1,
+            428.6
           ]
         }
       },
       {
         "symbol": "TSM",
-        "price": 437,
-        "changePercent": 0,
-        "weeklyChange": -1.64,
-        "volumeRatio": 0.76,
-        "heatScore": 30,
+        "price": 434,
+        "changePercent": -0.68,
+        "weeklyChange": -0.04,
+        "volumeRatio": 0.18,
+        "heatScore": 10,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:02.000Z",
+        "asOf": "2026-07-10T14:43:01.000Z",
         "history": [
-          379.9,
           375.1,
           363.4,
           370.5,
@@ -1101,31 +1100,31 @@
           451.8,
           432.6,
           437,
-          437
+          437,
+          434
         ],
         "technicalPlan": {
-          "atr": 20.75,
-          "buy": 425.5,
-          "stop": 402.6,
+          "atr": 20.6,
+          "buy": 422.7,
+          "stop": 402.7,
           "tp": [
-            478.5,
-            503.4
+            475.2,
+            499.9
           ]
         }
       },
       {
         "symbol": "ASML",
-        "price": 1804.3,
-        "changePercent": 2.01,
-        "weeklyChange": -2.1,
-        "volumeRatio": 0.67,
-        "heatScore": 40,
+        "price": 1794,
+        "changePercent": -0.57,
+        "weeklyChange": 1.39,
+        "volumeRatio": 0.17,
+        "heatScore": 12,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:42:54.000Z",
         "history": [
-          1518.3,
           1481.8,
           1410.8,
           1459.8,
@@ -1184,31 +1183,31 @@
           1825.1,
           1747.3,
           1768.7,
-          1804.3
+          1804.3,
+          1794
         ],
         "technicalPlan": {
-          "atr": 99.35,
-          "buy": 1749.6,
-          "stop": 1637.8,
+          "atr": 92.41,
+          "buy": 1743.2,
+          "stop": 1643.4,
           "tp": [
-            2002.9,
-            2122.2
+            1978.8,
+            2089.7
           ]
         }
       },
       {
         "symbol": "COIN",
-        "price": 158.4,
-        "changePercent": -0.58,
-        "weeklyChange": -0.5,
-        "volumeRatio": 0.59,
+        "price": 160.4,
+        "changePercent": 1.26,
+        "weeklyChange": -3.05,
+        "volumeRatio": 0.34,
         "heatScore": 25,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:00.000Z",
+        "asOf": "2026-07-10T14:43:01.000Z",
         "history": [
-          184.4,
           195.9,
           199.8,
           206.3,
@@ -1267,31 +1266,31 @@
           168.9,
           163.5,
           159.4,
-          158.4
+          158.4,
+          160.4
         ],
         "technicalPlan": {
-          "atr": 10.29,
+          "atr": 10.3,
           "buy": 142.8,
-          "stop": 131,
+          "stop": 130.9,
           "tp": [
-            179,
-            191.4
+            181,
+            193.4
           ]
         }
       },
       {
         "symbol": "MSTR",
-        "price": 93.89,
-        "changePercent": 0.02,
-        "weeklyChange": 0.54,
-        "volumeRatio": 0.49,
-        "heatScore": 18,
+        "price": 95.45,
+        "changePercent": 1.66,
+        "weeklyChange": -5.28,
+        "volumeRatio": 0.23,
+        "heatScore": 29,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          137.4,
           143.5,
           148.9,
           166.5,
@@ -1350,31 +1349,31 @@
           100.8,
           97.36,
           93.87,
-          93.89
+          93.89,
+          95.45
         ],
         "technicalPlan": {
-          "atr": 9.27,
-          "buy": 85.05,
-          "stop": 74.4,
+          "atr": 9.18,
+          "buy": 85.02,
+          "stop": 74.47,
           "tp": [
-            112.4,
-            123.5
+            113.8,
+            124.8
           ]
         }
       },
       {
         "symbol": "CRWD",
-        "price": 198.4,
-        "changePercent": 3.81,
-        "weeklyChange": 2.7,
-        "volumeRatio": 0.53,
-        "heatScore": 47,
+        "price": 187.6,
+        "changePercent": -5.44,
+        "weeklyChange": -3.28,
+        "volumeRatio": 0.13,
+        "heatScore": 44,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:43:05.000Z",
         "history": [
-          99.62,
           102.8,
           104.6,
           106,
@@ -1433,31 +1432,31 @@
           199.4,
           194.6,
           191.1,
-          198.4
+          198.4,
+          187.6
         ],
         "technicalPlan": {
-          "atr": 9.13,
-          "buy": 170.7,
-          "stop": 160.2,
+          "atr": 8.97,
+          "buy": 171.5,
+          "stop": 161.2,
           "tp": [
-            216.7,
-            227.6
+            205.6,
+            216.3
           ]
         }
       },
       {
         "symbol": "NOW",
-        "price": 108.8,
-        "changePercent": 0.98,
-        "weeklyChange": 2.87,
-        "volumeRatio": 0.58,
-        "heatScore": 32,
+        "price": 106.3,
+        "changePercent": -2.34,
+        "weeklyChange": -0.03,
+        "volumeRatio": 0.16,
+        "heatScore": 20,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:03.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          87.79,
           94.19,
           96.44,
           96.66,
@@ -1516,31 +1515,31 @@
           107.9,
           110.7,
           107.8,
-          108.8
+          108.8,
+          106.3
         ],
         "technicalPlan": {
-          "atr": 5.48,
-          "buy": 91.31,
-          "stop": 85.01,
+          "atr": 5.53,
+          "buy": 91.94,
+          "stop": 85.57,
           "tp": [
-            119.8,
-            126.4
+            117.4,
+            124
           ]
         }
       },
       {
         "symbol": "V",
-        "price": 348.2,
-        "changePercent": 0.19,
-        "weeklyChange": -0.82,
-        "volumeRatio": 0.69,
-        "heatScore": 27,
+        "price": 346,
+        "changePercent": -0.63,
+        "weeklyChange": -4.45,
+        "volumeRatio": 0.1,
+        "heatScore": 16,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:03.000Z",
+        "asOf": "2026-07-10T14:42:54.000Z",
         "history": [
-          311.4,
           315.9,
           315.1,
           317,
@@ -1599,31 +1598,31 @@
           357.3,
           352.2,
           347.5,
-          348.2
+          348.2,
+          346
         ],
         "technicalPlan": {
           "atr": 8.01,
-          "buy": 332.9,
-          "stop": 323.7,
+          "buy": 334.2,
+          "stop": 325,
           "tp": [
-            364.2,
-            373.8
+            362,
+            371.6
           ]
         }
       },
       {
         "symbol": "MA",
-        "price": 523.2,
-        "changePercent": 0.64,
-        "weeklyChange": 0.15,
-        "volumeRatio": 0.68,
-        "heatScore": 28,
+        "price": 521.5,
+        "changePercent": -0.32,
+        "weeklyChange": -3.31,
+        "volumeRatio": 0.09,
+        "heatScore": 12,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:03.000Z",
+        "asOf": "2026-07-10T14:42:54.000Z",
         "history": [
-          513.2,
           520,
           518.5,
           521.3,
@@ -1682,31 +1681,31 @@
           533.1,
           531.6,
           519.9,
-          523.2
+          523.2,
+          521.5
         ],
         "technicalPlan": {
-          "atr": 12.11,
+          "atr": 12.2,
           "buy": 492.8,
-          "stop": 478.9,
+          "stop": 478.8,
           "tp": [
-            547.4,
-            562
+            545.9,
+            560.6
           ]
         }
       },
       {
         "symbol": "NFLX",
-        "price": 75.47,
-        "changePercent": -0.16,
-        "weeklyChange": 1.73,
-        "volumeRatio": 0.73,
-        "heatScore": 30,
+        "price": 73.11,
+        "changePercent": -3.13,
+        "weeklyChange": -5.85,
+        "volumeRatio": 0.3,
+        "heatScore": 41,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:00.000Z",
+        "asOf": "2026-07-10T14:43:04.000Z",
         "history": [
-          106.3,
           107.7,
           107.8,
           97.31,
@@ -1765,31 +1764,31 @@
           76.02,
           76.18,
           75.59,
-          75.47
+          75.47,
+          73.11
         ],
         "technicalPlan": {
-          "atr": 2.6,
-          "buy": 71.77,
-          "stop": 68.78,
+          "atr": 2.65,
+          "buy": 71.65,
+          "stop": 68.88,
           "tp": [
-            80.68,
-            83.8
+            78.41,
+            81.59
           ]
         }
       },
       {
         "symbol": "ORCL",
-        "price": 144.2,
-        "changePercent": 2.65,
-        "weeklyChange": 1.21,
-        "volumeRatio": 1.01,
-        "heatScore": 54,
+        "price": 140.1,
+        "changePercent": -2.82,
+        "weeklyChange": -0.09,
+        "volumeRatio": 0.26,
+        "heatScore": 26,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:04:44.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          163,
           169.8,
           178.3,
           175.1,
@@ -1848,31 +1847,31 @@
           143.8,
           141.6,
           140.5,
-          144.2
+          144.2,
+          140.1
         ],
         "technicalPlan": {
-          "atr": 8.81,
-          "buy": 139.4,
-          "stop": 130.5,
+          "atr": 7.78,
+          "buy": 135.9,
+          "stop": 131.3,
           "tp": [
-            161.8,
-            172.4
+            155.7,
+            165
           ]
         }
       },
       {
         "symbol": "CRM",
-        "price": 162.5,
-        "changePercent": -2.45,
-        "weeklyChange": -0.45,
-        "volumeRatio": 0.82,
-        "heatScore": 44,
+        "price": 162.9,
+        "changePercent": 0.22,
+        "weeklyChange": -1.96,
+        "volumeRatio": 0.11,
+        "heatScore": 9,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:02.000Z",
+        "asOf": "2026-07-10T14:42:52.000Z",
         "history": [
-          171.3,
           177.6,
           181.2,
           182.1,
@@ -1931,31 +1930,31 @@
           165.6,
           169.5,
           166.6,
-          162.5
+          162.5,
+          162.9
         ],
         "technicalPlan": {
-          "atr": 6.26,
-          "buy": 151,
-          "stop": 143.8,
+          "atr": 6.06,
+          "buy": 153.6,
+          "stop": 146.6,
           "tp": [
             175,
-            182.5
+            182.2
           ]
         }
       },
       {
         "symbol": "SNOW",
-        "price": 267.5,
-        "changePercent": 2.37,
-        "weeklyChange": 2.41,
-        "volumeRatio": 0.53,
-        "heatScore": 38,
+        "price": 259.8,
+        "changePercent": -2.89,
+        "weeklyChange": -0.15,
+        "volumeRatio": 0.15,
+        "heatScore": 23,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:03.000Z",
+        "asOf": "2026-07-10T14:42:54.000Z",
         "history": [
-          135.5,
           144.5,
           143.6,
           144,
@@ -2014,31 +2013,31 @@
           262.1,
           262.7,
           261.3,
-          267.5
+          267.5,
+          259.8
         ],
         "technicalPlan": {
-          "atr": 12.56,
-          "buy": 221.9,
-          "stop": 207.4,
+          "atr": 12.86,
+          "buy": 227,
+          "stop": 212.2,
           "tp": [
-            292.6,
-            307.7
+            285.5,
+            300.9
           ]
         }
       },
       {
         "symbol": "SHOP",
-        "price": 123.2,
-        "changePercent": 3.31,
-        "weeklyChange": 1.27,
-        "volumeRatio": 0.73,
-        "heatScore": 48,
+        "price": 124.2,
+        "changePercent": 0.83,
+        "weeklyChange": 3.96,
+        "volumeRatio": 0.28,
+        "heatScore": 23,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:00.000Z",
+        "asOf": "2026-07-10T14:43:02.000Z",
         "history": [
-          117.6,
           127.4,
           126.9,
           131.1,
@@ -2097,31 +2096,31 @@
           120.1,
           121.9,
           119.2,
-          123.2
+          123.2,
+          124.2
         ],
         "technicalPlan": {
-          "atr": 5.56,
-          "buy": 113.3,
-          "stop": 106.9,
+          "atr": 5.66,
+          "buy": 114,
+          "stop": 107.5,
           "tp": [
-            134.3,
-            141
+            135.5,
+            142.3
           ]
         }
       },
       {
         "symbol": "UBER",
-        "price": 74.35,
-        "changePercent": 1.02,
-        "weeklyChange": 2.33,
-        "volumeRatio": 0.44,
-        "heatScore": 26,
+        "price": 75.57,
+        "changePercent": 1.64,
+        "weeklyChange": 1.53,
+        "volumeRatio": 0.13,
+        "heatScore": 18,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:03.000Z",
+        "asOf": "2026-07-10T14:43:02.000Z",
         "history": [
-          72.91,
           77.28,
           76.48,
           77.12,
@@ -2180,31 +2179,31 @@
           72.42,
           74.33,
           73.6,
-          74.35
+          74.35,
+          75.57
         ],
         "technicalPlan": {
-          "atr": 2.77,
-          "buy": 72.63,
-          "stop": 69.44,
+          "atr": 2.74,
+          "buy": 72.62,
+          "stop": 69.47,
           "tp": [
-            79.89,
-            83.21
+            81.05,
+            84.34
           ]
         }
       },
       {
         "symbol": "JPM",
-        "price": 335.5,
-        "changePercent": 1.47,
-        "weeklyChange": 0.42,
-        "volumeRatio": 1.45,
-        "heatScore": 60,
+        "price": 337.2,
+        "changePercent": 0.52,
+        "weeklyChange": 0.82,
+        "volumeRatio": 0.08,
+        "heatScore": 8,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:02.000Z",
+        "asOf": "2026-07-10T14:43:03.000Z",
         "history": [
-          311.1,
           305.9,
           310,
           310.3,
@@ -2263,31 +2262,31 @@
           337.7,
           339.2,
           330.6,
-          335.5
+          335.5,
+          337.2
         ],
         "technicalPlan": {
-          "atr": 7.7,
+          "atr": 7.55,
           "buy": 327.7,
-          "stop": 318.9,
+          "stop": 319,
           "tp": [
-            350.9,
-            360.1
+            352.3,
+            361.4
           ]
         }
       },
       {
         "symbol": "BRK.B",
-        "price": 495.4,
-        "changePercent": 0.13,
-        "weeklyChange": -0.86,
-        "volumeRatio": 0.64,
-        "heatScore": 25,
+        "price": 491.8,
+        "changePercent": -0.74,
+        "weeklyChange": -3.15,
+        "volumeRatio": 0.11,
+        "heatScore": 15,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:02.000Z",
+        "asOf": "2026-07-10T14:43:00.000Z",
         "history": [
-          477.5,
           474.1,
           475.1,
           474.6,
@@ -2346,31 +2345,31 @@
           506.6,
           504,
           494.8,
-          495.5
+          495.5,
+          491.8
         ],
         "technicalPlan": {
-          "atr": 6.97,
-          "buy": 488.9,
-          "stop": 480.9,
+          "atr": 7.01,
+          "buy": 487.9,
+          "stop": 483.7,
           "tp": [
-            509.4,
-            517.8
+            505.8,
+            514.2
           ]
         }
       },
       {
         "symbol": "LLY",
-        "price": 1217,
-        "changePercent": 0.09,
-        "weeklyChange": 2.12,
-        "volumeRatio": 0.64,
-        "heatScore": 27,
+        "price": 1189,
+        "changePercent": -2.3,
+        "weeklyChange": -2.05,
+        "volumeRatio": 0.17,
+        "heatScore": 24,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:01:54.000Z",
+        "asOf": "2026-07-10T14:42:54.000Z",
         "history": [
-          922.5,
           905,
           904,
           927,
@@ -2429,31 +2428,31 @@
           1200.1,
           1235.6,
           1215.8,
-          1216.9
+          1216.9,
+          1189
         ],
         "technicalPlan": {
-          "atr": 38.4,
-          "buy": 1127.4,
-          "stop": 1083.3,
+          "atr": 38.1,
+          "buy": 1141.3,
+          "stop": 1097.5,
           "tp": [
-            1293.8,
-            1339.8
+            1265.2,
+            1310.9
           ]
         }
       },
       {
         "symbol": "COST",
-        "price": 913,
-        "changePercent": -4.21,
-        "weeklyChange": -1.27,
-        "volumeRatio": 1.79,
-        "heatScore": 90,
+        "price": 910.4,
+        "changePercent": -0.28,
+        "weeklyChange": -4.34,
+        "volumeRatio": 0.2,
+        "heatScore": 17,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-07-09T20:00:01.000Z",
+        "asOf": "2026-07-10T14:43:02.000Z",
         "history": [
-          974.8,
           984.8,
           987.2,
           999.9,
@@ -2512,15 +2511,16 @@
           950.3,
           947.5,
           953.1,
-          913
+          913,
+          910.4
         ],
         "technicalPlan": {
-          "atr": 20.38,
-          "buy": 901.8,
-          "stop": 891.4,
+          "atr": 20,
+          "buy": 899.4,
+          "stop": 891.2,
           "tp": [
-            953.7,
-            978.2
+            950.4,
+            974.4
           ]
         }
       }
@@ -2539,10 +2539,10 @@
         "shortTermInvestments": 51951000,
         "liquidAssets": 62556000,
         "netIncome": 120067000,
-        "marketCap": 4879305640000,
-        "pe": 40.6,
+        "marketCap": 5015450000000,
+        "pe": 41.8,
         "targetPrice": 294,
-        "targetUpside": 45,
+        "targetUpside": 41.8,
         "revenueHistory": [
           215938000,
           130497000,
@@ -2557,8 +2557,8 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 69,
-        "finalScore": 91,
+        "valueScore": 66,
+        "finalScore": 90,
         "qualityCriteria": {
           "cashRich": true,
           "highProfit": true,
@@ -2586,10 +2586,10 @@
         "shortTermInvestments": 64323000,
         "liquidAssets": 94565000,
         "netIncome": 101832000,
-        "marketCap": 2880375556476,
-        "pe": 28.3,
+        "marketCap": 2841301989933,
+        "pe": 27.9,
         "targetPrice": 550,
-        "targetUpside": 43.1,
+        "targetUpside": 43.8,
         "revenueHistory": [
           281724000,
           245122000,
@@ -2604,8 +2604,8 @@
         ],
         "growthScore": 71,
         "profitScore": 99,
-        "valueScore": 85,
-        "finalScore": 86,
+        "valueScore": 86,
+        "finalScore": 87,
         "qualityCriteria": {
           "cashRich": true,
           "highProfit": true,
@@ -2633,10 +2633,10 @@
         "shortTermInvestments": 18763000,
         "liquidAssets": 54697000,
         "netIncome": 112010000,
-        "marketCap": 4632409707227,
-        "pe": 41.4,
+        "marketCap": 4592589347640,
+        "pe": 41,
         "targetPrice": 315,
-        "targetUpside": -0.4,
+        "targetUpside": 0.7,
         "revenueHistory": [
           416161000,
           391035000,
@@ -2651,8 +2651,8 @@
         ],
         "growthScore": 59,
         "profitScore": 100,
-        "valueScore": 52,
-        "finalScore": 73,
+        "valueScore": 53,
+        "finalScore": 74,
         "qualityCriteria": {
           "cashRich": true,
           "highProfit": true,
@@ -2680,10 +2680,10 @@
         "shortTermInvestments": 96135000,
         "liquidAssets": 126843000,
         "netIncome": 132170000,
-        "marketCap": 4339951200000,
-        "pe": 32.8,
+        "marketCap": 4294637360000,
+        "pe": 32.5,
         "targetPrice": 435,
-        "targetUpside": 21.2,
+        "targetUpside": 22.7,
         "revenueHistory": [
           402836000,
           350018000,
@@ -2698,7 +2698,7 @@
         ],
         "growthScore": 71,
         "profitScore": 96,
-        "valueScore": 71,
+        "valueScore": 72,
         "finalScore": 81,
         "qualityCriteria": {
           "cashRich": true,
@@ -2727,10 +2727,10 @@
         "shortTermInvestments": 36219000,
         "liquidAssets": 123029000,
         "netIncome": 77670000,
-        "marketCap": 2663447387822,
-        "pe": 34.3,
+        "marketCap": 2638503802462,
+        "pe": 34,
         "targetPrice": 320,
-        "targetUpside": 29.6,
+        "targetUpside": 30.5,
         "revenueHistory": [
           716924000,
           637959000,
@@ -2745,7 +2745,7 @@
         ],
         "growthScore": 67,
         "profitScore": 65,
-        "valueScore": 72,
+        "valueScore": 73,
         "finalScore": 68,
         "qualityCriteria": {
           "cashRich": true,
@@ -2774,10 +2774,10 @@
         "shortTermInvestments": 45719000,
         "liquidAssets": 81592000,
         "netIncome": 60458000,
-        "marketCap": 1633729238454,
-        "pe": 27,
+        "marketCap": 1694702166216,
+        "pe": 28,
         "targetPrice": 825,
-        "targetUpside": 30.6,
+        "targetUpside": 23.5,
         "revenueHistory": [
           200966000,
           164501000,
@@ -2792,8 +2792,8 @@
         ],
         "growthScore": 81,
         "profitScore": 91,
-        "valueScore": 82,
-        "finalScore": 85,
+        "valueScore": 79,
+        "finalScore": 84,
         "qualityCriteria": {
           "cashRich": true,
           "highProfit": true,
@@ -2821,10 +2821,10 @@
         "shortTermInvestments": 27546000,
         "liquidAssets": 44059000,
         "netIncome": 3794000,
-        "marketCap": 1513519162774,
-        "pe": 398.9,
-        "targetPrice": 429.5,
-        "targetUpside": 5.6,
+        "marketCap": 1530532591910,
+        "pe": 403.4,
+        "targetPrice": 426.5,
+        "targetUpside": 4.6,
         "revenueHistory": [
           94827000,
           97690000,
@@ -2868,10 +2868,10 @@
         "shortTermInvestments": 5013000,
         "liquidAssets": 10552000,
         "netIncome": 4335000,
-        "marketCap": 881706856643,
-        "pe": 203.4,
+        "marketCap": 894908525537,
+        "pe": 206.4,
         "targetPrice": 490,
-        "targetUpside": -10.4,
+        "targetUpside": -10.7,
         "revenueHistory": [
           34639000,
           25785000,
@@ -2915,10 +2915,10 @@
         "shortTermInvestments": 0,
         "liquidAssets": 16178000,
         "netIncome": 23126000,
-        "marketCap": 1893041160784,
-        "pe": 81.9,
+        "marketCap": 1895943284705,
+        "pe": 82,
         "targetPrice": 515,
-        "targetUpside": 28.4,
+        "targetUpside": 29.2,
         "revenueHistory": [
           63887000,
           51574000,
@@ -2962,10 +2962,10 @@
         "shortTermInvestments": 5753247,
         "liquidAssets": 7177043,
         "netIncome": 1625033,
-        "marketCap": 312100053006,
-        "pe": 192.1,
+        "marketCap": 302972287653,
+        "pe": 186.4,
         "targetPrice": 200,
-        "targetUpside": 55,
+        "targetUpside": 58.2,
         "revenueHistory": [
           4475446,
           2865507,
@@ -3009,10 +3009,10 @@
         "shortTermInvestments": 0,
         "liquidAssets": 5169911,
         "netIncome": 1048854,
-        "marketCap": 16899859344,
-        "pe": 16.1,
+        "marketCap": 17158469291,
+        "pe": 16.4,
         "targetPrice": 34,
-        "targetUpside": 20.4,
+        "targetUpside": 19.1,
         "revenueHistory": [
           21972042,
           14989251,
@@ -3027,7 +3027,7 @@
         ],
         "growthScore": 100,
         "profitScore": 57,
-        "valueScore": 94,
+        "valueScore": 93,
         "finalScore": 81,
         "qualityCriteria": {
           "cashRich": false,
@@ -3056,10 +3056,10 @@
         "shortTermInvestments": 850000,
         "liquidAssets": 3601000,
         "netIncome": 904000,
-        "marketCap": 345594505297,
-        "pe": 382.3,
+        "marketCap": 341301042355,
+        "pe": 377.5,
         "targetPrice": 280,
-        "targetUpside": -14.6,
+        "targetUpside": -12.7,
         "revenueHistory": [
           4920000,
           4007000,
@@ -3103,10 +3103,10 @@
         "shortTermInvestments": 0,
         "liquidAssets": 88090800,
         "netIncome": 53949600,
-        "marketCap": 2274230535355,
-        "pe": 42.2,
+        "marketCap": 2250943128336,
+        "pe": 41.7,
         "targetPrice": 450,
-        "targetUpside": 3,
+        "targetUpside": 3.7,
         "revenueHistory": [
           121228300,
           88282800,
@@ -3121,7 +3121,7 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 52,
+        "valueScore": 53,
         "finalScore": 86,
         "qualityCriteria": {
           "cashRich": true,
@@ -3150,10 +3150,10 @@
         "shortTermInvestments": 476700,
         "liquidAssets": 15645900,
         "netIncome": 11285800,
-        "marketCap": 686390319599,
-        "pe": 60.8,
+        "marketCap": 691439291010,
+        "pe": 61.3,
         "targetPrice": 1700,
-        "targetUpside": -5.8,
+        "targetUpside": -5.2,
         "revenueHistory": [
           38366200,
           29266400,
@@ -3197,10 +3197,10 @@
         "shortTermInvestments": 309765,
         "liquidAssets": 11929535,
         "netIncome": 1260327,
-        "marketCap": 42527724355,
-        "pe": 33.7,
+        "marketCap": 42261679130,
+        "pe": 33.5,
         "targetPrice": 221.6,
-        "targetUpside": 39.9,
+        "targetUpside": 38.2,
         "revenueHistory": [
           7181325,
           6564028,
@@ -3215,8 +3215,8 @@
         ],
         "growthScore": 63,
         "profitScore": 69,
-        "valueScore": 77,
-        "finalScore": 70,
+        "valueScore": 76,
+        "finalScore": 69,
         "qualityCriteria": {
           "cashRich": false,
           "highProfit": true,
@@ -3244,10 +3244,10 @@
         "shortTermInvestments": 0,
         "liquidAssets": 2303343,
         "netIncome": -3848152,
-        "marketCap": 33933867446,
+        "marketCap": 33475236316,
         "pe": null,
         "targetPrice": 250,
-        "targetUpside": 166.3,
+        "targetUpside": 161.9,
         "revenueHistory": [
           477233,
           463456,
@@ -3291,10 +3291,10 @@
         "shortTermInvestments": 99591,
         "liquidAssets": 5329716,
         "netIncome": -162502,
-        "marketCap": 202877978947,
+        "marketCap": 191157814634,
         "pe": null,
         "targetPrice": 187.5,
-        "targetUpside": -5.5,
+        "targetUpside": -0.1,
         "revenueHistory": [
           4812005,
           3953624,
@@ -3309,8 +3309,8 @@
         ],
         "growthScore": 80,
         "profitScore": 40,
-        "valueScore": 47,
-        "finalScore": 54,
+        "valueScore": 50,
+        "finalScore": 55,
         "qualityCriteria": {
           "cashRich": false,
           "highProfit": false,
@@ -3338,10 +3338,10 @@
         "shortTermInvestments": 2558000,
         "liquidAssets": 6284000,
         "netIncome": 1748000,
-        "marketCap": 114183250000,
-        "pe": 65.3,
+        "marketCap": 109564370000,
+        "pe": 62.7,
         "targetPrice": 135,
-        "targetUpside": 24.1,
+        "targetUpside": 27,
         "revenueHistory": [
           13278000,
           10984000,
@@ -3356,8 +3356,8 @@
         ],
         "growthScore": 79,
         "profitScore": 66,
-        "valueScore": 28,
-        "finalScore": 59,
+        "valueScore": 33,
+        "finalScore": 60,
         "qualityCriteria": {
           "cashRich": false,
           "highProfit": false,
@@ -3385,10 +3385,10 @@
         "shortTermInvestments": 1833000,
         "liquidAssets": 21987000,
         "netIncome": 20058000,
-        "marketCap": 659596908589,
-        "pe": 32.9,
+        "marketCap": 655561691840,
+        "pe": 32.7,
         "targetPrice": 403,
-        "targetUpside": 15.7,
+        "targetUpside": 16.5,
         "revenueHistory": [
           40000000,
           35926000,
@@ -3403,7 +3403,7 @@
         ],
         "growthScore": 66,
         "profitScore": 100,
-        "valueScore": 69,
+        "valueScore": 70,
         "finalScore": 81,
         "qualityCriteria": {
           "cashRich": true,
@@ -3432,10 +3432,10 @@
         "shortTermInvestments": 332000,
         "liquidAssets": 13580000,
         "netIncome": 14968000,
-        "marketCap": 463647374153,
-        "pe": 31,
+        "marketCap": 460815487898,
+        "pe": 30.8,
         "targetPrice": 650,
-        "targetUpside": 24.2,
+        "targetUpside": 24.6,
         "revenueHistory": [
           32791000,
           28167000,
@@ -3479,10 +3479,10 @@
         "shortTermInvestments": 28678,
         "liquidAssets": 9062359,
         "netIncome": 10981201,
-        "marketCap": 319178528422,
-        "pe": 29.1,
+        "marketCap": 307830426389,
+        "pe": 28,
         "targetPrice": 115,
-        "targetUpside": 52.4,
+        "targetUpside": 57.3,
         "revenueHistory": [
           45183036,
           39000966,
@@ -3497,8 +3497,8 @@
         ],
         "growthScore": 72,
         "profitScore": 89,
-        "valueScore": 87,
-        "finalScore": 83,
+        "valueScore": 90,
+        "finalScore": 84,
         "qualityCriteria": {
           "cashRich": false,
           "highProfit": true,
@@ -3526,10 +3526,10 @@
         "shortTermInvestments": 605000,
         "liquidAssets": 31894000,
         "netIncome": 17087000,
-        "marketCap": 420962401636,
-        "pe": 24.6,
+        "marketCap": 403726815360,
+        "pe": 23.6,
         "targetPrice": 246,
-        "targetUpside": 70.6,
+        "targetUpside": 75.6,
         "revenueHistory": [
           67357000,
           57399000,
@@ -3573,10 +3573,10 @@
         "shortTermInvestments": 2238000,
         "liquidAssets": 9565000,
         "netIncome": 7457000,
-        "marketCap": 134070300000,
-        "pe": 18,
+        "marketCap": 133382340000,
+        "pe": 17.9,
         "targetPrice": 242,
-        "targetUpside": 48.9,
+        "targetUpside": 48.6,
         "revenueHistory": [
           41525000,
           37895000,
@@ -3620,10 +3620,10 @@
         "shortTermInvestments": 1201523,
         "liquidAssets": 4029686,
         "netIncome": -1331616,
-        "marketCap": 93193842660,
+        "marketCap": 90053612000,
         "pe": null,
         "targetPrice": 300,
-        "targetUpside": 12.1,
+        "targetUpside": 15.5,
         "revenueHistory": [
           4683946,
           3626396,
@@ -3638,8 +3638,8 @@
         ],
         "growthScore": 91,
         "profitScore": 0,
-        "valueScore": 56,
-        "finalScore": 44,
+        "valueScore": 58,
+        "finalScore": 45,
         "qualityCriteria": {
           "cashRich": false,
           "highProfit": false,
@@ -3667,10 +3667,10 @@
         "shortTermInvestments": 4233000,
         "liquidAssets": 5778000,
         "netIncome": 1231000,
-        "marketCap": 163246272930,
-        "pe": 132.6,
+        "marketCap": 160926771195,
+        "pe": 130.7,
         "targetPrice": 150,
-        "targetUpside": 21.8,
+        "targetUpside": 20.8,
         "revenueHistory": [
           11556000,
           8880000,
@@ -3714,10 +3714,10 @@
         "shortTermInvestments": 528000,
         "liquidAssets": 8264000,
         "netIncome": 10053000,
-        "marketCap": 152131510036,
-        "pe": 15.1,
+        "marketCap": 153809861422,
+        "pe": 15.3,
         "targetPrice": 107,
-        "targetUpside": 43.9,
+        "targetUpside": 41.6,
         "revenueHistory": [
           52017000,
           43978000,
@@ -3761,10 +3761,10 @@
         "shortTermInvestments": 0,
         "liquidAssets": 679764000,
         "netIncome": 57048000,
-        "marketCap": 901592087736,
+        "marketCap": 903383877022,
         "pe": 15.8,
         "targetPrice": 345,
-        "targetUpside": 2.8,
+        "targetUpside": 2.3,
         "revenueHistory": [
           168235000,
           166878000,
@@ -3808,10 +3808,10 @@
         "shortTermInvestments": 321434000,
         "liquidAssets": 373311000,
         "netIncome": 66968000,
-        "marketCap": 1089961819055,
+        "marketCap": 1089152764811,
         "pe": 16.3,
         "targetPrice": 721000,
-        "targetUpside": 145439,
+        "targetUpside": 146504.3,
         "revenueHistory": [
           410522000,
           424232000,
@@ -3855,10 +3855,10 @@
         "shortTermInvestments": 109100,
         "liquidAssets": 7377100,
         "netIncome": 20640000,
-        "marketCap": 1154743347119,
-        "pe": 55.9,
-        "targetPrice": 1282,
-        "targetUpside": 5.3,
+        "marketCap": 1119725823027,
+        "pe": 54.3,
+        "targetPrice": 1291.5,
+        "targetUpside": 8.6,
         "revenueHistory": [
           65179000,
           45043000,
@@ -3873,7 +3873,7 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 35,
+        "valueScore": 38,
         "finalScore": 81,
         "qualityCriteria": {
           "cashRich": false,
@@ -3902,10 +3902,10 @@
         "shortTermInvestments": 1123000,
         "liquidAssets": 15284000,
         "netIncome": 8099000,
-        "marketCap": 405783105660,
-        "pe": 50.1,
+        "marketCap": 403732016192,
+        "pe": 49.8,
         "targetPrice": 1106,
-        "targetUpside": 21.1,
+        "targetUpside": 21.5,
         "revenueHistory": [
           275235000,
           254453000,
@@ -3938,9 +3938,9 @@
       }
     ],
     "temperature": {
-      "value": 59,
-      "label": "中性",
-      "hint": "VIX 16.09，标普500相对近60日均线 +2.3%——该温度由真实行情计算，不是官方指数"
+      "value": 60,
+      "label": "偏乐观",
+      "hint": "VIX 15.53，标普500相对近60日均线 +2.2%——该温度由真实行情计算，不是官方指数"
     },
     "strategyBacktest": {
       "status": "insufficient_history",

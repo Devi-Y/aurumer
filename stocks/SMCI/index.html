@@ -613,6 +613,7 @@ const LIVE={
   sources:[],
   usMarketNote:'正在连接行情',
   hkBacktest:null,
+  strategyHealth:null,
   hasUS:false,
   hasHK:false,
   hasInvestors:false,
@@ -724,11 +725,21 @@ function levelPath(items){
   return `<div class="level-path"><b>页面层级</b>${items.map(item=>`<span>${item}</span>`).join('')}</div>`;
 }
 function ipoActionLabel(x){
+  if(x.vc==='ended')return '申购窗口已结束，仅供回顾';
   if(x.vc==='buy')return '可小仓申购，等配发和暗盘确认';
   if(x.vc==='caution')return '先观察，不融资重仓';
   return '暂不申购';
 }
 function assessLiveIPO(item,temperature){
+  if(item.allotmentUrl){
+    return {
+      score:0,
+      vc:'ended',
+      verdict:'申购已结束',
+      reason:'港交所已发布配发结果，申购窗口已经结束。',
+      strategy:'不能再申购；只保留官方资料与实际结果用于回顾。'
+    };
+  }
   if(item.strategyAssessment){
     const assessment=item.strategyAssessment;
     const vc=assessment.verdict==='值得打'?'buy':assessment.verdict==='谨慎打'?'caution':'skip';
@@ -791,7 +802,9 @@ function toLiveIPO(item,temperature){
     score:assessment.score,
     verdict:assessment.verdict,
     vc:assessment.vc,
-    one:hasCoreFacts?assessment.reason:'港交所已发布招股文件；部分核心字段仍待自动解析。',
+    one:assessment.vc==='ended'
+      ?assessment.reason
+      :hasCoreFacts?assessment.reason:'港交所已发布招股文件；部分核心字段仍待自动解析。',
     priceRange:item.offerPrice||'以招股章程为准',
     lot:item.boardLot?`${item.boardLot}股/手`:'以招股章程为准',
     entry:item.entryFee?`${item.entryFee.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})} 港元`:'待解析',
@@ -822,6 +835,7 @@ function applyLiveData(payload){
   LIVE.status=payload.status||'partial';
   LIVE.updatedAt=payload.updatedAt||null;
   LIVE.sources=payload.sources||[];
+  LIVE.strategyHealth=payload.strategyHealth||null;
   LIVE.error=null;
   LIVE.hasUS=Boolean(payload.us?.stocks?.length&&payload.us?.fundamentals?.length);
 
@@ -1258,6 +1272,7 @@ function renderHK(){
   }
   const hkLive=HK_IPOS.some(x=>x.isLive);
   const buyN=HK_IPOS.filter(x=>x.vc==='buy').length;
+  const endedN=HK_IPOS.filter(x=>x.vc==='ended').length;
   const filters={
     all:()=>true,
     buy:x=>x.vc==='buy',
@@ -1277,7 +1292,7 @@ function renderHK(){
     <button class="pill ${hkFilter==='skip'?'on':''}" onclick="setHKFilter('skip')">不建议</button>
   </div>
   <div class="notice">${hkLive
-    ?`已同步港交所 <b>${HK_IPOS.length} 只</b>最新新股。证据不足时只给“谨慎打”或“不建议”，不会承诺盈利。`
+    ?`已同步港交所 <b>${HK_IPOS.length} 只</b>最新新股资料，其中 <b>${endedN} 条</b>已公布配发或结束申购，不能再给申购建议。未结束项目证据不足时只给“谨慎打”或“不建议”，不会承诺盈利。`
     :`🔔 本周在售 <b>${HK_IPOS.length} 只</b>，其中 <b style="color:var(--down)">${buyN} 只建议申购</b>、1 只建议放弃 —— 当前为模型兜底数据`}
   </div>
   ${visible.length?visible.map(ipoCard).join(''):`<div class="card"><div class="t1">这一类暂时没有新股</div><div class="t2">数据更新后会自动出现在这里。</div></div>`}
@@ -1288,6 +1303,11 @@ function renderHK(){
 /* =============== 二级页面：美股投资 =============== */
 function stockAction(x){
   const distance=(x.price-x.buy)/x.buy*100;
+  if(!LIVE.strategyHealth?.us?.releaseReady){
+    if(x.score<50)return '暂不关注';
+    if((x.weeklyChange||0)>8)return '不追高';
+    return '研究观察，未验证';
+  }
   if(x.score<50)return '暂时不碰';
   if((x.weeklyChange||0)>8)return '不追高';
   if(x.score>=74&&distance<=4)return '可小仓观察';
@@ -1333,7 +1353,7 @@ function stockCard(x,i){
     <div class="price-b"><b class="num">$${x.price}</b>${chgHTML(x.chg)}</div>
   </div>
   <div class="answer-block">
-    <div class="answer-line"><strong>热度结论</strong><b>热度 ${x.heatScore} · ${stockAction(x)}</b></div>
+    <div class="answer-line"><strong>当前观察</strong><b>热度 ${x.heatScore} · ${stockAction(x)}</b></div>
     <div class="answer-line"><strong>为什么热</strong><span>${stockHeatReason(x)}</span></div>
     <div class="answer-line"><strong>财务筛选</strong><span>满足 ${x.qualityMatchCount}/3：${qualityCriteriaLabels(x).filter(item=>item.pass).map(item=>item.label).join('；')}</span></div>
     <div class="answer-line"><strong>风险</strong><span>${x.cons[0]}</span></div>
@@ -1374,11 +1394,13 @@ function renderUS(){
     .sort((a,b)=>(b.heatScore??0)-(a.heatScore??0));
   const visibleStocks=eligibleStocks.slice(0,10);
   const risky=visibleStocks.filter(x=>x.score<50).map(x=>x.t);
+  const strategyHealth=LIVE.strategyHealth?.us;
   $('#app').innerHTML=`<button class="back" onclick="go('')">‹ 首页</button>
   ${levelPath(['一级：首页','二级：美股热度前十'])}
   <div class="d-head"><h1>🇺🇸 财务优选热度前十</h1>
   <div class="sub">先通过财务质量门槛，再按真实市场热度排序 · ${LIVE.usMarketNote}</div></div>
   ${dataStateNotice()}
+  ${strategyHealth?`<div class="notice"><b>策略验证状态：${strategyHealth.releaseReady?'已通过':'尚未通过'}</b>。${strategyHealth.note}</div>`:''}
   ${tempStrip(US_TEMP,'市场温度计 · 恐慌贪婪指数 + 席勒 PE 分位')}
   <div class="notice">入选必须满足三项中的至少两项：现金及短期投资 ≥ 200 亿美元；净利润为正且 ≥ 50 亿美元或净利率 ≥ 15%；最近财年营收增速 ≥ 20%。当前 ${eligibleStocks.length} 只通过，展示热度前 ${Math.min(10,eligibleStocks.length)}。</div>
   ${risky.length?`<div class="warn">⚠️ <span><b>高热但低性价比：${risky.join(' · ')}</b>。热门不等于值得追，点进详情再看价格。</span></div>`:''}
@@ -1437,13 +1459,14 @@ function renderIPO(x){
   if(x.isLive){
     const validation=LIVE.hkBacktest?.modelValidation;
     const predictionReady=Boolean(x.estimate?.publishable);
+    const isEnded=x.vc==='ended';
     detailShell(
     `${levelPath(['一级：首页','二级：港股结论','三级：新股详情与预测'])}
     <div class="d-head"><h1>${x.name}<span class="code num" style="font-size:14px">${x.code}</span></h1>
     <div class="sub"><span class="chip mini tag">${x.ind}</span><span class="chip mini acc">${x.status}</span><span>${x.deadline}</span></div></div>`,
     `<div class="share-card">
       <div class="share-brand">望潮 · 港股打新一眼看懂</div>
-      <h2>${x.name} 值不值得打？</h2>
+      <h2>${isEnded?`${x.name} 申购已结束`:`${x.name} 值不值得打？`}</h2>
       <div class="share-grid">
         <div class="share-item"><span>结论</span><b>${x.verdict}</b></div>
         <div class="share-item"><span>招股价</span><b>${x.priceRange}</b></div>
@@ -1477,7 +1500,8 @@ function renderIPO(x){
     </div></div></div>
 
     ${x.estimate?`<div class="d-sec"><h4>暗盘与首日预测</h4><div class="card">
-      ${predictionReady?`<div class="stats">
+      ${isEnded?`<div class="advice"><b>不再补发预测：</b>申购已结束，不能把事后可见的认购和配发信息伪装成提前判断。</div>`
+      :predictionReady?`<div class="stats">
         <div class="stat"><b>${x.win}</b><span>中签率区间</span></div>
         <div class="stat"><b>${signedEstimateRangeText(x.estimate.greyMarketChange)}</b><span>暗盘</span></div>
         <div class="stat"><b>${signedEstimateRangeText(x.estimate.firstDayChange)}</b><span>首日</span></div>
@@ -1554,7 +1578,7 @@ function renderStock(x){
     <div class="share-brand">望潮 · 港美股一眼看懂</div>
     <h2>${x.t} 现在怎么看？</h2>
     <div class="share-grid">
-      <div class="share-item"><span>结论</span><b>${stockAction(x)}</b></div>
+      <div class="share-item"><span>当前观察</span><b>${stockAction(x)}</b></div>
       <div class="share-item"><span>${term('性价比')}</span><b>${x.score} · ${x.verdict}</b></div>
       <div class="share-item"><span>${term('买入区间')}</span><b>≤ $${x.buy}</b></div>
       <div class="share-item"><span>${term('止盈')}</span><b>$${x.tp[0]}-$${x.tp[1]}</b></div>
@@ -1566,14 +1590,14 @@ function renderStock(x){
   </div>
   <div style="margin:-4px 0 14px">${sparkSVG(spk,600,80,spc)}</div>
 
-  <div class="d-sec"><h4>交易计划</h4><div class="card">
+  <div class="d-sec"><h4>价格参考</h4><div class="card">
   ${bandChart(x)}
   <div class="stats g3" style="margin-top:6px">
     <div class="stat"><b class="num">≤ $${x.buy}</b><span>建议买入价</span></div>
     <div class="stat"><b class="num dnc">$${x.stop}</b><span>止损位</span></div>
     <div class="stat"><b class="num upc">$${x.tp[0]} – ${x.tp[1]}</b><span>止盈区间</span></div>
   </div>
-  <p style="font-size:12.5px;color:var(--ink2);margin-top:12px;line-height:1.7">💡 <b style="color:var(--ink)">测算逻辑：</b>${x.atr?`买入、止损和止盈区间已按真实近 20 日日线与 ATR ${x.atr} 重新计算；`:''}${x.logic}</p>
+  <p style="font-size:12.5px;color:var(--ink2);margin-top:12px;line-height:1.7">💡 <b style="color:var(--ink)">测算逻辑：</b>${x.atr?`买入、止损和止盈区间已按真实近 20 日日线与 ATR ${x.atr} 重新计算；`:''}${x.logic} 这只是价格风险参考，不是已验证的交易系统。</p>
   </div></div>
 
   ${x.fundamentals?`<div class="d-sec"><h4>基本面好不好</h4><div class="card">

@@ -1,22 +1,31 @@
 {
   "version": 1,
-  "updatedAt": "2026-07-10T03:20:39.588Z",
+  "updatedAt": "2026-07-10T07:38:01.136Z",
   "days": [
     {
       "signalDate": "2026-07-10",
-      "capturedAt": "2026-07-10T03:20:39.587Z",
+      "capturedAt": "2026-07-10T07:38:01.135Z",
       "universeSize": 30,
       "selectedCount": 10,
       "stocks": [
         {
           "symbol": "NVDA",
-          "price": 202.78,
+          "price": 202.8,
           "asOf": "2026-07-09T20:00:00.000Z",
-          "heatScore": 37,
-          "heatRank": 9,
-          "volumeRatio": 0.8,
+          "heatScore": 40,
+          "heatRank": 8,
+          "volumeRatio": 0.88,
           "changePercent": -0.66,
           "weeklyChange": 2.63,
+          "technicalPlan": {
+            "atr": 6.39,
+            "buy": 192,
+            "stop": 184.7,
+            "tp": [
+              215.6,
+              223.2
+            ]
+          },
           "financial": {
             "liquidAssets": 62556000,
             "netIncome": 120067000,
@@ -29,23 +38,32 @@
             },
             "qualityMatchCount": 3,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": true,
-            "rank": 9,
+            "rank": 8,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
         {
           "symbol": "MSFT",
-          "price": 384.36,
+          "price": 384.4,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 26,
+          "heatScore": 24,
           "heatRank": null,
-          "volumeRatio": 0.71,
+          "volumeRatio": 0.64,
           "changePercent": 0.27,
           "weeklyChange": 0.02,
+          "technicalPlan": {
+            "atr": 12.35,
+            "buy": 353.5,
+            "stop": 339.3,
+            "tp": [
+              409.1,
+              423.9
+            ]
+          },
           "financial": {
             "liquidAssets": 94565000,
             "netIncome": 101832000,
@@ -58,7 +76,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -68,13 +86,22 @@
         },
         {
           "symbol": "AAPL",
-          "price": 316.22,
+          "price": 316.2,
           "asOf": "2026-07-09T20:00:00.000Z",
-          "heatScore": 47,
-          "heatRank": 6,
-          "volumeRatio": 0.78,
+          "heatScore": 46,
+          "heatRank": 7,
+          "volumeRatio": 0.72,
           "changePercent": 0.9,
           "weeklyChange": 7.42,
+          "technicalPlan": {
+            "atr": 8.49,
+            "buy": 276.7,
+            "stop": 267,
+            "tp": [
+              333.2,
+              343.4
+            ]
+          },
           "financial": {
             "liquidAssets": 54697000,
             "netIncome": 112010000,
@@ -87,23 +114,32 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": true,
-            "rank": 6,
+            "rank": 7,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
         {
           "symbol": "GOOGL",
-          "price": 358.89,
+          "price": 358.9,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 31,
+          "heatScore": 30,
           "heatRank": null,
-          "volumeRatio": 0.71,
+          "volumeRatio": 0.68,
           "changePercent": -0.84,
           "weeklyChange": -0.64,
+          "technicalPlan": {
+            "atr": 11.74,
+            "buy": 334.3,
+            "stop": 320.8,
+            "tp": [
+              382.4,
+              396.4
+            ]
+          },
           "financial": {
             "liquidAssets": 126843000,
             "netIncome": 132170000,
@@ -116,7 +152,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -126,13 +162,22 @@
         },
         {
           "symbol": "AMZN",
-          "price": 247.04,
+          "price": 247,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 38,
-          "heatRank": 8,
-          "volumeRatio": 0.72,
+          "heatScore": 34,
+          "heatRank": 10,
+          "volumeRatio": 0.61,
           "changePercent": 1.4,
           "weeklyChange": 2.21,
+          "technicalPlan": {
+            "atr": 8.2,
+            "buy": 228.4,
+            "stop": 219,
+            "tp": [
+              263.4,
+              273.3
+            ]
+          },
           "financial": {
             "liquidAssets": 123029000,
             "netIncome": 77670000,
@@ -145,23 +190,32 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": true,
-            "rank": 8,
+            "rank": 10,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
         {
           "symbol": "META",
-          "price": 631.48,
+          "price": 631.5,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 84,
-          "heatRank": 1,
-          "volumeRatio": 1.42,
+          "heatScore": 83,
+          "heatRank": 2,
+          "volumeRatio": 1.41,
           "changePercent": 4.7,
           "weeklyChange": 3.03,
+          "technicalPlan": {
+            "atr": 24.15,
+            "buy": 548.6,
+            "stop": 520.9,
+            "tp": [
+              679.8,
+              708.8
+            ]
+          },
           "financial": {
             "liquidAssets": 81592000,
             "netIncome": 60458000,
@@ -174,23 +228,32 @@
             },
             "qualityMatchCount": 3,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": true,
-            "rank": 1,
+            "rank": 2,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
         {
           "symbol": "TSLA",
-          "price": 406.55,
+          "price": 406.6,
           "asOf": "2026-07-09T20:00:00.000Z",
-          "heatScore": 54,
+          "heatScore": 55,
           "heatRank": null,
-          "volumeRatio": 0.75,
+          "volumeRatio": 0.78,
           "changePercent": 3.17,
           "weeklyChange": -4.41,
+          "technicalPlan": {
+            "atr": 19.07,
+            "buy": 375.3,
+            "stop": 353.3,
+            "tp": [
+              444.7,
+              467.6
+            ]
+          },
           "financial": {
             "liquidAssets": 44059000,
             "netIncome": 3794000,
@@ -203,7 +266,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -213,13 +276,22 @@
         },
         {
           "symbol": "AMD",
-          "price": 546.72,
+          "price": 546.7,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 65,
+          "heatScore": 66,
           "heatRank": null,
-          "volumeRatio": 0.84,
+          "volumeRatio": 0.86,
           "changePercent": 5.66,
           "weeklyChange": 1.08,
+          "technicalPlan": {
+            "atr": 38.21,
+            "buy": 508.7,
+            "stop": 464.8,
+            "tp": [
+              623.1,
+              669
+            ]
+          },
           "financial": {
             "liquidAssets": 10552000,
             "netIncome": 4335000,
@@ -232,7 +304,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -242,13 +314,22 @@
         },
         {
           "symbol": "AVGO",
-          "price": 401.11,
+          "price": 401.1,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 69,
+          "heatScore": 68,
           "heatRank": 3,
-          "volumeRatio": 0.93,
+          "volumeRatio": 0.91,
           "changePercent": 3.2,
           "weeklyChange": 8.6,
+          "technicalPlan": {
+            "atr": 16.56,
+            "buy": 362.2,
+            "stop": 343.2,
+            "tp": [
+              434.2,
+              454.1
+            ]
+          },
           "financial": {
             "liquidAssets": 16178000,
             "netIncome": 23126000,
@@ -261,7 +342,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": true,
@@ -271,13 +352,22 @@
         },
         {
           "symbol": "PLTR",
-          "price": 129.04,
+          "price": 129,
           "asOf": "2026-07-09T20:00:00.000Z",
-          "heatScore": 48,
-          "heatRank": 5,
-          "volumeRatio": 0.82,
+          "heatScore": 47,
+          "heatRank": 6,
+          "volumeRatio": 0.78,
           "changePercent": -2.41,
           "weeklyChange": 2.63,
+          "technicalPlan": {
+            "atr": 6.66,
+            "buy": 108.7,
+            "stop": 101,
+            "tp": [
+              142.4,
+              150.4
+            ]
+          },
           "financial": {
             "liquidAssets": 7177043,
             "netIncome": 1625033,
@@ -290,11 +380,11 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": true,
-            "rank": 5,
+            "rank": 6,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
@@ -302,11 +392,20 @@
           "symbol": "SMCI",
           "price": 28.24,
           "asOf": "2026-07-09T20:00:00.000Z",
-          "heatScore": 26,
+          "heatScore": 21,
           "heatRank": null,
-          "volumeRatio": 0.57,
+          "volumeRatio": 0.45,
           "changePercent": 0.25,
           "weeklyChange": 2.13,
+          "technicalPlan": {
+            "atr": 2.38,
+            "buy": 26.24,
+            "stop": 23.51,
+            "tp": [
+              33,
+              35.85
+            ]
+          },
           "financial": {
             "liquidAssets": 5169911,
             "netIncome": 1048854,
@@ -319,7 +418,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -329,13 +428,22 @@
         },
         {
           "symbol": "ARM",
-          "price": 327.87,
+          "price": 327.9,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 82,
-          "heatRank": 2,
-          "volumeRatio": 0.62,
+          "heatScore": 84,
+          "heatRank": 1,
+          "volumeRatio": 0.67,
           "changePercent": 9.2,
           "weeklyChange": -2.84,
+          "technicalPlan": {
+            "atr": 35.12,
+            "buy": 302.7,
+            "stop": 262.4,
+            "tp": [
+              398.1,
+              440.3
+            ]
+          },
           "financial": {
             "liquidAssets": 3601000,
             "netIncome": 904000,
@@ -348,23 +456,32 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": true,
-            "rank": 2,
+            "rank": 1,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
         {
           "symbol": "TSM",
-          "price": 436.96,
+          "price": 437,
           "asOf": "2026-07-09T20:00:02.000Z",
-          "heatScore": 32,
-          "heatRank": 10,
-          "volumeRatio": 0.82,
+          "heatScore": 30,
+          "heatRank": null,
+          "volumeRatio": 0.76,
           "changePercent": 0,
           "weeklyChange": -1.64,
+          "technicalPlan": {
+            "atr": 20.75,
+            "buy": 425.5,
+            "stop": 402.6,
+            "tp": [
+              478.5,
+              503.4
+            ]
+          },
           "financial": {
             "liquidAssets": 88090800,
             "netIncome": 53949600,
@@ -377,23 +494,32 @@
             },
             "qualityMatchCount": 3,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
-            "selected": true,
-            "rank": 10,
-            "reason": "通过财务三选二并进入热度前十"
+            "selected": false,
+            "rank": null,
+            "reason": "通过财务门槛但未进入热度前十"
           }
         },
         {
           "symbol": "ASML",
-          "price": 1804.25,
+          "price": 1804.3,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 43,
-          "heatRank": 7,
-          "volumeRatio": 0.77,
+          "heatScore": 40,
+          "heatRank": 9,
+          "volumeRatio": 0.67,
           "changePercent": 2.01,
           "weeklyChange": -2.1,
+          "technicalPlan": {
+            "atr": 99.35,
+            "buy": 1749.6,
+            "stop": 1637.8,
+            "tp": [
+              2002.9,
+              2122.2
+            ]
+          },
           "financial": {
             "liquidAssets": 15645900,
             "netIncome": 11285800,
@@ -406,23 +532,32 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": true,
-            "rank": 7,
+            "rank": 9,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
         {
           "symbol": "COIN",
-          "price": 158.44,
+          "price": 158.4,
           "asOf": "2026-07-09T20:00:00.000Z",
-          "heatScore": 23,
+          "heatScore": 25,
           "heatRank": null,
-          "volumeRatio": 0.52,
+          "volumeRatio": 0.59,
           "changePercent": -0.58,
           "weeklyChange": -0.5,
+          "technicalPlan": {
+            "atr": 10.29,
+            "buy": 142.8,
+            "stop": 131,
+            "tp": [
+              179,
+              191.4
+            ]
+          },
           "financial": {
             "liquidAssets": 11929535,
             "netIncome": 1260327,
@@ -435,7 +570,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -447,11 +582,20 @@
           "symbol": "MSTR",
           "price": 93.89,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 22,
+          "heatScore": 18,
           "heatRank": null,
-          "volumeRatio": 0.59,
+          "volumeRatio": 0.49,
           "changePercent": 0.02,
           "weeklyChange": 0.54,
+          "technicalPlan": {
+            "atr": 9.27,
+            "buy": 85.05,
+            "stop": 74.4,
+            "tp": [
+              112.4,
+              123.5
+            ]
+          },
           "financial": {
             "liquidAssets": 2303343,
             "netIncome": -3848152,
@@ -464,7 +608,7 @@
             },
             "qualityMatchCount": 0,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -476,11 +620,20 @@
           "symbol": "CRWD",
           "price": 198.4,
           "asOf": "2026-07-09T20:00:01.000Z",
-          "heatScore": 43,
+          "heatScore": 47,
           "heatRank": null,
-          "volumeRatio": 0.43,
+          "volumeRatio": 0.53,
           "changePercent": 3.81,
           "weeklyChange": 2.7,
+          "technicalPlan": {
+            "atr": 9.13,
+            "buy": 170.7,
+            "stop": 160.2,
+            "tp": [
+              216.7,
+              227.6
+            ]
+          },
           "financial": {
             "liquidAssets": 5329716,
             "netIncome": -162502,
@@ -493,7 +646,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -503,13 +656,22 @@
         },
         {
           "symbol": "NOW",
-          "price": 108.84,
+          "price": 108.8,
           "asOf": "2026-07-09T20:00:03.000Z",
-          "heatScore": 28,
+          "heatScore": 32,
           "heatRank": null,
-          "volumeRatio": 0.48,
+          "volumeRatio": 0.58,
           "changePercent": 0.98,
           "weeklyChange": 2.87,
+          "technicalPlan": {
+            "atr": 5.48,
+            "buy": 91.31,
+            "stop": 85.01,
+            "tp": [
+              119.8,
+              126.4
+            ]
+          },
           "financial": {
             "liquidAssets": 6284000,
             "netIncome": 1748000,
@@ -522,7 +684,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -534,11 +696,20 @@
           "symbol": "V",
           "price": 348.2,
           "asOf": "2026-07-09T20:00:03.000Z",
-          "heatScore": 23,
+          "heatScore": 27,
           "heatRank": null,
-          "volumeRatio": 0.56,
+          "volumeRatio": 0.69,
           "changePercent": 0.19,
           "weeklyChange": -0.82,
+          "technicalPlan": {
+            "atr": 8.01,
+            "buy": 332.9,
+            "stop": 323.7,
+            "tp": [
+              364.2,
+              373.8
+            ]
+          },
           "financial": {
             "liquidAssets": 21987000,
             "netIncome": 20058000,
@@ -551,7 +722,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -563,11 +734,20 @@
           "symbol": "MA",
           "price": 523.2,
           "asOf": "2026-07-09T20:00:03.000Z",
-          "heatScore": 17,
+          "heatScore": 28,
           "heatRank": null,
-          "volumeRatio": 0.38,
+          "volumeRatio": 0.68,
           "changePercent": 0.64,
           "weeklyChange": 0.15,
+          "technicalPlan": {
+            "atr": 12.11,
+            "buy": 492.8,
+            "stop": 478.9,
+            "tp": [
+              547.4,
+              562
+            ]
+          },
           "financial": {
             "liquidAssets": 13580000,
             "netIncome": 14968000,
@@ -580,7 +760,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -592,11 +772,20 @@
           "symbol": "NFLX",
           "price": 75.47,
           "asOf": "2026-07-09T20:00:00.000Z",
-          "heatScore": 34,
+          "heatScore": 30,
           "heatRank": null,
-          "volumeRatio": 0.84,
+          "volumeRatio": 0.73,
           "changePercent": -0.16,
           "weeklyChange": 1.73,
+          "technicalPlan": {
+            "atr": 2.6,
+            "buy": 71.77,
+            "stop": 68.78,
+            "tp": [
+              80.68,
+              83.8
+            ]
+          },
           "financial": {
             "liquidAssets": 9062359,
             "netIncome": 10981201,
@@ -609,7 +798,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -619,13 +808,22 @@
         },
         {
           "symbol": "ORCL",
-          "price": 144.22,
+          "price": 144.2,
           "asOf": "2026-07-09T20:04:44.000Z",
-          "heatScore": 58,
-          "heatRank": 4,
-          "volumeRatio": 1.12,
+          "heatScore": 54,
+          "heatRank": 5,
+          "volumeRatio": 1.01,
           "changePercent": 2.65,
           "weeklyChange": 1.21,
+          "technicalPlan": {
+            "atr": 8.81,
+            "buy": 139.4,
+            "stop": 130.5,
+            "tp": [
+              161.8,
+              172.4
+            ]
+          },
           "financial": {
             "liquidAssets": 31894000,
             "netIncome": 17087000,
@@ -638,11 +836,11 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": true,
-            "rank": 4,
+            "rank": 5,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
@@ -650,11 +848,20 @@
           "symbol": "CRM",
           "price": 162.5,
           "asOf": "2026-07-09T20:00:02.000Z",
-          "heatScore": 46,
+          "heatScore": 44,
           "heatRank": null,
-          "volumeRatio": 0.86,
+          "volumeRatio": 0.82,
           "changePercent": -2.45,
           "weeklyChange": -0.45,
+          "technicalPlan": {
+            "atr": 6.26,
+            "buy": 151,
+            "stop": 143.8,
+            "tp": [
+              175,
+              182.5
+            ]
+          },
           "financial": {
             "liquidAssets": 9565000,
             "netIncome": 7457000,
@@ -667,7 +874,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -677,13 +884,22 @@
         },
         {
           "symbol": "SNOW",
-          "price": 267.49,
+          "price": 267.5,
           "asOf": "2026-07-09T20:00:03.000Z",
-          "heatScore": 33,
+          "heatScore": 38,
           "heatRank": null,
-          "volumeRatio": 0.41,
+          "volumeRatio": 0.53,
           "changePercent": 2.37,
           "weeklyChange": 2.41,
+          "technicalPlan": {
+            "atr": 12.56,
+            "buy": 221.9,
+            "stop": 207.4,
+            "tp": [
+              292.6,
+              307.7
+            ]
+          },
           "financial": {
             "liquidAssets": 4029686,
             "netIncome": -1331616,
@@ -696,7 +912,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -706,13 +922,22 @@
         },
         {
           "symbol": "SHOP",
-          "price": 123.17,
+          "price": 123.2,
           "asOf": "2026-07-09T20:00:00.000Z",
-          "heatScore": 43,
+          "heatScore": 48,
           "heatRank": null,
-          "volumeRatio": 0.58,
+          "volumeRatio": 0.73,
           "changePercent": 3.31,
           "weeklyChange": 1.27,
+          "technicalPlan": {
+            "atr": 5.56,
+            "buy": 113.3,
+            "stop": 106.9,
+            "tp": [
+              134.3,
+              141
+            ]
+          },
           "financial": {
             "liquidAssets": 5778000,
             "netIncome": 1231000,
@@ -725,7 +950,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -737,11 +962,20 @@
           "symbol": "UBER",
           "price": 74.35,
           "asOf": "2026-07-09T20:00:03.000Z",
-          "heatScore": 24,
+          "heatScore": 26,
           "heatRank": null,
-          "volumeRatio": 0.39,
+          "volumeRatio": 0.44,
           "changePercent": 1.02,
           "weeklyChange": 2.33,
+          "technicalPlan": {
+            "atr": 2.77,
+            "buy": 72.63,
+            "stop": 69.44,
+            "tp": [
+              79.89,
+              83.21
+            ]
+          },
           "financial": {
             "liquidAssets": 8264000,
             "netIncome": 10053000,
@@ -754,7 +988,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -764,13 +998,22 @@
         },
         {
           "symbol": "JPM",
-          "price": 335.47,
+          "price": 335.5,
           "asOf": "2026-07-09T20:00:02.000Z",
-          "heatScore": 28,
-          "heatRank": null,
-          "volumeRatio": 0.53,
+          "heatScore": 60,
+          "heatRank": 4,
+          "volumeRatio": 1.45,
           "changePercent": 1.47,
           "weeklyChange": 0.42,
+          "technicalPlan": {
+            "atr": 7.7,
+            "buy": 327.7,
+            "stop": 318.9,
+            "tp": [
+              350.9,
+              360.1
+            ]
+          },
           "financial": {
             "liquidAssets": 679764000,
             "netIncome": 57048000,
@@ -783,12 +1026,12 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
-            "selected": false,
-            "rank": null,
-            "reason": "通过财务门槛但未进入热度前十"
+            "selected": true,
+            "rank": 4,
+            "reason": "通过财务三选二并进入热度前十"
           }
         },
         {
@@ -797,9 +1040,18 @@
           "asOf": "2026-07-09T20:00:02.000Z",
           "heatScore": 25,
           "heatRank": null,
-          "volumeRatio": 0.63,
+          "volumeRatio": 0.64,
           "changePercent": 0.13,
           "weeklyChange": -0.86,
+          "technicalPlan": {
+            "atr": 6.97,
+            "buy": 488.9,
+            "stop": 480.9,
+            "tp": [
+              509.4,
+              517.8
+            ]
+          },
           "financial": {
             "liquidAssets": 373311000,
             "netIncome": 66968000,
@@ -812,7 +1064,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -822,13 +1074,22 @@
         },
         {
           "symbol": "LLY",
-          "price": 1216.95,
+          "price": 1217,
           "asOf": "2026-07-09T20:01:54.000Z",
-          "heatScore": 21,
+          "heatScore": 27,
           "heatRank": null,
-          "volumeRatio": 0.46,
+          "volumeRatio": 0.64,
           "changePercent": 0.09,
           "weeklyChange": 2.12,
+          "technicalPlan": {
+            "atr": 38.4,
+            "buy": 1127.4,
+            "stop": 1083.3,
+            "tp": [
+              1293.8,
+              1339.8
+            ]
+          },
           "financial": {
             "liquidAssets": 7377100,
             "netIncome": 20640000,
@@ -841,7 +1102,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -851,13 +1112,22 @@
         },
         {
           "symbol": "COST",
-          "price": 912.97,
+          "price": 913,
           "asOf": "2026-07-09T20:00:01.000Z",
           "heatScore": 90,
           "heatRank": null,
-          "volumeRatio": 1.78,
+          "volumeRatio": 1.79,
           "changePercent": -4.21,
           "weeklyChange": -1.27,
+          "technicalPlan": {
+            "atr": 20.38,
+            "buy": 901.8,
+            "stop": 891.4,
+            "tp": [
+              953.7,
+              978.2
+            ]
+          },
           "financial": {
             "liquidAssets": 15284000,
             "netIncome": 8099000,
@@ -870,7 +1140,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-10T03:20:39.587Z"
+            "snapshotAsOf": "2026-07-10T07:38:01.134Z"
           },
           "signal": {
             "selected": false,
@@ -910,6 +1180,12 @@
           "minimum": null,
           "maximum": null
         },
+        "pricePlan": {
+          "sampleCount": 0,
+          "buyTriggered": 0,
+          "targetHitRate": null,
+          "stopHitRate": null
+        },
         "transactionCostBps": 10,
         "examples": []
       },
@@ -928,6 +1204,12 @@
           "median": null,
           "minimum": null,
           "maximum": null
+        },
+        "pricePlan": {
+          "sampleCount": 0,
+          "buyTriggered": 0,
+          "targetHitRate": null,
+          "stopHitRate": null
         },
         "transactionCostBps": 10,
         "examples": []

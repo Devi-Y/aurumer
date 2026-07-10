@@ -7,14 +7,14 @@
 ## 入口
 
 - 首页：https://devi-y.github.io/aurumer/
-- 港股打新：https://devi-y.github.io/aurumer/#/hk
-- 美股投资：https://devi-y.github.io/aurumer/#/us
-- 名人持仓：https://devi-y.github.io/aurumer/#/gurus
+- 港股打新：https://devi-y.github.io/aurumer/hk-ipo/
+- 美股投资：https://devi-y.github.io/aurumer/us-stocks/
+- 聪明人持仓：https://devi-y.github.io/aurumer/gurus/
 - AI 可读说明：https://devi-y.github.io/aurumer/llms.txt
 
 ## 当前数据
 
-- 更新时间：2026-07-10T03:18:21.186Z
+- 更新时间：2026-07-10T07:38:01.134Z
 - 港股新股：10 只
 - 美股行情：30 只
 - 美股基本面：30 只

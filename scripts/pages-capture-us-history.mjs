@@ -62,12 +62,39 @@ async function fetchQuote(symbol) {
       ),
     ),
   );
+  const recent = rows.slice(-20);
+  const trueRanges = recent.slice(1).map((row, index) => {
+    const previousClose = recent[index].close;
+    return Math.max(
+      row.high - row.low,
+      Math.abs(row.high - previousClose),
+      Math.abs(row.low - previousClose),
+    );
+  }).filter(Number.isFinite);
+  const atr = trueRanges.length
+    ? trueRanges.reduce((sum, value) => sum + value, 0) / trueRanges.length
+    : null;
+  const support = recent.length
+    ? Math.min(...recent.map((row) => row.low).filter(Number.isFinite))
+    : null;
+  const technicalPlan = Number.isFinite(atr) && Number.isFinite(support)
+    ? {
+        atr: Number(atr.toFixed(4)),
+        buy: Number(Math.min(price - atr * 0.55, support + atr * 0.35).toFixed(4)),
+        stop: Number((support - atr * 0.8).toFixed(4)),
+        tp: [
+          Number((price + atr * 2).toFixed(4)),
+          Number((price + atr * 3.2).toFixed(4)),
+        ],
+      }
+    : null;
   return {
     price: Number(price.toFixed(4)),
     changePercent: Number((changePercent || 0).toFixed(2)),
     weeklyChange: Number((weeklyChange || 0).toFixed(2)),
     volumeRatio: volumeRatio === null ? null : Number(volumeRatio.toFixed(2)),
     heatScore,
+    technicalPlan,
     asOf: chart.meta?.regularMarketTime
       ? new Date(chart.meta.regularMarketTime * 1000).toISOString()
       : null,

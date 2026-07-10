@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>望潮 · 港美股投资助手</title>
-<meta name="description" content="港股打新看胜率，美股投资看性价比，大佬持仓看方向。望潮用真实公开数据给出结论、依据、风险和下一步。">
+<meta name="description" content="望潮：港股打新看值得打和卖出参考，美股只看七姐妹、市场热度前三和聪明人持仓。">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#F7F4EE">
 <link rel="canonical" href="https://devi-y.github.io/aurumer/">
@@ -12,11 +12,11 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:site_name" content="望潮">
 <meta property="og:title" content="望潮 · 港美股投资助手">
-<meta property="og:description" content="港股打新、美股投资、大佬持仓，一页看清。">
+<meta property="og:description" content="港股打新看值得打和卖出参考，美股看七姐妹、热度前三和聪明人持仓。">
 <meta property="og:url" content="https://devi-y.github.io/aurumer/">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="望潮 · 港美股投资助手">
-<meta name="twitter:description" content="港股打新、美股投资、大佬持仓，一页看清。">
+<meta name="twitter:description" content="港股打新看值得打和卖出参考，美股看七姐妹、热度前三和聪明人持仓。">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <style>
 :root{
@@ -112,6 +112,8 @@ img,svg,canvas{max-width:100%}
 .section-intro{margin:18px 2px 10px;display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
 .section-intro h3{font-size:18px;letter-spacing:-.3px}
 .section-intro p{max-width:430px;font-size:12px;color:var(--ink2);text-align:right;line-height:1.55}
+.answer-section{margin-top:22px;padding-top:4px;border-top:1px solid var(--line)}
+.empty-answer{padding:18px;border:1px dashed var(--line);border-radius:16px;color:var(--ink3);font-size:13px;background:rgba(255,253,249,.45)}
 .result-chip{display:inline-flex;align-items:center;min-height:28px;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:800;white-space:nowrap}
 .result-chip.pending{background:#F4E8C9;color:#866116}.result-chip.ended{background:var(--gray-soft);color:var(--ink2)}
 .result-chip.buy{background:var(--down);color:#fff}.result-chip.caution{background:var(--amber-soft);color:var(--amber)}.result-chip.skip{background:var(--up-soft);color:var(--up)}
@@ -385,8 +387,7 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
 <noscript>
   <main>
     <h1>望潮 · 港美股投资助手</h1>
-    <p>港股打新看结论，美股投资先通过财务质量筛选再看热度。</p>
-    <p>数据来源包括香港交易所、Yahoo Finance、Nasdaq 与 SEC EDGAR 13F。</p>
+    <p>港股打新看值得打与卖出参考，美股投资看七姐妹、热度前三与价格答案。</p>
     <p>本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议。</p>
   </main>
 </noscript>
@@ -708,13 +709,14 @@ window.explainTerm=name=>{
 window.copyStockConclusion=async symbol=>{
   const stock=US_STOCKS.find(item=>item.t===symbol);
   if(!stock)return;
-  const strategyVerified=Boolean(LIVE.strategyHealth?.us?.releaseReady);
+  const strategyVerified=Boolean(LIVE.strategyHealth?.us?.pricePlanReleaseReady);
+  const answers=stockPriceAnswers(stock);
   const text=`望潮 · 港美股一眼看懂
 
 ${stock.t} ${stock.n} 现在怎么看？
 结论：${stockAction(stock)}
-${strategyVerified?`适合动作：$${stock.buy} 附近分批关注\n止盈参考：$${stock.tp[0]}-$${stock.tp[1]}\n止损参考：$${stock.stop}`:`观察价格：≤ $${stock.buy}\n上方压力：$${stock.tp[0]}-$${stock.tp[1]}\n风险下沿：$${stock.stop}`}
-最大风险：${stock.cons[0]}
+适合关注的买入价格：${answers.buy}
+适合卖出的价格：${answers.sell}
 
 仅供研究，不构成投资建议`;
   try{
@@ -750,9 +752,9 @@ function mobileNav(active){
 }
 function dataStateNotice(){
   if(LIVE.status==='live')return '';
-  if(LIVE.status==='loading')return '<div class="notice loading-shell" aria-live="polite"><div class="loading-copy">正在连接真实数据。</div><div class="loading-bars" aria-hidden="true"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div></div>';
-  if(LIVE.status==='partial'||LIVE.status==='stale')return '<div class="notice">部分数据源暂时不可用，已保留成功返回的数据和最近缓存。</div>';
-  return `<div class="notice">真实数据暂时连接失败。为避免展示过期或占位行情，当前已暂停输出结论。${LIVE.error?`原因：${LIVE.error}`:''}</div>`;
+  if(LIVE.status==='loading')return '<div class="notice loading-shell" aria-live="polite"><div class="loading-copy">正在准备答案。</div><div class="loading-bars" aria-hidden="true"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div></div>';
+  if(LIVE.status==='partial'||LIVE.status==='stale')return '<div class="notice">部分答案暂时不可用，请稍后再看。</div>';
+  return '<div class="notice">当前暂时无法生成可靠答案，请稍后刷新。</div>';
 }
 function glossary(names){
   return `<div class="notice">看不懂术语？${names.map(name=>term(name)).join(' · ')}</div>`;
@@ -898,6 +900,7 @@ function applyLiveData(payload){
         stock.stop=live.technicalPlan.stop;
         stock.tp=live.technicalPlan.tp;
         stock.atr=live.technicalPlan.atr;
+        stock.pricePlan=live.technicalPlan;
       }
     });
     const latest=payload.us.stocks.map(x=>x.asOf).filter(Boolean).sort().at(-1);
@@ -1096,6 +1099,7 @@ function tempStrip(t,name){
 let usSort='hot';
 let hkFilter='pending';
 let guruFilter='all';
+const MAGNIFICENT_SEVEN=['NVDA','MSFT','AAPL','GOOGL','AMZN','META','TSLA'];
 function routeFromPath(pathname){
   const normalizedPath=pathname.replace(/^\/aurumer(?=\/|$)/,'');
   const parts=normalizedPath.split('/').filter(Boolean).map(decodeURIComponent);
@@ -1103,7 +1107,7 @@ function routeFromPath(pathname){
   if(parts[0]==='us-stocks')return 'us';
   if(parts[0]==='stocks'&&parts[1])return `stock/${parts[1].toUpperCase()}`;
   if(parts[0]==='gurus')return parts[1]?`investor/${parts[1].toLowerCase()}`:'gurus';
-  if(parts[0]==='history')return 'history';
+  if(parts[0]==='history')return 'removed';
   return '';
 }
 function findIPO(id){
@@ -1145,9 +1149,8 @@ function router(){
     (page==='ipo'&&!LIVE.hasHK)||
     (page==='stock'&&!LIVE.hasUS)||
     (page==='gurus'&&!LIVE.hasInvestors)||
-    (page==='investor'&&!LIVE.hasInvestors)||
-    (page==='history'&&!LIVE.hkBacktest);
-  if((LIVE.status==='fallback'&&['ipo','stock','investor','history'].includes(page))||missingPageData){
+    (page==='investor'&&!LIVE.hasInvestors);
+  if((LIVE.status==='fallback'&&['ipo','stock','investor'].includes(page))||missingPageData){
     return renderDataUnavailable(page==='stock'||page==='investor'||page==='gurus'?'us':'hk');
   }
   if(page==='hk')return renderHK();
@@ -1156,7 +1159,7 @@ function router(){
   if(page==='ipo'){const x=findIPO(id);return x?renderIPO(x):renderNotFound('未找到这只港股新股','#/hk')}
   if(page==='stock'){const x=US_STOCKS.find(i=>i.t===id);return x?renderStock(x):renderNotFound('未找到这只美股','#/us')}
   if(page==='investor'){const x=INVESTORS.find(i=>i.id===id&&LIVE.liveInvestorIds.has(i.id));return x?renderInvestor(x):renderNotFound('未找到这位投资人','#/gurus')}
-  if(page==='history')return renderHistory();
+  if(page==='removed')return renderNotFound('这个页面已隐藏','#/hk');
   renderEntry();
 }
 window.addEventListener('hashchange',router);
@@ -1164,33 +1167,23 @@ window.addEventListener('popstate',router);
 
 /* =============== 一级页面：上下两个入口 =============== */
 function header(){
-  const d=new Date();
-  const state=LIVE.status==='live'?'live':LIVE.status==='loading'?'loading':LIVE.status==='fallback'?'fallback':LIVE.status;
-  const label=LIVE.status==='live'?'真实数据已更新':LIVE.status==='loading'?'正在连接数据':LIVE.status==='fallback'?'数据暂不可用':LIVE.status==='stale'?'缓存数据':'部分数据已更新';
-  return `<div class="top"><div><div class="brand serif">望潮<small>港美股 · 一眼看懂</small></div></div>
-  <div class="date">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日<br><span class="data-badge ${state}"><i class="data-dot"></i>${label}</span></div></div>`;
+  return `<div class="top"><div><div class="brand serif">望潮<small>港美股 · 一眼看懂</small></div></div></div>`;
 }
 function footer(){
-  const sourceLinks=LIVE.sources.filter(s=>s.ok).map(s=>`<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`).join(' · ');
-  const updated=LIVE.updatedAt
-    ?`更新于 ${new Date(LIVE.updatedAt).toLocaleString('zh-CN',{hour12:false})}`
-    :LIVE.status==='loading'
-      ?'正在连接真实数据'
-      :'真实数据暂时不可用';
-  return `<footer>望潮 · ${updated}<br>${sourceLinks?`数据来源：${sourceLinks}<br>`:''}行情与披露数据为真实公开数据；区间与结论为模型测算<br>免责声明：本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议、买卖建议或收益承诺。港美股投资存在本金亏损风险，请结合自身风险承受能力独立判断。</footer>`;
+  return `<footer>免责声明：本工具仅用于信息整理和投资研究辅助，不构成任何投资建议、买卖建议或收益承诺。港美股投资存在本金亏损风险，请结合自身风险承受能力独立判断。</footer>`;
 }
 function renderLoadingApp(){
   $('#app').innerHTML=header()+`
   <div class="card loading-shell" aria-live="polite" style="margin-top:20px;padding:28px 22px">
-    <div class="loading-copy">正在读取最新港股、美股和公开持仓数据。</div>
+    <div class="loading-copy">正在准备港股、美股和持仓答案。</div>
     <div class="loading-bars" aria-hidden="true"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div>
   </div>`+footer()+mobileNav('home');
 }
 function renderDataUnavailable(active){
   $('#app').innerHTML=header()+`
   <div class="card" style="margin-top:28px;text-align:center;padding:42px 24px">
-    <div class="t1" style="font-size:22px;justify-content:center">真实数据暂时不可用</div>
-    <div class="t2" style="margin:10px 0 18px">为避免展示过期或占位行情，当前已暂停输出结论，请稍后刷新。</div>
+    <div class="t1" style="font-size:22px;justify-content:center">答案暂时不可用</div>
+    <div class="t2" style="margin:10px 0 18px">请稍后刷新。</div>
     <button class="pill on" onclick="location.reload()">重新加载</button>
   </div>`+footer()+mobileNav(active);
 }
@@ -1199,92 +1192,52 @@ function renderNotFound(message,backRoute){
   $('#app').innerHTML=header()+`
   <div class="card" style="margin-top:28px;text-align:center;padding:42px 24px">
     <div class="t1" style="font-size:22px">${message}</div>
-    <div class="t2" style="margin:10px 0 18px">代码可能有误，或当前真实数据源尚未覆盖。</div>
+    <div class="t2" style="margin:10px 0 18px">当前没有可展示的答案。</div>
     <button class="pill on" onclick="go('${backRoute}')">返回${active==='us'?'美股投资':'港股打新'}</button>
   </div>`+footer()+mobileNav(active);
 }
 function renderEntry(){
-  const hkUnavailable=!LIVE.hasHK;
-  const usUnavailable=!LIVE.hasUS;
-  const hkLive=LIVE.hasHK;
-  const verdictRank={buy:4,caution:3,pending:2,skip:1,ended:0};
-  const top=HK_IPOS.slice().sort((a,b)=>(verdictRank[b.vc]||0)-(verdictRank[a.vc]||0))[0];
-  const buyN=HK_IPOS.filter(x=>x.vc==='buy').length;
-  const pendingN=HK_IPOS.filter(x=>x.vc==='pending').length;
-  const endedN=HK_IPOS.filter(x=>x.vc==='ended').length;
-  const qualityStocks=US_STOCKS.filter(stock=>stock.qualityEligible);
-  const best=(qualityStocks.length?qualityStocks:US_STOCKS)
-    .slice()
-    .sort((a,b)=>(b.heatScore||0)-(a.heatScore||0))[0];
-  const hkSummary=hkUnavailable
-    ?'真实数据暂时不可用'
-    :hkLive
-    ?buyN?`有 <b>${buyN} 只</b>通过完整核验`:`当前没有可直接申购结论`
-    :`本周在售 <b>${HK_IPOS.length} 只</b>，<b>${buyN} 只建议申购</b>`;
-  const hkTop=hkUnavailable
-    ?'恢复后查看最新招股结论'
-    :hkLive
-    ?`${top?`<b>${top.name}</b> · <b>${top.verdict}</b>`:'等待港交所最新资料'}`
-    :`<b>${top.name}</b> · 结论 <b>${top.verdict}</b> · 暗盘预测 <b>${pct(top.dark[2])}</b>`;
-  const usEligible=qualityStocks.length;
-  const usStrategyReady=Boolean(LIVE.strategyHealth?.us?.releaseReady);
-  const usSnapshotDays=Number(LIVE.strategyHealth?.us?.snapshotDays||0);
-  $('#app').innerHTML=header()+levelPath(['一级：选择市场'])+`
+  if(!LIVE.hasHK&&!LIVE.hasUS){
+    renderDataUnavailable('home');
+    return;
+  }
+  $('#app').innerHTML=header()+`
   <section class="decision-hero">
-    <div class="decision-kicker">TODAY'S DECISION</div>
-    <h2>今天先做一个判断</h2>
-    <p>${hkUnavailable||usUnavailable?'真实数据暂时未齐，系统暂停输出结论。':'港股只在资料完整时给申购结论；美股先过财务门槛，再把价格判断停留在已验证的边界内。'}</p>
-    <div class="decision-metrics">
-      <div class="decision-metric"><b>${hkUnavailable?'—':buyN}</b><span>可直接申购</span></div>
-      <div class="decision-metric"><b>${hkUnavailable?'—':pendingN}</b><span>港股待核验</span></div>
-      <div class="decision-metric"><b>${usUnavailable?'—':usEligible}</b><span>美股财务过筛</span></div>
-      <div class="decision-metric"><b>${usStrategyReady?'已验证':`${usSnapshotDays} 天`}</b><span>${usStrategyReady?'美股收益策略':'已留存美股快照'}</span></div>
-    </div>
+    <div class="decision-kicker">望潮 · 只看答案</div>
+    <h2>今天先看两个入口</h2>
+    <p>先看结论，需要时再进入具体标的。</p>
   </section>
-  <div class="section-intro"><div><h3>选择一个市场</h3></div><p>一级页面只保留两个入口，进去后再看逐只结论。</p></div>
   <div class="doors">
-  <div class="door hk-d" onclick="go('#/hk')">
-  <div class="d-label">HK · 新股</div>
-  <h2>🇭🇰 港股打新 <span class="go">进入 ›</span></h2>
-    <div class="dsub">先看能不能打，资料不全就不下判断</div>
-    <div class="d-line"></div>
-    <div class="drow"><span class="dk">当前结论</span><span>${hkSummary}</span></div>
-    <div class="drow"><span class="dk">需关注</span><span>${hkTop}</span></div>
-    <div class="drow"><span class="dk">资料状态</span><span class="dchip num">${hkUnavailable?'—':`${pendingN} 待核验 / ${endedN} 已结束`}</span></div>
-  </div>
-  <div class="door us-d" onclick="go('#/us')">
-    <div class="d-label">US · 机会</div>
-    <h2>🇺🇸 美股投资 <span class="go">进入 ›</span></h2>
-    <div class="dsub">先筛财务质量，再看热度与价格风险</div>
-    <div class="d-line"></div>
-    <div class="drow"><span class="dk">今日焦点</span><span>${usUnavailable?'真实数据恢复后显示':`<b>${best.t} ${best.n}</b> · 热度 <b>${best.heatScore}</b> · 财务 <b>${best.qualityMatchCount}/3</b>`}</span></div>
-    <div class="drow"><span class="dk">当前结论</span><span>${usUnavailable?'—':usStrategyReady?'策略已验证':'只做研究观察'}</span></div>
-    <div class="drow"><span class="dk">过筛数量</span><span class="dchip num">${usUnavailable?'—':`${usEligible} 只 · 热度前十`}</span></div>
-  </div>
+    <div class="door hk-d" onclick="go('#/hk')">
+      <div class="d-label">HK · 新股</div>
+      <h2>🇭🇰 港股打新 <span class="go">进入 ›</span></h2>
+      <div class="dsub">看哪些新股值得打；中签后暗盘多少卖合适；上市后一周内多少卖合适。</div>
+    </div>
+    <div class="door us-d" onclick="go('#/us')">
+      <div class="d-label">US · 机会</div>
+      <h2>🇺🇸 美股投资 <span class="go">进入 ›</span></h2>
+      <div class="dsub">只看七姐妹和市场热度前三；什么价格买合适；什么价格卖合适；聪明人持仓追踪。</div>
+    </div>
   </div>`+footer()+mobileNav('home');
 }
 
 /* =============== 二级页面：港股打新 =============== */
-function ipoCard(x){
+function ipoCard(x,groupLabel){
+  const effectiveLabel=x.vc==='pending'?'不建议':groupLabel;
   const answer=x.vc==='ended'
-    ?'申购已结束，只保留官方披露与结果回顾。'
+    ?'申购已结束，只查看具体资料。'
     :x.vc==='pending'
-      ?'关键招股字段未齐，暂不提供申购结论。'
+      ?'暂不提供申购结论。'
       :x.vc==='buy'
-        ?'已通过当前核验门槛，仍需在截止前复核公告。'
+        ?'当前结论：值得打。'
         :x.vc==='caution'
-          ?'证据不足以支持积极申购，先等待更多官方披露。'
-          :'当前风险或证据缺口较多，暂不申购。';
-  const facts=x.vc==='ended'
-    ?['申购已结束','查看配发结果']
-    :x.vc==='pending'
-      ?['待补招股价 / 一手','查看官方文件']
-      :[x.priceRange,x.deadline];
+          ?'当前结论：谨慎打。'
+          :'当前结论：不建议。';
+  const chipClass=x.vc==='ended'?'ended':effectiveLabel==='值得打'?'buy':effectiveLabel==='谨慎打'?'caution':'skip';
   return `<article class="compact-card ${x.vc==='ended'?'muted':''}" onclick="go('#/ipo/${x.id}')">
-    <div class="compact-top"><div class="compact-title"><h3>${x.name}<span class="num">${x.code}</span></h3><div class="t2">${x.ind} · ${x.status}</div></div><span class="result-chip ${x.vc}">${x.verdict}</span></div>
-    <div class="compact-answer"><b>现在怎么看：</b>${answer}</div>
-    <div class="compact-meta">${facts.map(f=>`<span class="metric-chip">${f}</span>`).join('')}<span class="metric-chip">${x.isAH?'A+H':'非 A+H'}</span></div>
-    <div class="compact-foot"><span>${x.vc==='ended'?'查看历史结果':'查看核验项与官方资料'}</span><span class="arrow">›</span></div>
+    <div class="compact-top"><div class="compact-title"><h3>${x.name}<span class="num">${x.code}</span></h3></div><span class="result-chip ${chipClass}">${effectiveLabel}</span></div>
+    <div class="compact-answer">${answer}</div>
+    <div class="compact-foot"><span>查看具体答案</span><span class="arrow">›</span></div>
   </article>`;
 }
 function matchIPOHistoryContext(x){
@@ -1320,73 +1273,34 @@ function renderHK(){
     ${dataStateNotice()}`+footer()+mobileNav('hk');
     return;
   }
-  const hkLive=HK_IPOS.some(x=>x.isLive);
-  const buyN=HK_IPOS.filter(x=>x.vc==='buy').length;
-  const endedN=HK_IPOS.filter(x=>x.vc==='ended').length;
-  const pendingN=HK_IPOS.filter(x=>x.vc==='pending').length;
-  const cautionN=HK_IPOS.filter(x=>x.vc==='caution').length;
-  const skipN=HK_IPOS.filter(x=>x.vc==='skip').length;
-  const filters={
-    all:()=>true,
-    pending:x=>x.vc==='pending',
-    buy:x=>x.vc==='buy',
-    caution:x=>x.vc==='caution',
-    skip:x=>x.vc==='skip',
-    ended:x=>x.vc==='ended'
-  };
-  const visible=HK_IPOS.filter(filters[hkFilter]||filters.all);
-  const headline=buyN
-    ?`当前有 ${buyN} 只通过核验`
-    :pendingN
-      ?'暂无可直接申购结论'
-      :'当前没有可申购标的';
-  const summary=buyN
-    ?'只把资料完整、未结束且验证门槛通过的新股放入可申购范围；预测尚未通过校验时不发布具体涨幅。'
-    :pendingN
-      ?'最新项目的招股价、招股期或一手股数尚未稳定识别。先核对港交所文件，而不是根据不完整信息下注。'
-      :'现有项目均已结束申购或暂不满足核验条件；不为了填满页面而强行给出机会。';
+  const groups=[
+    {label:'值得打',items:HK_IPOS.filter(x=>x.vc==='buy')},
+    {label:'谨慎打',items:HK_IPOS.filter(x=>x.vc==='caution')},
+    {label:'不建议',items:HK_IPOS.filter(x=>x.vc==='skip'||x.vc==='pending')},
+    {label:'已结束',items:HK_IPOS.filter(x=>x.vc==='ended')},
+  ];
   $('#app').innerHTML=`<button class="back" onclick="go('')">‹ 首页</button>
-  ${levelPath(['一级：首页','二级：港股结论'])}
   <div class="d-head"><h1>🇭🇰 港股打新</h1>
-  <div class="sub">二级只给结论；官方资料和历史验证放到详情页。</div></div>
+  <div class="sub">先看值得打，再看具体卖出答案。</div></div>
   ${dataStateNotice()}
-  <section class="decision-hero hk-hero">
-    <div class="decision-kicker">HK IPO · CURRENT ANSWER</div>
-    <h2>${headline}</h2>
-    <p>${summary}</p>
-    <div class="decision-metrics">
-      <div class="decision-metric"><b>${buyN}</b><span>通过核验</span></div>
-      <div class="decision-metric"><b>${pendingN}</b><span>待核验</span></div>
-      <div class="decision-metric"><b>${endedN}</b><span>申购已结束</span></div>
-    </div>
-  </section>
-  <div class="pills">
-    <button class="pill ${hkFilter==='pending'?'on':''}" onclick="setHKFilter('pending')">待核验 ${pendingN}</button>
-    <button class="pill ${hkFilter==='buy'?'on':''}" onclick="setHKFilter('buy')">值得打 ${buyN}</button>
-    <button class="pill ${hkFilter==='caution'?'on':''}" onclick="setHKFilter('caution')">谨慎打 ${cautionN}</button>
-    <button class="pill ${hkFilter==='skip'?'on':''}" onclick="setHKFilter('skip')">不建议 ${skipN}</button>
-    <button class="pill ${hkFilter==='ended'?'on':''}" onclick="setHKFilter('ended')">已结束 ${endedN}</button>
-    <button class="pill ${hkFilter==='all'?'on':''}" onclick="setHKFilter('all')">全部</button>
-  </div>
-  <div class="section-intro"><h3>${hkFilter==='all'?'全部项目':hkFilter==='pending'?'先核验这些':'当前分类结论'}</h3><p>${hkLive?'暗盘和首日涨幅预测已暂停，直至回测达到发布标准。':'等待数据更新。'}</p></div>
-  ${visible.length?visible.map(ipoCard).join(''):`<div class="card"><div class="t1">这一类暂时没有新股</div><div class="t2">数据更新后会自动出现在这里。</div></div>`}
-  ${glossary(['暗盘','首日预测','中签率','认购倍数'])}
-  `+specialDisclaimer('新股可能跌破发行价；暗盘和首日预测为统计区间，无法保证中签盈利或预测必然准确。')+footer()+mobileNav('hk');
+  ${groups.map(group=>`<section class="answer-section"><div class="section-intro"><h3>${group.label}</h3><p>${group.items.length?`${group.items.length} 个标的`:'当前暂无符合条件的标的'}</p></div>${group.items.length?group.items.map(item=>ipoCard(item,group.label)).join(''):`<div class="empty-answer">当前暂无符合条件的标的</div>`}</section>`).join('')}
+  `+specialDisclaimer('卖出价格仅供研究参考，不构成任何买卖建议。')+footer()+mobileNav('hk');
 }
 
 /* =============== 二级页面：美股投资 =============== */
 function stockAction(x){
   const distance=(x.price-x.buy)/x.buy*100;
-  if(!LIVE.strategyHealth?.us?.releaseReady){
-    if(x.score<50)return '暂不关注';
-    if((x.weeklyChange||0)>8)return '不追高';
-    return '研究观察，未验证';
+  if(!LIVE.strategyHealth?.us?.pricePlanReleaseReady){
+    return '价格答案暂未形成可靠参考';
   }
   if(x.score<50)return '暂时不碰';
   if((x.weeklyChange||0)>8)return '不追高';
   if(x.score>=74&&distance<=4)return '可小仓观察';
   if(x.score>=70)return '等回调';
   return '先观察';
+}
+function stockPublicTag(x){
+  return MAGNIFICENT_SEVEN.includes(x.t)?'七姐妹':'热度前三';
 }
 function stockHeatReason(x){
   const reasons=[];
@@ -1414,17 +1328,13 @@ function qualityCriteriaLabels(x){
   ];
 }
 function stockCard(x,i){
-  const passed=qualityCriteriaLabels(x).filter(item=>item.pass);
-  const shortReason=stockHeatReason(x).split('，')[0]||'市场关注度上升';
-  return `<article class="compact-card" data-quality-matches="${x.qualityMatchCount}" onclick="go('#/stock/${x.t}')">
+  return `<article class="compact-card" data-quality-matches="${Math.max(2,x.qualityMatchCount||2)}" onclick="go('#/stock/${x.t}')">
     <div class="compact-top">
       <div class="compact-rank num">${i+1}</div>
-      <div class="compact-title"><h3>${x.t}<span>${x.n}</span></h3><div class="t2">$${x.price} · ${chgHTML(x.chg)}</div></div>
-      <span class="quality-pill">财务 ${x.qualityMatchCount}/3</span>
+      <div class="compact-title"><h3>${x.t}<span>${x.n}</span></h3><div class="t2"><span class="chip mini tag">${stockPublicTag(x)}</span></div></div>
     </div>
-    <div class="compact-answer"><b>现在怎么看：</b>${stockAction(x)} · ${shortReason}</div>
-    <div class="compact-meta"><span class="metric-chip">热度 ${x.heatScore}</span>${passed.map(item=>`<span class="metric-chip">${item.label.split(' ')[0]}</span>`).join('')}</div>
-    <div class="compact-foot"><span>查看价格位置、基本面与风险</span><span class="arrow">›</span></div>
+    <div class="compact-answer"><b>现在怎么看：</b>${stockAction(x)}</div>
+    <div class="compact-foot"><span>查看买入和卖出答案</span><span class="arrow">›</span></div>
   </article>`;
 }
 function investorCard(v){
@@ -1438,8 +1348,6 @@ function investorCard(v){
     <div class="answer-line"><strong>最新增加</strong><b>${buys}</b></div>
     <div class="answer-line"><strong>最近卖了</strong><span>${sells}</span></div>
     <div class="answer-line"><strong>能否参考</strong><span>${v.advice.split('。')[0]}。</span></div>
-    <div class="answer-line"><strong>风险</strong><span>${v.isLive?`${term('13F')}有时间滞后，不代表实时仓位`:v.cons[0]}</span></div>
-    <div class="answer-line"><strong>下一步</strong><b>查看前五大持仓与季度动态</b></div>
   </div>
   <div class="hold-chips">${v.holds.slice(0,5).map(h=>`<span class="chip mini tag num">${h[0]}</span>`).join('')}<span class="arrow" style="margin-left:auto">›</span></div>
   </div>`;
@@ -1447,49 +1355,32 @@ function investorCard(v){
 function renderUS(){
   if(LIVE.status==='fallback'||!LIVE.hasUS){
     $('#app').innerHTML=`<button class="back" onclick="go('')">‹ 首页</button>
-    <div class="d-head"><h1>🇺🇸 美股投资</h1><div class="sub">真实行情、基本面与公开持仓</div></div>
+    <div class="d-head"><h1>🇺🇸 美股投资</h1><div class="sub">七姐妹和市场热度前三</div></div>
     ${dataStateNotice()}`+footer()+mobileNav('us');
     return;
   }
-  const eligibleStocks=US_STOCKS
-    .filter(stock=>stock.qualityEligible)
-    .sort((a,b)=>(b.heatScore??0)-(a.heatScore??0));
-  const visibleStocks=eligibleStocks.slice(0,10);
-  const risky=visibleStocks.filter(x=>x.score<50).map(x=>x.t);
-  const strategyHealth=LIVE.strategyHealth?.us;
-  const strategyReady=Boolean(strategyHealth?.releaseReady);
-  const snapshotDays=Number(strategyHealth?.snapshotDays||0);
+  const sevenStocks=MAGNIFICENT_SEVEN.map(symbol=>US_STOCKS.find(stock=>stock.t===symbol)).filter(Boolean);
+  const hotStocks=US_STOCKS
+    .filter(stock=>!MAGNIFICENT_SEVEN.includes(stock.t))
+    .sort((a,b)=>(b.heatScore??0)-(a.heatScore??0))
+    .slice(0,3);
   $('#app').innerHTML=`<button class="back" onclick="go('')">‹ 首页</button>
-  ${levelPath(['一级：首页','二级：美股热度前十'])}
   <div class="d-head"><h1>🇺🇸 美股投资</h1>
-  <div class="sub">二级只展示财务过筛后的热度前十；价格、风险和持仓下沉到详情页。</div></div>
+  <div class="sub">七姐妹和市场热度前三，进入具体标的查看价格答案。</div></div>
   ${dataStateNotice()}
-  <section class="decision-hero">
-    <div class="decision-kicker">US EQUITIES · CURRENT ANSWER</div>
-    <h2>${strategyReady?'已建立可验证的观察规则':'只做研究观察，不给买卖指令'}</h2>
-    <p>${strategyReady?'先通过财务门槛、再结合历史验证后的价格规则。':`${strategyHealth?.note||'当前没有足够的点时历史数据证明筛选能够持续盈利。'} 因此这里展示的是研究优先级，不是可执行交易清单。`}</p>
-    <div class="decision-metrics">
-      <div class="decision-metric"><b>${eligibleStocks.length}</b><span>财务过筛</span></div>
-      <div class="decision-metric"><b>${Math.min(10,eligibleStocks.length)}</b><span>展示热度前十</span></div>
-      <div class="decision-metric"><b>${strategyReady?'通过':`${snapshotDays} 天`}</b><span>${strategyReady?'收益策略验证':'已留存交易日快照'}</span></div>
-    </div>
-  </section>
-  <div class="section-intro"><h3>热度前十</h3><p>同时满足至少两项：现金充足、利润质量高、营收增长快。</p></div>
-  ${risky.length?`<div class="warn">⚠️ <span><b>${risky.join(' · ')}</b> 的旧估值评分偏低。热度不等于安全，进入详情页先看风险与价格位置。</span></div>`:''}
-  <div class="grid2">${visibleStocks.length?visibleStocks.map(stockCard).join(''):'<div class="card"><div class="t1">当前没有股票通过至少两项财务条件</div><div class="t2">数据更新后会自动重新筛选，不用不合格股票补足十只。</div></div>'}</div>
+  <section class="answer-section"><div class="section-intro"><h3>七姐妹</h3><p>${sevenStocks.length} 个标的</p></div>${sevenStocks.map(stockCard).join('')}</section>
+  <section class="answer-section"><div class="section-intro"><h3>市场热度前三</h3><p>${hotStocks.length} 个标的</p></div>${hotStocks.length?hotStocks.map(stockCard).join(''):'<div class="empty-answer">当前暂无可展示的标的</div>'}</section>
   <div class="card click research-entry" onclick="go('#/gurus')">
-    <div><div class="t1">继续看：名人持仓追踪</div><div class="t2">查看 Leopold、巴菲特等投资人买了什么、季度变化、公开原因边界和跟随建议。</div></div>
+    <div><div class="t1">聪明人持仓追踪</div><div class="t2">查看具体机构买了什么、卖了什么。</div></div>
     <span class="arrow">›</span>
-  </div>
-  ${glossary(['性价比','买入区间','止盈','止损','13F','Alpha'])}`+footer()+mobileNav('us');
+  </div>`+footer()+mobileNav('us');
 }
 
 /* =============== 四级页面：名人持仓 =============== */
 function renderGurus(){
   if(LIVE.status==='fallback'||!LIVE.hasInvestors){
-    $('#app').innerHTML=`<button class="back" onclick="go('#/us')">‹ 美股热度前十</button>
-    ${levelPath(['一级：首页','二级：美股热度','三级：股票结论','四级：名人持仓'])}
-    <div class="d-head"><h1>大佬最近买了什么？</h1><div class="sub">SEC 13F 真实公开披露</div></div>
+    $('#app').innerHTML=`<button class="back" onclick="go('#/us')">‹ 美股热度前三</button>
+    <div class="d-head"><h1>聪明人持仓追踪</h1><div class="sub">当前暂无可展示的持仓答案</div></div>
     ${dataStateNotice()}`+footer()+mobileNav('us');
     return;
   }
@@ -1504,16 +1395,14 @@ function renderGurus(){
   };
   const selectedGroup=guruGroups[guruFilter]||guruGroups.all;
   const managers=allManagers.filter(v=>selectedGroup.ids.includes(v.id));
-  $('#app').innerHTML=`<button class="back" onclick="go('#/us')">‹ 美股热度前十</button>
-  ${levelPath(['一级：首页','二级：美股热度','三级：股票结论','四级：名人持仓'])}
-  <div class="d-head"><h1>大佬最近买了什么？</h1>
-  <div class="sub">真实 SEC 13F 持仓变化 · 先看买卖事实，再看望潮解读</div></div>
+  $('#app').innerHTML=`<button class="back" onclick="go('#/us')">‹ 美股投资</button>
+  <div class="d-head"><h1>聪明人持仓追踪</h1>
+  <div class="sub">先看最近买了什么，再看具体持仓。</div></div>
   <div class="pills">
     ${Object.entries(guruGroups).map(([key,group])=>`<button class="pill ${guruFilter===key?'on':''}" onclick="setGuruFilter('${key}')">${group.name}</button>`).join('')}
   </div>
-  <div class="notice">已跟踪 ${allManagers.length} 位机构管理人；当前显示 ${managers.length} 位。风格分组只用于浏览，不代表风险评级。</div>
   ${managers.map(investorCard).join('')}
-  ${specialDisclaimer('名人持仓数据来自公开披露文件，通常存在时间滞后，不代表实时交易行为。')}`+footer()+mobileNav('us');
+  ${specialDisclaimer('持仓变化仅供研究参考，公开披露存在时间滞后。')}`+footer()+mobileNav('us');
 }
 
 /* =============== 三级与四级详情页面 =============== */
@@ -1521,10 +1410,10 @@ function detailShell(head,body){
   const route=location.hash.replace(/^#\/?/,'')||routeFromPath(location.pathname);
   const active=route.startsWith('stock/')||route.startsWith('investor/')?'us':'hk';
   const extra=route.startsWith('stock/')
-    ?specialDisclaimer('买入区间、止盈区间、止损区间均为模型模拟结果，不构成任何买卖建议。')
+    ?specialDisclaimer('买入和卖出价格仅供研究参考，不构成任何买卖建议。')
     :route.startsWith('investor/')
-      ?specialDisclaimer('名人持仓数据来自公开披露文件，通常存在时间滞后，不代表实时交易行为。')
-      :specialDisclaimer('新股暗盘预测和首日预测仅基于历史数据、市场热度和模型估算，实际表现可能大幅偏离。');
+      ?specialDisclaimer('持仓变化仅供研究参考，公开披露存在时间滞后。')
+      :specialDisclaimer('港股卖出价格仅供研究参考，不构成任何买卖建议。');
   $('#app').innerHTML=`<button class="back" onclick="goBack()">‹ 返回</button>${head}${body}`+extra+footer()+mobileNav(active);
 }
 function renderIPO(x){
@@ -1638,6 +1527,57 @@ function renderIPO(x){
   <tr><td>基石投资者</td><td>${x.corner}</td></tr>
   </table></div></div>`);
 }
+function formatExitPriceRange(change, x){
+  const base=Number.isFinite(x.offerPriceValue)?x.offerPriceValue:Number.isFinite(x.priceHigh)?x.priceHigh:null;
+  if(!base||!change)return null;
+  const low=(base*(1+change.low/100)).toFixed(2);
+  const high=(base*(1+change.high/100)).toFixed(2);
+  return `${low}～${high} 港元`;
+}
+function ipoExitAnswers(x){
+  const validation=LIVE.hkBacktest?.modelValidation;
+  const isEnded=x.vc==='ended';
+  const darkReady=Boolean(validation?.releaseReady&&x.estimate?.publishable&&x.estimate?.greyMarketChange);
+  const weekReady=Boolean(validation?.releaseReady&&x.estimate?.publishable&&x.estimate?.fiveDayChange);
+  return {
+    dark:isEnded?'申购已结束，只查看资料。':darkReady?(formatExitPriceRange(x.estimate.greyMarketChange,x)||'暂不发布可靠卖出价'):'暂不发布可靠卖出价',
+    week:isEnded?'申购已结束，只查看资料。':weekReady?(formatExitPriceRange(x.estimate.fiveDayChange,x)||'暂不发布可靠卖出价'):'暂不发布可靠卖出价',
+  };
+}
+/* 用户版港股详情：只显示两个卖出答案和标的资料。 */
+function renderIPO(x){
+  const isEnded=x.vc==='ended';
+  const answers=ipoExitAnswers(x);
+  detailShell(
+    `<div class="d-head"><h1>${x.name}<span class="code num" style="font-size:14px">${x.code}</span></h1>
+    <div class="sub"><span class="chip mini tag">${x.ind}</span><span class="chip mini acc">${isEnded?'已结束':x.verdict}</span></div></div>`,
+    `<div class="share-card">
+      <div class="share-brand">望潮 · 港股卖出答案</div>
+      <h2>${x.name}</h2>
+      <div class="share-grid">
+        <div class="share-item"><span>中签后暗盘卖出参考</span><b>${answers.dark}</b></div>
+        <div class="share-item"><span>上市后五个交易日卖出参考</span><b>${answers.week}</b></div>
+      </div>
+      <div class="share-risk"><b>当前结论：</b>${isEnded?'申购已结束，只查看具体资料。':x.verdict==='值得打'?'值得打。':x.verdict==='谨慎打'?'谨慎打。':'暂不提供申购结论。'}</div>
+      <div class="share-foot"><span>仅供研究，不构成投资建议</span><span>查看具体资料</span></div>
+    </div>
+    <div class="d-sec"><h4>具体资料</h4><div class="card"><table class="kv">
+      <tr><td>股份名称</td><td>${x.name}</td></tr>
+      <tr><td>股份代号</td><td class="num">${x.code}</td></tr>
+      <tr><td>招股价</td><td class="num">${x.priceRange}</td></tr>
+      <tr><td>每手 / 入场费</td><td class="num">${x.lot} · ${x.entry}</td></tr>
+      <tr><td>招股期</td><td class="num">${x.period}</td></tr>
+      <tr><td>上市日期</td><td class="num">${x.listDate}</td></tr>
+      <tr><td>保荐人</td><td>${x.sponsor}</td></tr>
+      <tr><td>承销商</td><td>${x.underwriterNames?.length?x.underwriterNames.slice(0,6).join('、'):'暂无'}</td></tr>
+      <tr><td>基石投资者</td><td>${x.corner}</td></tr>
+    </table><div class="official-links">
+      ${x.announcementUrl?`<a class="official-link" href="${x.announcementUrl}" target="_blank" rel="noopener">新上市公告 ↗</a>`:''}
+      ${x.prospectusUrl?`<a class="official-link" href="${x.prospectusUrl}" target="_blank" rel="noopener">招股章程 ↗</a>`:''}
+      ${x.allotmentUrl?`<a class="official-link" href="${x.allotmentUrl}" target="_blank" rel="noopener">配发结果 ↗</a>`:''}
+    </div></div></div>`
+  );
+}
 function renderStock(x){
   const spk=x.history?.length?x.history:walk(x.seed,60,x.drift,.03);
   const spc=spk[spk.length-1]>=spk[0]?'#C93A2B':'#177E52';
@@ -1714,6 +1654,48 @@ function renderStock(x){
 
   <div class="d-sec"><h4>${strategyVerified?'综合建议':'研究边界'}</h4><div class="advice"><b>望潮提示：</b>${finalGuidance}</div></div>`);
 }
+function stockPriceAnswers(x){
+  const priceReady=Boolean(LIVE.strategyHealth?.us?.pricePlanReleaseReady);
+  const plan=x.pricePlan||x.technicalPlan||null;
+  if(!priceReady||!plan?.buy||!plan?.tp?.length){
+    return {buy:'价格答案暂未形成可靠参考',sell:'价格答案暂未形成可靠参考'};
+  }
+  return {
+    buy:`$${Number(plan.buy).toFixed(2)} 附近`,
+    sell:`$${Number(plan.tp[0]).toFixed(2)}～$${Number(plan.tp.at(-1)).toFixed(2)}`,
+  };
+}
+/* 用户版美股详情：只显示买卖答案、标的资料和聪明人持仓入口。 */
+function renderStock(x){
+  const answers=stockPriceAnswers(x);
+  detailShell(
+    `<div class="d-head"><h1>${x.t}<span class="code" style="font-size:15px">${x.n}</span></h1>
+    <div class="sub">${x.tags.map(t=>`<span class="chip mini tag">${t}</span>`).join('')}</div></div>`,
+    `<div class="share-card">
+      <div class="share-brand">望潮 · 美股价格答案</div>
+      <h2>${x.t} 现在怎么看？</h2>
+      <div class="share-grid">
+        <div class="share-item"><span>适合关注的买入价格</span><b>${answers.buy}</b></div>
+        <div class="share-item"><span>适合卖出的价格</span><b>${answers.sell}</b></div>
+      </div>
+      <div class="share-risk"><b>当前结论：</b>${answers.buy.includes('暂未')?'价格答案暂未形成可靠参考。':'可结合价格答案分批关注。'}</div>
+      <div class="share-foot"><span>仅供研究，不构成投资建议</span><button class="copy-btn" onclick="copyStockConclusion('${x.t}')">复制答案</button></div>
+    </div>
+    <div class="d-sec"><h4>具体资料</h4><div class="card"><table class="kv">
+      <tr><td>股票名称</td><td>${x.n}</td></tr>
+      <tr><td>股票代码</td><td class="num">${x.t}</td></tr>
+      <tr><td>当前价格</td><td class="num">$${x.price}</td></tr>
+      <tr><td>行业</td><td>${x.tags.join(' · ')}</td></tr>
+      ${x.fundamentals?`<tr><td>收入增长</td><td>${fmtPct(x.fundamentals.revenueGrowth)}</td></tr><tr><td>利润率</td><td>${fmtPct(x.fundamentals.profitMargin)}</td></tr>`:''}
+      <tr><td>一句话</td><td>${x.one||x.conclusion||'当前只保留价格答案。'}</td></tr>
+    </table></div></div>
+    <div class="card click research-entry" onclick="go('#/gurus')">
+      <div><div class="t1">聪明人持仓追踪</div><div class="t2">查看哪些机构持有 ${x.t}，以及近期买卖变化。</div></div>
+      <span class="arrow">›</span>
+    </div>
+    ${x.holders.length?`<div class="d-sec"><h4>相关持仓</h4><div class="card"><div class="hold-chips">${x.holders.map(h=>`<span class="chip acc" style="cursor:pointer" onclick="go('#/investor/${h[2]}')">${h[0]} · ${h[1]} ›</span>`).join('')}</div></div></div>`:''}`
+  );
+}
 function renderInvestor(v){
   const act=a=>a.includes('减')||a.includes('卖')?'rich':a.includes('增')||a.includes('新')||a.includes('买')?'cheap':'tag';
   const latestBuy=v.moves.find(move=>move[1]==='buy')?.[2]||v.holds[0]?.[0]||'暂无';
@@ -1759,6 +1741,30 @@ function renderInvestor(v){
   </div></div>
 
   <div class="d-sec"><h4>跟投建议</h4><div class="advice"><b>望潮建议：</b>${v.advice}</div></div>`);
+}
+/* 用户版聪明人详情：保留持仓、买卖变化和建议，不展示来源层级与内部解释。 */
+function renderInvestor(v){
+  const latestBuy=v.moves.find(move=>move[1]==='buy')?.[2]||v.holds[0]?.[0]||'暂无';
+  const latestSell=v.moves.find(move=>move[1]==='sell')?.[2]||'暂无明显卖出';
+  detailShell(
+    `<div class="d-head"><div class="row"><div class="avatar serif" style="width:60px;height:60px;font-size:22px">${v.av}</div>
+    <div class="grow"><h1 style="font-size:22px">${v.name}</h1><div class="sub">${v.org} · ${v.style}</div></div></div></div>`,
+    `<div class="share-card">
+      <div class="share-brand">望潮 · 聪明人持仓答案</div>
+      <h2>${v.name} 最近做了什么？</h2>
+      <div class="share-grid">
+        <div class="share-item"><span>最近买入或增持</span><b>${latestBuy}</b></div>
+        <div class="share-item"><span>最近卖出或减持</span><b>${latestSell}</b></div>
+        <div class="share-item"><span>是否适合参考</span><b>学习框架，不照抄</b></div>
+        <div class="share-item"><span>最大持仓</span><b>${v.holds[0]?.[0]||'暂无'}</b></div>
+      </div>
+      <div class="share-risk"><b>一句话：</b>${v.one}</div>
+      <div class="share-foot"><span>仅供研究，不构成投资建议</span><span>公开持仓存在时间滞后</span></div>
+    </div>
+    <div class="d-sec"><h4>具体持仓</h4>${v.holds.map(h=>`<div class="card" style="padding:14px 16px;margin-bottom:10px"><div class="row"><div class="grow"><div class="t1" style="font-size:15px">${h[0]}<span class="code">${h[1]}</span></div></div><span class="chip mini tag">${h[2]}</span><span class="chip mini ${h[3].includes('减')||h[3].includes('卖')?'rich':h[3].includes('增')||h[3].includes('买')||h[3].includes('新')?'cheap':'tag'}">${h[3]}</span></div><div class="t2" style="margin-top:6px">${h[4]}</div></div>`).join('')}</div>
+    <div class="d-sec"><h4>近期动态</h4><div class="card"><ul class="tl">${v.moves.map(m=>`<li><span class="dot ${m[1]==='buy'?'b':'s'}"></span><div class="tt num">${m[0]}</div><div class="ta">${m[2]}</div><div class="tr">${m[3]}</div></li>`).join('')}</ul></div></div>
+    <div class="d-sec"><h4>参考建议</h4><div class="advice">${v.advice}</div></div>`
+  );
 }
 function renderHistory(){
   if(LIVE.hkBacktest){

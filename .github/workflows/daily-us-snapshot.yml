@@ -15,11 +15,12 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout public site
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
+          package-manager-cache: false
       - name: Install data dependencies
         run: npm ci --omit=dev
       - name: Refresh HK, US, and institution data

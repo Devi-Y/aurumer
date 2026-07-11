@@ -1,14 +1,16 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-11T04:37:06.971Z",
+  "generatedAt": "2026-07-11T12:50:54.742Z",
   "autoApply": false,
   "hk": {
     "sampleCount": 97,
     "fiveDaySampleCount": 54,
+    "fiveDayHighSampleCount": 54,
     "priceAnswersReleased": false,
     "algorithmVersion": "ipo-nearest-20-2026-07-v1",
     "releaseThresholds": {
       "minimumFiveDaySamples": 50,
+      "minimumFiveDayHighSamples": 50,
       "minimumIntervalCoverage": 80,
       "minimumDirectionAccuracy": 65,
       "maximumMeanAbsoluteError": 25,
@@ -33,8 +35,15 @@
         "sampleCount": 54,
         "intervalCoverage": 85.18518518518519,
         "directionAccuracy": 79.6875,
-        "meanAbsoluteError": 70.64937500000002,
-        "calibrationHalfWidth": 167.961
+        "meanAbsoluteError": 69.57171875000004,
+        "calibrationHalfWidth": 169.10200000000003
+      },
+      "fiveDayHigh": {
+        "sampleCount": 54,
+        "intervalCoverage": 87.03703703703704,
+        "directionAccuracy": 90.625,
+        "meanAbsoluteError": 85.65218750000003,
+        "calibrationHalfWidth": 195.45200000000006
       }
     }
   },

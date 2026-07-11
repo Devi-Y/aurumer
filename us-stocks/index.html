@@ -1596,10 +1596,10 @@ function ipoExitAnswers(x){
   const isEnded=x.vc==='ended';
   const review=x.historicalReview||null;
   const darkReady=Boolean(validation?.releaseReady&&x.estimate?.publishable&&x.estimate?.greyMarketChange);
-  const weekReady=Boolean(validation?.releaseReady&&x.estimate?.publishable&&x.estimate?.fiveDayChange);
+  const weekReady=Boolean(validation?.releaseReady&&x.estimate?.publishable&&x.estimate?.fiveDayHighChange);
   return {
     dark:isEnded?(formatHistoricalPrice(review?.greyMarketChange,x)||'历史暗盘价格暂未收录'):darkReady?(formatExitPriceRange(x.estimate.greyMarketChange,x)||'暂不发布可靠卖出价'):'暂不发布可靠卖出价',
-    week:isEnded?(formatHistoricalPrice(review?.fiveDayChange,x)||'上市后五日价格暂未收录'):weekReady?(formatExitPriceRange(x.estimate.fiveDayChange,x)||'暂不发布可靠卖出价'):'暂不发布可靠卖出价',
+    week:isEnded?(formatHistoricalPrice(review?.fiveDayHighChange,x)||'上市后五日内最高价暂未收录'):weekReady?(formatExitPriceRange(x.estimate.fiveDayHighChange,x)||'暂不发布可靠卖出价'):'暂不发布可靠卖出价',
   };
 }
 function isKnownIPOFact(value){
@@ -1620,7 +1620,8 @@ function ipoFactRows(x){
     ['基石投资者',x.corner],
     ['暗盘实际',Number.isFinite(x.historicalReview?.greyMarketChange)?pct(x.historicalReview.greyMarketChange):null],
     ['首日实际',Number.isFinite(x.historicalReview?.firstDayChange)?pct(x.historicalReview.firstDayChange):null],
-    ['五日实际',Number.isFinite(x.historicalReview?.fiveDayChange)?pct(x.historicalReview.fiveDayChange):null],
+    ['五日内最高',Number.isFinite(x.historicalReview?.fiveDayHighChange)?pct(x.historicalReview.fiveDayHighChange):null],
+    ['第五日收盘',Number.isFinite(x.historicalReview?.fiveDayChange)?pct(x.historicalReview.fiveDayChange):null],
   ].filter(([,value])=>isKnownIPOFact(value));
   return rows.length
     ?rows.map(([label,value])=>`<tr><td>${label}</td><td>${value}</td></tr>`).join('')
@@ -1645,7 +1646,7 @@ function renderIPO(x){
     `<div class="market-summary"><div><b>${currentConclusion}</b><span>${detailText}</span></div><span class="result-chip ${isEnded?'ended':x.vc==='buy'?'buy':x.vc==='caution'?'caution':'skip'}">${isEnded?'已结束':currentConclusion}</span></div>
     <div class="price-map">
       <div class="price-cell primary"><span>${isEnded?'暗盘实际表现':'中签后暗盘卖出参考'}</span><b>${answers.dark}</b><small>${isEnded?'历史结果':'仅供观察'}</small></div>
-      <div class="price-cell"><span>${isEnded?'上市后五日表现':'上市后五个交易日卖出参考'}</span><b>${answers.week}</b><small>${isEnded?'历史结果':'仅供观察'}</small></div>
+      <div class="price-cell"><span>${isEnded?'上市后五日内最高':'上市后五日内最高卖出参考'}</span><b>${answers.week}</b><small>${isEnded?'历史最高':'仅供观察'}</small></div>
       <div class="price-cell"><span>当前状态</span><b>${isEnded?'已结束':'申购期'}</b><small>${isEnded?'只作复盘':'以站内资料为准'}</small></div>
     </div>
     <div class="d-sec"><h4>具体资料</h4><div class="card facts-card"><table class="kv">${ipoFactRows(x)}</table></div></div>`

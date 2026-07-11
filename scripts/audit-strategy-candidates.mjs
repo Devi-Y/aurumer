@@ -18,6 +18,7 @@ assert(Array.isArray(audit.us?.candidates) && audit.us.candidates.length >= 4, "
 assert(audit.us.snapshotDays === history.days.length, "策略审计与交易日快照不同步");
 assert(audit.hk && Number.isFinite(audit.hk.sampleCount), "港股审计摘要缺失");
 assert(audit.hk.fiveDaySampleCount >= 50, "港股五日真实校准样本不足 50");
+assert(audit.hk.fiveDayHighSampleCount >= 50, "港股五日最高价校准样本不足 50");
 assert(Boolean(audit.hk.algorithmVersion), "港股审计缺少算法版本");
 assert(audit.usTechnical?.autoApply === false, "美股技术候选不允许自动发布");
 assert(audit.usTechnical?.universe?.length === 7, "美股技术回测必须覆盖七姐妹");
@@ -29,6 +30,7 @@ console.log(
       autoApply: audit.autoApply,
       candidateForReview: audit.us.candidateForReview,
       hkFiveDaySamples: audit.hk.fiveDaySampleCount,
+      hkFiveDayHighSamples: audit.hk.fiveDayHighSampleCount,
       snapshotDays: audit.us.snapshotDays,
       status: audit.us.status,
       technicalStatus: audit.usTechnical.status,

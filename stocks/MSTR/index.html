@@ -731,6 +731,7 @@ window.copyStockConclusion=async symbol=>{
   const text=`望潮 Aurum · 港美股答案
 
 ${stock.t} ${stock.n} 现在怎么看？
+当前结论：${stockAction(stock)}
 当前价格：$${Number(stock.price).toFixed(2)}
 关注区：${answers.buy}
 上方参考区：${answers.sell}
@@ -852,7 +853,22 @@ function toLiveIPO(item,temperature){
   const estimate=item.modelEstimate||null;
   const cornerstoneFacts=cornerstoneNames.length
     ?`${cornerstoneNames.join('、')}${cornerstoneSuffix}${Number.isFinite(item.cornerstonePercent)?`，约占发售股份 ${item.cornerstonePercent}%`:item.cornerstoneAmount?`，认购约 ${item.cornerstoneAmount}`:''}`
-    :'见招股章程';
+    :Number.isFinite(item.cornerstonePercent)&&item.cornerstonePercent>0
+      ?`基石约占发售股份 ${item.cornerstonePercent}%`
+      :'见招股章程';
+  const offerPriceText=item.offerPrice||(
+    Number.isFinite(item.offerPriceValue)
+      ?`${Number(item.offerPriceValue).toFixed(2)} 港元`
+      :'以招股章程为准'
+  );
+  const boardLotShares=Number.isFinite(item.boardLotShares)
+    ?Number(item.boardLotShares)
+    :Number(String(item.boardLot||'').replace(/,/g,''))||null;
+  const entryFee=Number.isFinite(item.entryFee)
+    ?item.entryFee
+    :Number.isFinite(item.offerPriceValue)&&boardLotShares
+      ?item.offerPriceValue*boardLotShares*1.010085
+      :null;
   return {
     ...item,
     ind:item.industry||'港交所主板新股',
@@ -864,9 +880,9 @@ function toLiveIPO(item,temperature){
     one:assessment.vc==='ended'
       ?assessment.reason
       :hasCoreFacts?assessment.reason:'港交所已发布招股文件；部分核心字段仍待自动解析。',
-    priceRange:item.offerPrice||'以招股章程为准',
-    lot:item.boardLot?`${item.boardLot}股/手`:'以招股章程为准',
-    entry:item.entryFee?`${item.entryFee.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})} 港元`:'待解析',
+    priceRange:offerPriceText,
+    lot:boardLotShares?`${boardLotShares.toLocaleString('zh-CN')}股/手`:'以招股章程为准',
+    entry:Number.isFinite(entryFee)?`${entryFee.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})} 港元`:'待解析',
     period:item.offerStart&&item.offerDeadline?`${item.offerStart} 至 ${item.offerDeadline}`:'以招股章程为准',
     sponsor:item.sponsor||'见招股章程',
     sponsorNames:item.sponsorNames||[],
@@ -1223,6 +1239,15 @@ function renderEntry(){
     renderDataUnavailable('home');
     return;
   }
+  const worth=HK_IPOS.filter(item=>item.vc==='buy');
+  const hkToday=worth.length
+    ?`${worth[0].name}${worth.length>1?`等 ${worth.length} 只值得重点看`: '值得重点看'}`
+    :'暂无值得打的新股';
+  const focusUniverse=US_STOCKS.filter(stock=>MAGNIFICENT_SEVEN.includes(stock.t));
+  const closest=[...focusUniverse].filter(stock=>Number.isFinite(stock.buy)&&stock.buy>0).sort((left,right)=>
+    Math.abs((left.price-left.buy)/left.buy)-Math.abs((right.price-right.buy)/right.buy)
+  )[0];
+  const usToday=closest?`${closest.t} ${stockAction(closest)}`:'价格答案正在更新';
   $('#app').innerHTML=header()+`
   <div class="home-context"><b>今天看什么？</b>港股看打新结论，美股看价格和持仓。</div>
   <div class="doors">
@@ -1230,11 +1255,13 @@ function renderEntry(){
       <div class="d-label">HK · 新股</div>
       <h2>🇭🇰 港股打新 <span class="go">进入 ›</span></h2>
       <div class="dsub">看哪些新股值得打；中签后暗盘多少卖合适；上市后一周内多少卖合适。</div>
+      <div class="d-line"></div><div class="drow"><span class="dk">今天答案</span><b>${hkToday}</b></div>
     </div>
     <div class="door us-d" onclick="go('#/us')">
       <div class="d-label">US · 机会</div>
       <h2>🇺🇸 美股投资 <span class="go">进入 ›</span></h2>
       <div class="dsub">只看七姐妹和市场热度前三；什么价格买合适；什么价格卖合适；聪明人持仓追踪。</div>
+      <div class="d-line"></div><div class="drow"><span class="dk">今天先看</span><b>${usToday}</b></div>
     </div>
   </div>`+footer()+mobileNav('home');
 }
@@ -1314,15 +1341,14 @@ function renderHK(){
 
 /* =============== 二级页面：美股投资 =============== */
 function stockAction(x){
+  if(!Number.isFinite(x.price)||!Number.isFinite(x.buy)||x.buy<=0)return '价格答案正在更新';
   const distance=(x.price-x.buy)/x.buy*100;
-  if(!LIVE.strategyHealth?.us?.pricePlanReleaseReady){
-    return '先看价格地图';
-  }
-  if(x.score<50)return '暂时不碰';
-  if((x.weeklyChange||0)>8)return '不追高';
-  if(x.score>=74&&distance<=4)return '可小仓观察';
-  if(x.score>=70)return '等回调';
-  return '先观察';
+  const upper=Number(x.tp?.[0]);
+  if(Number.isFinite(upper)&&x.price>=upper)return '已到上方参考区，先别追';
+  if((x.weeklyChange||0)>8)return '短期涨得快，等回落';
+  if(distance<=0)return '已进入关注区，先复核风险';
+  if(distance<=3)return '接近关注区，重点观察';
+  return `还需回落约 ${distance.toFixed(0)}% 到关注区`;
 }
 function stockPublicTag(x){
   return MAGNIFICENT_SEVEN.includes(x.t)?'七姐妹':'热度前三';
@@ -1583,13 +1609,18 @@ function ipoFactRows(x){
   const rows=[
     ['股份名称',x.name],
     ['股份代号',x.code],
+    ['所属行业',x.ind],
     ['招股价',x.priceRange],
     ['每手 / 入场费',`${x.lot} · ${x.entry}`],
     ['招股期',x.period],
     ['上市日期',x.listDate],
+    ['公开认购',Number.isFinite(x.publicOversubscription)?`${x.publicOversubscription.toFixed(1)} 倍`:null],
     ['保荐人',x.sponsor],
     ['承销商',x.underwriterNames?.length?x.underwriterNames.slice(0,6).join('、'):null],
     ['基石投资者',x.corner],
+    ['暗盘实际',Number.isFinite(x.historicalReview?.greyMarketChange)?pct(x.historicalReview.greyMarketChange):null],
+    ['首日实际',Number.isFinite(x.historicalReview?.firstDayChange)?pct(x.historicalReview.firstDayChange):null],
+    ['五日实际',Number.isFinite(x.historicalReview?.fiveDayChange)?pct(x.historicalReview.fiveDayChange):null],
   ].filter(([,value])=>isKnownIPOFact(value));
   return rows.length
     ?rows.map(([label,value])=>`<tr><td>${label}</td><td>${value}</td></tr>`).join('')
@@ -1711,10 +1742,11 @@ function renderStock(x){
   const answers=stockPriceAnswers(x);
   const changeClass=x.chg>=0?'upc':'dnc';
   const planReady=!answers.buy.includes('暂未');
+  const action=stockAction(x);
   detailShell(
     `<div class="d-head"><h1>${x.t}<span class="code" style="font-size:15px">${x.n}</span></h1>
     <div class="sub">${x.tags.map(t=>`<span class="chip mini tag">${t}</span>`).join('')}</div></div>`,
-    `<div class="market-summary"><div><b>当前价格 $${Number(x.price).toFixed(2)}</b><span class="${changeClass}">${pct(x.chg)} · 近五日 ${pct(x.weeklyChange||0)}</span></div><button class="copy-btn" onclick="copyStockConclusion('${x.t}')">复制价格</button></div>
+    `<div class="market-summary"><div><b>${action}</b><span><span class="num">现价 $${Number(x.price).toFixed(2)}</span> · <span class="${changeClass}">${pct(x.chg)}，近五日 ${pct(x.weeklyChange||0)}</span></span></div><button class="copy-btn" onclick="copyStockConclusion('${x.t}')">复制答案</button></div>
     <div class="price-map">
       <div class="price-cell primary"><span>当前价格</span><b>$${Number(x.price).toFixed(2)}</b><small>${pct(x.chg)} 今日变化</small></div>
       <div class="price-cell"><span>关注区</span><b>${answers.buy}</b><small>${planReady?'价格回到这里再关注':'价格仍在整理'}</small></div>

@@ -26,7 +26,7 @@ assert(
   "港股申购候选使用了申购截止后的字段",
 );
 assert(
-  audit.hkApplication?.candidates?.length >= 7,
+  audit.hkApplication?.candidates?.length >= 8,
   "港股申购前候选规则不足",
 );
 assert(
@@ -34,6 +34,14 @@ assert(
     (candidate) => candidate.usesPostApplicationData === false,
   ),
   "港股申购候选存在事后数据污染",
+);
+const trainingVetoCandidate = audit.hkApplication.candidates.find(
+  (candidate) => candidate.id === "training_selected_veto",
+);
+assert(trainingVetoCandidate, "港股审计缺少训练段自动风险否决候选");
+assert(
+  Array.isArray(audit.hkApplication.trainingRiskDiagnostics),
+  "港股审计缺少训练段失败归因",
 );
 assert(audit.usTechnical?.autoApply === false, "美股技术候选不允许自动发布");
 assert(audit.usTechnical?.universe?.length === 7, "美股技术回测必须覆盖七姐妹");
@@ -49,6 +57,17 @@ console.log(
       hkApplicationStatus: audit.hkApplication.status,
       hkApplicationCandidateForReview:
         audit.hkApplication.candidateForReview,
+      hkSelectedTrainingVetoes:
+        audit.hkApplication.selectedTrainingVetoes.map((veto) => ({
+          id: veto.id,
+          trainingLossRateLift: veto.lossRateLift,
+        })),
+      hkTrainingVetoValidation: {
+        samples: trainingVetoCandidate.validation.sampleCount,
+        losses: trainingVetoCandidate.validation.lossCount,
+        bothPositiveRate: trainingVetoCandidate.validation.bothPositiveRate,
+        eligibleForReview: trainingVetoCandidate.eligibleForReview,
+      },
       hkApplicationBest: [...audit.hkApplication.candidates]
         .sort((left, right) => {
           const lossDifference =

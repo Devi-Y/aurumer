@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-11T13:05:53.660Z",
+  "generatedAt": "2026-07-11T13:11:28.297Z",
   "autoApply": false,
   "hk": {
     "sampleCount": 97,
@@ -35,15 +35,15 @@
         "sampleCount": 54,
         "intervalCoverage": 85.18518518518519,
         "directionAccuracy": 79.6875,
-        "meanAbsoluteError": 70.64937500000002,
-        "calibrationHalfWidth": 167.961
+        "meanAbsoluteError": 69.57171875000004,
+        "calibrationHalfWidth": 169.10200000000003
       },
       "fiveDayHigh": {
         "sampleCount": 54,
-        "intervalCoverage": 88.88888888888889,
-        "directionAccuracy": 92.1875,
-        "meanAbsoluteError": 86.57312500000003,
-        "calibrationHalfWidth": 167.00400000000002
+        "intervalCoverage": 87.03703703703704,
+        "directionAccuracy": 90.625,
+        "meanAbsoluteError": 85.65218750000003,
+        "calibrationHalfWidth": 195.45200000000006
       }
     }
   },
@@ -59,6 +59,80 @@
       "配发结果",
       "暗盘实际涨幅",
       "上市首日实际涨幅"
+    ],
+    "trainingRiskDiagnostics": [
+      {
+        "id": "pre_profit_biotech",
+        "name": "未盈利生物科技",
+        "exposedSampleCount": 3,
+        "exposedLossRate": 0,
+        "unexposedSampleCount": 25,
+        "unexposedLossRate": 16,
+        "lossRateLift": -16,
+        "selected": false
+      },
+      {
+        "id": "high_entry_amount",
+        "name": "一手入场金额较高",
+        "exposedSampleCount": 1,
+        "exposedLossRate": 0,
+        "unexposedSampleCount": 27,
+        "unexposedLossRate": 14.81,
+        "lossRateLift": -14.81,
+        "selected": false
+      },
+      {
+        "id": "high_offer_price",
+        "name": "发行价较高",
+        "exposedSampleCount": 6,
+        "exposedLossRate": 0,
+        "unexposedSampleCount": 22,
+        "unexposedLossRate": 18.18,
+        "lossRateLift": -18.18,
+        "selected": false
+      },
+      {
+        "id": "low_cornerstone",
+        "name": "基石比例偏低",
+        "exposedSampleCount": 7,
+        "exposedLossRate": 28.57,
+        "unexposedSampleCount": 21,
+        "unexposedLossRate": 9.52,
+        "lossRateLift": 19.05,
+        "selected": true
+      },
+      {
+        "id": "new_industry",
+        "name": "同行业历史样本不足",
+        "exposedSampleCount": 21,
+        "exposedLossRate": 14.29,
+        "unexposedSampleCount": 7,
+        "unexposedLossRate": 14.29,
+        "lossRateLift": 0,
+        "selected": false
+      },
+      {
+        "id": "unknown_sponsor",
+        "name": "保荐人资料缺失",
+        "exposedSampleCount": 4,
+        "exposedLossRate": 25,
+        "unexposedSampleCount": 24,
+        "unexposedLossRate": 12.5,
+        "lossRateLift": 12.5,
+        "selected": false
+      }
+    ],
+    "selectedTrainingVetoes": [
+      {
+        "id": "low_cornerstone",
+        "name": "基石比例偏低",
+        "exposedSampleCount": 7,
+        "exposedLossRate": 28.57,
+        "unexposedSampleCount": 21,
+        "unexposedLossRate": 9.52,
+        "lossRateLift": 19.05,
+        "selected": true
+      }
     ],
     "candidates": [
       {
@@ -121,6 +195,46 @@
           "worstFirstDay": -56.89,
           "upperLossBound95": 54.74
         },
+        "failureExamples": [
+          {
+            "stockCode": "00664",
+            "name": "铜师傅",
+            "listingDate": "2026-03-31",
+            "phase": "training",
+            "industry": "消费",
+            "isAH": false,
+            "offerPrice": 60,
+            "boardLotAmount": 6868.57,
+            "globalOfferShares": 7406800,
+            "cornerstonePercent": 6.75,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -30.07,
+            "firstDayChange": -49.17
+          },
+          {
+            "stockCode": "06132",
+            "name": "华健未来-B",
+            "listingDate": "2026-06-23",
+            "phase": "validation",
+            "industry": "生物医药",
+            "isAH": false,
+            "offerPrice": 81.8,
+            "boardLotAmount": 8262.49,
+            "globalOfferShares": 13600000,
+            "cornerstonePercent": 45.7,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -3.3,
+            "firstDayChange": -56.89
+          }
+        ],
         "eligibleForReview": false
       },
       {
@@ -183,6 +297,27 @@
           "worstFirstDay": -56.89,
           "upperLossBound95": 33.31
         },
+        "failureExamples": [
+          {
+            "stockCode": "06132",
+            "name": "华健未来-B",
+            "listingDate": "2026-06-23",
+            "phase": "validation",
+            "industry": "生物医药",
+            "isAH": false,
+            "offerPrice": 81.8,
+            "boardLotAmount": 8262.49,
+            "globalOfferShares": 13600000,
+            "cornerstonePercent": 45.7,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -3.3,
+            "firstDayChange": -56.89
+          }
+        ],
         "eligibleForReview": false
       },
       {
@@ -245,6 +380,84 @@
           "worstFirstDay": -56.89,
           "upperLossBound95": 47.26
         },
+        "failureExamples": [
+          {
+            "stockCode": "02632",
+            "name": "泽景股份",
+            "listingDate": "2026-03-24",
+            "phase": "training",
+            "industry": "汽车电子",
+            "isAH": false,
+            "offerPrice": 44.2,
+            "boardLotAmount": 2424.2,
+            "globalOfferShares": 16226500,
+            "cornerstonePercent": 15.33,
+            "sponsorCount": 2,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 0,
+            "industryWinRate": null,
+            "greyMarketChange": 12.67,
+            "firstDayChange": -36.92
+          },
+          {
+            "stockCode": "00664",
+            "name": "铜师傅",
+            "listingDate": "2026-03-31",
+            "phase": "training",
+            "industry": "消费",
+            "isAH": false,
+            "offerPrice": 60,
+            "boardLotAmount": 6868.57,
+            "globalOfferShares": 7406800,
+            "cornerstonePercent": 6.75,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -30.07,
+            "firstDayChange": -49.17
+          },
+          {
+            "stockCode": "01511",
+            "name": "驭势科技",
+            "listingDate": "2026-05-20",
+            "phase": "training",
+            "industry": "特专科技",
+            "isAH": false,
+            "offerPrice": 60.3,
+            "boardLotAmount": 3045.4,
+            "globalOfferShares": 14461200,
+            "cornerstonePercent": 29.96,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 1,
+            "industryWinRate": 100,
+            "greyMarketChange": -1.24,
+            "firstDayChange": -4.64
+          },
+          {
+            "stockCode": "06132",
+            "name": "华健未来-B",
+            "listingDate": "2026-06-23",
+            "phase": "validation",
+            "industry": "生物医药",
+            "isAH": false,
+            "offerPrice": 81.8,
+            "boardLotAmount": 8262.49,
+            "globalOfferShares": 13600000,
+            "cornerstonePercent": 45.7,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -3.3,
+            "firstDayChange": -56.89
+          }
+        ],
         "eligibleForReview": false
       },
       {
@@ -307,6 +520,46 @@
           "worstFirstDay": -56.89,
           "upperLossBound95": 59.07
         },
+        "failureExamples": [
+          {
+            "stockCode": "06132",
+            "name": "华健未来-B",
+            "listingDate": "2026-06-23",
+            "phase": "validation",
+            "industry": "生物医药",
+            "isAH": false,
+            "offerPrice": 81.8,
+            "boardLotAmount": 8262.49,
+            "globalOfferShares": 13600000,
+            "cornerstonePercent": 45.7,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -3.3,
+            "firstDayChange": -56.89
+          },
+          {
+            "stockCode": "03952",
+            "name": "来福谐波",
+            "listingDate": "2026-06-30",
+            "phase": "holdout",
+            "industry": "机器人",
+            "isAH": false,
+            "offerPrice": 85.5,
+            "boardLotAmount": 8636.22,
+            "globalOfferShares": 13441900,
+            "cornerstonePercent": null,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 70,
+            "industrySampleCount": 5,
+            "industryWinRate": 80,
+            "greyMarketChange": 18.13,
+            "firstDayChange": -14.62
+          }
+        ],
         "eligibleForReview": false
       },
       {
@@ -369,6 +622,65 @@
           "worstFirstDay": -49.17,
           "upperLossBound95": 32.13
         },
+        "failureExamples": [
+          {
+            "stockCode": "02632",
+            "name": "泽景股份",
+            "listingDate": "2026-03-24",
+            "phase": "training",
+            "industry": "汽车电子",
+            "isAH": false,
+            "offerPrice": 44.2,
+            "boardLotAmount": 2424.2,
+            "globalOfferShares": 16226500,
+            "cornerstonePercent": 15.33,
+            "sponsorCount": 2,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 0,
+            "industryWinRate": null,
+            "greyMarketChange": 12.67,
+            "firstDayChange": -36.92
+          },
+          {
+            "stockCode": "00664",
+            "name": "铜师傅",
+            "listingDate": "2026-03-31",
+            "phase": "training",
+            "industry": "消费",
+            "isAH": false,
+            "offerPrice": 60,
+            "boardLotAmount": 6868.57,
+            "globalOfferShares": 7406800,
+            "cornerstonePercent": 6.75,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -30.07,
+            "firstDayChange": -49.17
+          },
+          {
+            "stockCode": "01511",
+            "name": "驭势科技",
+            "listingDate": "2026-05-20",
+            "phase": "training",
+            "industry": "特专科技",
+            "isAH": false,
+            "offerPrice": 60.3,
+            "boardLotAmount": 3045.4,
+            "globalOfferShares": 14461200,
+            "cornerstonePercent": 29.96,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 1,
+            "industryWinRate": 100,
+            "greyMarketChange": -1.24,
+            "firstDayChange": -4.64
+          }
+        ],
         "eligibleForReview": false
       },
       {
@@ -431,6 +743,27 @@
           "worstFirstDay": -56.89,
           "upperLossBound95": 56.35
         },
+        "failureExamples": [
+          {
+            "stockCode": "06132",
+            "name": "华健未来-B",
+            "listingDate": "2026-06-23",
+            "phase": "validation",
+            "industry": "生物医药",
+            "isAH": false,
+            "offerPrice": 81.8,
+            "boardLotAmount": 8262.49,
+            "globalOfferShares": 13600000,
+            "cornerstonePercent": 45.7,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -3.3,
+            "firstDayChange": -56.89
+          }
+        ],
         "eligibleForReview": false
       },
       {
@@ -493,6 +826,224 @@
           "worstFirstDay": -49.17,
           "upperLossBound95": 45.19
         },
+        "failureExamples": [
+          {
+            "stockCode": "00664",
+            "name": "铜师傅",
+            "listingDate": "2026-03-31",
+            "phase": "training",
+            "industry": "消费",
+            "isAH": false,
+            "offerPrice": 60,
+            "boardLotAmount": 6868.57,
+            "globalOfferShares": 7406800,
+            "cornerstonePercent": 6.75,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -30.07,
+            "firstDayChange": -49.17
+          },
+          {
+            "stockCode": "01511",
+            "name": "驭势科技",
+            "listingDate": "2026-05-20",
+            "phase": "training",
+            "industry": "特专科技",
+            "isAH": false,
+            "offerPrice": 60.3,
+            "boardLotAmount": 3045.4,
+            "globalOfferShares": 14461200,
+            "cornerstonePercent": 29.96,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 1,
+            "industryWinRate": 100,
+            "greyMarketChange": -1.24,
+            "firstDayChange": -4.64
+          },
+          {
+            "stockCode": "02290",
+            "name": "龙丰集团",
+            "listingDate": "2026-06-05",
+            "phase": "training",
+            "industry": "零售",
+            "isAH": false,
+            "offerPrice": 5.18,
+            "boardLotAmount": 2616.11,
+            "globalOfferShares": null,
+            "cornerstonePercent": null,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 0,
+            "industryWinRate": null,
+            "greyMarketChange": 1.54,
+            "firstDayChange": -45.75
+          }
+        ],
+        "eligibleForReview": false
+      },
+      {
+        "id": "training_selected_veto",
+        "name": "训练段自动风险否决",
+        "usesPostApplicationData": false,
+        "training": {
+          "signalCount": 21,
+          "sampleCount": 21,
+          "unknownCount": 0,
+          "lossCount": 2,
+          "bothPositiveRate": 90.47619047619048,
+          "greyMarketWinRate": 95.23809523809523,
+          "firstDayWinRate": 90.47619047619048,
+          "averageGreyMarket": 108.39,
+          "averageFirstDay": 108.44,
+          "worstGreyMarket": -1.24,
+          "worstFirstDay": -45.75,
+          "upperLossBound95": 28.91
+        },
+        "validation": {
+          "signalCount": 6,
+          "sampleCount": 6,
+          "unknownCount": 0,
+          "lossCount": 3,
+          "bothPositiveRate": 50,
+          "greyMarketWinRate": 50,
+          "firstDayWinRate": 50,
+          "averageGreyMarket": 73.37,
+          "averageFirstDay": 70.1,
+          "worstGreyMarket": -5.89,
+          "worstFirstDay": -56.89,
+          "upperLossBound95": 81.24
+        },
+        "holdout": {
+          "signalCount": 0,
+          "sampleCount": 0,
+          "unknownCount": 0,
+          "lossCount": 0,
+          "bothPositiveRate": null,
+          "greyMarketWinRate": null,
+          "firstDayWinRate": null,
+          "averageGreyMarket": null,
+          "averageFirstDay": null,
+          "worstGreyMarket": null,
+          "worstFirstDay": null,
+          "upperLossBound95": null
+        },
+        "combined": {
+          "signalCount": 27,
+          "sampleCount": 27,
+          "unknownCount": 0,
+          "lossCount": 5,
+          "bothPositiveRate": 81.48148148148148,
+          "greyMarketWinRate": 85.18518518518519,
+          "firstDayWinRate": 81.48148148148148,
+          "averageGreyMarket": 100.61,
+          "averageFirstDay": 99.92,
+          "worstGreyMarket": -5.89,
+          "worstFirstDay": -56.89,
+          "upperLossBound95": 36.7
+        },
+        "failureExamples": [
+          {
+            "stockCode": "01511",
+            "name": "驭势科技",
+            "listingDate": "2026-05-20",
+            "phase": "training",
+            "industry": "特专科技",
+            "isAH": false,
+            "offerPrice": 60.3,
+            "boardLotAmount": 3045.4,
+            "globalOfferShares": 14461200,
+            "cornerstonePercent": 29.96,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 1,
+            "industryWinRate": 100,
+            "greyMarketChange": -1.24,
+            "firstDayChange": -4.64
+          },
+          {
+            "stockCode": "02290",
+            "name": "龙丰集团",
+            "listingDate": "2026-06-05",
+            "phase": "training",
+            "industry": "零售",
+            "isAH": false,
+            "offerPrice": 5.18,
+            "boardLotAmount": 2616.11,
+            "globalOfferShares": null,
+            "cornerstonePercent": null,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 0,
+            "industryWinRate": null,
+            "greyMarketChange": 1.54,
+            "firstDayChange": -45.75
+          },
+          {
+            "stockCode": "06132",
+            "name": "华健未来-B",
+            "listingDate": "2026-06-23",
+            "phase": "validation",
+            "industry": "生物医药",
+            "isAH": false,
+            "offerPrice": 81.8,
+            "boardLotAmount": 8262.49,
+            "globalOfferShares": 13600000,
+            "cornerstonePercent": 45.7,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -3.3,
+            "firstDayChange": -56.89
+          },
+          {
+            "stockCode": "06228",
+            "name": "MERDEKAGOLD",
+            "listingDate": "2026-06-26",
+            "phase": "validation",
+            "industry": "黄金矿业",
+            "isAH": false,
+            "offerPrice": 26.6,
+            "boardLotAmount": 2686.82,
+            "globalOfferShares": 89668600,
+            "cornerstonePercent": null,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 0,
+            "industryWinRate": null,
+            "greyMarketChange": 0,
+            "firstDayChange": -6.54
+          },
+          {
+            "stockCode": "06915",
+            "name": "江西生物",
+            "listingDate": "2026-06-30",
+            "phase": "validation",
+            "industry": "生物制品",
+            "isAH": false,
+            "offerPrice": 11.2,
+            "boardLotAmount": 5656.48,
+            "globalOfferShares": 36234500,
+            "cornerstonePercent": null,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 0,
+            "industryWinRate": null,
+            "greyMarketChange": -5.89,
+            "firstDayChange": -12.68
+          }
+        ],
         "eligibleForReview": false
       }
     ],

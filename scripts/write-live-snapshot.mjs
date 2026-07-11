@@ -53,6 +53,7 @@ await writeFile(outputPath, `${JSON.stringify(publicPayload, null, 2)}\n`, "utf8
 await writeStrategyAudit(strategyAuditPath, {
   history: usHistory.history,
   hkBacktest: payload.hk?.backtest,
+  usMarketData: payload.us?.stocks,
   generatedAt: payload.updatedAt,
 });
 

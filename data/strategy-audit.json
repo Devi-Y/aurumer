@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-11T01:50:22.038Z",
+  "generatedAt": "2026-07-11T01:59:17.339Z",
   "autoApply": false,
   "hk": {
     "sampleCount": 97,
@@ -161,5 +161,344 @@
     ],
     "candidateForReview": null,
     "note": "持续收集交易日快照，样本满足门槛后才生成待复核候选。"
+  },
+  "usTechnical": {
+    "status": "no_validated_candidate",
+    "autoApply": false,
+    "universe": [
+      "NVDA",
+      "MSFT",
+      "AAPL",
+      "GOOGL",
+      "AMZN",
+      "META",
+      "TSLA"
+    ],
+    "historyDays": 1255,
+    "split": "每只股票前 70% 交易日训练，后 30% 交易日独立验证",
+    "transactionCostBps": 10,
+    "candidates": [
+      {
+        "id": "trend_atr_pullback",
+        "name": "上升趋势 ATR 回撤",
+        "training": {
+          "sampleCount": 299,
+          "winRate": 40.47,
+          "averageNetReturn": 0.162,
+          "medianNetReturn": -2.589,
+          "profitFactor": 1.06,
+          "averageMaxDrawdown": -3.734,
+          "worstTrade": -14.039,
+          "equityMaxDrawdown": -88.18,
+          "targetHitRate": 35.79,
+          "stopHitRate": 59.2
+        },
+        "validation": {
+          "sampleCount": 126,
+          "winRate": 38.1,
+          "averageNetReturn": -0.044,
+          "medianNetReturn": -2.809,
+          "profitFactor": 0.98,
+          "averageMaxDrawdown": -3.768,
+          "worstTrade": -10.592,
+          "equityMaxDrawdown": -68.68,
+          "targetHitRate": 33.33,
+          "stopHitRate": 60.32
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "support_retest",
+        "name": "趋势支撑回踩",
+        "training": {
+          "sampleCount": 122,
+          "winRate": 36.07,
+          "averageNetReturn": -0.706,
+          "medianNetReturn": -2.978,
+          "profitFactor": 0.76,
+          "averageMaxDrawdown": -4.096,
+          "worstTrade": -14.804,
+          "equityMaxDrawdown": -81.07,
+          "targetHitRate": 33.61,
+          "stopHitRate": 63.11
+        },
+        "validation": {
+          "sampleCount": 73,
+          "winRate": 30.14,
+          "averageNetReturn": -0.855,
+          "medianNetReturn": -3.129,
+          "profitFactor": 0.69,
+          "averageMaxDrawdown": -3.68,
+          "worstTrade": -10.071,
+          "equityMaxDrawdown": -65.06,
+          "targetHitRate": 24.66,
+          "stopHitRate": 68.49
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "deep_pullback",
+        "name": "深度回撤分批关注",
+        "training": {
+          "sampleCount": 276,
+          "winRate": 41.3,
+          "averageNetReturn": 0.131,
+          "medianNetReturn": -2.899,
+          "profitFactor": 1.04,
+          "averageMaxDrawdown": -4.523,
+          "worstTrade": -24.796,
+          "equityMaxDrawdown": -92.97,
+          "targetHitRate": 32.97,
+          "stopHitRate": 56.88
+        },
+        "validation": {
+          "sampleCount": 132,
+          "winRate": 40.15,
+          "averageNetReturn": 0.052,
+          "medianNetReturn": -2.967,
+          "profitFactor": 1.02,
+          "averageMaxDrawdown": -3.934,
+          "worstTrade": -9.185,
+          "equityMaxDrawdown": -70.05,
+          "targetHitRate": 29.55,
+          "stopHitRate": 58.33
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "high_retest",
+        "name": "阶段高点回踩",
+        "training": {
+          "sampleCount": 275,
+          "winRate": 41.09,
+          "averageNetReturn": 0.256,
+          "medianNetReturn": -2.645,
+          "profitFactor": 1.1,
+          "averageMaxDrawdown": -3.663,
+          "worstTrade": -14.663,
+          "equityMaxDrawdown": -85.03,
+          "targetHitRate": 33.09,
+          "stopHitRate": 58.55
+        },
+        "validation": {
+          "sampleCount": 127,
+          "winRate": 37.01,
+          "averageNetReturn": -0.084,
+          "medianNetReturn": -2.844,
+          "profitFactor": 0.97,
+          "averageMaxDrawdown": -3.814,
+          "worstTrade": -13.122,
+          "equityMaxDrawdown": -63.48,
+          "targetHitRate": 33.07,
+          "stopHitRate": 60.63
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "recovery_pullback_40d",
+        "name": "深回撤后四十日修复",
+        "training": {
+          "sampleCount": 227,
+          "winRate": 60.79,
+          "averageNetReturn": 0.641,
+          "medianNetReturn": 4.517,
+          "profitFactor": 1.17,
+          "averageMaxDrawdown": -6.142,
+          "worstTrade": -25.52,
+          "equityMaxDrawdown": -95.2,
+          "targetHitRate": 58.59,
+          "stopHitRate": 35.24
+        },
+        "validation": {
+          "sampleCount": 109,
+          "winRate": 57.8,
+          "averageNetReturn": 0.491,
+          "medianNetReturn": 4.549,
+          "profitFactor": 1.13,
+          "averageMaxDrawdown": -5.863,
+          "worstTrade": -23.461,
+          "equityMaxDrawdown": -82.15,
+          "targetHitRate": 53.21,
+          "stopHitRate": 36.7
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "deep_recovery_60d",
+        "name": "深度低吸六十日修复",
+        "training": {
+          "sampleCount": 162,
+          "winRate": 64.2,
+          "averageNetReturn": 1.803,
+          "medianNetReturn": 5.537,
+          "profitFactor": 1.44,
+          "averageMaxDrawdown": -7.107,
+          "worstTrade": -26.704,
+          "equityMaxDrawdown": -93.54,
+          "targetHitRate": 59.88,
+          "stopHitRate": 32.72
+        },
+        "validation": {
+          "sampleCount": 78,
+          "winRate": 58.97,
+          "averageNetReturn": 1.525,
+          "medianNetReturn": 5.823,
+          "profitFactor": 1.35,
+          "averageMaxDrawdown": -7.121,
+          "worstTrade": -22.204,
+          "equityMaxDrawdown": -79.97,
+          "targetHitRate": 55.13,
+          "stopHitRate": 39.74
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "support_recovery_40d",
+        "name": "支撑位四十日修复",
+        "training": {
+          "sampleCount": 114,
+          "winRate": 62.28,
+          "averageNetReturn": 0.743,
+          "medianNetReturn": 4.558,
+          "profitFactor": 1.2,
+          "averageMaxDrawdown": -6.335,
+          "worstTrade": -22.007,
+          "equityMaxDrawdown": -63.66,
+          "targetHitRate": 59.65,
+          "stopHitRate": 35.09
+        },
+        "validation": {
+          "sampleCount": 60,
+          "winRate": 50,
+          "averageNetReturn": -0.86,
+          "medianNetReturn": -0.487,
+          "profitFactor": 0.79,
+          "averageMaxDrawdown": -6.324,
+          "worstTrade": -15.388,
+          "equityMaxDrawdown": -74.23,
+          "targetHitRate": 45,
+          "stopHitRate": 48.33
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "drawdown_recovery_60d",
+        "name": "阶段回撤十个百分点修复",
+        "training": {
+          "sampleCount": 74,
+          "winRate": 62.16,
+          "averageNetReturn": 2.047,
+          "medianNetReturn": 7.48,
+          "profitFactor": 1.42,
+          "averageMaxDrawdown": -8.875,
+          "worstTrade": -25.004,
+          "equityMaxDrawdown": -75.69,
+          "targetHitRate": 56.76,
+          "stopHitRate": 35.14
+        },
+        "validation": {
+          "sampleCount": 57,
+          "winRate": 57.89,
+          "averageNetReturn": 1.167,
+          "medianNetReturn": 5.865,
+          "profitFactor": 1.23,
+          "averageMaxDrawdown": -8.373,
+          "worstTrade": -26.365,
+          "equityMaxDrawdown": -87.88,
+          "targetHitRate": 52.63,
+          "stopHitRate": 36.84
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "deep_drawdown_90d",
+        "name": "深度回撤九十日修复",
+        "training": {
+          "sampleCount": 36,
+          "winRate": 50,
+          "averageNetReturn": 1.43,
+          "medianNetReturn": 0.416,
+          "profitFactor": 1.16,
+          "averageMaxDrawdown": -12.669,
+          "worstTrade": -28.25,
+          "equityMaxDrawdown": -82.78,
+          "targetHitRate": 47.22,
+          "stopHitRate": 41.67
+        },
+        "validation": {
+          "sampleCount": 21,
+          "winRate": 76.19,
+          "averageNetReturn": 7.167,
+          "medianNetReturn": 11.958,
+          "profitFactor": 2.88,
+          "averageMaxDrawdown": -10.797,
+          "worstTrade": -30.244,
+          "equityMaxDrawdown": -48.84,
+          "targetHitRate": 57.14,
+          "stopHitRate": 23.81
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "rsi_oversold_60d",
+        "name": "RSI 超卖六十日修复",
+        "training": {
+          "sampleCount": 77,
+          "winRate": 67.53,
+          "averageNetReturn": 1.587,
+          "medianNetReturn": 5.351,
+          "profitFactor": 1.43,
+          "averageMaxDrawdown": -6.385,
+          "worstTrade": -21.237,
+          "equityMaxDrawdown": -77.3,
+          "targetHitRate": 64.94,
+          "stopHitRate": 32.47
+        },
+        "validation": {
+          "sampleCount": 55,
+          "winRate": 58.18,
+          "averageNetReturn": 0.298,
+          "medianNetReturn": 4.578,
+          "profitFactor": 1.07,
+          "averageMaxDrawdown": -6.85,
+          "worstTrade": -21.709,
+          "equityMaxDrawdown": -78.82,
+          "targetHitRate": 52.73,
+          "stopHitRate": 40
+        },
+        "eligibleForReview": false
+      },
+      {
+        "id": "sma_discount_60d",
+        "name": "中长期均线折价修复",
+        "training": {
+          "sampleCount": 38,
+          "winRate": 63.16,
+          "averageNetReturn": 1.316,
+          "medianNetReturn": 5.348,
+          "profitFactor": 1.29,
+          "averageMaxDrawdown": -7.649,
+          "worstTrade": -21.808,
+          "equityMaxDrawdown": -62.97,
+          "targetHitRate": 63.16,
+          "stopHitRate": 31.58
+        },
+        "validation": {
+          "sampleCount": 45,
+          "winRate": 62.22,
+          "averageNetReturn": 2.21,
+          "medianNetReturn": 6.728,
+          "profitFactor": 1.48,
+          "averageMaxDrawdown": -7.307,
+          "worstTrade": -21.97,
+          "equityMaxDrawdown": -80.64,
+          "targetHitRate": 55.56,
+          "stopHitRate": 37.78
+        },
+        "eligibleForReview": false
+      }
+    ],
+    "candidateForReview": null,
+    "note": "样本外收益、胜率或回撤未全部过线，用户页面继续不发布该价格计划。"
   }
 }

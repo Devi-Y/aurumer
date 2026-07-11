@@ -23,7 +23,7 @@ async function fetchJson(url) {
 
 async function fetchQuote(symbol) {
   const result = await fetchJson(
-    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=2mo&interval=1d&events=div%2Csplits`,
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=5y&interval=1d&events=div%2Csplits`,
   );
   const chart = result.chart?.result?.[0];
   if (!chart) throw new Error(`Yahoo 没有返回 ${symbol}`);
@@ -32,6 +32,7 @@ async function fetchQuote(symbol) {
   const rows = timestamps
     .map((time, index) => ({
       time,
+      open: quote.open?.[index],
       close: quote.close?.[index],
       high: quote.high?.[index],
       low: quote.low?.[index],
@@ -101,6 +102,13 @@ async function fetchQuote(symbol) {
       ? new Date(chart.meta.regularMarketTime * 1000).toISOString()
       : null,
     history: rows.slice(-60).map((row) => Number(row.close.toFixed(4))),
+    historyOHLC: rows.slice(-1300).map((row) => ({
+      date: new Date(row.time * 1000).toISOString().slice(0, 10),
+      open: Number.isFinite(row.open) ? Number(row.open.toFixed(4)) : null,
+      high: Number(row.high.toFixed(4)),
+      low: Number(row.low.toFixed(4)),
+      close: Number(row.close.toFixed(4)),
+    })),
   };
 }
 
@@ -113,11 +121,15 @@ if (quotes.size < Math.max(25, symbols.length - 5)) {
   throw new Error(`Yahoo 可用股票不足：${quotes.size}/${symbols.length}`);
 }
 
-const stocks = (live.us.stocks || []).map((stock) => ({
+const auditStocks = (live.us.stocks || []).map((stock) => ({
   ...stock,
   ...(quotes.get(stock.symbol) || {}),
   source: quotes.has(stock.symbol) ? "Yahoo Finance" : stock.source,
 }));
+const stocks = auditStocks.map((stock) => {
+  const { historyOHLC, ...publicStock } = stock;
+  return publicStock;
+});
 const payload = {
   ...live,
   updatedAt: new Date().toISOString(),
@@ -139,6 +151,7 @@ payload.us.strategyBacktest = history.health.backtest;
 await writeStrategyAudit(strategyAuditPath, {
   history: history.history,
   hkBacktest: live.hk?.backtest,
+  usMarketData: auditStocks,
   generatedAt: payload.updatedAt,
 });
 payload.sources = (live.sources || []).map((source) =>

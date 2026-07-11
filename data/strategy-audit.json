@@ -1,11 +1,42 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-10T14:45:18.937Z",
+  "generatedAt": "2026-07-11T01:45:48.748Z",
   "autoApply": false,
   "hk": {
     "sampleCount": 97,
-    "fiveDaySampleCount": 0,
-    "priceAnswersReleased": false
+    "fiveDaySampleCount": 54,
+    "priceAnswersReleased": false,
+    "algorithmVersion": "ipo-nearest-20-2026-07-v1",
+    "releaseThresholds": {
+      "minimumFiveDaySamples": 50,
+      "minimumIntervalCoverage": 80,
+      "minimumDirectionAccuracy": 65,
+      "maximumMeanAbsoluteError": 25,
+      "maximumCalibrationHalfWidth": 35
+    },
+    "metrics": {
+      "greyMarket": {
+        "sampleCount": 67,
+        "intervalCoverage": 89.55223880597015,
+        "directionAccuracy": 77.92207792207793,
+        "meanAbsoluteError": 53.86207792207791,
+        "calibrationHalfWidth": 120.99200000000009
+      },
+      "firstDay": {
+        "sampleCount": 67,
+        "intervalCoverage": 89.55223880597015,
+        "directionAccuracy": 74.02597402597402,
+        "meanAbsoluteError": 65.06012987012987,
+        "calibrationHalfWidth": 126.1520000000001
+      },
+      "fiveDay": {
+        "sampleCount": 54,
+        "intervalCoverage": 85.18518518518519,
+        "directionAccuracy": 79.6875,
+        "meanAbsoluteError": 69.57171875000004,
+        "calibrationHalfWidth": 169.10200000000003
+      }
+    }
   },
   "us": {
     "status": "collecting_history",

@@ -17,6 +17,8 @@ assert(audit.autoApply === false, "策略候选不允许自动发布到用户页
 assert(Array.isArray(audit.us?.candidates) && audit.us.candidates.length >= 4, "策略候选不足");
 assert(audit.us.snapshotDays === history.days.length, "策略审计与交易日快照不同步");
 assert(audit.hk && Number.isFinite(audit.hk.sampleCount), "港股审计摘要缺失");
+assert(audit.hk.fiveDaySampleCount >= 50, "港股五日真实校准样本不足 50");
+assert(Boolean(audit.hk.algorithmVersion), "港股审计缺少算法版本");
 
 console.log(
   JSON.stringify(

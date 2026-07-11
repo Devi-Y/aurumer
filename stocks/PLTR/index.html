@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>望潮 Aurum · 港美股投资答案</title>
-<meta name="description" content="望潮 Aurum：港股打新看结论与复盘，美股看七姐妹、热度前三和价格地图。">
+<meta name="description" content="望潮 Aurum：港股打新看结论与复盘，美股看七姐妹、热度前三和真实价格位置。">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#F7F4EE">
 <link rel="canonical" href="https://devi-y.github.io/aurumer/">
@@ -12,11 +12,11 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:site_name" content="望潮 Aurum">
 <meta property="og:title" content="望潮 Aurum · 港美股投资答案">
-<meta property="og:description" content="港股打新看结论与复盘，美股看七姐妹、热度前三和价格地图。">
+<meta property="og:description" content="港股打新看结论与复盘，美股看七姐妹、热度前三和真实价格位置。">
 <meta property="og:url" content="https://devi-y.github.io/aurumer/">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="望潮 Aurum · 港美股投资答案">
-<meta name="twitter:description" content="港股打新看结论与复盘，美股看七姐妹、热度前三和价格地图。">
+<meta name="twitter:description" content="港股打新看结论与复盘，美股看七姐妹、热度前三和真实价格位置。">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <style>
 :root{
@@ -728,13 +728,14 @@ window.copyStockConclusion=async symbol=>{
   const stock=US_STOCKS.find(item=>item.t===symbol);
   if(!stock)return;
   const answers=stockPriceAnswers(stock);
+  const position=stockPositionFacts(stock);
+  const verified=Boolean(LIVE.strategyHealth?.us?.pricePlanReleaseReady);
   const text=`望潮 Aurum · 港美股答案
 
 ${stock.t} ${stock.n} 现在怎么看？
 当前结论：${stockAction(stock)}
 当前价格：$${Number(stock.price).toFixed(2)}
-关注区：${answers.buy}
-上方参考区：${answers.sell}
+${verified?`关注区：${answers.buy}\n上方参考区：${answers.sell}`:`近 60 日高点：${Number.isFinite(position.high)?`$${position.high.toFixed(2)}`:'暂缺'}\n距离高点：${Number.isFinite(position.drawdownFromHigh)?pct(Number(position.drawdownFromHigh.toFixed(1))):'暂缺'}`}
 
 仅供研究，不构成投资建议`;
   try{
@@ -1244,10 +1245,10 @@ function renderEntry(){
     ?`${worth[0].name}${worth.length>1?`等 ${worth.length} 只值得重点看`: '值得重点看'}`
     :'暂无值得打的新股';
   const focusUniverse=US_STOCKS.filter(stock=>MAGNIFICENT_SEVEN.includes(stock.t));
-  const closest=[...focusUniverse].filter(stock=>Number.isFinite(stock.buy)&&stock.buy>0).sort((left,right)=>
-    Math.abs((left.price-left.buy)/left.buy)-Math.abs((right.price-right.buy)/right.buy)
+  const focus=[...focusUniverse].sort(
+    (left,right)=>(right.weeklyChange||0)-(left.weeklyChange||0),
   )[0];
-  const usToday=closest?`${closest.t} ${stockAction(closest)}`:'价格答案正在更新';
+  const usToday=focus?`${focus.t} ${stockAction(focus)}`:'价格答案正在更新';
   $('#app').innerHTML=header()+`
   <div class="home-context"><b>今天看什么？</b>港股看打新结论，美股看价格和持仓。</div>
   <div class="doors">
@@ -1341,6 +1342,15 @@ function renderHK(){
 
 /* =============== 二级页面：美股投资 =============== */
 function stockAction(x){
+  const verified=Boolean(LIVE.strategyHealth?.us?.pricePlanReleaseReady);
+  const position=stockPositionFacts(x);
+  if(!verified){
+    if((x.weeklyChange||0)>8)return '短期涨得快，先别追';
+    if(Number.isFinite(position.drawdownFromHigh)&&position.drawdownFromHigh>=-3)return '接近近 60 日高位，先别追';
+    if(Number.isFinite(position.rangePosition)&&position.rangePosition<=25)return '回到近 60 日低位，继续观察';
+    if(Number.isFinite(position.drawdownFromHigh))return `距近 60 日高点 ${Math.abs(position.drawdownFromHigh).toFixed(0)}%`;
+    return '可靠价格仍在验证';
+  }
   if(!Number.isFinite(x.price)||!Number.isFinite(x.buy)||x.buy<=0)return '价格答案正在更新';
   const distance=(x.price-x.buy)/x.buy*100;
   const upper=Number(x.tp?.[0]);
@@ -1349,6 +1359,19 @@ function stockAction(x){
   if(distance<=0)return '已进入关注区，先复核风险';
   if(distance<=3)return '接近关注区，重点观察';
   return `还需回落约 ${distance.toFixed(0)}% 到关注区`;
+}
+function stockPositionFacts(x){
+  const history=(x.history||[]).filter(Number.isFinite);
+  const price=Number(x.price);
+  if(!history.length||!Number.isFinite(price))return {high:null,low:null,drawdownFromHigh:null,rangePosition:null};
+  const high=Math.max(price,...history);
+  const low=Math.min(price,...history);
+  return {
+    high,
+    low,
+    drawdownFromHigh:high>0?(price-high)/high*100:null,
+    rangePosition:high>low?(price-low)/(high-low)*100:50,
+  };
 }
 function stockPublicTag(x){
   return MAGNIFICENT_SEVEN.includes(x.t)?'七姐妹':'热度前三';
@@ -1386,7 +1409,7 @@ function stockCard(x,i){
       <div class="quote-now"><b class="num">$${Number(x.price).toFixed(2)}</b><span class="${x.chg>=0?'upc':'dnc'}">${pct(x.chg)}</span></div>
     </div>
     <div class="compact-answer"><b>现在怎么看：</b>${stockAction(x)}</div>
-    <div class="compact-foot"><span>看价格地图和持仓</span><span class="arrow">›</span></div>
+    <div class="compact-foot"><span>看价格位置和持仓</span><span class="arrow">›</span></div>
   </article>`;
 }
 function investorCard(v){
@@ -1423,7 +1446,7 @@ function renderUS(){
   const selected=groups.find(group=>group.id===usView)||groups[0];
   $('#app').innerHTML=`<button class="back" onclick="go('')">‹ 首页</button>
   <div class="d-head"><h1>🇺🇸 美股投资</h1>
-  <div class="sub">当前价格、关注区、上方参考区和聪明人持仓。</div></div>
+  <div class="sub">当前价格、高位提醒和聪明人持仓。</div></div>
   ${dataStateNotice()}
   <div class="market-tabs">${groups.map(group=>`<button class="market-tab ${selected.id===group.id?'on':''}" onclick="setUSView('${group.id}')">${group.label}<em>${group.items.length}</em></button>`).join('')}</div>
   <section class="active-panel"><div class="section-intro"><h3>${selected.label}</h3></div>${selected.items.length?selected.items.map(stockCard).join(''):'<div class="empty-answer">当前暂无可展示的标的。</div>'}</section>
@@ -1729,6 +1752,9 @@ function renderStock(x){
   <div class="d-sec"><h4>${strategyVerified?'综合建议':'研究边界'}</h4><div class="advice"><b>望潮提示：</b>${finalGuidance}</div></div>`);
 }
 function stockPriceAnswers(x){
+  if(!LIVE.strategyHealth?.us?.pricePlanReleaseReady){
+    return {buy:'暂未形成可靠参考',sell:'暂未形成可靠参考'};
+  }
   const plan=x.pricePlan||x.technicalPlan||null;
   if(!plan?.buy||!plan?.tp?.length){
     return {buy:'暂未形成',sell:'暂未形成'};
@@ -1742,24 +1768,26 @@ function stockPriceAnswers(x){
 function renderStock(x){
   const answers=stockPriceAnswers(x);
   const changeClass=x.chg>=0?'upc':'dnc';
-  const planReady=!answers.buy.includes('暂未');
+  const strategyVerified=Boolean(LIVE.strategyHealth?.us?.pricePlanReleaseReady);
+  const planReady=strategyVerified&&!answers.buy.includes('暂未');
   const action=stockAction(x);
+  const position=stockPositionFacts(x);
   detailShell(
     `<div class="d-head"><h1>${x.t}<span class="code" style="font-size:15px">${x.n}</span></h1>
     <div class="sub">${x.tags.map(t=>`<span class="chip mini tag">${t}</span>`).join('')}</div></div>`,
     `<div class="market-summary"><div><b>${action}</b><span><span class="num">现价 $${Number(x.price).toFixed(2)}</span> · <span class="${changeClass}">${pct(x.chg)}，近五日 ${pct(x.weeklyChange||0)}</span></span></div><button class="copy-btn" onclick="copyStockConclusion('${x.t}')">复制答案</button></div>
     <div class="price-map">
       <div class="price-cell primary"><span>当前价格</span><b>$${Number(x.price).toFixed(2)}</b><small>${pct(x.chg)} 今日变化</small></div>
-      <div class="price-cell"><span>关注区</span><b>${answers.buy}</b><small>${planReady?'价格回到这里再关注':'价格仍在整理'}</small></div>
-      <div class="price-cell"><span>上方参考区</span><b>${answers.sell}</b><small>${planReady?'接近这里重新评估':'价格仍在整理'}</small></div>
+      <div class="price-cell"><span>${planReady?'关注区':'近 60 日高点'}</span><b>${planReady?answers.buy:Number.isFinite(position.high)?`$${position.high.toFixed(2)}`:'暂缺'}</b><small>${planReady?'价格回到这里再关注':'真实收盘区间'}</small></div>
+      <div class="price-cell"><span>${planReady?'上方参考区':'距高点'}</span><b>${planReady?answers.sell:Number.isFinite(position.drawdownFromHigh)?pct(Number(position.drawdownFromHigh.toFixed(1))):'暂缺'}</b><small>${planReady?'接近这里重新评估':'用于判断是否追高'}</small></div>
     </div>
-    <div class="price-note">价格地图用于观察当前位置与区间，不构成买卖指令。</div>
+    <div class="price-note">${planReady?'价格地图用于观察当前位置与区间，不构成买卖指令。':'具体买卖价尚未通过样本外验证；当前只展示真实价格位置和高位提醒。'}</div>
     <div class="d-sec"><h4>具体资料</h4><div class="card facts-card"><table class="kv">
       <tr><td>股票名称</td><td>${x.n}</td></tr>
       <tr><td>股票代码</td><td class="num">${x.t}</td></tr>
       <tr><td>行业</td><td>${x.tags.join(' · ')}</td></tr>
       ${x.fundamentals?`<tr><td>收入增长</td><td>${fmtPct(x.fundamentals.revenueGrowth)}</td></tr><tr><td>利润率</td><td>${fmtPct(x.fundamentals.profitMargin)}</td></tr>`:''}
-      <tr><td>一句话</td><td>${planReady?`当前价 $${Number(x.price).toFixed(2)}；接近关注区再看，进入上方参考区后重新评估。`:'当前先看实时价格，关注区仍在整理。'}</td></tr>
+      <tr><td>一句话</td><td>${planReady?`当前价 $${Number(x.price).toFixed(2)}；接近关注区再看，进入上方参考区后重新评估。`:action+'；具体买卖价尚未通过验证。'}</td></tr>
     </table></div></div>
     <div class="card click research-entry" onclick="go('#/gurus')">
       <div><div class="t1">聪明人持仓追踪</div><div class="t2">查看哪些机构持有 ${x.t}，以及近期买卖变化。</div></div>

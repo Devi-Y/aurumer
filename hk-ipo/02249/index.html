@@ -2308,10 +2308,13 @@ function isKnownIPOFact(value){
   return Boolean(value)&&!/(以招股章程为准|见招股章程|待解析|待公布|暂无)/.test(String(value));
 }
 function ipoFactRows(x){
+  const industryLabel=x.industry||x.ind||'待整理';
+  const industryTrend=industryLabel==='待整理'?null:hkIndustryTrendText(industryLabel);
   const rows=[
     ['股份名称',x.name],
     ['股份代号',x.code],
-    ['所属行业',x.ind],
+    ['所属行业',industryLabel],
+    industryTrend?['行业涨幅',industryTrend]:null,
     ['招股价',x.priceRange],
     ['每手 / 入场费',`${x.lot} · ${x.entry}`],
     ['招股期',x.period],
@@ -2324,7 +2327,7 @@ function ipoFactRows(x){
     ['首日实际',Number.isFinite(x.historicalReview?.firstDayChange)?pct(x.historicalReview.firstDayChange):null],
     ['五日内最高',Number.isFinite(x.historicalReview?.fiveDayHighChange)?pct(x.historicalReview.fiveDayHighChange):null],
     ['第五日收盘',Number.isFinite(x.historicalReview?.fiveDayChange)?pct(x.historicalReview.fiveDayChange):null],
-  ].filter(([,value])=>isKnownIPOFact(value));
+  ].filter(Boolean).filter(([,value])=>isKnownIPOFact(value));
   return rows.length
     ?rows.map(([label,value])=>`<tr><td>${label}</td><td>${value}</td></tr>`).join('')
     :'<tr><td colspan="2" class="facts-empty">公开文件中的可用资料仍在整理，暂不显示外部跳转。</td></tr>';

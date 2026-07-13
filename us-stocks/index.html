@@ -2863,14 +2863,12 @@ function renderIPO(x){
       <p>${detailText}</p>
       <div class="decision-metrics">
         <div class="decision-metric"><b>${currentConclusion}</b><span>当前结论</span></div>
-        <div class="decision-metric"><b class="num">${scoreProfile.overall}</b><span>综合分</span></div>
         <div class="decision-metric"><b>${answers.dark}</b><span>${isEnded?'暗盘实际表现':'暗盘卖出参考'}</span></div>
         <div class="decision-metric"><b>${answers.week}</b><span>${isEnded?'上市后一周实际':'一周卖出参考'}</span></div>
         <div class="decision-metric"><b class="num">${breakProbability.toFixed(0)}%</b><span>破发概率</span></div>
       </div>
       <div class="share-foot"><span>仅供研究，不构成投资建议</span><span>答案与资料都在站内</span></div>
     </div>
-    <div class="d-sec"><h4>八维判断</h4><div class="card">${bars(scoreProfile.breakdown)}</div></div>
     ${ipoHistoryContext(x)}
     <div class="d-sec"><h4>具体资料</h4><div class="card facts-card"><table class="kv">${ipoFactRows(x)}</table></div></div>`
   );
@@ -3056,7 +3054,7 @@ function renderInvestorLegacy(v){
     <div class="share-foot"><span>仅供研究，不构成投资建议</span><span>${term('13F')}通常滞后</span></div>
   </div>
 
-  ${v.isLive?`<div class="notice" style="margin-top:14px">SEC 13F 是季度披露，通常滞后最多 45 天；仓位变化是真实申报数据，买卖原因和跟投建议属于望潮解读。${v.sourceUrl?`<a href="${v.sourceUrl}" target="_blank" rel="noopener">查看 SEC 原始披露 ↗</a>`:''}</div>`:''}
+  ${v.isLive?`<div class="notice" style="margin-top:14px">SEC 13F 是季度披露，通常滞后最多 45 天；仓位变化是真实申报数据，买卖原因和跟投建议属于望潮解读。原始披露已收录在站内资料中，不再跳出站外。</div>`:''}
 
   <div class="d-sec"><h4>持有什么 · 望潮怎么解读</h4>
   ${v.holds.map(h=>`<div class="card" style="padding:14px 16px;margin-bottom:10px">
@@ -3104,59 +3102,7 @@ function renderInvestor(v){
   );
 }
 function renderHistory(){
-  if(LIVE.hkBacktest){
-    const H=LIVE.hkBacktest;
-    const V=H.modelValidation;
-    detailShell(
-    `${levelPath(['一级：首页','二级：港股结论','三级：新股预测','四级：准确性监控'])}
-    <div class="d-head"><h1>预测准确性监控</h1><div class="sub">只公开模型表现，不公开策略规则、权重和内部信号</div></div>`,
-    `<div class="stats" style="margin-top:0">
-      <div class="stat" style="background:var(--card);border:1px solid var(--line)"><b>${H.sampleCount}</b><span>有效样本</span></div>
-      <div class="stat" style="background:var(--card);border:1px solid var(--line)"><b>${H.firstDayWinRate.toFixed(0)}%</b><span>首日上涨概率</span></div>
-      <div class="stat" style="background:var(--card);border:1px solid var(--line)"><b>${fmtPct(H.averageFirstDay)}</b><span>平均首日</span></div>
-      <div class="stat" style="background:var(--card);border:1px solid var(--line)"><b>${fmtPct(H.averageGreyMarket)}</b><span>平均暗盘</span></div>
-    </div>
-    <div class="notice" style="margin-top:14px">当前招股事实来自港交所；本页历史结果来自 <a href="${H.source.url}" target="_blank" rel="noopener">${H.source.name}</a>，属于第三方聚合数据。</div>
-    ${V?`<div class="d-sec"><h4>滚动验证结果</h4><div class="card">
-      <div class="stats">
-        <div class="stat"><b class="num">${V.greyMarket.intervalCoverage.toFixed(1)}%</b><span>暗盘区间覆盖率</span></div>
-        <div class="stat"><b class="num">${V.firstDay.intervalCoverage.toFixed(1)}%</b><span>首日区间覆盖率</span></div>
-        <div class="stat"><b class="num">${V.greyMarket.directionAccuracy.toFixed(1)}%</b><span>暗盘方向准确率</span></div>
-        <div class="stat"><b class="num">${V.firstDay.directionAccuracy.toFixed(1)}%</b><span>首日方向准确率</span></div>
-      </div>
-      <div class="advice" style="margin-top:12px"><b>当前状态：${V.releaseReady?'允许发布区间':'暂停具体涨幅预测'}</b>。暗盘中位数平均误差 ${V.greyMarket.meanAbsoluteError.toFixed(1)} 个百分点，首日中位数平均误差 ${V.firstDay.meanAbsoluteError.toFixed(1)} 个百分点；校准区间过宽也会停止发布，不能只靠扩大区间制造“准确”。</div>
-      <div class="t2" style="margin-top:12px">${V.method}；预测区间采用${V.interval}。每次更新生产数据时自动重新计算。</div>
-    </div></div>`:''}
-    <div class="d-sec"><h4>最近已上市新股</h4><div class="card">
-    <table class="hist"><tr><th>新股</th><th class="r">超购</th><th class="r">中签率</th><th class="r">暗盘</th><th class="r">首日</th></tr>
-    ${H.recent.map(row=>`<tr><td><b>${row.name}</b><div class="t2">${row.stockCode}</div></td>
-      <td class="r num">${Number.isFinite(row.publicOversubscription)?`${row.publicOversubscription.toFixed(1)}x`:'—'}</td>
-      <td class="r num">${Number.isFinite(row.oneLotRate)?`${row.oneLotRate}%`:'—'}</td>
-      <td class="r num ${row.greyMarketChange>=0?'upc':'dnc'}">${fmtPct(row.greyMarketChange)}</td>
-      <td class="r num ${row.firstDayChange>=0?'upc':'dnc'}">${fmtPct(row.firstDayChange)}</td></tr>`).join('')}</table>
-    </div></div>`);
-    return;
-  }
-  const H=HK_HISTORY;
-  detailShell(
-  `${levelPath(['一级：首页','二级：港股结论','三级：新股预测','四级：策略回测'])}
-  <div class="d-head"><h1>数据回溯</h1><div class="sub">近 90 日港股打新全记录 · 预测 vs 实际</div></div>`,
-  `<div class="stats" style="margin-top:0">${H.stats.map(([l,v])=>`<div class="stat" style="background:var(--card);border:1px solid var(--line)"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
-
-  <div class="d-sec"><h4>累计收益曲线</h4><div class="card">
-  ${lineChart(H.cum,600,150)}
-  <div class="t2" style="text-align:center;margin-top:4px">「每只现金一手全中、暗盘卖出」策略 · 近 90 日累计 <b class="upc">+38.2%</b></div>
-  </div></div>
-
-  <div class="d-sec"><h4>预测命中率</h4><div class="advice">${H.hitRate}</div></div>
-
-  <div class="d-sec"><h4>近期新股逐只回顾</h4><div class="card">
-  <table class="hist"><tr><th>新股</th><th class="r">当时评分</th><th class="r">暗盘实际</th><th class="r">首日实际</th><th class="r">预测</th></tr>
-  ${H.rows.map(r=>`<tr><td><b>${r[0]}</b></td><td class="r num">${r[1]}</td>
-  <td class="r num ${r[2].startsWith('+')?'upc':'dnc'}">${r[2]}</td>
-  <td class="r num ${r[3].startsWith('+')?'upc':'dnc'}">${r[3]}</td>
-  <td class="r">${r[4]?'✅ 命中':'❌ 未中'}</td></tr>`).join('')}</table>
-  </div></div>`);
+  renderNotFound('这个页面已隐藏','#/hk');
 }
 
 router();

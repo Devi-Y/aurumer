@@ -2854,14 +2854,12 @@ function renderIPO(x){
       <p>${detailText}</p>
       <div class="decision-metrics">
         <div class="decision-metric"><b>${currentConclusion}</b><span>当前结论</span></div>
-        <div class="decision-metric"><b class="num">${scoreProfile.overall}</b><span>综合分</span></div>
         <div class="decision-metric"><b>${answers.dark}</b><span>${isEnded?'暗盘实际表现':'暗盘卖出参考'}</span></div>
         <div class="decision-metric"><b>${answers.week}</b><span>${isEnded?'上市后一周实际':'一周卖出参考'}</span></div>
         <div class="decision-metric"><b class="num">${breakProbability.toFixed(0)}%</b><span>破发概率</span></div>
       </div>
       <div class="share-foot"><span>仅供研究，不构成投资建议</span><span>答案与资料都在站内</span></div>
     </div>
-    <div class="d-sec"><h4>八维判断</h4><div class="card">${bars(scoreProfile.breakdown)}</div></div>
     ${ipoHistoryContext(x)}
     <div class="d-sec"><h4>具体资料</h4><div class="card facts-card"><table class="kv">${ipoFactRows(x)}</table></div></div>`
   );

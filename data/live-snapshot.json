@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-07-13T06:36:17.533Z",
-  "durationMs": 52812,
+  "updatedAt": "2026-07-13T07:50:37.822Z",
+  "durationMs": 27194,
   "sources": [
     {
       "id": "yahoo",
@@ -2574,53 +2574,6 @@
         }
       },
       {
-        "symbol": "MSFT",
-        "period": "6/30/2025",
-        "revenueGrowth": 14.9,
-        "grossMargin": 68.8,
-        "profitMargin": 36.1,
-        "roe": 29.6,
-        "operatingCashFlow": 136162000,
-        "capitalExpenditures": -64551000,
-        "cashAndEquivalents": 30242000,
-        "shortTermInvestments": 64323000,
-        "liquidAssets": 94565000,
-        "netIncome": 101832000,
-        "marketCap": 2860690204510,
-        "pe": 28.1,
-        "targetPrice": 550,
-        "targetUpside": 42.8,
-        "revenueHistory": [
-          281724000,
-          245122000,
-          211915000,
-          198270000
-        ],
-        "netIncomeHistory": [
-          101832000,
-          88136000,
-          72361000,
-          72738000
-        ],
-        "growthScore": 71,
-        "profitScore": 99,
-        "valueScore": 85,
-        "finalScore": 86,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
-      },
-      {
         "symbol": "AAPL",
         "period": "9/27/2025",
         "revenueGrowth": 6.4,
@@ -3935,12 +3888,59 @@
           "profitMargin": 15,
           "revenueGrowth": 20
         }
+      },
+      {
+        "symbol": "MSFT",
+        "period": "6/30/2025",
+        "revenueGrowth": 14.9,
+        "grossMargin": 68.8,
+        "profitMargin": 36.1,
+        "roe": 29.6,
+        "operatingCashFlow": 136162000,
+        "capitalExpenditures": -64551000,
+        "cashAndEquivalents": 30242000,
+        "shortTermInvestments": 64323000,
+        "liquidAssets": 94565000,
+        "netIncome": 101832000,
+        "marketCap": 2860690204510,
+        "pe": 28.1,
+        "targetPrice": 550,
+        "targetUpside": 42.8,
+        "revenueHistory": [
+          281724000,
+          245122000,
+          211915000,
+          198270000
+        ],
+        "netIncomeHistory": [
+          101832000,
+          88136000,
+          72361000,
+          72738000
+        ],
+        "growthScore": 71,
+        "profitScore": 99,
+        "valueScore": 85,
+        "finalScore": 86,
+        "qualityCriteria": {
+          "cashRich": true,
+          "highProfit": true,
+          "highGrowth": false
+        },
+        "qualityMatchCount": 2,
+        "qualityEligible": true,
+        "qualityThresholds": {
+          "liquidAssets": 20000000,
+          "netIncome": 5000000,
+          "profitMargin": 15,
+          "revenueGrowth": 20
+        }
       }
     ],
     "temperature": {
-      "value": 61,
-      "label": "偏乐观",
-      "hint": "VIX 15.03，标普500相对近60日均线 +2.6%——该温度由真实行情计算，不是官方指数"
+      "value": 59,
+      "label": "中性",
+      "hint": "VIX 16.46，标普500相对近60日均线 +2.6%——该温度由真实行情计算，不是官方指数"
     },
     "strategyBacktest": {
       "status": "insufficient_history",
@@ -3948,7 +3948,7 @@
       "tradingDays": 1,
       "firstSignalDate": "2026-07-10",
       "lastSignalDate": "2026-07-10",
-      "minimumTradingDays": 60,
+      "minimumTradingDays": 90,
       "holdingDays": [
         5,
         20
@@ -4499,12 +4499,14 @@
         "method": "按上市日期滚动验证，只使用当时之前发行与认购特征最接近的 20 只新股，并只用此前预测误差校准区间",
         "interval": "基于此前绝对误差第 90 分位的滚动校准区间",
         "releaseThresholds": {
-          "minimumFiveDaySamples": 50,
-          "minimumFiveDayHighSamples": 50,
-          "minimumIntervalCoverage": 80,
-          "minimumDirectionAccuracy": 65,
-          "maximumMeanAbsoluteError": 25,
-          "maximumCalibrationHalfWidth": 35
+          "minimumGreyMarketSamples": 60,
+          "minimumFirstDaySamples": 60,
+          "minimumFiveDaySamples": 60,
+          "minimumFiveDayHighSamples": 60,
+          "minimumIntervalCoverage": 85,
+          "minimumDirectionAccuracy": 70,
+          "maximumMeanAbsoluteError": 20,
+          "maximumCalibrationHalfWidth": 28
         },
         "sampleCount": 77,
         "greyMarket": {
@@ -4525,15 +4527,15 @@
           "sampleCount": 54,
           "intervalCoverage": 85.18518518518519,
           "directionAccuracy": 79.6875,
-          "meanAbsoluteError": 69.48593750000003,
+          "meanAbsoluteError": 69.57171875000004,
           "calibrationHalfWidth": 169.10200000000003
         },
         "fiveDayHigh": {
           "sampleCount": 54,
           "intervalCoverage": 87.03703703703704,
           "directionAccuracy": 90.625,
-          "meanAbsoluteError": 83.87218750000002,
-          "calibrationHalfWidth": 178.35200000000003
+          "meanAbsoluteError": 85.65218750000003,
+          "calibrationHalfWidth": 195.45200000000006
         },
         "releaseReady": false
       }
@@ -5628,7 +5630,7 @@
     "us": {
       "releaseReady": false,
       "status": "insufficient_history",
-      "note": "已保存 1 个交易日快照；至少需要 60 个交易日，完成无前视回测后才评估收益、回撤、胜率和交易成本。当前仍不承诺盈利。",
+      "note": "已保存 1 个交易日快照；至少需要 90 个交易日，完成无前视回测后才评估收益、回撤、胜率和交易成本。当前仍不承诺盈利。",
       "eligibleCount": 16,
       "pricePlanReleaseReady": false,
       "candidateReady": false,
@@ -5641,7 +5643,7 @@
         "tradingDays": 1,
         "firstSignalDate": "2026-07-10",
         "lastSignalDate": "2026-07-10",
-        "minimumTradingDays": 60,
+        "minimumTradingDays": 90,
         "holdingDays": [
           5,
           20

@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -57,7 +57,35 @@ function withTimeout(promise, milliseconds, label) {
   ]);
 }
 
+function mergeFundamentals(primary, fallback) {
+  const current = Array.isArray(primary) ? primary : [];
+  const previous = Array.isArray(fallback) ? fallback : [];
+  const merged = new Map(current.map((row) => [row.symbol, row]));
+  for (const row of previous) {
+    if (!merged.has(row.symbol)) merged.set(row.symbol, row);
+  }
+  return [...merged.values()];
+}
+
+let previousPublicSnapshot = null;
+try {
+  previousPublicSnapshot = JSON.parse(await readFile(outputPath, "utf8"));
+} catch {
+  previousPublicSnapshot = null;
+}
+
 const payload = await withTimeout(fetchLiveData({ deepHK: true }), 60_000, "实时抓数");
+if (payload.us?.fundamentals?.length < 30 && previousPublicSnapshot?.us?.fundamentals) {
+  payload.us.fundamentals = mergeFundamentals(
+    payload.us.fundamentals,
+    previousPublicSnapshot.us.fundamentals,
+  );
+}
+if (payload.strategyHealth?.us) {
+  payload.strategyHealth.us.eligibleCount = (payload.us?.fundamentals || []).filter(
+    (row) => row.qualityEligible && row.qualityMatchCount >= 2,
+  ).length;
+}
 const listings = payload.hk?.listings || [];
 if (
   payload.us?.stocks?.length !== 30 ||

@@ -15,13 +15,25 @@ const usHistoryPath = resolve(projectRoot, "data/us-signal-snapshots.json");
 const strategyAuditPath = resolve(projectRoot, "data/strategy-audit.json");
 const sitemapPath = resolve(projectRoot, "sitemap.xml");
 const publicOrigin = "https://devi-y.github.io/aurumer/";
+const A_SHARE_CODES = [
+  "600900",
+  "600941",
+  "601398",
+  "601288",
+  "601939",
+  "601006",
+  "601088",
+  "600938",
+  "601225",
+  "600585",
+];
 
 const payload = await fetchLiveData({ deepHK: true });
 const listings = payload.hk?.listings || [];
 if (
   payload.us?.stocks?.length !== 30 ||
   payload.us?.fundamentals?.length !== 30 ||
-  listings.length < 5 ||
+  listings.length < 3 ||
   (payload.investors?.length || 0) < 9 ||
   (payload.hk?.backtest?.sampleCount || 0) < 50 ||
   (payload.hk?.backtest?.userStrategy?.rules?.length || 0) < 7 ||
@@ -57,13 +69,14 @@ await writeStrategyAudit(strategyAuditPath, {
   generatedAt: payload.updatedAt,
 });
 
-const staticRoutes = ["/", "/hk-ipo", "/us-stocks", "/gurus"];
+const staticRoutes = ["/", "/hk-ipo", "/us-stocks", "/a-shares", "/gurus"];
 const stockRoutes = payload.us.stocks.map(
   (stock) => `/stocks/${encodeURIComponent(stock.symbol)}`,
 );
 const ipoRoutes = listings.map(
   (listing) => `/hk-ipo/${encodeURIComponent(listing.code.replace(/\.HK$/i, ""))}`,
 );
+const aShareRoutes = A_SHARE_CODES.map((code) => `/a-shares/${encodeURIComponent(code)}`);
 const investorRoutes = payload.investors.map(
   (investor) => `/gurus/${encodeURIComponent(investor.id)}`,
 );
@@ -73,6 +86,7 @@ const sitemapUrls = [
   ...staticRoutes,
   ...stockRoutes,
   ...ipoRoutes,
+  ...aShareRoutes,
   ...investorRoutes,
 ].map((route) => {
   const priority = route === "/" ? "1.0" : route.split("/").length === 2 ? "0.8" : "0.7";

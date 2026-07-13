@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-11T13:14:09.950Z",
+  "generatedAt": "2026-07-13T03:23:06.435Z",
   "autoApply": false,
   "hk": {
     "sampleCount": 97,
-    "fiveDaySampleCount": 54,
-    "fiveDayHighSampleCount": 54,
+    "fiveDaySampleCount": 55,
+    "fiveDayHighSampleCount": 55,
     "priceAnswersReleased": false,
     "algorithmVersion": "ipo-nearest-20-2026-07-v1",
     "releaseThresholds": {
@@ -32,18 +32,18 @@
         "calibrationHalfWidth": 126.1520000000001
       },
       "fiveDay": {
-        "sampleCount": 54,
-        "intervalCoverage": 85.18518518518519,
-        "directionAccuracy": 79.6875,
-        "meanAbsoluteError": 70.60250000000002,
-        "calibrationHalfWidth": 167.26100000000002
+        "sampleCount": 55,
+        "intervalCoverage": 85.45454545454545,
+        "directionAccuracy": 78.46153846153847,
+        "meanAbsoluteError": 70.58200000000002,
+        "calibrationHalfWidth": 166.808
       },
       "fiveDayHigh": {
-        "sampleCount": 54,
-        "intervalCoverage": 88.88888888888889,
-        "directionAccuracy": 92.1875,
-        "meanAbsoluteError": 87.54187500000003,
-        "calibrationHalfWidth": 167.00400000000002
+        "sampleCount": 55,
+        "intervalCoverage": 89.0909090909091,
+        "directionAccuracy": 90.76923076923077,
+        "meanAbsoluteError": 86.2552307692308,
+        "calibrationHalfWidth": 166.782
       }
     }
   },
@@ -79,16 +79,6 @@
         "unexposedSampleCount": 27,
         "unexposedLossRate": 14.81,
         "lossRateLift": -14.81,
-        "selected": false
-      },
-      {
-        "id": "high_offer_price",
-        "name": "发行价较高",
-        "exposedSampleCount": 6,
-        "exposedLossRate": 0,
-        "unexposedSampleCount": 22,
-        "unexposedLossRate": 18.18,
-        "lossRateLift": -18.18,
         "selected": false
       },
       {
@@ -135,6 +125,89 @@
       }
     ],
     "candidates": [
+      {
+        "id": "user_rule_combo",
+        "name": "行业强势 + 少保荐 + 非 A+H",
+        "usesPostApplicationData": false,
+        "training": {
+          "signalCount": 5,
+          "sampleCount": 5,
+          "unknownCount": 0,
+          "lossCount": 1,
+          "bothPositiveRate": 80,
+          "greyMarketWinRate": 80,
+          "firstDayWinRate": 80,
+          "averageGreyMarket": 93.63,
+          "averageFirstDay": 130.34,
+          "worstGreyMarket": -30.07,
+          "worstFirstDay": -49.17,
+          "upperLossBound95": 62.45
+        },
+        "validation": {
+          "signalCount": 0,
+          "sampleCount": 0,
+          "unknownCount": 0,
+          "lossCount": 0,
+          "bothPositiveRate": null,
+          "greyMarketWinRate": null,
+          "firstDayWinRate": null,
+          "averageGreyMarket": null,
+          "averageFirstDay": null,
+          "worstGreyMarket": null,
+          "worstFirstDay": null,
+          "upperLossBound95": null
+        },
+        "holdout": {
+          "signalCount": 0,
+          "sampleCount": 0,
+          "unknownCount": 0,
+          "lossCount": 0,
+          "bothPositiveRate": null,
+          "greyMarketWinRate": null,
+          "firstDayWinRate": null,
+          "averageGreyMarket": null,
+          "averageFirstDay": null,
+          "worstGreyMarket": null,
+          "worstFirstDay": null,
+          "upperLossBound95": null
+        },
+        "combined": {
+          "signalCount": 5,
+          "sampleCount": 5,
+          "unknownCount": 0,
+          "lossCount": 1,
+          "bothPositiveRate": 80,
+          "greyMarketWinRate": 80,
+          "firstDayWinRate": 80,
+          "averageGreyMarket": 93.63,
+          "averageFirstDay": 130.34,
+          "worstGreyMarket": -30.07,
+          "worstFirstDay": -49.17,
+          "upperLossBound95": 62.45
+        },
+        "failureExamples": [
+          {
+            "stockCode": "00664",
+            "name": "铜师傅",
+            "listingDate": "2026-03-31",
+            "phase": "training",
+            "industry": "消费",
+            "isAH": false,
+            "offerPrice": 60,
+            "boardLotAmount": 6868.57,
+            "globalOfferShares": 7406800,
+            "cornerstonePercent": 6.75,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -30.07,
+            "firstDayChange": -49.17
+          }
+        ],
+        "eligibleForReview": false
+      },
       {
         "id": "non_ah_industry_regime",
         "name": "非 A+H + 强行业 + 强市场",
@@ -679,6 +752,108 @@
             "industryWinRate": 100,
             "greyMarketChange": -1.24,
             "firstDayChange": -4.64
+          }
+        ],
+        "eligibleForReview": false
+      },
+      {
+        "id": "user_price_balance",
+        "name": "高定价 + 低总额 + 非 A+H",
+        "usesPostApplicationData": false,
+        "training": {
+          "signalCount": 4,
+          "sampleCount": 4,
+          "unknownCount": 0,
+          "lossCount": 0,
+          "bothPositiveRate": 100,
+          "greyMarketWinRate": 100,
+          "firstDayWinRate": 100,
+          "averageGreyMarket": 176.58,
+          "averageFirstDay": 160.63,
+          "worstGreyMarket": 57.09,
+          "worstFirstDay": 37.21,
+          "upperLossBound95": 48.99
+        },
+        "validation": {
+          "signalCount": 2,
+          "sampleCount": 2,
+          "unknownCount": 0,
+          "lossCount": 1,
+          "bothPositiveRate": 50,
+          "greyMarketWinRate": 50,
+          "firstDayWinRate": 50,
+          "averageGreyMarket": 41.77,
+          "averageFirstDay": -6.07,
+          "worstGreyMarket": -3.3,
+          "worstFirstDay": -56.89,
+          "upperLossBound95": 90.55
+        },
+        "holdout": {
+          "signalCount": 2,
+          "sampleCount": 2,
+          "unknownCount": 0,
+          "lossCount": 1,
+          "bothPositiveRate": 50,
+          "greyMarketWinRate": 100,
+          "firstDayWinRate": 50,
+          "averageGreyMarket": 11.1,
+          "averageFirstDay": -2.31,
+          "worstGreyMarket": 4.07,
+          "worstFirstDay": -14.62,
+          "upperLossBound95": 90.55
+        },
+        "combined": {
+          "signalCount": 8,
+          "sampleCount": 8,
+          "unknownCount": 0,
+          "lossCount": 2,
+          "bothPositiveRate": 75,
+          "greyMarketWinRate": 87.5,
+          "firstDayWinRate": 75,
+          "averageGreyMarket": 101.51,
+          "averageFirstDay": 78.22,
+          "worstGreyMarket": -3.3,
+          "worstFirstDay": -56.89,
+          "upperLossBound95": 59.07
+        },
+        "failureExamples": [
+          {
+            "stockCode": "06132",
+            "name": "华健未来-B",
+            "listingDate": "2026-06-23",
+            "phase": "validation",
+            "industry": "生物医药",
+            "isAH": false,
+            "offerPrice": 81.8,
+            "boardLotAmount": 8262.49,
+            "globalOfferShares": 13600000,
+            "cornerstonePercent": 45.7,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -3.3,
+            "firstDayChange": -56.89
+          },
+          {
+            "stockCode": "03952",
+            "name": "来福谐波",
+            "listingDate": "2026-06-30",
+            "phase": "holdout",
+            "industry": "机器人",
+            "isAH": false,
+            "offerPrice": 85.5,
+            "boardLotAmount": 8636.22,
+            "globalOfferShares": 13441900,
+            "cornerstonePercent": null,
+            "sponsorCount": null,
+            "hasHuatai": false,
+            "marketWinRate": 70,
+            "industrySampleCount": 5,
+            "industryWinRate": 80,
+            "greyMarketChange": 18.13,
+            "firstDayChange": -14.62
           }
         ],
         "eligibleForReview": false

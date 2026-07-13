@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-07-11T13:14:09.950Z",
-  "durationMs": 15957,
+  "updatedAt": "2026-07-13T03:23:06.435Z",
+  "durationMs": 19930,
   "sources": [
     {
       "id": "yahoo",
@@ -4034,8 +4034,11 @@
         "stabilizingManager": null,
         "publicOfferShares": null,
         "extractedFrom": "HKEX 新上市公告",
-        "sponsorNames": [],
-        "sponsor": null,
+        "sponsorNames": [
+          "华富建业企业融资有限公司",
+          "同人融资有限公司"
+        ],
+        "sponsor": "华富建业企业融资有限公司、同人融资有限公司",
         "underwriterNames": [],
         "cornerstoneInvestors": [],
         "cornerstoneAmount": null,
@@ -4066,64 +4069,6 @@
           "action": "缺少招股价、一手股数、申购截止时间，暂不提供申购结论。"
         },
         "historicalReview": null
-      },
-      {
-        "id": "hk-03752",
-        "code": "03752.HK",
-        "rawCode": "03752",
-        "name": "珞石(山东)机器人集团股份有限公司",
-        "status": "配发结果已公布",
-        "listingDate": null,
-        "boardLot": null,
-        "shortName": null,
-        "announcementUrl": null,
-        "prospectusUrl": null,
-        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0708/2026070801235_c.pdf",
-        "source": "HKEX",
-        "isLive": true,
-        "industry": "工业机器人",
-        "sponsorNames": [],
-        "sponsor": null,
-        "offerPriceValue": 38,
-        "globalOfferShares": 23031900,
-        "boardLotShares": 100,
-        "publicOfferLots": 23032,
-        "publicOversubscription": 156.58,
-        "approxSubscriptionAmount": 13704132128.000002,
-        "isAH": false,
-        "hasHuatai": false,
-        "hasLivermore": false,
-        "cornerstonePercent": 31.4,
-        "historicalReview": {
-          "verdict": "谨慎打",
-          "greyMarketChange": -1.84,
-          "firstDayChange": 15.21,
-          "fiveDayChange": null
-        },
-        "modelEstimate": {
-          "sampleCount": 20,
-          "intervalPercent": 90,
-          "subscriptionMultiple": {
-            "low": 78,
-            "mid": 247,
-            "high": 4621
-          },
-          "oneLotWinRate": {
-            "low": 1.2,
-            "mid": 5,
-            "high": 18
-          },
-          "greyMarketChange": null,
-          "firstDayChange": null,
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "低"
-        },
-        "strategyAssessment": {
-          "verdict": "申购已结束",
-          "action": "港交所已发布配发结果，申购窗口结束，仅保留为历史回顾。"
-        }
       },
       {
         "id": "hk-02249",
@@ -4179,238 +4124,6 @@
         }
       },
       {
-        "id": "hk-02797",
-        "code": "02797.HK",
-        "rawCode": "02797",
-        "name": "江西齐云山食品股份有限公司",
-        "status": "配发结果已公布",
-        "listingDate": null,
-        "boardLot": null,
-        "shortName": null,
-        "announcementUrl": null,
-        "prospectusUrl": null,
-        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0708/2026070801133_c.pdf",
-        "source": "HKEX",
-        "isLive": true,
-        "industry": "休闲食品 / 果类零食",
-        "sponsorNames": [],
-        "sponsor": null,
-        "offerPriceValue": 8,
-        "globalOfferShares": 25000000,
-        "boardLotShares": 500,
-        "publicOfferLots": 5000,
-        "publicOversubscription": 1688.1,
-        "approxSubscriptionAmount": 33762000000,
-        "isAH": false,
-        "hasHuatai": false,
-        "hasLivermore": false,
-        "cornerstonePercent": 0,
-        "historicalReview": {
-          "verdict": "值得打",
-          "greyMarketChange": 93.75,
-          "firstDayChange": 162.5,
-          "fiveDayChange": null
-        },
-        "modelEstimate": {
-          "sampleCount": 20,
-          "intervalPercent": 90,
-          "subscriptionMultiple": {
-            "low": 646,
-            "mid": 2144,
-            "high": 6646
-          },
-          "oneLotWinRate": {
-            "low": 0.2,
-            "mid": 2,
-            "high": 5.1
-          },
-          "greyMarketChange": null,
-          "firstDayChange": null,
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "低"
-        },
-        "strategyAssessment": {
-          "verdict": "申购已结束",
-          "action": "港交所已发布配发结果，申购窗口结束，仅保留为历史回顾。"
-        }
-      },
-      {
-        "id": "hk-02475",
-        "code": "02475.HK",
-        "rawCode": "02475",
-        "name": "立讯精密工业股份有限公司",
-        "status": "配发结果已公布",
-        "listingDate": null,
-        "boardLot": null,
-        "shortName": null,
-        "announcementUrl": null,
-        "prospectusUrl": null,
-        "allotmentUrl": "http://www.iporesults.hkex.com.hk/listedco/listconews/sehk/2026/0708/2026070801343_c.pdf",
-        "source": "HKEX",
-        "isLive": true,
-        "industry": "消费电子 / 精密制造",
-        "sponsorNames": [],
-        "sponsor": null,
-        "offerPriceValue": 63.28,
-        "globalOfferShares": 383472800,
-        "boardLotShares": 100,
-        "publicOfferLots": 383473,
-        "publicOversubscription": 3.78,
-        "approxSubscriptionAmount": 9172612804.32,
-        "isAH": true,
-        "hasHuatai": false,
-        "hasLivermore": false,
-        "cornerstonePercent": 48.44,
-        "historicalReview": {
-          "verdict": "不建议",
-          "greyMarketChange": -4.95,
-          "firstDayChange": -1.55,
-          "fiveDayChange": null
-        },
-        "modelEstimate": {
-          "sampleCount": 20,
-          "intervalPercent": 90,
-          "subscriptionMultiple": {
-            "low": 5.7,
-            "mid": 103,
-            "high": 455
-          },
-          "oneLotWinRate": {
-            "low": 1.7,
-            "mid": 10,
-            "high": 100
-          },
-          "greyMarketChange": null,
-          "firstDayChange": null,
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "低"
-        },
-        "strategyAssessment": {
-          "verdict": "申购已结束",
-          "action": "港交所已发布配发结果，申购窗口结束，仅保留为历史回顾。"
-        }
-      },
-      {
-        "id": "hk-01377",
-        "code": "01377.HK",
-        "rawCode": "01377",
-        "name": "广东鼎泰高科技术股份有限公司",
-        "status": "配发结果已公布",
-        "listingDate": null,
-        "boardLot": null,
-        "shortName": null,
-        "announcementUrl": null,
-        "prospectusUrl": null,
-        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0708/2026070801373_c.pdf",
-        "source": "HKEX",
-        "isLive": true,
-        "industry": "PCB / 精密制造",
-        "sponsorNames": [],
-        "sponsor": null,
-        "offerPriceValue": 380,
-        "globalOfferShares": 12632000,
-        "boardLotShares": 100,
-        "publicOfferLots": 12632,
-        "publicOversubscription": 354.64,
-        "approxSubscriptionAmount": 170232874240,
-        "isAH": true,
-        "hasHuatai": false,
-        "hasLivermore": false,
-        "cornerstonePercent": 41.45,
-        "historicalReview": {
-          "verdict": "不建议",
-          "greyMarketChange": -10.53,
-          "firstDayChange": -1.79,
-          "fiveDayChange": null
-        },
-        "modelEstimate": {
-          "sampleCount": 20,
-          "intervalPercent": 90,
-          "subscriptionMultiple": {
-            "low": 155,
-            "mid": 439,
-            "high": 1567
-          },
-          "oneLotWinRate": {
-            "low": 1.9,
-            "mid": 4.5,
-            "high": 10
-          },
-          "greyMarketChange": null,
-          "firstDayChange": null,
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "低"
-        },
-        "strategyAssessment": {
-          "verdict": "申购已结束",
-          "action": "港交所已发布配发结果，申购窗口结束，仅保留为历史回顾。"
-        }
-      },
-      {
-        "id": "hk-00537",
-        "code": "00537.HK",
-        "rawCode": "00537",
-        "name": "普源精电科技股份有限公司",
-        "status": "配发结果已公布",
-        "listingDate": null,
-        "boardLot": null,
-        "shortName": null,
-        "announcementUrl": null,
-        "prospectusUrl": null,
-        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0708/2026070801337_c.pdf",
-        "source": "HKEX",
-        "isLive": true,
-        "industry": "电子测量仪器",
-        "sponsorNames": [],
-        "sponsor": null,
-        "offerPriceValue": 45.98,
-        "globalOfferShares": 24802200,
-        "boardLotShares": 100,
-        "publicOfferLots": 24803,
-        "publicOversubscription": 356.86,
-        "approxSubscriptionAmount": 40697811070.840004,
-        "isAH": true,
-        "hasHuatai": false,
-        "hasLivermore": false,
-        "cornerstonePercent": 42.11,
-        "historicalReview": {
-          "verdict": "谨慎打",
-          "greyMarketChange": -17.36,
-          "firstDayChange": -37.36,
-          "fiveDayChange": null
-        },
-        "modelEstimate": {
-          "sampleCount": 20,
-          "intervalPercent": 90,
-          "subscriptionMultiple": {
-            "low": 101,
-            "mid": 378,
-            "high": 1539
-          },
-          "oneLotWinRate": {
-            "low": 0.5,
-            "mid": 4.5,
-            "high": 10
-          },
-          "greyMarketChange": null,
-          "firstDayChange": null,
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "低"
-        },
-        "strategyAssessment": {
-          "verdict": "申购已结束",
-          "action": "港交所已发布配发结果，申购窗口结束，仅保留为历史回顾。"
-        }
-      },
-      {
         "id": "hk-06745",
         "code": "06745.HK",
         "rawCode": "06745",
@@ -4450,122 +4163,6 @@
             "low": 0.3,
             "mid": 5,
             "high": 11
-          },
-          "greyMarketChange": null,
-          "firstDayChange": null,
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "低"
-        },
-        "strategyAssessment": {
-          "verdict": "申购已结束",
-          "action": "港交所已发布配发结果，申购窗口结束，仅保留为历史回顾。"
-        }
-      },
-      {
-        "id": "hk-06951",
-        "code": "06951.HK",
-        "rawCode": "06951",
-        "name": "潮州三环（集团）股份有限公司",
-        "status": "配发结果已公布",
-        "listingDate": null,
-        "boardLot": null,
-        "shortName": null,
-        "announcementUrl": null,
-        "prospectusUrl": null,
-        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0708/2026070801349_c.pdf",
-        "source": "HKEX",
-        "isLive": true,
-        "industry": "电子陶瓷 / 先进材料",
-        "sponsorNames": [],
-        "sponsor": null,
-        "offerPriceValue": 100.3,
-        "globalOfferShares": 71364300,
-        "boardLotShares": 100,
-        "publicOfferLots": 71365,
-        "publicOversubscription": 327.49,
-        "approxSubscriptionAmount": 234414378215.5,
-        "isAH": true,
-        "hasHuatai": false,
-        "hasLivermore": false,
-        "cornerstonePercent": 49.81,
-        "historicalReview": {
-          "verdict": "谨慎打",
-          "greyMarketChange": -4.64,
-          "firstDayChange": 4.69,
-          "fiveDayChange": null
-        },
-        "modelEstimate": {
-          "sampleCount": 20,
-          "intervalPercent": 90,
-          "subscriptionMultiple": {
-            "low": 48,
-            "mid": 378,
-            "high": 1321
-          },
-          "oneLotWinRate": {
-            "low": 2,
-            "mid": 6,
-            "high": 21
-          },
-          "greyMarketChange": null,
-          "firstDayChange": null,
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "低"
-        },
-        "strategyAssessment": {
-          "verdict": "申购已结束",
-          "action": "港交所已发布配发结果，申购窗口结束，仅保留为历史回顾。"
-        }
-      },
-      {
-        "id": "hk-01770",
-        "code": "01770.HK",
-        "rawCode": "01770",
-        "name": "浙江东方科脉电子股份有限公司",
-        "status": "配发结果已公布",
-        "listingDate": null,
-        "boardLot": null,
-        "shortName": null,
-        "announcementUrl": null,
-        "prospectusUrl": null,
-        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0708/2026070801215_c.pdf",
-        "source": "HKEX",
-        "isLive": true,
-        "industry": "电子纸显示",
-        "sponsorNames": [],
-        "sponsor": null,
-        "offerPriceValue": 78.64,
-        "globalOfferShares": 5118600,
-        "boardLotShares": 50,
-        "publicOfferLots": 10238,
-        "publicOversubscription": 1067.54,
-        "approxSubscriptionAmount": 42974693812.64,
-        "isAH": false,
-        "hasHuatai": false,
-        "hasLivermore": false,
-        "cornerstonePercent": 0,
-        "historicalReview": {
-          "verdict": "值得打",
-          "greyMarketChange": 3.38,
-          "firstDayChange": 1.73,
-          "fiveDayChange": null
-        },
-        "modelEstimate": {
-          "sampleCount": 20,
-          "intervalPercent": 90,
-          "subscriptionMultiple": {
-            "low": 1073,
-            "mid": 2144,
-            "high": 4768
-          },
-          "oneLotWinRate": {
-            "low": 0.5,
-            "mid": 2.5,
-            "high": 5.1
           },
           "greyMarketChange": null,
           "firstDayChange": null,
@@ -4925,18 +4522,18 @@
           "calibrationHalfWidth": 126.1520000000001
         },
         "fiveDay": {
-          "sampleCount": 54,
-          "intervalCoverage": 85.18518518518519,
-          "directionAccuracy": 79.6875,
-          "meanAbsoluteError": 70.60250000000002,
-          "calibrationHalfWidth": 167.26100000000002
+          "sampleCount": 55,
+          "intervalCoverage": 85.45454545454545,
+          "directionAccuracy": 78.46153846153847,
+          "meanAbsoluteError": 70.58200000000002,
+          "calibrationHalfWidth": 166.808
         },
         "fiveDayHigh": {
-          "sampleCount": 54,
-          "intervalCoverage": 88.88888888888889,
-          "directionAccuracy": 92.1875,
-          "meanAbsoluteError": 87.54187500000003,
-          "calibrationHalfWidth": 167.00400000000002
+          "sampleCount": 55,
+          "intervalCoverage": 89.0909090909091,
+          "directionAccuracy": 90.76923076923077,
+          "meanAbsoluteError": 86.2552307692308,
+          "calibrationHalfWidth": 166.782
         },
         "releaseReady": false
       }

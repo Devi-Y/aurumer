@@ -1,6 +1,6 @@
 # 望潮 Aurum
 
-港股打新与美股投资机会工具的公开只读镜像。
+港股打新、美股投资与 A股收息工具的公开只读镜像。
 
 固定公开地址：https://devi-y.github.io/aurumer/
 
@@ -9,13 +9,14 @@
 - 首页：https://devi-y.github.io/aurumer/
 - 港股打新：https://devi-y.github.io/aurumer/hk-ipo/
 - 美股投资：https://devi-y.github.io/aurumer/us-stocks/
+- A股收息：https://devi-y.github.io/aurumer/a-shares/
 - 聪明人持仓：https://devi-y.github.io/aurumer/gurus/
 - AI 可读说明：https://devi-y.github.io/aurumer/llms.txt
 
 ## 当前数据
 
-- 更新时间：2026-07-11T13:14:09.950Z
-- 港股新股：10 只
+- 更新时间：2026-07-13T03:23:06.435Z
+- 港股新股：3 只
 - 美股行情：30 只
 - 美股基本面：30 只
 - 13F 投资人：9 位

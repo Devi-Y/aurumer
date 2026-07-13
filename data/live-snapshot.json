@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-07-13T07:50:37.822Z",
-  "durationMs": 27194,
+  "updatedAt": "2026-07-13T07:53:10.567Z",
+  "durationMs": 22433,
   "sources": [
     {
       "id": "yahoo",
@@ -2574,6 +2574,53 @@
         }
       },
       {
+        "symbol": "MSFT",
+        "period": "6/30/2025",
+        "revenueGrowth": 14.9,
+        "grossMargin": 68.8,
+        "profitMargin": 36.1,
+        "roe": 29.6,
+        "operatingCashFlow": 136162000,
+        "capitalExpenditures": -64551000,
+        "cashAndEquivalents": 30242000,
+        "shortTermInvestments": 64323000,
+        "liquidAssets": 94565000,
+        "netIncome": 101832000,
+        "marketCap": 2860690204510,
+        "pe": 28.1,
+        "targetPrice": 550,
+        "targetUpside": 42.8,
+        "revenueHistory": [
+          281724000,
+          245122000,
+          211915000,
+          198270000
+        ],
+        "netIncomeHistory": [
+          101832000,
+          88136000,
+          72361000,
+          72738000
+        ],
+        "growthScore": 71,
+        "profitScore": 99,
+        "valueScore": 85,
+        "finalScore": 86,
+        "qualityCriteria": {
+          "cashRich": true,
+          "highProfit": true,
+          "highGrowth": false
+        },
+        "qualityMatchCount": 2,
+        "qualityEligible": true,
+        "qualityThresholds": {
+          "liquidAssets": 20000000,
+          "netIncome": 5000000,
+          "profitMargin": 15,
+          "revenueGrowth": 20
+        }
+      },
+      {
         "symbol": "AAPL",
         "period": "9/27/2025",
         "revenueGrowth": 6.4,
@@ -3888,59 +3935,12 @@
           "profitMargin": 15,
           "revenueGrowth": 20
         }
-      },
-      {
-        "symbol": "MSFT",
-        "period": "6/30/2025",
-        "revenueGrowth": 14.9,
-        "grossMargin": 68.8,
-        "profitMargin": 36.1,
-        "roe": 29.6,
-        "operatingCashFlow": 136162000,
-        "capitalExpenditures": -64551000,
-        "cashAndEquivalents": 30242000,
-        "shortTermInvestments": 64323000,
-        "liquidAssets": 94565000,
-        "netIncome": 101832000,
-        "marketCap": 2860690204510,
-        "pe": 28.1,
-        "targetPrice": 550,
-        "targetUpside": 42.8,
-        "revenueHistory": [
-          281724000,
-          245122000,
-          211915000,
-          198270000
-        ],
-        "netIncomeHistory": [
-          101832000,
-          88136000,
-          72361000,
-          72738000
-        ],
-        "growthScore": 71,
-        "profitScore": 99,
-        "valueScore": 85,
-        "finalScore": 86,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
       }
     ],
     "temperature": {
-      "value": 59,
-      "label": "中性",
-      "hint": "VIX 16.46，标普500相对近60日均线 +2.6%——该温度由真实行情计算，不是官方指数"
+      "value": 60,
+      "label": "偏乐观",
+      "hint": "VIX 16.4，标普500相对近60日均线 +2.6%——该温度由真实行情计算，不是官方指数"
     },
     "strategyBacktest": {
       "status": "insufficient_history",

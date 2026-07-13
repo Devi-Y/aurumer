@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-13T09:23:33.646Z",
+  "generatedAt": "2026-07-13T09:47:19.916Z",
   "autoApply": false,
   "hk": {
     "sampleCount": 97,
@@ -37,15 +37,15 @@
         "sampleCount": 55,
         "intervalCoverage": 85.45454545454545,
         "directionAccuracy": 78.46153846153847,
-        "meanAbsoluteError": 69.55446153846158,
-        "calibrationHalfWidth": 167.78600000000003
+        "meanAbsoluteError": 70.61553846153848,
+        "calibrationHalfWidth": 166.808
       },
       "fiveDayHigh": {
         "sampleCount": 55,
-        "intervalCoverage": 87.27272727272727,
-        "directionAccuracy": 89.23076923076924,
-        "meanAbsoluteError": 85.34846153846156,
-        "calibrationHalfWidth": 194.04600000000005
+        "intervalCoverage": 89.0909090909091,
+        "directionAccuracy": 90.76923076923077,
+        "meanAbsoluteError": 86.2552307692308,
+        "calibrationHalfWidth": 166.782
       }
     }
   },
@@ -91,7 +91,7 @@
         "unexposedSampleCount": 21,
         "unexposedLossRate": 9.52,
         "lossRateLift": 19.05,
-        "selected": true
+        "selected": false
       },
       {
         "id": "new_industry",
@@ -114,18 +114,7 @@
         "selected": false
       }
     ],
-    "selectedTrainingVetoes": [
-      {
-        "id": "low_cornerstone",
-        "name": "基石比例偏低",
-        "exposedSampleCount": 7,
-        "exposedLossRate": 28.57,
-        "unexposedSampleCount": 21,
-        "unexposedLossRate": 9.52,
-        "lossRateLift": 19.05,
-        "selected": true
-      }
-    ],
+    "selectedTrainingVetoes": [],
     "candidates": [
       {
         "id": "user_rule_combo",
@@ -1069,32 +1058,32 @@
         "name": "训练段自动风险否决",
         "usesPostApplicationData": false,
         "training": {
-          "signalCount": 21,
-          "sampleCount": 21,
+          "signalCount": 28,
+          "sampleCount": 28,
           "unknownCount": 0,
-          "lossCount": 2,
-          "bothPositiveRate": 90.47619047619048,
-          "greyMarketWinRate": 95.23809523809523,
-          "firstDayWinRate": 90.47619047619048,
-          "averageGreyMarket": 108.39,
-          "averageFirstDay": 108.44,
-          "worstGreyMarket": -1.24,
-          "worstFirstDay": -45.75,
-          "upperLossBound95": 28.91
+          "lossCount": 4,
+          "bothPositiveRate": 85.71428571428571,
+          "greyMarketWinRate": 92.85714285714286,
+          "firstDayWinRate": 85.71428571428571,
+          "averageGreyMarket": 107.82,
+          "averageFirstDay": 106.86,
+          "worstGreyMarket": -30.07,
+          "worstFirstDay": -49.17,
+          "upperLossBound95": 31.49
         },
         "validation": {
-          "signalCount": 6,
-          "sampleCount": 6,
+          "signalCount": 7,
+          "sampleCount": 7,
           "unknownCount": 0,
           "lossCount": 3,
-          "bothPositiveRate": 50,
-          "greyMarketWinRate": 50,
-          "firstDayWinRate": 50,
-          "averageGreyMarket": 73.37,
-          "averageFirstDay": 70.1,
+          "bothPositiveRate": 57.14285714285714,
+          "greyMarketWinRate": 57.14285714285714,
+          "firstDayWinRate": 57.14285714285714,
+          "averageGreyMarket": 91.91,
+          "averageFirstDay": 89.22,
           "worstGreyMarket": -5.89,
           "worstFirstDay": -56.89,
-          "upperLossBound95": 81.24
+          "upperLossBound95": 74.95
         },
         "holdout": {
           "signalCount": 0,
@@ -1111,20 +1100,58 @@
           "upperLossBound95": null
         },
         "combined": {
-          "signalCount": 27,
-          "sampleCount": 27,
+          "signalCount": 35,
+          "sampleCount": 35,
           "unknownCount": 0,
-          "lossCount": 5,
-          "bothPositiveRate": 81.48148148148148,
-          "greyMarketWinRate": 85.18518518518519,
-          "firstDayWinRate": 81.48148148148148,
-          "averageGreyMarket": 100.61,
-          "averageFirstDay": 99.92,
-          "worstGreyMarket": -5.89,
+          "lossCount": 7,
+          "bothPositiveRate": 80,
+          "greyMarketWinRate": 85.71428571428571,
+          "firstDayWinRate": 80,
+          "averageGreyMarket": 104.64,
+          "averageFirstDay": 103.33,
+          "worstGreyMarket": -30.07,
           "worstFirstDay": -56.89,
-          "upperLossBound95": 36.7
+          "upperLossBound95": 35.89
         },
         "failureExamples": [
+          {
+            "stockCode": "02632",
+            "name": "泽景股份",
+            "listingDate": "2026-03-24",
+            "phase": "training",
+            "industry": "汽车电子",
+            "isAH": false,
+            "offerPrice": 44.2,
+            "boardLotAmount": 2424.2,
+            "globalOfferShares": 16226500,
+            "cornerstonePercent": 15.33,
+            "sponsorCount": 2,
+            "hasHuatai": false,
+            "marketWinRate": 80,
+            "industrySampleCount": 0,
+            "industryWinRate": null,
+            "greyMarketChange": 12.67,
+            "firstDayChange": -36.92
+          },
+          {
+            "stockCode": "00664",
+            "name": "铜师傅",
+            "listingDate": "2026-03-31",
+            "phase": "training",
+            "industry": "消费",
+            "isAH": false,
+            "offerPrice": 60,
+            "boardLotAmount": 6868.57,
+            "globalOfferShares": 7406800,
+            "cornerstonePercent": 6.75,
+            "sponsorCount": 1,
+            "hasHuatai": false,
+            "marketWinRate": 90,
+            "industrySampleCount": 3,
+            "industryWinRate": 100,
+            "greyMarketChange": -30.07,
+            "firstDayChange": -49.17
+          },
           {
             "stockCode": "01511",
             "name": "驭势科技",

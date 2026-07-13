@@ -42,7 +42,22 @@ const A_SHARE_CODES = [
   "600585",
 ];
 
-const payload = await fetchLiveData({ deepHK: true });
+function withTimeout(promise, milliseconds, label) {
+  let timer = null;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`${label} 超时 ${milliseconds}ms`));
+    }, milliseconds);
+  });
+  return Promise.race([
+    promise.finally(() => {
+      if (timer) clearTimeout(timer);
+    }),
+    timeout,
+  ]);
+}
+
+const payload = await withTimeout(fetchLiveData({ deepHK: true }), 60_000, "实时抓数");
 const listings = payload.hk?.listings || [];
 if (
   payload.us?.stocks?.length !== 30 ||

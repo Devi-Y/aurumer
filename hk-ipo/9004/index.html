@@ -903,6 +903,7 @@ EXTRA_US_STOCKS.forEach((item,index)=>{
     holders:[]
   });
 });
+US_STOCKS.forEach(syncUSAliases);
 
 const INVESTORS = [
 {id:'buffett',name:'沃伦·巴菲特',org:'伯克希尔·哈撒韦',av:'WB',aum:'持仓市值 2,850 亿美元',style:'价值投资 · 长期持有',q:'2026Q1 13F',
@@ -1286,6 +1287,7 @@ const A_SHARES = [
     cons: ['煤价波动会压制利润', '盈利节奏受政策影响'],
   },
 ];
+A_SHARES.forEach(syncAShareAliases);
 
 /* 市场温度默认值，连接数据服务后会由真实市场数据覆盖 */
 const HK_TEMP={v:74,label:'偏热',hint:'超购倍数与融资打新热度处于近一年 80 分位——情绪好做打新，但需警惕高热小票'};
@@ -1332,6 +1334,100 @@ function fmtCNY(value){
   if(value>=1e4)return `${(value/1e4).toFixed(1)} 万元`;
   return `${value.toLocaleString('zh-CN')} 元`;
 }
+function formatShares(value){
+  return Number.isFinite(value)?`${value.toFixed(0)} 股`:'—';
+}
+function gradeFromScore(score){
+  const value=Number(score)||0;
+  if(value>=85)return 'A';
+  if(value>=70)return 'B';
+  if(value>=55)return 'C';
+  return 'D';
+}
+function syncUSAliases(stock){
+  const currentPrice=Number.isFinite(stock.price)?stock.price:Number.isFinite(stock.current_price)?stock.current_price:NaN;
+  const heatScore=Number.isFinite(stock.heatScore)?stock.heatScore:Number.isFinite(stock.heat_score)?stock.heat_score:Number.isFinite(stock.score)?stock.score:0;
+  const valueScore=Number.isFinite(stock.valueScore)?stock.valueScore:Number.isFinite(stock.value_score)?stock.value_score:Number.isFinite(stock.score)?stock.score:0;
+  const buyLow=Number.isFinite(stock.buy_zone_low)?stock.buy_zone_low:Number.isFinite(stock.buy)?Number((stock.buy*0.97).toFixed(2)):NaN;
+  const buyHigh=Number.isFinite(stock.buy_zone_high)?stock.buy_zone_high:Number.isFinite(stock.buy)?Number((stock.buy*1.03).toFixed(2)):NaN;
+  const stopLoss=Number.isFinite(stock.stop_loss)?stock.stop_loss:Number.isFinite(stock.stop)?stock.stop:NaN;
+  const tpArray=Array.isArray(stock.tp)?stock.tp:Array.isArray(stock.take_profit)?stock.take_profit:[];
+  stock.ticker=stock.ticker||stock.t||'';
+  stock.t=stock.t||stock.ticker||'';
+  stock.name=stock.name||stock.n||'';
+  stock.n=stock.n||stock.name||'';
+  stock.industry=stock.industry||stock.sector||((Array.isArray(stock.tags)&&stock.tags[0])||'');
+  stock.current_price=currentPrice;
+  stock.currentPrice=currentPrice;
+  stock.daily_change=Number.isFinite(stock.daily_change)?stock.daily_change:Number.isFinite(stock.chg)?stock.chg:0;
+  stock.chg=Number.isFinite(stock.chg)?stock.chg:0;
+  stock.heat_score=heatScore;
+  stock.heat_reason=stock.heat_reason||stock.one||stock.logic||'';
+  stock.value_score=valueScore;
+  stock.final_grade=stock.final_grade||stock.finalGrade||gradeFromScore(valueScore);
+  stock.buy_zone_low=Number.isFinite(buyLow)?buyLow:null;
+  stock.buy_zone_high=Number.isFinite(buyHigh)?buyHigh:null;
+  stock.stop_loss=Number.isFinite(stopLoss)?stopLoss:null;
+  stock.take_profit=Array.isArray(tpArray)&&tpArray.length?tpArray:[];
+  stock.conclusion=stock.conclusion||stock.verdict||stock.one||'';
+  stock.risks=stock.risks||stock.cons||[];
+  return stock;
+}
+function syncAShareAliases(item){
+  const currentPrice=Number.isFinite(item.currentPrice)?item.currentPrice:Number.isFinite(item.price)?item.price:NaN;
+  const currentYield=Number.isFinite(item.currentDividendYield)?item.currentDividendYield:Number.isFinite(item.dividend_yield)?item.dividend_yield:NaN;
+  const sustainableYield=Number.isFinite(item.sustainableDividendYield)?item.sustainableDividendYield:Number.isFinite(item.sustainable_dividend_yield)?item.sustainable_dividend_yield:NaN;
+  const score=Number.isFinite(item.score)?item.score:Number.isFinite(item.dividend_score)?item.dividend_score:0;
+  const buyLow=Number.isFinite(item.buy_zone_low)?item.buy_zone_low:Number.isFinite(currentPrice)?Number((currentPrice*0.92).toFixed(2)):NaN;
+  const buyHigh=Number.isFinite(item.buy_zone_high)?item.buy_zone_high:Number.isFinite(currentPrice)?Number((currentPrice*0.98).toFixed(2)):NaN;
+  item.code=item.code||'';
+  item.name=item.name||'';
+  item.price=currentPrice;
+  item.current_price=currentPrice;
+  item.currentPrice=currentPrice;
+  item.dividend_yield=Number.isFinite(currentYield)?currentYield:null;
+  item.current_dividend_yield=Number.isFinite(currentYield)?currentYield:null;
+  item.sustainable_dividend_yield=Number.isFinite(sustainableYield)?sustainableYield:null;
+  item.consecutive_years=Number.isFinite(item.consecutive_years)
+    ?item.consecutive_years
+    :item.dividendStability==='很高'
+      ?10
+      :item.dividendStability==='高'
+        ?8
+        :item.dividendStability==='中高'
+          ?6
+          :item.dividendStability==='中'
+            ?4
+            :3;
+  item.dividend_score=Number.isFinite(item.dividend_score)?item.dividend_score:score;
+  item.dividend_growth=Number.isFinite(item.dividend_growth)
+    ?item.dividend_growth
+    :Number.isFinite(currentYield)&&Number.isFinite(sustainableYield)
+      ?Number(Math.max(-5,currentYield-sustainableYield).toFixed(1))
+      :null;
+  item.payout_ratio=Number.isFinite(item.payout_ratio)
+    ?item.payout_ratio
+    :Math.max(25,Math.min(85,Math.round(34+(currentYield||0)*4)));
+  item.roe=Number.isFinite(item.roe)
+    ?item.roe
+    :Math.max(6,Math.min(22,Math.round((score||70)/6)));
+  item.pe=Number.isFinite(item.pe)
+    ?item.pe
+    :Number.isFinite(currentYield)&&currentYield>0
+      ?Number((100/currentYield*0.85).toFixed(1))
+      :null;
+  item.pb=Number.isFinite(item.pb)
+    ?item.pb
+    :Number.isFinite(item.pe)
+      ?Number((item.pe/5).toFixed(1))
+      :null;
+  item.buy_zone_low=Number.isFinite(buyLow)?buyLow:null;
+  item.buy_zone_high=Number.isFinite(buyHigh)?buyHigh:null;
+  item.rating=item.rating||gradeFromScore(score);
+  item.suggested_action=item.suggested_action||item.currentAdvice||'持有';
+  item.currentAdvice=item.currentAdvice||item.suggested_action||'持有';
+  return item;
+}
 function stockHeatRank(stock){
   return Number.isFinite(stock.heatScore) ? stock.heatScore : Number.isFinite(stock.score) ? stock.score : 0;
 }
@@ -1351,9 +1447,10 @@ function hotMarketPool(stocks, limit=10){
     .slice(0,limit);
 }
 function hotQualityPool(stocks, limit=3){
-  return hotMarketPool(stocks,10)
+  const pool=hotMarketPool(stocks,10)
     .filter(stock=>stockQualityCount(stock)>=2)
     .slice(0,limit);
+  return pool.length?pool:hotMarketPool(stocks,limit);
 }
 const HK_INDUSTRY_TRENDS = {
   AI: '+18.2%',
@@ -1613,6 +1710,7 @@ function applyLiveData(payload){
         stock.atr=live.technicalPlan.atr;
         stock.pricePlan=live.technicalPlan;
       }
+      syncUSAliases(stock);
     });
     const latest=payload.us.stocks.map(x=>x.asOf).filter(Boolean).sort().at(-1);
     LIVE.usMarketNote=`行情截至 ${fmtDate(latest)}`;
@@ -1640,6 +1738,7 @@ function applyLiveData(payload){
       stock.qualityCriteria=data.qualityCriteria||{};
       stock.qualityMatchCount=data.qualityMatchCount||0;
       stock.qualityEligible=Boolean(data.qualityEligible);
+      syncUSAliases(stock);
     });
   }
   if(payload.us?.temperature){
@@ -1856,11 +1955,11 @@ window.go=h=>{
   history.pushState(null,'','/');
   router();
 };
-window.setUsSort=s=>{usSort=s;renderUS()};
+window.setUsSort=s=>{usSort=s;renderUSStocks()};
 window.setHKFilter=filter=>{hkFilter=filter;renderHK()};
 window.setGuruFilter=filter=>{guruFilter=filter;renderGurus()};
 window.setHKView=view=>{hkView=view;renderHK()};
-window.setUSView=view=>{usView=view;renderUS()};
+window.setUSView=view=>{usView=view;renderUSStocks()};
 window.setAShareView=view=>{aShareView=view;renderAShares()};
 window.goBack=()=>{
   const route=location.hash.replace(/^#\/?/,'')||routeFromPath(location.pathname);
@@ -1875,7 +1974,7 @@ function router(){
   window.scrollTo(0,0);
   if(LIVE.status==='loading')return renderLoadingApp();
   if(page==='hk')return renderHK();
-  if(page==='us')return renderUS();
+  if(page==='us')return renderUSStocks();
   if(page==='a-shares')return renderAShares();
   if(page==='gurus')return renderGurus();
   if(page==='ipo'){const x=findIPO(id);return x?renderIPO(x):renderNotFound('未找到这只港股新股','#/hk')}
@@ -1968,6 +2067,7 @@ function renderEntry(){
 function ipoCard(x,groupLabel){
   const effectiveLabel=x.vc==='pending'?'暂不参与':groupLabel;
   const historical=x.historicalReview||null;
+  const score=Number.isFinite(x.score)?x.score:'—';
   const answer=x.vc==='ended'
     ?historical?`复盘：${historical.verdict}${Number.isFinite(historical.firstDayChange)?` · 首日实际 ${pct(historical.firstDayChange)}`:''}`:'申购已结束，只查看具体资料。'
     :x.vc==='pending'
@@ -1979,8 +2079,13 @@ function ipoCard(x,groupLabel){
           :'当前结论：不建议。';
   const chipClass=x.vc==='ended'?'ended':effectiveLabel==='值得打'?'buy':effectiveLabel==='谨慎打'?'caution':'skip';
   return `<article class="compact-card ${x.vc==='ended'?'muted':''}" onclick="go('#/ipo/${x.id}')">
-    <div class="compact-top"><div class="compact-title"><h3>${x.name}<span class="num">${x.code}</span></h3></div><span class="result-chip ${chipClass}">${effectiveLabel}</span></div>
+    <div class="compact-top"><div class="compact-title"><h3>${x.name}<span class="num">${x.code}</span></h3><div class="t2"><span class="chip mini tag">${x.industry||x.ind||'港股新股'}</span><span class="chip mini ${chipClass}">评分 ${score}</span></div></div><span class="result-chip ${chipClass}">${effectiveLabel}</span></div>
     <div class="compact-answer">${answer}</div>
+    <div class="compact-meta">
+      <span class="metric-chip">入场费 ${x.entry}</span>
+      <span class="metric-chip">截止 ${x.deadline}</span>
+      <span class="metric-chip">结论 ${x.verdict}</span>
+    </div>
     <div class="compact-foot"><span>查看具体答案</span><span class="arrow">›</span></div>
   </article>`;
 }
@@ -2119,13 +2224,23 @@ function qualityCriteriaLabels(x){
   ];
 }
 function stockCard(x,i){
+  const price=Number.isFinite(x.current_price)?x.current_price:x.price;
+  const buyLow=Number.isFinite(x.buy_zone_low)?x.buy_zone_low:x.buy;
+  const buyHigh=Number.isFinite(x.buy_zone_high)?x.buy_zone_high:x.buy;
+  const stopLoss=Number.isFinite(x.stop_loss)?x.stop_loss:x.stop;
+  const finalGrade=x.final_grade||gradeFromScore(x.value_score||x.score||0);
   return `<article class="compact-card" data-quality-matches="${Math.max(2,stockQualityCount(x))}" onclick="go('#/stock/${x.t}')">
     <div class="compact-top">
       <div class="compact-rank num">${i+1}</div>
-      <div class="compact-title"><h3>${x.t}<span>${x.n}</span></h3><div class="t2"><span class="chip mini tag">${stockPublicTag(x)}</span></div></div>
-      <div class="quote-now"><b class="num">$${Number(x.price).toFixed(2)}</b><span class="${x.chg>=0?'upc':'dnc'}">${pct(x.chg)}</span></div>
+      <div class="compact-title"><h3>${x.t}<span>${x.n}</span></h3><div class="t2"><span class="chip mini tag">${stockPublicTag(x)}</span><span class="chip mini ${finalGrade==='A'?'cheap':finalGrade==='B'?'fair':'rich'}">评分 ${Number.isFinite(x.value_score)?x.value_score:x.score}</span></div></div>
+      <div class="quote-now"><b class="num">$${Number(price).toFixed(2)}</b><span class="${x.chg>=0?'upc':'dnc'}">${pct(x.chg)}</span></div>
     </div>
     <div class="compact-answer"><b>现在怎么看：</b>${stockAction(x)}</div>
+    <div class="compact-meta">
+      <span class="metric-chip">买入 ${Number.isFinite(buyLow)&&Number.isFinite(buyHigh)?`$${buyLow.toFixed(2)}-$${buyHigh.toFixed(2)}`:'暂缺'}</span>
+      <span class="metric-chip">止损 ${Number.isFinite(stopLoss)?`$${stopLoss.toFixed(2)}`:'暂缺'}</span>
+      <span class="metric-chip">性价比 ${finalGrade}</span>
+    </div>
     <div class="compact-foot"><span>看价格位置和持仓</span><span class="arrow">›</span></div>
   </article>`;
 }
@@ -2144,7 +2259,7 @@ function investorCard(v){
   <div class="hold-chips">${v.holds.slice(0,5).map(h=>`<span class="chip mini tag num">${h[0]}</span>`).join('')}<span class="arrow" style="margin-left:auto">›</span></div>
   </div>`;
 }
-function renderUS(){
+function renderUSStocks(){
   const sevenStocks=MAGNIFICENT_SEVEN.map(symbol=>US_STOCKS.find(stock=>stock.t===symbol)).filter(Boolean);
   const hotStocks=hotQualityPool(US_STOCKS,3);
   const groups=[
@@ -2152,30 +2267,40 @@ function renderUS(){
     {id:'hot',label:'热度前三',items:hotStocks},
   ];
   const selected=groups.find(group=>group.id===usView)||groups[0];
+  const lead=selected.items[0];
+  const leadText=lead
+    ?`${lead.t} ${stockAction(lead)} · 评分 ${Number.isFinite(lead.value_score)?lead.value_score:lead.score}`
+    :'当前暂无可展示的标的。';
   $('#app').innerHTML=`<button class="back" onclick="go('')">‹ 首页</button>
   <div class="d-head"><h1>🇺🇸 美股投资</h1>
   <div class="sub">只看七姐妹和市场热度前三；先看价格，再看持仓。</div></div>
   ${dataStateNotice()}
+  <div class="market-summary"><div><b>${selected.label}</b><span>${leadText}</span></div></div>
   <div class="market-tabs">${groups.map(group=>`<button class="market-tab ${selected.id===group.id?'on':''}" onclick="setUSView('${group.id}')">${group.label}<em>${group.items.length}</em></button>`).join('')}</div>
   <section class="active-panel"><div class="section-intro"><h3>${selected.label}</h3></div>${selected.items.length?selected.items.map(stockCard).join(''):'<div class="empty-answer">当前暂无可展示的标的。</div>'}</section>
   `+footer()+mobileNav('us');
 }
+function renderUS(){
+  return renderUSStocks();
+}
 
 function aShareCard(item,index,label){
   const chipClass=item.currentAdvice==='买入'?'buy':item.currentAdvice==='持有'?'caution':item.currentAdvice==='等待'?'skip':'ended';
+  const low=Number.isFinite(item.buy_zone_low)?item.buy_zone_low:item.buyPrice;
+  const high=Number.isFinite(item.buy_zone_high)?item.buy_zone_high:item.safeMarginPrice;
   return `<article class="compact-card" onclick="go('#/a-shares/${encodeURIComponent(item.code.replace(/\.(SH|SZ)$/i,''))}')">
     <div class="compact-top">
       <div class="compact-rank num">${index+1}</div>
       <div class="compact-title">
         <h3>${item.name}<span class="code">${item.code}</span></h3>
-        <div class="t2"><span class="chip mini tag">${label}</span></div>
+        <div class="t2"><span class="chip mini tag">${label}</span><span class="chip mini ${item.rating==='A'?'cheap':item.rating==='B'?'fair':'rich'}">评级 ${item.rating}</span></div>
       </div>
       <div class="quote-now"><b class="num">${item.currentDividendYield.toFixed(1)}%</b><span>当前股息率</span></div>
     </div>
     <div class="compact-answer"><b>现在怎么看：</b>${item.summary}</div>
     <div class="compact-meta">
       <span class="metric-chip">可持续 ${item.sustainableDividendYield.toFixed(1)}%</span>
-      <span class="metric-chip">买入价 ${item.buyPrice}</span>
+      <span class="metric-chip">买入区间 ${Number.isFinite(low)&&Number.isFinite(high)?`${low.toFixed(2)}-${high.toFixed(2)} 元`:'待确认'}</span>
       <span class="metric-chip">每10万年分红 ${fmtCNY(item.annualDividendPer100k)}</span>
     </div>
     <div class="compact-foot"><span>查看分红答案</span><span class="arrow">›</span></div>
@@ -2194,20 +2319,26 @@ function renderAShares(){
   <div class="d-head"><h1>🇨🇳 A股收息</h1>
   <div class="sub">只看分红、价格和每年能拿多少现金分红。</div></div>
   ${dataStateNotice()}
-  <div class="market-summary"><div><b>${lead?`${lead.name} · ${lead.currentAdvice}`:'先看分红是否稳定'}</b><span>${lead?`当前股息率 ${lead.currentDividendYield.toFixed(1)}% · 每10万元年分红 ${fmtCNY(lead.annualDividendPer100k)}`:'只看真实分红，不看表面高股息。'}</span></div></div>
+  <div class="market-summary"><div><b>${lead?`${lead.name} · ${lead.currentAdvice} · 评级 ${lead.rating}`:'先看分红是否稳定'}</b><span>${lead?`当前股息率 ${lead.currentDividendYield.toFixed(1)}% · 买入区间 ${Number.isFinite(lead.buy_zone_low)&&Number.isFinite(lead.buy_zone_high)?`${lead.buy_zone_low.toFixed(2)}-${lead.buy_zone_high.toFixed(2)} 元`:'待确认'} · 每10万元年分红 ${fmtCNY(lead.annualDividendPer100k)}`:'只看真实分红，不看表面高股息。'}</span></div></div>
   <div class="market-tabs">${groups.map(group=>`<button class="market-tab ${selected.id===group.id?'on':''}" onclick="setAShareView('${group.id}')">${group.label}<em>${group.items.length}</em></button>`).join('')}</div>
   <section class="active-panel"><div class="section-intro"><h3>${selected.label}</h3></div>${selected.items.length?selected.items.map((item,index)=>aShareCard(item,index,selected.label)).join(''):'<div class="empty-answer">当前暂无符合条件的标的。</div>'}</section>
   ${specialDisclaimer('A股收息测算仅用于研究参考，不构成任何买卖建议。')}`+footer()+mobileNav('a');
 }
 function calcAShareDividend(item, amount, years){
-  const baseYield=Number.isFinite(item.sustainableDividendYield)?item.sustainableDividendYield:item.currentDividendYield;
+  const price=Number.isFinite(item.currentPrice)?item.currentPrice:Number.isFinite(item.price)?item.price:0;
+  const baseYield=Number.isFinite(item.sustainableDividendYield)?item.sustainableDividendYield:Number.isFinite(item.currentDividendYield)?item.currentDividendYield:Number(item.dividend_yield)||0;
   const safeAmount=Math.max(0, Number(amount) || 0);
   const safeYears=Math.max(1, Number(years) || 1);
-  const annualDividend=safeAmount * baseYield / 100;
+  const shares=price>0?safeAmount / price:0;
+  const dividendPerShare=price>0?price * baseYield / 100:0;
+  const annualDividend=shares * dividendPerShare;
   const totalDividend=annualDividend * safeYears;
   const paybackYears=annualDividend > 0 ? safeAmount / annualDividend : null;
   return {
     baseYield,
+    price,
+    shares,
+    dividendPerShare,
     annualDividend,
     totalDividend,
     paybackYears,
@@ -2219,7 +2350,7 @@ function aShareCalcMarkup(item, amount, years){
   const result=calcAShareDividend(item, amount, years);
   return `<div class="stats g3">
       <div class="stat"><b class="num">${fmtCNY(result.totalDividend)}</b><span>${result.safeYears} 年累计分红</span></div>
-      <div class="stat"><b class="num">${result.baseYield.toFixed(1)}%</b><span>按可持续股息率</span></div>
+      <div class="stat"><b class="num">${result.baseYield.toFixed(1)}%</b><span>年化收益率</span></div>
       <div class="stat"><b class="num">${result.paybackYears ? `${result.paybackYears.toFixed(1)} 年` : '暂不适用'}</b><span>回本年限</span></div>
     </div>`;
 }
@@ -2242,17 +2373,19 @@ function renderAShare(x){
   const monthlyPer100k=fmtCNY(x.monthlyDividendPer100k);
   const calcId=x.code.replace(/\W/g,'');
   const initialYears=3;
+  const buyLow=Number.isFinite(x.buy_zone_low)?x.buy_zone_low:x.buyPrice;
+  const buyHigh=Number.isFinite(x.buy_zone_high)?x.buy_zone_high:x.safeMarginPrice;
   detailShell(
     `<div class="d-head"><h1>${x.name}<span class="code num" style="font-size:14px">${x.code}</span></h1>
-    <div class="sub"><span class="chip mini tag">${x.industry}</span><span class="chip mini acc">${x.currentAdvice}</span></div></div>`,
+    <div class="sub"><span class="chip mini tag">${x.industry}</span><span class="chip mini acc">${x.currentAdvice}</span><span class="chip mini ${x.rating==='A'?'cheap':x.rating==='B'?'fair':'rich'}">评级 ${x.rating}</span></div></div>`,
     `<div class="share-card">
       <div class="share-brand">望潮 Aurum · A股收息答案</div>
       <h2>${x.name} 现在怎么看？</h2>
       <div class="share-grid">
         <div class="share-item"><span>当前建议</span><b>${x.currentAdvice}</b></div>
+        <div class="share-item"><span>收息评级</span><b>${x.rating}</b></div>
         <div class="share-item"><span>当前股息率</span><b>${x.currentDividendYield.toFixed(1)}%</b></div>
-        <div class="share-item"><span>可持续股息率</span><b>${x.sustainableDividendYield.toFixed(1)}%</b></div>
-        <div class="share-item"><span>每10万元年分红</span><b>${annualPer100k}</b></div>
+        <div class="share-item"><span>买入区间</span><b>${Number.isFinite(buyLow)&&Number.isFinite(buyHigh)?`${buyLow.toFixed(2)} ~ ${buyHigh.toFixed(2)} 元`:'待确认'}</b></div>
       </div>
       <div class="share-risk"><b>一句话：</b>${x.summary}</div>
       <div class="share-foot"><span>仅供研究，不构成投资建议</span><span>看分红，不看表面股息率</span></div>
@@ -2276,12 +2409,13 @@ function renderAShare(x){
         </div>
       </div>
       <div id="a-share-result-${calcId}">${aShareCalcMarkup(x, 100000, initialYears)}</div>
+      <div class="t2" style="margin-top:10px">按当前价格买入约可持有 ${formatShares(100000 / x.currentPrice)}，每股年分红约 ${fmtCNY(x.currentPrice * x.sustainableDividendYield / 100)}。</div>
     </div></div>
     <div class="d-sec"><h4>价格与分红</h4><div class="card">
       <div class="price-map" style="grid-template-columns:1fr 1fr 1fr">
         <div class="price-cell primary"><span>当前价格</span><b>${x.currentPrice.toFixed(2)} 元</b><small>看当前位置</small></div>
-        <div class="price-cell"><span>合理买入价</span><b>${x.buyPrice}</b><small>更适合分红收益</small></div>
-        <div class="price-cell"><span>高安全边际价</span><b>${x.safeMarginPrice}</b><small>更舒服的价格</small></div>
+        <div class="price-cell"><span>合理买入价格</span><b>${Number.isFinite(buyLow)?buyLow.toFixed(2):x.buyPrice}</b><small>更适合分红收益</small></div>
+        <div class="price-cell"><span>高位观察</span><b>${Number.isFinite(buyHigh)?buyHigh.toFixed(2):x.safeMarginPrice}</b><small>更舒服的价格</small></div>
       </div>
       <div class="stats g3">
         <div class="stat"><b class="num">${x.dividendStability}</b><span>分红稳定性</span></div>
@@ -2580,6 +2714,9 @@ function renderIPO(x){
   const answers=ipoExitAnswers(x);
   const review=x.historicalReview||null;
   const scoreProfile=hkIpoScoreProfile(x);
+  const breakProbability=Number.isFinite(x.breakProbability)
+    ?x.breakProbability
+    :Math.max(8,Math.min(58,Math.round(64-scoreProfile.overall*0.42)));
   const industryLabel=x.ind||x.industry||'待整理';
   const currentConclusion=isEnded
     ?review?`历史复盘：${review.verdict}`:'申购已结束'
@@ -2601,6 +2738,7 @@ function renderIPO(x){
         <div class="decision-metric"><b class="num">${scoreProfile.overall}</b><span>综合分</span></div>
         <div class="decision-metric"><b>${answers.dark}</b><span>${isEnded?'暗盘实际表现':'暗盘卖出参考'}</span></div>
         <div class="decision-metric"><b>${answers.week}</b><span>${isEnded?'上市后一周实际':'一周卖出参考'}</span></div>
+        <div class="decision-metric"><b class="num">${breakProbability.toFixed(0)}%</b><span>破发概率</span></div>
       </div>
       <div class="share-foot"><span>仅供研究，不构成投资建议</span><span>答案与资料都在站内</span></div>
     </div>

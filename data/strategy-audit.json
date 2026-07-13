@@ -1223,7 +1223,47 @@
       }
     ],
     "candidateForReview": null,
-    "note": "没有规则同时通过三段零亏损与统计置信门槛，前台不得声称稳赚。"
+    "note": "没有规则同时通过三段零亏损与统计置信门槛，前台不得声称稳赚。",
+    "optimization": {
+      "bestCandidate": {
+        "id": "non_ah_cornerstone_regime",
+        "name": "非 A+H + 高基石 + 强市场",
+        "sampleCount": 13,
+        "lossCount": 1,
+        "bothPositiveRate": 92.3076923076923,
+        "upperLossBound95": 33.31,
+        "eligibleForReview": false
+      },
+      "topCandidates": [
+        {
+          "id": "non_ah_cornerstone_regime",
+          "name": "非 A+H + 高基石 + 强市场",
+          "sampleCount": 13,
+          "lossCount": 1,
+          "bothPositiveRate": 92.3076923076923,
+          "upperLossBound95": 33.31,
+          "eligibleForReview": false
+        },
+        {
+          "id": "strict_consensus",
+          "name": "行业、基石、市场三重确认",
+          "sampleCount": 6,
+          "lossCount": 1,
+          "bothPositiveRate": 83.33333333333334,
+          "upperLossBound95": 56.35,
+          "eligibleForReview": false
+        },
+        {
+          "id": "user_rule_combo",
+          "name": "行业强势 + 少保荐 + 非 A+H",
+          "sampleCount": 5,
+          "lossCount": 1,
+          "bothPositiveRate": 80,
+          "upperLossBound95": 62.45,
+          "eligibleForReview": false
+        }
+      ]
+    }
   },
   "us": {
     "status": "collecting_history",
@@ -1347,7 +1387,56 @@
       }
     ],
     "candidateForReview": null,
-    "note": "持续收集交易日快照，样本满足门槛后才生成待复核候选。"
+    "note": "持续收集交易日快照，样本满足门槛后才生成待复核候选。",
+    "optimization": {
+      "primaryHorizon": 5,
+      "bestCandidate": {
+        "id": "quality_top_10",
+        "name": "财务达标且热度前十",
+        "sampleCount": 0,
+        "winRate": null,
+        "averageNetReturn": null,
+        "averageMaxDrawdown": null,
+        "worstMaxDrawdown": null,
+        "pricePlanSampleCount": 0,
+        "eligibleForReview": false
+      },
+      "topCandidates": [
+        {
+          "id": "quality_top_10",
+          "name": "财务达标且热度前十",
+          "sampleCount": 0,
+          "winRate": null,
+          "averageNetReturn": null,
+          "averageMaxDrawdown": null,
+          "worstMaxDrawdown": null,
+          "pricePlanSampleCount": 0,
+          "eligibleForReview": false
+        },
+        {
+          "id": "quality_top_5",
+          "name": "财务达标且热度前五",
+          "sampleCount": 0,
+          "winRate": null,
+          "averageNetReturn": null,
+          "averageMaxDrawdown": null,
+          "worstMaxDrawdown": null,
+          "pricePlanSampleCount": 0,
+          "eligibleForReview": false
+        },
+        {
+          "id": "quality_top_3",
+          "name": "财务达标且热度前三",
+          "sampleCount": 0,
+          "winRate": null,
+          "averageNetReturn": null,
+          "averageMaxDrawdown": null,
+          "worstMaxDrawdown": null,
+          "pricePlanSampleCount": 0,
+          "eligibleForReview": false
+        }
+      ]
+    }
   },
   "usTechnical": {
     "status": "no_validated_candidate",
@@ -1686,6 +1775,54 @@
       }
     ],
     "candidateForReview": null,
-    "note": "样本外收益、胜率或回撤未全部过线，用户页面继续不发布该价格计划。"
+    "note": "样本外收益、胜率或回撤未全部过线，用户页面继续不发布该价格计划。",
+    "optimization": {
+      "bestCandidate": {
+        "id": "deep_drawdown_90d",
+        "name": "深度回撤九十日修复",
+        "sampleCount": 21,
+        "winRate": 76.19,
+        "averageNetReturn": 7.167,
+        "profitFactor": 2.88,
+        "equityMaxDrawdown": -48.84,
+        "worstTrade": -30.244,
+        "eligibleForReview": false
+      },
+      "topCandidates": [
+        {
+          "id": "deep_drawdown_90d",
+          "name": "深度回撤九十日修复",
+          "sampleCount": 21,
+          "winRate": 76.19,
+          "averageNetReturn": 7.167,
+          "profitFactor": 2.88,
+          "equityMaxDrawdown": -48.84,
+          "worstTrade": -30.244,
+          "eligibleForReview": false
+        },
+        {
+          "id": "sma_discount_60d",
+          "name": "中长期均线折价修复",
+          "sampleCount": 45,
+          "winRate": 62.22,
+          "averageNetReturn": 2.21,
+          "profitFactor": 1.48,
+          "equityMaxDrawdown": -80.64,
+          "worstTrade": -21.97,
+          "eligibleForReview": false
+        },
+        {
+          "id": "deep_recovery_60d",
+          "name": "深度低吸六十日修复",
+          "sampleCount": 78,
+          "winRate": 58.97,
+          "averageNetReturn": 1.525,
+          "profitFactor": 1.35,
+          "equityMaxDrawdown": -79.97,
+          "worstTrade": -22.204,
+          "eligibleForReview": false
+        }
+      ]
+    }
   }
 }

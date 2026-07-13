@@ -2053,7 +2053,7 @@ function routeFromPath(pathname){
   if(parts[0]==='a-shares')return parts[1]?`a-share/${parts[1].toUpperCase()}`:'a-shares';
   if(parts[0]==='stocks'&&parts[1])return `stock/${parts[1].toUpperCase()}`;
   if(parts[0]==='gurus')return parts[1]?`investor/${parts[1].toLowerCase()}`:'gurus';
-  if(parts[0]==='history')return 'removed';
+  if(parts[0]==='history')return 'history';
   return '';
 }
 function findIPO(id){

@@ -15,6 +15,20 @@ const usHistoryPath = resolve(projectRoot, "data/us-signal-snapshots.json");
 const strategyAuditPath = resolve(projectRoot, "data/strategy-audit.json");
 const sitemapPath = resolve(projectRoot, "sitemap.xml");
 const publicOrigin = "https://devi-y.github.io/aurumer/";
+const STATIC_HK_CODES = [
+  "09001",
+  "09002",
+  "09003",
+  "09004",
+  "09005",
+  "09006",
+  "09007",
+  "09008",
+  "09009",
+  "09010",
+  "09011",
+  "09012",
+];
 const A_SHARE_CODES = [
   "600900",
   "600941",
@@ -69,7 +83,14 @@ await writeStrategyAudit(strategyAuditPath, {
   generatedAt: payload.updatedAt,
 });
 
-const staticRoutes = ["/", "/hk-ipo", "/us-stocks", "/a-shares", "/gurus"];
+const staticRoutes = [
+  "/",
+  "/hk-ipo",
+  "/us-stocks",
+  "/a-shares",
+  "/gurus",
+  ...STATIC_HK_CODES.map((code) => `/hk-ipo/${encodeURIComponent(code)}`),
+];
 const stockRoutes = payload.us.stocks.map(
   (stock) => `/stocks/${encodeURIComponent(stock.symbol)}`,
 );

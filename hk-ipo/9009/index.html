@@ -2526,11 +2526,7 @@ function renderIPOLegacy(x){
     <tr><td>稳定价格经办人</td><td>${x.stabilizingManager}</td></tr>
     <tr><td>配发结果</td><td>${x.allotmentUrl?'港交所已发布':'尚未发布'}</td></tr>
     </table>
-    <div class="official-links">
-      ${x.announcementUrl?`<a class="official-link" href="${x.announcementUrl}" target="_blank" rel="noopener">新上市公告 ↗</a>`:''}
-      ${x.prospectusUrl?`<a class="official-link" href="${x.prospectusUrl}" target="_blank" rel="noopener">招股章程 ↗</a>`:''}
-      ${x.allotmentUrl?`<a class="official-link" href="${x.allotmentUrl}" target="_blank" rel="noopener">配发结果 ↗</a>`:''}
-    </div></div></div>
+    <div class="t2" style="margin-top:12px">本页已整理官方关键信息，资料闭环在站内完成。</div></div></div>
 
     ${x.estimate?`<div class="d-sec"><h4>暗盘与首日预测</h4><div class="card">
       ${isEnded?`<div class="advice"><b>不再补发预测：</b>申购已结束，不能把事后可见的认购和配发信息伪装成提前判断。</div>`

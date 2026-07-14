@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>望潮 Aurum · 港美股机会，一页看清</title>
-<meta name="description" content="望潮 Aurum：港股打新看结论与卖出参考，美股只看七姐妹和热度前三，A股看高收息与现金分红。">
+<title>望潮 Aurum｜港美股投资驾驶舱</title>
+<meta name="description" content="望潮 Aurum：一页看清港股打新、美股机会、A股收息与聪明人持仓，辅助判断机会、估值、风险和下一步入口。">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#F7F4EE">
 <link rel="canonical" href="https://devi-y.github.io/aurumer/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:site_name" content="望潮 Aurum">
-<meta property="og:title" content="望潮 Aurum · 港美股机会，一页看清">
-<meta property="og:description" content="港股打新看结论与卖出参考，美股只看七姐妹和热度前三，A股看高收息与现金分红。">
+<meta property="og:title" content="望潮 Aurum｜港美股投资驾驶舱">
+<meta property="og:description" content="港股打新、美股机会、A股收息、聪明人持仓，一页看清机会与风险。">
 <meta property="og:url" content="https://devi-y.github.io/aurumer/">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="望潮 Aurum · 港美股机会，一页看清">
-<meta name="twitter:description" content="港股打新看结论与卖出参考，美股只看七姐妹和热度前三，A股看高收息与现金分红。">
+<meta name="twitter:title" content="望潮 Aurum｜港美股投资驾驶舱">
+<meta name="twitter:description" content="港股打新、美股机会、A股收息、聪明人持仓，一页看清机会与风险。">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script>
 (() => {
@@ -124,6 +124,54 @@ img,svg,canvas{max-width:100%}
 .guide-card{background:linear-gradient(135deg,#FFFDF8,#F5EFE4);border:1px solid #E9DECB;border-radius:16px;padding:14px 16px;margin-bottom:14px}
 .guide-card b{display:block;font-size:14px;margin-bottom:4px}
 .guide-card p{font-size:12.5px;color:var(--ink2);line-height:1.7}
+.home-nav{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.home-nav a{display:inline-flex;align-items:center;min-height:38px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink2);font-size:12px;font-weight:750;box-shadow:var(--shadow)}
+.home-nav a:hover{border-color:#D5C9B4;color:var(--ink)}
+.home-hero{position:relative;overflow:hidden;margin:16px 0 16px;padding:24px 24px 22px;border:1px solid var(--line);border-radius:26px;background:linear-gradient(135deg,rgba(23,107,82,.06),rgba(182,76,53,.08)),var(--card);box-shadow:var(--shadow)}
+.home-hero::after{content:"";position:absolute;right:-100px;top:-140px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(182,76,53,.12),transparent 64%)}
+.home-hero .kicker{position:relative;z-index:1;font-size:11px;letter-spacing:2.2px;font-weight:800;color:var(--accent)}
+.home-hero h1{position:relative;z-index:1;margin-top:8px;font-size:32px;line-height:1.15;letter-spacing:-.8px}
+.home-hero p{position:relative;z-index:1;margin-top:9px;max-width:760px;font-size:14px;line-height:1.75;color:var(--ink2)}
+.home-hero .note{position:relative;z-index:1;margin-top:13px;padding:12px 14px;border:1px solid var(--line2);border-radius:16px;background:rgba(255,255,255,.55);font-size:13px;line-height:1.7;color:var(--ink)}
+.home-section{margin-top:22px}
+.home-section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:0 0 12px}
+.home-section-head h3{font-size:18px;line-height:1.3;letter-spacing:-.2px}
+.home-section-head p{max-width:460px;font-size:12px;line-height:1.65;color:var(--ink2);text-align:right}
+.home-core-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.home-portal{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;min-height:176px;padding:18px 18px 15px;border-radius:24px;color:#FBF6EE;box-shadow:var(--shadow);transition:transform .16s,border-color .16s;cursor:pointer}
+.home-portal:hover{transform:translateY(-2px)}
+.home-portal:active{transform:scale(.985)}
+.home-portal::after{content:"";position:absolute;right:-72px;top:-72px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none}
+.home-portal .kicker{position:relative;z-index:1;font-size:11px;letter-spacing:2px;font-weight:800;opacity:.82}
+.home-portal h4{position:relative;z-index:1;margin-top:9px;font-size:22px;line-height:1.15;font-weight:800;letter-spacing:-.4px}
+.home-portal p{position:relative;z-index:1;margin-top:10px;font-size:13px;line-height:1.68;color:rgba(255,255,255,.86)}
+.home-portal .note{position:relative;z-index:1;margin-top:11px;font-size:12px;font-weight:700;color:rgba(255,255,255,.92)}
+.home-portal .foot{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px dashed rgba(255,255,255,.18);font-size:12px;font-weight:800}
+.home-portal .foot span:first-child{display:inline-flex;align-items:center;min-height:30px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.15)}
+.home-portal .foot span:last-child{font-size:16px;line-height:1}
+.home-portal.hk{background:linear-gradient(135deg,#9E4426,#C86A45)}
+.home-portal.us{background:linear-gradient(135deg,#1E3A31,#356450)}
+.home-portal.risk{background:linear-gradient(135deg,#303742,#59626E)}
+.home-portal.guru{background:linear-gradient(135deg,#223A42,#496A5F)}
+.home-panel-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.home-panel{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;min-height:132px;padding:15px 15px 14px;border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--ink);box-shadow:var(--shadow);transition:transform .16s,border-color .16s}
+.home-panel:hover{transform:translateY(-2px);border-color:#D5C9B4;box-shadow:0 18px 34px -26px rgba(31,43,42,.45)}
+.home-panel:active{transform:scale(.985)}
+.home-panel strong{display:block;font-size:15px;line-height:1.35}
+.home-panel > span{display:block;margin-top:8px;font-size:12.5px;line-height:1.65;color:var(--ink2)}
+.home-panel .pill{min-height:auto;padding:4px 8px;font-size:11px;margin-top:12px}
+.home-panel-grid .home-panel .meta{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.home-panel-grid .home-panel .state{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;background:var(--gray-soft);color:var(--ink2);white-space:nowrap}
+.home-panel-grid .home-panel .state.hot{background:var(--up-soft);color:var(--up)}
+.home-panel-grid .home-panel .state.mid{background:var(--amber-soft);color:var(--amber)}
+.home-panel-grid .home-panel .state.safe{background:var(--down-soft);color:var(--down)}
+.home-steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.home-step{position:relative;min-height:160px;padding:15px 15px 14px;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:var(--shadow)}
+.home-step .idx{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:800}
+.home-step b{display:block;margin-top:12px;font-size:15px;line-height:1.4}
+.home-step p{margin-top:8px;font-size:12.5px;line-height:1.7;color:var(--ink2)}
+.home-footnote{margin-top:8px;font-size:12px;color:var(--ink3)}
+.home-section .empty-answer{margin-top:4px}
 .answer-block{background:var(--bg);border-radius:13px;padding:11px 13px;margin-top:12px}
 .answer-line{display:flex;gap:8px;font-size:12.5px;line-height:1.55;margin:3px 0}
 .answer-line strong{width:58px;flex-shrink:0;color:var(--ink2)}
@@ -401,6 +449,12 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   body{font-size:16px}
   .answer-line{display:block}
   .answer-line strong{display:block;width:auto;margin-bottom:1px}
+  .home-core-grid,.home-panel-grid{grid-template-columns:1fr}
+  .home-portal{min-height:160px}
+  .home-portal h4{font-size:21px}
+  .home-panel,.home-step{min-height:auto}
+  .home-section-head{display:block}
+  .home-section-head p{text-align:left;margin-top:4px}
   .share-grid{grid-template-columns:1fr 1fr}
   .decision-hero{padding:22px 19px 19px;border-radius:22px}
   .decision-hero h2{font-size:25px}
@@ -414,10 +468,15 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   .brand{font-size:24px}
   .brand small{font-size:12px;margin-left:7px}
   .top .date{font-size:11px}
-  .door{border-radius:22px;padding:20px}
-  .door h2{font-size:27px}
-  .door .go{padding:6px 12px}
-  .door .drow{align-items:flex-start}
+  .home-hero{padding:20px 18px 18px;border-radius:22px}
+  .home-hero h1{font-size:26px}
+  .home-nav{gap:6px}
+  .home-nav a{font-size:11px;padding:6px 10px;min-height:34px}
+  .home-core-grid,.home-panel-grid,.home-steps-grid{grid-template-columns:1fr}
+  .home-portal{padding:16px 16px 14px;border-radius:20px}
+  .home-portal h4{font-size:20px}
+  .home-portal .foot span:first-child{padding:4px 9px}
+  .home-panel,.home-step{border-radius:16px}
   .card{padding:16px}
   .row{gap:10px}
   .stats,.stats.g3{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -438,8 +497,7 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   .top{display:block}
   .top .date{text-align:left;margin-top:6px}
   .share-grid{grid-template-columns:1fr}
-  .door h2{font-size:25px}
-  .door .go{font-size:12px}
+  .home-portal h4{font-size:19px}
 }
 @media(hover:none){
   .door:hover{transform:none}
@@ -452,6 +510,20 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
 html[data-theme='dark'] .top{border-bottom-color:rgba(255,255,255,.08)}
 html[data-theme='dark'] .theme-btn{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10);color:var(--ink2)}
 html[data-theme='dark'] .theme-btn b{color:var(--ink)}
+html[data-theme='dark'] .home-nav a{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:var(--ink2)}
+html[data-theme='dark'] .home-hero{background:linear-gradient(135deg,rgba(23,107,82,.12),rgba(182,76,53,.12)),var(--card);border-color:rgba(255,255,255,.08)}
+html[data-theme='dark'] .home-hero::after{background:radial-gradient(circle,rgba(240,185,11,.08),transparent 64%)}
+html[data-theme='dark'] .home-hero .note{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:var(--ink)}
+html[data-theme='dark'] .home-portal{box-shadow:0 16px 30px -26px rgba(0,0,0,.72)}
+html[data-theme='dark'] .home-panel,
+html[data-theme='dark'] .home-step{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08)}
+html[data-theme='dark'] .home-step .idx{background:rgba(240,185,11,.14);color:#F8D97D}
+html[data-theme='dark'] .home-panel .state{background:rgba(255,255,255,.08);color:var(--ink2)}
+html[data-theme='dark'] .home-panel .state.hot{background:rgba(92,211,155,.12);color:#8DE3BF}
+html[data-theme='dark'] .home-panel .state.mid{background:rgba(240,185,11,.14);color:#F8D97D}
+html[data-theme='dark'] .home-panel .state.safe{background:rgba(92,211,155,.12);color:#8DE3BF}
+html[data-theme='dark'] .home-step p,
+html[data-theme='dark'] .home-panel span{color:var(--ink2)}
 html[data-theme='dark'] .share-card{background:linear-gradient(145deg,rgba(20,27,36,.98),rgba(14,19,26,.92));border-color:rgba(255,255,255,.08)}
 html[data-theme='dark'] .share-card::after{background:rgba(240,185,11,.08)}
 html[data-theme='dark'] .share-item{background:rgba(255,255,255,.05)}
@@ -498,9 +570,9 @@ html[data-theme='dark'] .result-chip.skip{background:rgba(244,108,108,.14);color
 <div id="app"></div>
 <noscript>
   <main>
-    <h1>望潮 Aurum · 港美股机会，一页看清</h1>
-    <p>港股打新看值得打与卖出参考，美股投资看七姐妹、热度前三与价格答案，A股收息看分红测算。</p>
-    <p>本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议。</p>
+    <h1>望潮 Aurum｜港美股投资驾驶舱</h1>
+    <p>一页看清港股打新、美股机会、A股收息与聪明人持仓，辅助判断机会、估值、风险和下一步入口。</p>
+    <p>本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议、收益承诺或买卖指令。</p>
   </main>
 </noscript>
 <script>
@@ -1620,7 +1692,7 @@ function applyLiveData(payload){
 }
 async function loadLiveData(){
   const publicBase=location.hostname.endsWith('.github.io')?'/aurumer/':'/';
-  const isStaticHost=location.hostname.endsWith('.github.io');
+  const isStaticHost=location.hostname.endsWith('.github.io')||location.hostname==='localhost'||location.hostname==='127.0.0.1';
   const sources=isStaticHost
     ?[`${publicBase}data/live-snapshot.json`]
     :['/api/live',`${publicBase}data/live-snapshot.json`];
@@ -1628,7 +1700,7 @@ async function loadLiveData(){
   for(const source of sources){
     try{
       const controller=new AbortController();
-      const timeout=setTimeout(()=>controller.abort(),source==='/api/live'?2500:5000);
+      const timeout=setTimeout(()=>controller.abort(),5000);
       const response=await fetch(source,{cache:'no-store',signal:controller.signal});
       clearTimeout(timeout);
       if(!response.ok)throw new Error(`数据服务 ${response.status}`);
@@ -1915,7 +1987,7 @@ function header(){
   return `<div class="top"><div><div class="brand serif">望潮<small>Aurum</small></div></div><div class="top-right"><button class="theme-btn" type="button" onclick="toggleTheme()" aria-label="切换主题">${themeLabel()}</button></div></div>`;
 }
 function footer(){
-  return `<footer>免责声明：本工具仅用于信息整理和投资研究辅助，不构成任何投资建议、买卖建议或收益承诺。港美股投资存在本金亏损风险，请结合自身风险承受能力独立判断。</footer>`;
+  return `<footer>本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议、收益承诺或买卖指令。市场有风险，投资需结合个人资产、风险承受能力和资金期限独立判断。</footer>`;
 }
 function renderLoadingApp(){
   $('#app').innerHTML=header()+`
@@ -1948,6 +2020,46 @@ function renderRenderError(active,message){
     <button class="pill on" onclick="location.reload()">重新加载</button>
   </div>`+footer()+mobileNav(active);
 }
+function homeNav(){
+  const items = [
+    ['首页', '#/'],
+    ['港股打新', '#/hk'],
+    ['美股投资', '#/us'],
+    ['A股收息', '#/a-shares'],
+    ['聪明人持仓', '#/gurus'],
+    ['投资驾驶舱说明', 'cockpit.html'],
+  ];
+  return `<nav class="home-nav" aria-label="首页导航">${items.map(([label, href]) => `<a href="${href}">${label}</a>`).join('')}</nav>`;
+}
+function homePortalCard({tone, kicker, title, desc, note, cta, href}){
+  return `<a class="home-portal ${tone}" href="${href}">
+    <div class="kicker">${kicker}</div>
+    <h4>${title}</h4>
+    <p>${desc}</p>
+    <div class="note">${note}</div>
+    <div class="foot"><span>${cta}</span><span>›</span></div>
+  </a>`;
+}
+function homePanelCard({label, state, desc, href, cta}){
+  return `<a class="home-panel" href="${href}">
+    <div class="meta"><strong>${label}</strong><span class="state ${state.kind || ''}">${state.text}</span></div>
+    <span>${desc}</span>
+    <span class="pill on" style="align-self:flex-start;pointer-events:none">${cta}</span>
+  </a>`;
+}
+function homeInfoCard({label, state, desc}){
+  return `<div class="home-panel">
+    <div class="meta"><strong>${label}</strong><span class="state ${state.kind || ''}">${state.text}</span></div>
+    <span>${desc}</span>
+  </div>`;
+}
+function homeStepCard(step, title, desc){
+  return `<div class="home-step">
+    <div class="idx">${String(step).padStart(2,'0')}</div>
+    <b>${title}</b>
+    <p>${desc}</p>
+  </div>`;
+}
 function renderNotFound(message,backRoute){
   const active=backRoute==='#/us'||backRoute==='#/gurus'?'us':backRoute?.startsWith('#/a-shares')?'a':'hk';
   const label=active==='us'?'美股投资':active==='a'?'A股收息':'港股打新';
@@ -1959,55 +2071,106 @@ function renderNotFound(message,backRoute){
   </div>`+footer()+mobileNav(active);
 }
 function renderEntry(){
-  const booting=LIVE.status==='loading';
-  const hkCandidates=LIVE.hasHK
-    ?getHKListings()
-    .filter(item=>item.vc==='buy'||item.vc==='caution')
-    .sort((left,right)=>(right.score||0)-(left.score||0))
-    :[];
-  const hkLead=hkCandidates[0] || null;
-  const hkToday=hkLead
-    ?`${hkLead.name} · ${hkLead.verdict}`
-    :LIVE.hasHK
-      ?'当前没有值得打的新股，先看已结束回顾'
-      :booting
-        ?'数据同步中'
-        :'数据暂不可用';
-  const usHotPool=LIVE.hasUS?hotQualityPool(US_STOCKS,3):[];
-  const usLead=usHotPool[0] || (LIVE.hasUS?[...US_STOCKS].filter(stock=>MAGNIFICENT_SEVEN.includes(stock.t)).sort((left,right)=>(stockHeatRank(right)||0)-(stockHeatRank(left)||0))[0]:null);
-  const usToday=usLead
-    ?`${usLead.t} ${stockAction(usLead)}`
-    :booting?'数据同步中':'数据暂不可用';
-  const aLead=LIVE.hasAShare?[...A_SHARES].sort((left,right)=>(right.score||0)-(left.score||0))[0]:null;
-  const aToday=aLead
-    ?`${aLead.name} · ${aLead.currentAdvice||'暂不明确'} · 股息率 ${fmtPct(aLead.currentDividendYield)}`
-    :booting?'数据同步中':'数据暂不可用';
   $('#app').innerHTML=header()+`
-  <div class="decision-hero">
-    <div class="decision-kicker">望潮 Aurum · 只看答案</div>
-    <h2>今天看什么？</h2>
-    <p>港股看打新结论，美股看价格和持仓，A股看分红和现金流。</p>
-  </div>
-  <div class="doors">
-    <div class="door hk-d" onclick="go('#/hk')">
-      <div class="d-label">HK · 新股</div>
-      <h2>🇭🇰 港股打新 <span class="go">进入 ›</span></h2>
-      <div class="dsub">看哪些新股值得打；中签后暗盘多少卖合适；上市后一周内多少卖合适。</div>
-      <div class="d-line"></div><div class="drow"><span class="dk">今天答案</span><b>${hkToday}</b></div>
+  ${homeNav()}
+  <section class="home-hero">
+    <div class="kicker">望潮 Aurum</div>
+    <h1>望潮 Aurum｜港美股投资驾驶舱</h1>
+    <p>一页看清港股打新、美股机会、A股收息与聪明人持仓。</p>
+    <div class="note">不做普通行情站，不追短线噪音。望潮只帮你快速判断：现在看什么、贵不贵、风险在哪、下一步去哪看。</div>
+  </section>
+  <section class="home-section">
+    <div class="home-section-head">
+      <div>
+        <h3>今天先看这 4 个入口</h3>
+        <p>先看结论，再进具体页面。</p>
+      </div>
     </div>
-    <div class="door us-d" onclick="go('#/us')">
-      <div class="d-label">US · 机会</div>
-      <h2>🇺🇸 美股投资 <span class="go">进入 ›</span></h2>
-      <div class="dsub">只看七姐妹和市场热度前三；什么价格买合适；什么价格卖合适；聪明人持仓追踪。</div>
-      <div class="d-line"></div><div class="drow"><span class="dk">今天先看</span><b>${usToday}</b></div>
+    <div class="home-core-grid">
+      ${homePortalCard({
+        tone:'us',
+        kicker:'今日市场温度',
+        title:'今天先看什么？',
+        desc:'美股偏热，港股修复，A股收息稳健，AI 主线高波动。',
+        note:'今天先看：美股机会',
+        cta:'查看美股机会',
+        href:'#/us',
+      })}
+      ${homePortalCard({
+        tone:'hk',
+        kicker:'今日机会方向',
+        title:'港股打新值不值得看？',
+        desc:'港股打新看确定性，美股看七姐妹和热度前三，A股看高股息现金流。',
+        note:'今天先看：港股打新',
+        cta:'查看港股打新',
+        href:'#/hk',
+      })}
+      ${homePortalCard({
+        tone:'risk',
+        kicker:'今日风险方向',
+        title:'哪些方向先别追？',
+        desc:'短期涨幅过大、估值过热、数据缺失的标的，不给硬价格，不用占位数字误导用户。',
+        note:'今天先看：风险提示',
+        cta:'查看风险提示',
+        href:'cockpit.html',
+      })}
+      ${homePortalCard({
+        tone:'guru',
+        kicker:'岳老师核心观察池',
+        title:'聪明人持仓看什么？',
+        desc:'AI 算力、全球龙头、高股息现金流、聪明人持仓变化。',
+        note:'今天先看：聪明人持仓',
+        cta:'查看聪明人持仓',
+        href:'#/gurus',
+      })}
     </div>
-    <div class="door a-d" style="background:linear-gradient(135deg,#2D3942,#435C64)" onclick="go('#/a-shares')">
-      <div class="d-label">CN · 收息</div>
-      <h2>🇨🇳 A股收息 <span class="go">进入 ›</span></h2>
-      <div class="dsub">看分红真实、稳定、可持续；看当前价格是否值得买；看一年能拿多少现金分红。</div>
-      <div class="d-line"></div><div class="drow"><span class="dk">今天先看</span><b>${aToday}</b></div>
+  </section>
+  <section class="home-section">
+    <div class="home-section-head">
+      <div>
+        <h3>今日市场温度</h3>
+        <p>基于当前公开数据整理，不代表实时行情。</p>
+      </div>
     </div>
-  </div>`+footer()+mobileNav('home');
+    <div class="home-panel-grid">
+      ${homeInfoCard({label:'美股', state:{text:'偏热', kind:'hot'}, desc:'七姐妹仍是主线，但高估值标的要看买入区间。'})}
+      ${homeInfoCard({label:'港股', state:{text:'修复', kind:'mid'}, desc:'打新重点看暗盘、一周卖出与资金热度。'})}
+      ${homeInfoCard({label:'A股', state:{text:'收息', kind:'safe'}, desc:'优先看现金分红、股息率和分红稳定性。'})}
+      ${homeInfoCard({label:'AI', state:{text:'高波动', kind:'hot'}, desc:'看成长，也要看估值压缩风险。'})}
+      ${homeInfoCard({label:'高股息', state:{text:'稳健', kind:'safe'}, desc:'适合做现金流资产观察池。'})}
+      ${homeInfoCard({label:'聪明人持仓', state:{text:'辅助', kind:''}, desc:'只看方向变化，不盲目抄作业。'})}
+    </div>
+  </section>
+  <section class="home-section">
+    <div class="home-section-head">
+      <div>
+        <h3>下一步，你要解决什么问题？</h3>
+        <p>直接跳到你真正要看的答案页。</p>
+      </div>
+    </div>
+    <div class="home-core-grid">
+      ${homePanelCard({label:'港股打新', state:{text:'值不值得打', kind:'mid'}, desc:'这只新股要不要打？中签后怎么卖？', href:'#/hk', cta:'看港股打新答案'})}
+      ${homePanelCard({label:'美股投资', state:{text:'买不买', kind:'hot'}, desc:'七姐妹、AI 热门股，现在还能不能买？', href:'#/us', cta:'看美股机会'})}
+      ${homePanelCard({label:'A股收息', state:{text:'收不收', kind:'safe'}, desc:'资金成本低于多少，适合长期收息？', href:'#/a-shares', cta:'看 A 股收息'})}
+      ${homePanelCard({label:'聪明人持仓', state:{text:'跟不跟', kind:''}, desc:'巴菲特、李录、达利欧等人最近买了什么？', href:'#/gurus', cta:'看聪明人持仓'})}
+    </div>
+  </section>
+  <section class="home-section">
+    <div class="home-section-head">
+      <div>
+        <h3>望潮的判断链路</h3>
+        <p>先定方向，再看标的，最后决定动作。</p>
+      </div>
+    </div>
+    <div class="home-steps-grid">
+      ${homeStepCard(1,'先看方向','市场现在是偏热、修复、收息还是高波动。')}
+      ${homeStepCard(2,'再看标的','只看核心资产、热门标的和高确定性方向。')}
+      ${homeStepCard(3,'再看价格','价格答案不足时，不用假数字凑结论。')}
+      ${homeStepCard(4,'再看风险','估值、涨幅、数据缺失、事件波动都要明示。')}
+      ${homeStepCard(5,'最后看动作','观察、等待、分批、避开，而不是直接喊买卖。')}
+    </div>
+  </section>
+  <div class="home-footnote">页面内容仅基于当前公开数据整理，供研究和信息整理使用。</div>`+footer()+mobileNav('home');
 }
 
 /* =============== 二级页面：港股打新 =============== */

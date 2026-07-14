@@ -272,6 +272,7 @@ await writeStrategyAudit(strategyAuditPath, {
 
 const staticRoutes = [
   "/",
+  "/cockpit.html",
   "/hk-ipo",
   "/us-stocks",
   "/a-shares",

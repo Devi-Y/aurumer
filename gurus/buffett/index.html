@@ -1620,11 +1620,17 @@ function applyLiveData(payload){
 }
 async function loadLiveData(){
   const publicBase=location.hostname.endsWith('.github.io')?'/aurumer/':'/';
-  const sources=['/api/live',`${publicBase}data/live-snapshot.json`];
+  const isStaticHost=location.hostname.endsWith('.github.io');
+  const sources=isStaticHost
+    ?[`${publicBase}data/live-snapshot.json`]
+    :['/api/live',`${publicBase}data/live-snapshot.json`];
   let lastError;
   for(const source of sources){
     try{
-      const response=await fetch(source,{cache:'no-store'});
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),source==='/api/live'?2500:5000);
+      const response=await fetch(source,{cache:'no-store',signal:controller.signal});
+      clearTimeout(timeout);
       if(!response.ok)throw new Error(`数据服务 ${response.status}`);
       applyLiveData(await response.json());
       if(DEMO_MODE){

@@ -207,17 +207,9 @@ if (!payload.aShare) {
   payload.aShare = await buildStaticASharePayload();
 }
 const historicalHKListings = buildHistoricalHKListings(payload.hk?.backtest);
-if ((payload.hk?.listings || []).length < 12 && historicalHKListings.length) {
-  const existing = new Set(
-    (payload.hk.listings || []).map((item) => String(item.code || item.stockCode || item.id || "").toLowerCase()),
-  );
-  payload.hk.listings = [
-    ...(payload.hk.listings || []),
-    ...historicalHKListings.filter((item) => {
-      const key = String(item.code || item.stockCode || item.id || "").toLowerCase();
-      return key && !existing.has(key);
-    }),
-  ];
+if (payload.hk) {
+  // 当前招股项目与历史回顾分开保存，避免历史样本被误认为正在招股。
+  payload.hk.history = historicalHKListings;
 }
 if (payload.us?.fundamentals?.length < 30 && previousPublicSnapshot?.us?.fundamentals) {
   payload.us.fundamentals = mergeFundamentals(
@@ -234,7 +226,8 @@ const listings = payload.hk?.listings || [];
 if (
   payload.us?.stocks?.length !== 30 ||
   payload.us?.fundamentals?.length !== 30 ||
-  listings.length < 12 ||
+  listings.length < 1 ||
+  historicalHKListings.length < 10 ||
   (payload.investors?.length || 0) < 9 ||
   (payload.hk?.backtest?.sampleCount || 0) < 50 ||
   (payload.hk?.backtest?.userStrategy?.rules?.length || 0) < 7 ||
@@ -281,7 +274,7 @@ const staticRoutes = [
 const stockRoutes = payload.us.stocks.map(
   (stock) => `/stocks/${encodeURIComponent(stock.symbol)}`,
 );
-const ipoRoutes = listings.map(
+const ipoRoutes = [...listings, ...historicalHKListings].map(
   (listing) =>
     `/hk-ipo/${encodeURIComponent(
       String(listing.code || listing.stockCode || listing.id || "")
@@ -318,5 +311,5 @@ ${sitemapUrls.join("\n")}
 await writeFile(sitemapPath, sitemap, "utf8");
 
 console.log(
-  `生产快照与站点地图已写入：${payload.us.stocks.length} 只美股、${payload.hk.listings.length} 只港股、${payload.aShare?.quotes?.length || 0} 只 A 股、${payload.investors?.length || 0} 位机构`,
+  `生产快照与站点地图已写入：${payload.us.stocks.length} 只美股、${payload.hk.listings.length} 只当前港股、${historicalHKListings.length} 只历史港股、${payload.aShare?.quotes?.length || 0} 只 A 股、${payload.investors?.length || 0} 位机构`,
 );

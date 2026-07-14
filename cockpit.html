@@ -25,7 +25,8 @@ a{color:inherit;text-decoration:none}
 .top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-bottom:18px;border-bottom:1px solid var(--line)}
 .brand{font-size:28px;font-weight:800;letter-spacing:.5px}
 .brand small{font-size:13px;font-weight:600;color:var(--ink2);margin-left:8px}
-.theme{border:1px solid var(--line);border-radius:999px;padding:7px 12px;background:var(--card);color:var(--ink2);font-weight:700;cursor:pointer;min-height:38px}
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.top-actions a,.top-actions button{border:1px solid var(--line);border-radius:999px;padding:7px 12px;background:var(--card);color:var(--ink2);font-weight:700;cursor:pointer;min-height:40px}
 .hero{margin:18px 0 16px;padding:24px;border:1px solid var(--line);border-radius:26px;background:linear-gradient(135deg,rgba(23,107,82,.06),rgba(182,76,53,.08)),var(--card);box-shadow:var(--shadow)}
 .kicker{font-size:11px;letter-spacing:2px;font-weight:800;color:var(--accent)}
 h1{margin:8px 0 10px;font-size:32px;line-height:1.15}
@@ -54,44 +55,17 @@ h1{margin:8px 0 10px;font-size:32px;line-height:1.15}
   .summary{padding:12px 14px}
 }
 html[data-theme="dark"] .summary{background:rgba(255,255,255,.04)}
-html[data-theme="dark"] .theme{background:rgba(255,255,255,.06);color:var(--ink2)}
 html[data-theme="dark"] .card{box-shadow:0 16px 30px -26px rgba(0,0,0,.72)}
 </style>
-<script>
-(() => {
-  const key = 'aurum-theme-mode';
-  const root = document.documentElement;
-  const meta = document.querySelector('meta[name="theme-color"]');
-  const apply = (mode) => {
-    const resolved = mode === 'system'
-      ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-      : mode;
-    root.dataset.theme = resolved;
-    if (meta) meta.setAttribute('content', resolved === 'dark' ? '#0D1117' : '#F7F4EE');
-  };
-  try {
-    const stored = localStorage.getItem(key);
-    apply(stored === 'dark' || stored === 'light' || stored === 'system' ? stored : 'system');
-    const btn = document.querySelector('.theme');
-    if (btn) btn.textContent = root.dataset.theme === 'dark' ? '浅色模式' : '深色模式';
-  } catch {
-    apply('system');
-  }
-  window.toggleCockpitTheme = () => {
-    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-    try { localStorage.setItem(key, next); } catch {}
-    apply(next);
-    const btn = document.querySelector('.theme');
-    if (btn) btn.textContent = next === 'dark' ? '浅色模式' : '深色模式';
-  };
-})();
-</script>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand">望潮 <small>Aurum · 投资驾驶舱说明</small></div>
-    <button class="theme" type="button" onclick="toggleCockpitTheme()">深色模式</button>
+    <a class="brand" href="index.html">望潮 <small>Aurum · 投资驾驶舱说明</small></a>
+    <div class="top-actions">
+      <button type="button" onclick="history.length>1?history.back():location.href='index.html'">返回</button>
+      <a href="index.html">首页</a>
+    </div>
   </div>
 
   <section class="hero">

@@ -2095,15 +2095,6 @@ function header(){
       <div class="brand serif">望潮<small>Aurum</small></div>
     </div>
     <div class="top-right">
-      <nav class="desktop-nav" aria-label="主导航">
-        <a href="#/">首页</a>
-        <a href="#/hk">港股打新</a>
-        <a href="#/us">美股投资</a>
-        <a href="#/a-shares">A股收息</a>
-        <a href="#/gurus">聪明人持仓</a>
-        <a href="growth.html">内测说明</a>
-      </nav>
-      <a class="header-beta-btn" href="growth.html">内测</a>
       <button class="theme-btn" type="button" onclick="toggleTheme()" aria-label="切换主题">${themeLabel()}</button>
     </div>
   </div>`;
@@ -2195,28 +2186,22 @@ function renderNotFound(message,backRoute){
 function renderEntry(){
   const hkLead=getHKListings()[0]||null;
   const usLead=[...MAGNIFICENT_SEVEN.map(symbol=>US_STOCKS.find(stock=>stock.t===symbol)).filter(Boolean),...hotQualityPool(US_STOCKS,3)][0]||US_STOCKS[0]||null;
-  const aLead=[...A_SHARES].sort((left,right)=>(right.score||0)-(left.score||0))[0]||null;
-  const guruLead=INVESTORS.find(item=>item.id==='buffett')||INVESTORS[0]||null;
   const hkToday=hkLead?`${hkLead.name} · ${hkLead.verdict} · 评分 ${Number.isFinite(hkLead.score)?hkLead.score:'—'}`:'当前暂无可发布答案';
   const usToday=usLead?`${usLead.t} · ${stockAction(usLead)} · 评分 ${Number.isFinite(usLead.value_score)?usLead.value_score:usLead.score}`:'当前暂无可发布答案';
+  const aLead=[...A_SHARES].sort((left,right)=>(right.score||0)-(left.score||0))[0]||null;
   const aToday=aLead?`${aLead.name} · ${aLead.currentAdvice||'暂无建议'} · 评级 ${aShareRating(aLead)}`:'当前暂无可发布答案';
-  const guruToday=guruLead?`${guruLead.name} · ${guruLead.one.split('。')[0]}。`:'当前暂无可发布答案';
   $('#app').innerHTML=header()+`
   <section class="home-hero">
     <div class="kicker">望潮 Aurum · 港美股投资答案工具</div>
     <h1>今天看什么，先看结论。</h1>
     <p>港股看打新答案，美股看机会与估值，A股看分红和现金流，聪明人持仓看资金方向。</p>
     <div class="note">不替你喊买卖，只帮你少看噪音，更快找到下一步。</div>
-    <div class="hero-actions">
-      <button class="primary" type="button" onclick="document.getElementById('home-entrances')?.scrollIntoView({behavior:'smooth',block:'start'})">进入今日答案</button>
-      <a class="secondary" href="growth.html">免费加入内测</a>
-    </div>
   </section>
   <section class="home-section" id="home-entrances">
     <div class="home-section-head">
       <div>
         <h3>今天先看哪一块？</h3>
-        <p>先看入口，再去具体答案页。</p>
+        <p>一级页面只保留三个入口，先看结论，再进具体页。</p>
       </div>
     </div>
     <div class="home-core-grid">
@@ -2249,118 +2234,7 @@ function renderEntry(){
       })}
     </div>
   </section>
-  <section class="home-section">
-    <div class="home-section-head">
-      <div>
-        <h3>岳老师核心观察池</h3>
-        <p>只看公开持仓变化，不盲目抄作业。</p>
-      </div>
-    </div>
-    <div class="home-panel-grid one">
-      ${homePanelCard({
-        label:'聪明人持仓',
-        state:{text:'看方向', kind:''},
-        desc:guruLead ? `${guruToday} 只看方向变化，不照抄时点。` : '只看公开持仓变化，不盲目抄作业。',
-        href:'#/gurus',
-        cta:'查看聪明人持仓',
-      })}
-    </div>
-  </section>
-  <section class="home-section home-growth">
-    <div class="home-section-head">
-      <div>
-        <h3>望潮正在招募首批内测用户</h3>
-        <p>适合已有港美股账户、有基础投资经验，希望少看行情噪音、快速获得结构化答案的人。</p>
-      </div>
-    </div>
-    <div class="growth-box">
-      <h3>工具目前免费开放，首批只招募 10 位真实用户。</h3>
-      <p>如果你已经有港美股账户，或者正在长期关注高股息、AI、七姐妹和聪明人持仓，欢迎加入内测。我们希望收到真实持仓或真实使用反馈，金额不限，隐私信息可以打码。</p>
-      <div class="growth-tags">
-        <span>已有港美股账户</span>
-        <span>持有 AI / 七姐妹 / 港股</span>
-        <span>关注高股息和家庭现金流</span>
-      </div>
-      <div class="growth-meta">
-        <div class="meta-item"><b>内测规则</b><span>工具目前免费开放，首批只招募 10 位真实用户。</span></div>
-        <div class="meta-item"><b>反馈要求</b><span>希望用户提供真实持仓或使用反馈，金额不限，隐私信息可以打码。</span></div>
-      </div>
-      <div class="growth-actions" style="margin-top:14px">
-        <a class="primary" href="growth.html">查看内测说明</a>
-        <button class="secondary" type="button" onclick="copyGrowthInvite(this)">复制内测邀请文案</button>
-      </div>
-    </div>
-  </section>
-  <section class="home-section">
-    <div class="home-section-head">
-      <div>
-        <h3>免费能看什么，内测能多得到什么？</h3>
-        <p>不写收费价格，只对比用户能直接看到的内容差异。</p>
-      </div>
-    </div>
-    <div class="version-compare">
-      <div class="version-card">
-        <div class="flag">免费版</div>
-        <h4>先看公开结论</h4>
-        <div class="sub">适合先体验入口和基础答案。</div>
-        <ul>
-          <li>今日公开结论</li>
-          <li>港股打新基础判断</li>
-          <li>美股热门标的一句话答案</li>
-          <li>A股收息基础信息</li>
-          <li>公开风险提示</li>
-        </ul>
-      </div>
-      <div class="version-card">
-        <div class="flag">首批免费内测</div>
-        <h4>多看结构化答案</h4>
-        <div class="sub">适合想要更完整观察框架的人。</div>
-        <ul>
-          <li>质量 / 成长 / 估值 / 风险评分</li>
-          <li>买入区间、观察区间、偏贵区间</li>
-          <li>主标的与替代标的对比</li>
-          <li>每周资产雷达报告</li>
-          <li>分享图与社群复盘素材</li>
-        </ul>
-      </div>
-    </div>
-    <div class="share-actions">
-      <button class="secondary" type="button" onclick="copyHomepageLink(this)">复制首页链接</button>
-      <button class="secondary" type="button" onclick="copyHomepageIntro(this)">复制工具介绍</button>
-    </div>
-  </section>
-  <section class="home-section">
-    <div class="home-section-head">
-      <div>
-        <h3>今日市场温度</h3>
-        <p>基于当前公开数据整理，不代表实时行情。</p>
-      </div>
-    </div>
-    <div class="home-panel-grid">
-      ${homeInfoCard({label:'美股', state:{text:'偏热', kind:'hot'}, desc:'七姐妹仍是主线，但高估值标的要看买入区间。'})}
-      ${homeInfoCard({label:'港股', state:{text:'修复', kind:'mid'}, desc:'打新重点看暗盘、一周卖出与资金热度。'})}
-      ${homeInfoCard({label:'A股', state:{text:'收息', kind:'safe'}, desc:'优先看现金分红、股息率和分红稳定性。'})}
-      ${homeInfoCard({label:'AI', state:{text:'高波动', kind:'hot'}, desc:'看成长，也要看估值压缩风险。'})}
-      ${homeInfoCard({label:'高股息', state:{text:'稳健', kind:'safe'}, desc:'适合做现金流资产观察池。'})}
-      ${homeInfoCard({label:'聪明人持仓', state:{text:'辅助', kind:''}, desc:'只看方向变化，不盲目抄作业。'})}
-    </div>
-  </section>
-  <section class="home-section">
-    <div class="home-section-head">
-      <div>
-        <h3>望潮的判断链路</h3>
-        <p>先定方向，再看标的，最后决定动作。</p>
-      </div>
-    </div>
-    <div class="home-steps-grid">
-      ${homeStepCard(1,'先看方向','市场现在是偏热、修复、收息还是高波动。')}
-      ${homeStepCard(2,'再看标的','只看核心资产、热门标的和高确定性方向。')}
-      ${homeStepCard(3,'再看价格','价格答案不足时，不用假数字凑结论。')}
-      ${homeStepCard(4,'再看风险','估值、涨幅、数据缺失、事件波动都要明示。')}
-      ${homeStepCard(5,'最后看动作','观察、等待、分批、避开，而不是直接喊买卖。')}
-    </div>
-  </section>
-  <div class="home-footnote">页面内容仅基于当前公开数据整理，供研究和信息整理使用。</div>`+footer()+mobileNav('home');
+  <div class="home-footnote">页面内容仅基于当前公开数据整理，供研究和信息整理使用。</div>`+footer();
 }
 
 /* =============== 二级页面：港股打新 =============== */
@@ -2580,21 +2454,27 @@ function renderUSStocks(){
   }
   const sevenStocks=MAGNIFICENT_SEVEN.map(symbol=>US_STOCKS.find(stock=>stock.t===symbol)).filter(Boolean);
   const hotStocks=hotQualityPool(US_STOCKS,3);
+  const guruItems=['buffett','leopold','lilu','dalio']
+    .map(id=>INVESTORS.find(item=>item.id===id))
+    .filter(Boolean);
   const groups=[
     {id:'seven',label:'七姐妹',items:sevenStocks},
     {id:'hot',label:'热度前三',items:hotStocks},
+    {id:'gurus',label:'名人持仓',items:guruItems},
   ];
   const selected=groups.find(group=>group.id===usView)||groups[0];
   const lead=selected.items[0];
-  const leadText=lead
-    ?`${lead.t} ${stockAction(lead)} · 评分 ${Number.isFinite(lead.value_score)?lead.value_score:lead.score}`
-    :'当前暂无可展示的标的。';
+  const leadText=selected.id==='gurus'
+    ?(lead?`${lead.name} · ${lead.stance} · ${lead.aum}`:'当前暂无可展示的名人持仓。')
+    :(lead
+      ?`${lead.t} ${stockAction(lead)} · 评分 ${Number.isFinite(lead.value_score)?lead.value_score:lead.score}`
+      :'当前暂无可展示的标的。');
   $('#app').innerHTML=`<button class="back" onclick="go('')">‹ 首页</button>
   <div class="d-head"><h1>🇺🇸 美股投资</h1>
-  <div class="sub">只看七姐妹和市场热度前三；先看价格，再看持仓。</div></div>
+  <div class="sub">只看七姐妹、热度前三和名人持仓；先看结论，再看价格和资料。</div></div>
   <div class="market-summary"><div><b>${selected.label}</b><span>${leadText}</span></div></div>
   <div class="market-tabs">${groups.map(group=>`<button class="market-tab ${selected.id===group.id?'on':''}" onclick="setUSView('${group.id}')">${group.label}<em>${group.items.length}</em></button>`).join('')}</div>
-  <section class="active-panel"><div class="section-intro"><h3>${selected.label}</h3></div>${selected.items.length?selected.items.map(stockCard).join(''):'<div class="empty-answer">当前暂无可展示的标的。</div>'}</section>
+  <section class="active-panel"><div class="section-intro"><h3>${selected.label}</h3></div>${selected.items.length?(selected.id==='gurus'?selected.items.map(investorCard).join(''):selected.items.map(stockCard).join('')):'<div class="empty-answer">当前暂无可展示的标的。</div>'}</section>
   ${marketUpdateLine('美股')}
   `+footer()+mobileNav('us');
 }
@@ -2631,8 +2511,7 @@ function renderAShares(){
       :renderDataUnavailable('a');
   }
   const groups=[
-    {id:'buy',label:'买入',items:A_SHARES.filter(item=>item.currentAdvice==='买入').sort((a,b)=>(b.score||0)-(a.score||0))},
-    {id:'hold',label:'持有',items:A_SHARES.filter(item=>item.currentAdvice==='持有').sort((a,b)=>(b.score||0)-(a.score||0))},
+    {id:'buy',label:'买入',items:A_SHARES.filter(item=>item.currentAdvice==='买入'||item.currentAdvice==='持有').sort((a,b)=>(b.score||0)-(a.score||0))},
     {id:'wait',label:'等待',items:A_SHARES.filter(item=>item.currentAdvice==='等待').sort((a,b)=>(b.score||0)-(a.score||0))},
     {id:'avoid',label:'回避',items:A_SHARES.filter(item=>item.currentAdvice==='回避').sort((a,b)=>(b.score||0)-(a.score||0))},
   ];
@@ -2640,7 +2519,7 @@ function renderAShares(){
   const lead=[...A_SHARES].sort((left,right)=>(right.score||0)-(left.score||0))[0];
   $('#app').innerHTML=`<button class="back" onclick="go('')">‹ 首页</button>
   <div class="d-head"><h1>🇨🇳 A股收息</h1>
-  <div class="sub">只看分红、价格和每年能拿多少现金分红。</div></div>
+  <div class="sub">只看买入、等待和回避三类答案。</div></div>
   <div class="market-summary"><div><b>${lead?`${lead.name} · ${lead.currentAdvice||'暂无建议'} · 评级 ${aShareRating(lead)}`:'先看分红是否稳定'}</b><span>${lead?`当前股息率 ${fmtPct(lead.currentDividendYield)} · 买入区间 ${aShareBuyZoneText(lead)} · 每10万元年分红 ${fmtCNY(lead.annualDividendPer100k)}`:'只看真实分红，不看表面高股息。'}</span></div></div>
   <div class="market-tabs">${groups.map(group=>`<button class="market-tab ${selected.id===group.id?'on':''}" onclick="setAShareView('${group.id}')">${group.label}<em>${group.items.length}</em></button>`).join('')}</div>
   <section class="active-panel"><div class="section-intro"><h3>${selected.label}</h3></div>${selected.items.length?selected.items.map((item,index)=>aShareCard(item,index,selected.label)).join(''):'<div class="empty-answer">当前暂无符合条件的标的。</div>'}</section>

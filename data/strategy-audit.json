@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-14T00:45:15.137Z",
+  "generatedAt": "2026-07-14T04:22:47.067Z",
   "autoApply": false,
   "hk": {
     "sampleCount": 97,
-    "fiveDaySampleCount": 55,
-    "fiveDayHighSampleCount": 55,
+    "fiveDaySampleCount": 60,
+    "fiveDayHighSampleCount": 60,
     "priceAnswersReleased": false,
     "algorithmVersion": "ipo-nearest-20-2026-07-v1",
     "releaseThresholds": {
@@ -34,18 +34,18 @@
         "calibrationHalfWidth": 126.1520000000001
       },
       "fiveDay": {
-        "sampleCount": 55,
-        "intervalCoverage": 85.45454545454545,
-        "directionAccuracy": 78.46153846153847,
-        "meanAbsoluteError": 69.55446153846158,
-        "calibrationHalfWidth": 167.78600000000003
+        "sampleCount": 60,
+        "intervalCoverage": 86.66666666666667,
+        "directionAccuracy": 78.57142857142857,
+        "meanAbsoluteError": 69.75557142857144,
+        "calibrationHalfWidth": 161.043
       },
       "fiveDayHigh": {
-        "sampleCount": 55,
-        "intervalCoverage": 87.27272727272727,
-        "directionAccuracy": 89.23076923076924,
-        "meanAbsoluteError": 85.34846153846156,
-        "calibrationHalfWidth": 194.04600000000005
+        "sampleCount": 60,
+        "intervalCoverage": 90,
+        "directionAccuracy": 91.42857142857143,
+        "meanAbsoluteError": 86.38685714285715,
+        "calibrationHalfWidth": 165.672
       }
     }
   },
@@ -1591,7 +1591,7 @@
           "averageNetReturn": -0.127,
           "medianNetReturn": -2.838,
           "profitFactor": 0.95,
-          "averageMaxDrawdown": -3.777,
+          "averageMaxDrawdown": -3.778,
           "worstTrade": -13.122,
           "equityMaxDrawdown": -63.21,
           "targetHitRate": 32.81,

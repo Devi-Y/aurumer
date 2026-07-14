@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-07-14T00:45:15.165Z",
+  "updatedAt": "2026-07-14T04:22:47.080Z",
   "days": [
     {
       "signalDate": "2026-07-10",
@@ -1152,7 +1152,7 @@
     },
     {
       "signalDate": "2026-07-13",
-      "capturedAt": "2026-07-14T00:45:15.141Z",
+      "capturedAt": "2026-07-14T04:22:47.072Z",
       "universeSize": 30,
       "selectedCount": 10,
       "stocks": [
@@ -1160,17 +1160,17 @@
           "symbol": "NVDA",
           "price": 203.5,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 56,
-          "heatRank": 6,
-          "volumeRatio": 0.77,
+          "heatScore": 58,
+          "heatRank": 5,
+          "volumeRatio": 0.82,
           "changePercent": -3.52,
           "weeklyChange": 4.08,
           "technicalPlan": {
-            "atr": 6.76,
+            "atr": 6.78,
             "buy": 192.2,
             "stop": 184.4,
             "tp": [
-              217,
+              217.1,
               225.2
             ]
           },
@@ -1186,11 +1186,11 @@
             },
             "qualityMatchCount": 3,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
-            "rank": 6,
+            "rank": 5,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
@@ -1198,9 +1198,9 @@
           "symbol": "MSFT",
           "price": 391,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 31,
+          "heatScore": 32,
           "heatRank": 10,
-          "volumeRatio": 0.57,
+          "volumeRatio": 0.6,
           "changePercent": 1.53,
           "weeklyChange": 1.1,
           "technicalPlan": {
@@ -1224,7 +1224,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
@@ -1236,9 +1236,9 @@
           "symbol": "AAPL",
           "price": 317.3,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 29,
+          "heatScore": 30,
           "heatRank": null,
-          "volumeRatio": 0.64,
+          "volumeRatio": 0.67,
           "changePercent": 0.63,
           "weeklyChange": 1.49,
           "technicalPlan": {
@@ -1262,7 +1262,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1274,9 +1274,9 @@
           "symbol": "GOOGL",
           "price": 352.5,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 30,
+          "heatScore": 31,
           "heatRank": null,
-          "volumeRatio": 0.42,
+          "volumeRatio": 0.45,
           "changePercent": -1.31,
           "weeklyChange": -3.81,
           "technicalPlan": {
@@ -1300,7 +1300,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1312,9 +1312,9 @@
           "symbol": "AMZN",
           "price": 247.3,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 26,
+          "heatScore": 27,
           "heatRank": null,
-          "volumeRatio": 0.54,
+          "volumeRatio": 0.56,
           "changePercent": 0.8,
           "weeklyChange": 1.29,
           "technicalPlan": {
@@ -1338,7 +1338,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1350,9 +1350,9 @@
           "symbol": "META",
           "price": 656.7,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 61,
+          "heatScore": 64,
           "heatRank": 4,
-          "volumeRatio": 0.89,
+          "volumeRatio": 0.98,
           "changePercent": -1.86,
           "weeklyChange": 9.4,
           "technicalPlan": {
@@ -1376,7 +1376,7 @@
             },
             "qualityMatchCount": 3,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
@@ -1390,7 +1390,7 @@
           "asOf": "2026-07-13T20:00:00.000Z",
           "heatScore": 56,
           "heatRank": null,
-          "volumeRatio": 0.7,
+          "volumeRatio": 0.71,
           "changePercent": -3.19,
           "weeklyChange": -5.96,
           "technicalPlan": {
@@ -1414,7 +1414,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1428,7 +1428,7 @@
           "asOf": "2026-07-13T20:00:01.000Z",
           "heatScore": 58,
           "heatRank": null,
-          "volumeRatio": 0.74,
+          "volumeRatio": 0.76,
           "changePercent": -4.21,
           "weeklyChange": -3.2,
           "technicalPlan": {
@@ -1452,7 +1452,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1464,9 +1464,9 @@
           "symbol": "AVGO",
           "price": 384.1,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 53,
+          "heatScore": 55,
           "heatRank": 7,
-          "volumeRatio": 0.68,
+          "volumeRatio": 0.73,
           "changePercent": -3.98,
           "weeklyChange": 2.71,
           "technicalPlan": {
@@ -1490,7 +1490,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
@@ -1502,9 +1502,9 @@
           "symbol": "PLTR",
           "price": 130,
           "asOf": "2026-07-13T20:00:00.000Z",
-          "heatScore": 49,
+          "heatScore": 50,
           "heatRank": 9,
-          "volumeRatio": 0.86,
+          "volumeRatio": 0.89,
           "changePercent": 2.56,
           "weeklyChange": -1.89,
           "technicalPlan": {
@@ -1528,7 +1528,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
@@ -1542,7 +1542,7 @@
           "asOf": "2026-07-13T20:00:00.000Z",
           "heatScore": 29,
           "heatRank": null,
-          "volumeRatio": 0.34,
+          "volumeRatio": 0.35,
           "changePercent": -2.3,
           "weeklyChange": 1.73,
           "technicalPlan": {
@@ -1566,7 +1566,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1578,9 +1578,9 @@
           "symbol": "ARM",
           "price": 299,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 77,
+          "heatScore": 78,
           "heatRank": 2,
-          "volumeRatio": 0.5,
+          "volumeRatio": 0.53,
           "changePercent": -7.55,
           "weeklyChange": -7.22,
           "technicalPlan": {
@@ -1604,7 +1604,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
@@ -1616,7 +1616,7 @@
           "symbol": "TSM",
           "price": 421.6,
           "asOf": "2026-07-13T20:00:02.000Z",
-          "heatScore": 65,
+          "heatScore": 66,
           "heatRank": 3,
           "volumeRatio": 0.99,
           "changePercent": -2.89,
@@ -1624,7 +1624,7 @@
           "technicalPlan": {
             "atr": 21.07,
             "buy": 410,
-            "stop": 403.5,
+            "stop": 403.4,
             "tp": [
               463.7,
               489
@@ -1642,7 +1642,7 @@
             },
             "qualityMatchCount": 3,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
@@ -1654,8 +1654,8 @@
           "symbol": "ASML",
           "price": 1726,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 57,
-          "heatRank": 5,
+          "heatScore": 58,
+          "heatRank": 6,
           "volumeRatio": 0.65,
           "changePercent": -3.97,
           "weeklyChange": -5.43,
@@ -1680,11 +1680,11 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
-            "rank": 5,
+            "rank": 6,
             "reason": "通过财务三选二并进入热度前十"
           }
         },
@@ -1718,7 +1718,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1756,7 +1756,7 @@
             },
             "qualityMatchCount": 0,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1768,9 +1768,9 @@
           "symbol": "CRWD",
           "price": 187.9,
           "asOf": "2026-07-13T20:00:01.000Z",
-          "heatScore": 33,
+          "heatScore": 34,
           "heatRank": null,
-          "volumeRatio": 0.54,
+          "volumeRatio": 0.57,
           "changePercent": 0.39,
           "weeklyChange": -5.75,
           "technicalPlan": {
@@ -1794,7 +1794,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1806,9 +1806,9 @@
           "symbol": "NOW",
           "price": 111.3,
           "asOf": "2026-07-13T20:00:03.000Z",
-          "heatScore": 49,
+          "heatScore": 51,
           "heatRank": null,
-          "volumeRatio": 0.67,
+          "volumeRatio": 0.72,
           "changePercent": 3.3,
           "weeklyChange": 3.09,
           "technicalPlan": {
@@ -1832,7 +1832,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1870,7 +1870,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
@@ -1882,9 +1882,9 @@
           "symbol": "MA",
           "price": 537.7,
           "asOf": "2026-07-13T20:00:03.000Z",
-          "heatScore": 30,
+          "heatScore": 39,
           "heatRank": null,
-          "volumeRatio": 0.46,
+          "volumeRatio": 0.7,
           "changePercent": 2.08,
           "weeklyChange": 0.86,
           "technicalPlan": {
@@ -1908,7 +1908,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1922,7 +1922,7 @@
           "asOf": "2026-07-13T20:00:01.000Z",
           "heatScore": 34,
           "heatRank": null,
-          "volumeRatio": 0.69,
+          "volumeRatio": 0.7,
           "changePercent": 0.63,
           "weeklyChange": -2.88,
           "technicalPlan": {
@@ -1946,7 +1946,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -1984,7 +1984,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": true,
@@ -1996,9 +1996,9 @@
           "symbol": "CRM",
           "price": 171.2,
           "asOf": "2026-07-13T20:00:02.000Z",
-          "heatScore": 63,
+          "heatScore": 65,
           "heatRank": null,
-          "volumeRatio": 0.78,
+          "volumeRatio": 0.84,
           "changePercent": 4.84,
           "weeklyChange": 3.36,
           "technicalPlan": {
@@ -2022,7 +2022,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -2060,7 +2060,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -2072,9 +2072,9 @@
           "symbol": "SHOP",
           "price": 124.7,
           "asOf": "2026-07-13T20:00:00.000Z",
-          "heatScore": 45,
+          "heatScore": 46,
           "heatRank": null,
-          "volumeRatio": 0.76,
+          "volumeRatio": 0.78,
           "changePercent": 1.8,
           "weeklyChange": 3.83,
           "technicalPlan": {
@@ -2098,7 +2098,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -2110,9 +2110,9 @@
           "symbol": "UBER",
           "price": 74.26,
           "asOf": "2026-07-13T20:00:02.000Z",
-          "heatScore": 27,
+          "heatScore": 28,
           "heatRank": null,
-          "volumeRatio": 0.57,
+          "volumeRatio": 0.58,
           "changePercent": -0.38,
           "weeklyChange": 2.54,
           "technicalPlan": {
@@ -2136,7 +2136,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -2148,9 +2148,9 @@
           "symbol": "JPM",
           "price": 334.5,
           "asOf": "2026-07-13T20:00:02.000Z",
-          "heatScore": 23,
+          "heatScore": 28,
           "heatRank": null,
-          "volumeRatio": 0.49,
+          "volumeRatio": 0.65,
           "changePercent": -0.58,
           "weeklyChange": -0.94,
           "technicalPlan": {
@@ -2174,7 +2174,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -2186,9 +2186,9 @@
           "symbol": "BRK.B",
           "price": 496.9,
           "asOf": "2026-07-13T20:04:52.000Z",
-          "heatScore": 29,
+          "heatScore": 30,
           "heatRank": null,
-          "volumeRatio": 0.62,
+          "volumeRatio": 0.63,
           "changePercent": 0.64,
           "weeklyChange": -1.92,
           "technicalPlan": {
@@ -2212,7 +2212,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -2224,9 +2224,9 @@
           "symbol": "LLY",
           "price": 1181.9,
           "asOf": "2026-07-13T20:03:04.000Z",
-          "heatScore": 23,
+          "heatScore": 30,
           "heatRank": null,
-          "volumeRatio": 0.49,
+          "volumeRatio": 0.66,
           "changePercent": -0.56,
           "weeklyChange": -1.52,
           "technicalPlan": {
@@ -2250,7 +2250,7 @@
             },
             "qualityMatchCount": 2,
             "qualityEligible": true,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,
@@ -2262,9 +2262,9 @@
           "symbol": "COST",
           "price": 926.4,
           "asOf": "2026-07-13T20:00:00.000Z",
-          "heatScore": 40,
+          "heatScore": 43,
           "heatRank": null,
-          "volumeRatio": 0.82,
+          "volumeRatio": 0.88,
           "changePercent": 1.11,
           "weeklyChange": -2.51,
           "technicalPlan": {
@@ -2288,7 +2288,7 @@
             },
             "qualityMatchCount": 1,
             "qualityEligible": false,
-            "snapshotAsOf": "2026-07-14T00:45:15.137Z"
+            "snapshotAsOf": "2026-07-14T04:22:47.067Z"
           },
           "signal": {
             "selected": false,

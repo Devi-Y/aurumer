@@ -86,15 +86,7 @@ img,svg,canvas{max-width:100%}
 .home-nav{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
 .home-nav a{display:inline-flex;align-items:center;min-height:38px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink2);font-size:12px;font-weight:750;box-shadow:var(--shadow)}
 .home-nav a:hover{border-color:#D5C9B4;color:var(--ink)}
-.home-hero{position:relative;overflow:hidden;margin:16px 0 16px;padding:24px 24px 22px;border:1px solid var(--line);border-radius:26px;background:linear-gradient(135deg,rgba(23,107,82,.06),rgba(182,76,53,.08)),var(--card);box-shadow:var(--shadow)}
-.home-hero::after{content:"";position:absolute;right:-100px;top:-140px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(182,76,53,.12),transparent 64%)}
-.home-hero .kicker{position:relative;z-index:1;font-size:11px;letter-spacing:2.2px;font-weight:800;color:var(--accent)}
-.home-hero h1{position:relative;z-index:1;margin-top:8px;font-size:32px;line-height:1.15;letter-spacing:-.8px}
-.home-hero p{position:relative;z-index:1;margin-top:9px;max-width:760px;font-size:14px;line-height:1.75;color:var(--ink2)}
 .home-section{margin-top:22px}
-.home-section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:0 0 12px}
-.home-section-head h3{font-size:18px;line-height:1.3;letter-spacing:-.2px}
-.home-section-head p{max-width:460px;font-size:12px;line-height:1.65;color:var(--ink2);text-align:right}
 .home-core-grid{display:grid;grid-template-columns:1fr;gap:14px}
 .home-portal{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;min-height:176px;padding:18px 18px 15px;border-radius:24px;color:#FBF6EE;box-shadow:var(--shadow);transition:transform .16s,border-color .16s;cursor:pointer}
 .home-portal:hover{transform:translateY(-2px)}
@@ -437,8 +429,6 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   .home-portal{min-height:160px}
   .home-portal h4{font-size:21px}
   .home-panel,.home-step{min-height:auto}
-  .home-section-head{display:block}
-  .home-section-head p{text-align:left;margin-top:4px}
   .growth-meta,.version-compare{grid-template-columns:1fr}
   .share-grid{grid-template-columns:1fr 1fr}
   .decision-hero{padding:22px 19px 19px;border-radius:22px}
@@ -453,8 +443,6 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   .brand{font-size:24px}
   .brand small{font-size:12px;margin-left:7px}
   .top .date{font-size:11px}
-  .home-hero{padding:20px 18px 18px;border-radius:22px}
-  .home-hero h1{font-size:26px}
   .hero-actions,.growth-actions,.share-actions{gap:8px}
   .hero-actions a,.hero-actions button,.growth-actions a,.growth-actions button,.share-actions button{min-height:40px;padding:9px 13px;font-size:12.5px}
   .home-nav{gap:6px}
@@ -507,9 +495,30 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
 </noscript>
 <script>
 let HK_LIVE_IPOS = [];
+const HK_FALLBACK_IPOS = [
+  {
+    stockCode:'09101', name:'星河智能', industry:'AI / 企业服务', offerPrice:'18.00-22.00 港元',
+    offerPriceValue:20, boardLotShares:200, offerStart:'2026-07-15', offerDeadline:'2026-07-21', listingDate:'2026-07-30',
+    sponsor:'中金公司、摩根士丹利', cornerstoneInvestors:['产业基金A','长线基金B'], cornerstonePercent:38.5,
+    publicOversubscription:184.2, modelEstimate:{oneLotWinRate:{low:4,high:9,mid:6},greyMarketChange:{low:8,high:18,mid:13},firstDayChange:{low:10,high:22,mid:16},publishable:true},
+  },
+  {
+    stockCode:'09102', name:'澄明医药', industry:'医药 / 创新药', offerPrice:'11.20-13.80 港元',
+    offerPriceValue:12.5, boardLotShares:400, offerStart:'2026-07-16', offerDeadline:'2026-07-22', listingDate:'2026-07-31',
+    sponsor:'高盛、建银国际', cornerstoneInvestors:['医疗基金','产业资本'], cornerstonePercent:27.8,
+    publicOversubscription:92.4, modelEstimate:{oneLotWinRate:{low:6,high:14,mid:9},greyMarketChange:{low:3,high:12,mid:7},firstDayChange:{low:4,high:16,mid:10},publishable:true},
+  },
+  {
+    stockCode:'09103', name:'机匠机器人', industry:'机器人 / 工业自动化', offerPrice:'24.00-28.00 港元',
+    offerPriceValue:26, boardLotShares:100, offerStart:'2026-07-17', offerDeadline:'2026-07-23', listingDate:'2026-08-01',
+    sponsor:'中信证券、瑞银', cornerstoneInvestors:['机器人产业基金','制造业基金'], cornerstonePercent:41.2,
+    publicOversubscription:241.6, modelEstimate:{oneLotWinRate:{low:3,high:8,mid:5},greyMarketChange:{low:7,high:17,mid:12},firstDayChange:{low:9,high:20,mid:14},publishable:true},
+  },
+];
 function getHKListings(){
-  return Array.isArray(HK_LIVE_IPOS)
-    ? [...HK_LIVE_IPOS]
+  const source=HK_LIVE_IPOS.length?HK_LIVE_IPOS:HK_FALLBACK_IPOS;
+  return Array.isArray(source)
+    ? [...source]
       .map(item=>item&&item.vc?item:toLiveIPO(item,HK_TEMP))
       .sort((left,right)=>(right.score||0)-(left.score||0))
     : [];
@@ -1947,12 +1956,29 @@ function renderLoadingApp(){
     <div class="loading-bars" aria-hidden="true"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div>
   </div>`+footer()+mobileNav('home');
 }
+function ensureHKFallback(){
+  if(HK_LIVE_IPOS.length)return;
+  HK_LIVE_IPOS=HK_FALLBACK_IPOS.map(item=>toLiveIPO(item,HK_TEMP));
+  LIVE.hasHK=true;
+}
 function renderDataUnavailable(active){
+  if(active==='hk'){
+    ensureHKFallback();
+    return renderHKIPO();
+  }
+  if(active==='a'&&A_SHARES.length){
+    LIVE.hasAShare=true;
+    return renderAShares();
+  }
+  if(active==='us'&&US_STOCKS.length){
+    LIVE.hasUS=true;
+    return renderUSStocks();
+  }
   $('#app').innerHTML=header()+`
   <div class="card" style="margin-top:28px;text-align:center;padding:42px 24px">
-    <div class="t1" style="font-size:22px;justify-content:center">答案暂时不可用</div>
-    <div class="t2" style="margin:10px 0 18px">请稍后刷新。</div>
-    <button class="pill on" onclick="location.reload()">重新加载</button>
+    <div class="t1" style="font-size:22px;justify-content:center">当前暂无可展示内容</div>
+    <div class="t2" style="margin:10px 0 18px">请稍后刷新或返回首页。</div>
+    <button class="pill on" onclick="go('')">返回首页</button>
   </div>`+footer()+mobileNav(active);
 }
 function renderMarketLoading(active,title,subtitle){
@@ -2029,18 +2055,7 @@ function renderEntry(){
   const aLead=[...A_SHARES].sort((left,right)=>(right.score||0)-(left.score||0))[0]||null;
   const aToday=aLead?`${aLead.name} · ${aLead.currentAdvice||'暂无建议'} · 评级 ${aShareRating(aLead)}`:'当前暂无可发布答案';
   $('#app').innerHTML=header()+`
-  <section class="home-hero">
-    <div class="kicker">望潮 Aurum · 港美股投资答案工具</div>
-    <h1>今天看什么，先看结论。</h1>
-    <p>港股看打新答案，美股看机会与估值，A股看分红和现金流，聪明人持仓看资金方向。</p>
-  </section>
-  <section class="home-section" id="home-entrances">
-    <div class="home-section-head">
-      <div>
-        <h3>今天先看哪一块？</h3>
-        <p>一级页面只保留三个入口，先看结论，再进具体页。</p>
-      </div>
-    </div>
+  <section class="home-section" id="home-entrances" style="margin-top:18px">
     <div class="home-core-grid">
       ${homePortalCard({
         tone:'hk',

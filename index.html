@@ -290,6 +290,9 @@ img,svg,canvas{max-width:100%}
 .scenario-row b{font-size:13px}
 .scenario-row span{color:var(--ink2)}
 .scenario-row strong{text-align:right;font-size:13px;color:var(--accent)}
+.scenario-row.ranking-row{color:var(--ink);border-radius:10px;padding-left:8px;padding-right:8px;transition:background .15s}
+.scenario-row.ranking-row:hover{background:var(--bg)}
+.scenario-row.ranking-row.current{background:var(--accent-soft)}
 .analysis-source{margin-top:10px;padding-top:10px;border-top:1px solid var(--line2);font-size:11px;line-height:1.65;color:var(--ink3)}
 
 /* ---------- level-1 doors ---------- */
@@ -413,6 +416,15 @@ img,svg,canvas{max-width:100%}
 .bars .track{flex:1;height:8px;background:var(--gray-soft);border-radius:4px;overflow:hidden}
 .bars .fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .bars .bv{width:30px;text-align:right;font-weight:700}
+.insight-meters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}
+.insight-meter{padding:12px 13px;border:1px solid var(--line2);border-radius:14px;background:rgba(255,255,255,.58)}
+.insight-meter-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12px;color:var(--ink2)}
+.insight-meter-head b{font-size:15px;color:var(--ink)}
+.insight-meter-track{height:7px;margin-top:8px;overflow:hidden;border-radius:999px;background:var(--gray-soft)}
+.insight-meter-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),#D78B55);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+.insight-meter.good .insight-meter-track i{background:linear-gradient(90deg,var(--forest),#4E896D)}
+.insight-meter.risk .insight-meter-track i{background:linear-gradient(90deg,#B64C35,#D7775E)}
+.insight-meter small{display:block;margin-top:7px;font-size:10.5px;line-height:1.5;color:var(--ink3)}
 
 .list{list-style:none}
 .list li{position:relative;padding:5px 0 5px 22px;font-size:13.5px;color:#413E37}
@@ -507,6 +519,7 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   .share-grid{grid-template-columns:1fr 1fr}
   .evidence-grid{grid-template-columns:1fr}
   .analysis-grid{grid-template-columns:1fr}
+  .insight-meters{grid-template-columns:1fr}
   .peer-grid{grid-template-columns:1fr}
   .scenario-row{grid-template-columns:minmax(0,1fr) auto}
   .scenario-row span{grid-column:1/-1}
@@ -1906,6 +1919,18 @@ function chgHTML(v){return `<span class="${v>=0?'upc':'dnc'} num">${v>=0?'+':''}
 function bars(bd){
   return `<div class="bars">`+bd.map(([l,v])=>`<div class="bar-row"><span class="bl">${l}</span><div class="track"><div class="fill" style="width:${v}%;background:${gradeColor(v)}"></div></div><span class="bv num">${v}</span></div>`).join('')+`</div>`;
 }
+function insightMeter(label,value,detail='',unit=''){
+  const safe=clampScore(Number(value)||0);
+  const tone=safe>=70?'good':safe<45?'risk':'mid';
+  return `<div class="insight-meter ${tone}">
+    <div class="insight-meter-head"><span>${label}</span><b class="num">${safe}${unit}</b></div>
+    <div class="insight-meter-track" role="img" aria-label="${label} ${safe}${unit||' 分'}"><i style="width:${safe}%"></i></div>
+    ${detail?`<small>${detail}</small>`:''}
+  </div>`;
+}
+function insightMeters(rows){
+  return `<div class="insight-meters">${rows.map(row=>insightMeter(row[0],row[1],row[2]||'',row[3]||'')).join('')}</div>`;
+}
 function rangeBar(title,lo,hi,mid){
   const dmin=Math.min(lo,0)-6,dmax=Math.max(hi,0)+6,sp=dmax-dmin;
   const P=v=>((v-dmin)/sp*100).toFixed(1)+'%';
@@ -2809,8 +2834,16 @@ function rateOrDash(value,digits=1){
 function renderHKBacktest(){
   const backtest=LIVE.hkBacktest||{};
   const recent=Array.isArray(backtest.recent)?backtest.recent:[];
+  const greySamples=recent.filter(item=>Number.isFinite(item.greyMarketChange));
+  const greyWins=greySamples.filter(item=>item.greyMarketChange>0).length;
+  const firstDaySamples=recent.filter(item=>Number.isFinite(item.firstDayChange));
+  const firstDayWins=firstDaySamples.filter(item=>item.firstDayChange>0).length;
   const fiveDaySamples=recent.filter(item=>Number.isFinite(item.fiveDayChange));
   const fiveDayWins=fiveDaySamples.filter(item=>item.fiveDayChange>0).length;
+  const greyWinRate=greySamples.length?greyWins/greySamples.length*100:0;
+  const firstDayWinRate=firstDaySamples.length?firstDayWins/firstDaySamples.length*100:0;
+  const fiveDayWinRate=fiveDaySamples.length?fiveDayWins/fiveDaySamples.length*100:0;
+  const fiveDayCoverage=recent.length?fiveDaySamples.length/recent.length*100:0;
   const recentRows=recent.slice(0,12);
   analysisShell({
     active:'hk',
@@ -2822,10 +2855,15 @@ function renderHKBacktest(){
       <div class="stat"><b class="num">${rateOrDash(backtest.firstDayWinRate)}</b><span>首日上涨占比</span></div>
       <div class="stat"><b class="num">${percentOrDash(backtest.averageGreyMarket)}</b><span>平均暗盘表现</span></div>
       <div class="stat"><b class="num">${fiveDaySamples.length?`${(fiveDayWins/fiveDaySamples.length*100).toFixed(1)}%`:'—'}</b><span>已收录五日上涨占比</span></div>
-    </div><div class="analysis-source">历史平均值容易受极端涨跌影响，只用于描述样本，不等同于下一只新股的预期收益。</div></div></div>
+    </div>${insightMeters([
+      ['暗盘上涨占比',greyWinRate,`${greyWins}/${greySamples.length} 只已收录样本上涨`,'%'],
+      ['首日上涨占比',firstDayWinRate,`${firstDayWins}/${firstDaySamples.length} 只已收录样本上涨`,'%'],
+      ['第五日上涨占比',fiveDayWinRate,`${fiveDayWins}/${fiveDaySamples.length} 只有效样本上涨`,'%'],
+      ['五日数据覆盖',fiveDayCoverage,`${fiveDaySamples.length}/${recent.length} 只样本具备第五日数据`,'%'],
+    ])}<div class="analysis-source">以上均为已经发生的历史结果，不是预测准确率。历史平均值容易受极端涨跌影响，也不等同于下一只新股的预期收益。</div></div></div>
     <div class="d-sec"><h4>近期样本逐只核对</h4><div class="group-list">${recentRows.length?recentRows.map(item=>`<a class="compact-card" href="#/ipo/${item.stockCode}"><div class="compact-top"><div class="compact-title"><h3>${item.name}<span>${item.stockCode}.HK</span></h3></div><div class="quote-now"><b class="num">${Number.isFinite(item.offerPrice)?`${item.offerPrice.toFixed(2)} 港元`:'发行价未收录'}</b><span>${item.listingDate||''}</span></div></div><div class="answer-block"><div class="answer-line"><strong>暗盘</strong><b>${percentOrDash(item.greyMarketChange)}</b></div><div class="answer-line"><strong>首日</strong><b>${percentOrDash(item.firstDayChange)}</b></div><div class="answer-line"><strong>第五日</strong><b>${percentOrDash(item.fiveDayChange)}</b></div><div class="answer-line"><strong>五日内最高</strong><b>${percentOrDash(item.fiveDayHighChange)}</b></div></div><div class="compact-foot"><span>查看标的资料</span><span class="arrow">›</span></div></a>`).join(''):'<div class="empty-answer">当前暂无可核对的历史样本。</div>'}</div></div>
     <div class="d-sec"><h4>数据说明</h4><div class="analysis-grid"><div class="analysis-card"><h4>可以确认</h4><p>上市日期、发行价、暗盘、首日及已收录的五日价格属于历史事实。</p></div><div class="analysis-card"><h4>缺失处理</h4><p>缺失五日数据时保持为空，不用首日结果替代，也不生成占位数字。</p></div></div></div>`,
-    disclaimer:'历史回溯只用于检验方法，不代表未来新股表现，也不构成申购或卖出建议。',
+    disclaimer:'历史结果只用于复盘已发生的表现，不代表未来新股表现，也不构成申购或卖出建议。',
   });
 }
 function renderUSHeatTop10(){
@@ -2835,7 +2873,7 @@ function renderUSHeatTop10(){
     backRoute:'#/us/hot',
     title:'美股 · 热度前十',
     subtitle:'按当前市场关注度排序，分数只用于横向比较。',
-    body:`<div class="group-list">${items.map((item,index)=>`<a class="compact-card" href="#/stock/${item.t}"><div class="compact-top"><div class="compact-title"><h3><span class="num">${index+1}</span> ${item.t}<span>${item.n}</span></h3></div><div class="quote-now"><b class="num">$${Number(item.price).toFixed(2)}</b><span class="${item.chg>=0?'upc':'dnc'}">${pct(item.chg)}</span></div></div><div class="answer-block"><div class="answer-line"><strong>热度 ${stockHeatRank(item)}</strong><span>${stockHeatReason(item)}</span></div><div class="answer-line"><strong>现在怎么看</strong><b>${stockAction(item)}</b></div></div><div class="compact-foot"><span>查看价格与基本面</span><span class="arrow">›</span></div></a>`).join('')}</div>
+    body:`<div class="group-list">${items.map((item,index)=>`<a class="compact-card" href="#/stock/${item.t}"><div class="compact-top"><div class="compact-title"><h3><span class="num">${index+1}</span> ${item.t}<span>${item.n}</span></h3></div><div class="quote-now"><b class="num">$${Number(item.price).toFixed(2)}</b><span class="${item.chg>=0?'upc':'dnc'}">${pct(item.chg)}</span></div></div><div class="answer-block"><div class="answer-line"><strong>现在怎么看</strong><b>${stockAction(item)}</b></div>${insightMeters([['市场热度',stockHeatRank(item),stockHeatReason(item)]])}</div><div class="compact-foot"><span>查看价格与基本面</span><span class="arrow">›</span></div></a>`).join('')}</div>
     <div class="d-sec"><h4>怎么看这张榜</h4><div class="analysis-grid"><div class="analysis-card"><h4>分数越高</h4><p>代表当前市场关注度更高，不代表未来涨幅更大。</p></div><div class="analysis-card"><h4>先看价格</h4><p>热度不能直接当成买入信号，进入单股页再看买入、止盈和止损参考。</p></div></div></div>`,
     disclaimer:'美股热度排名基于当前已整理的公开行情与成交变化，不构成买卖建议。',
   });
@@ -2847,7 +2885,7 @@ function renderUSValueIndex(){
     backRoute:'#/us/hot',
     title:'美股 · 性价比指数',
     subtitle:'把公司质量、估值与价格位置合在一起排序；分数用于比较，不是收益承诺。',
-    body:`<div class="group-list">${items.map((item,index)=>{const answers=stockPriceAnswers(item);const profile=usValueProfile(item);return `<a class="compact-card" href="#/stock/${item.t}"><div class="compact-top"><div class="compact-title"><h3><span class="num">${index+1}</span> ${item.t}<span>${item.n}</span></h3></div><div class="quote-now"><b class="num">${profile.score} 分</b><span>${profile.grade} 级</span></div></div><div class="answer-block"><div class="answer-line"><strong>当前动作</strong><b>${stockAction(item)}</b></div><div class="answer-line"><strong>价格答案</strong><span>${answers.available?`买入 ${answers.buy} · 止盈 ${answers.sell} · 止损 ${answers.stop}`:'当前数据不足'}</span></div><div class="analysis-source">${answers.status}</div></div><div class="compact-foot"><span>查看完整性价比分析</span><span class="arrow">›</span></div></a>`}).join('')}</div>`,
+    body:`<div class="group-list">${items.map((item,index)=>{const answers=stockPriceAnswers(item);const profile=usValueProfile(item);return `<a class="compact-card" href="#/stock/${item.t}"><div class="compact-top"><div class="compact-title"><h3><span class="num">${index+1}</span> ${item.t}<span>${item.n}</span></h3></div><div class="quote-now"><b class="num">${profile.score} 分</b><span>${profile.grade} 级</span></div></div><div class="answer-block"><div class="answer-line"><strong>当前动作</strong><b>${stockAction(item)}</b></div><div class="answer-line"><strong>价格答案</strong><span>${answers.available?`买入 ${answers.buy} · 止盈 ${answers.sell} · 止损 ${answers.stop}`:'当前数据不足'}</span></div>${insightMeters([['性价比',profile.score,answers.status]])}</div><div class="compact-foot"><span>查看完整性价比分析</span><span class="arrow">›</span></div></a>`}).join('')}</div>`,
     disclaimer:'性价比指数与研究参考价仅供横向研究，不构成买卖建议；未完成历史验证的价格可能失效。',
   });
 }
@@ -3274,7 +3312,7 @@ function renderStockAnalysis(x){
     backRoute:`#/stock/${x.t}`,
     title:`${x.t} · 完整分析`,
     subtitle:'只看最终分数、排名、价格、公开财务和风险。',
-    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${valueProfile.score}</b><span>综合分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}排名</span></div><div class="stat"><b>${stockAction(x)}</b><span>当前动作</span></div><div class="stat"><b>${valueProfile.grade}</b><span>综合等级</span></div></div><div class="analysis-source">价格参考尚未完成历史验证时，页面会明确标注。</div></div></div>
+    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${valueProfile.score}</b><span>综合分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}排名</span></div><div class="stat"><b>${stockAction(x)}</b><span>当前动作</span></div><div class="stat"><b>${valueProfile.grade}</b><span>综合等级</span></div></div>${insightMeters([['市场热度',stockHeatRank(x),stockHeatReason(x)],['性价比',valueProfile.score,planReady?'已形成买入、止盈和止损研究参考':'当前价格资料不足']])}<div class="analysis-source">热度与性价比用于横向比较，不代表未来涨幅。价格参考尚未完成历史验证时，页面会明确标注。</div></div></div>
     <div class="d-sec"><h4>价格情景</h4><div class="card">${scenarios.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-note"><b>当前价格答案：</b>${planReady?`买入 ${answers.buy}；止盈 ${answers.sell}；止损 ${answers.stop}。${answers.status}`:'当前数据不足，暂未形成价格。'}</div></div></div>
     <div class="d-sec"><h4>结论情景推演</h4><div class="card">${conditionScenarios.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-source">情景用于说明结论触发条件，不是目标价或收益预测。</div></div></div>
     <div class="d-sec"><h4>接下来只看四个变化</h4><div class="card">${nextChecks.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-source">四项都没有改善时，不因为单日上涨改变结论。</div></div></div>
@@ -3309,6 +3347,7 @@ function renderAShareAnalysis(x){
   const scoreProfile=aShareScoreProfile(x);
   const rankInfo=aShareRankInfo(x);
   const peers=aSharePeerCandidates(x);
+  const incomeRanking=[...A_SHARES].sort((left,right)=>aShareScoreProfile(right).overall-aShareScoreProfile(left).overall);
   const fundingCostCeiling=Number.isFinite(currentYield)?Math.max(0,currentYield-1):null;
   const staticPaybackYears=Number.isFinite(currentYield)&&currentYield>0?100/currentYield:null;
   const stressRows=[
@@ -3339,9 +3378,10 @@ function renderAShareAnalysis(x){
     backRoute:`#/a-share/${x.code.replace(/\.(SH|SZ)$/i,'')}`,
     title:`${x.name} · 收息深度分析`,
     subtitle:'把分红稳定性、可持续股息率、买入价格和分红下调风险一起看。',
-    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${scoreProfile.overall}</b><span>综合评分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}组内排名</span></div><div class="stat"><b>${aShareRating(x)}</b><span>收息评级</span></div><div class="stat"><b>${x.currentAdvice}</b><span>当前动作</span></div></div><div class="analysis-source">页面只展示最终分数、组内排名、公开资料和风险。</div></div></div>
+    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${scoreProfile.overall}</b><span>综合评分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}组内排名</span></div><div class="stat"><b>${aShareRating(x)}</b><span>收息评级</span></div><div class="stat"><b>${x.currentAdvice}</b><span>当前动作</span></div></div>${insightMeters([['收息质量',scoreProfile.overall,`${rankInfo.label}组第 ${rankInfo.rank}/${rankInfo.total} 名`]])}<div class="analysis-source">页面只展示最终分数、组内排名、公开资料和风险，不公开内部计算过程。</div></div></div>
     <div class="d-sec"><h4>资金成本答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${Number.isFinite(fundingCostCeiling)?`${fundingCostCeiling.toFixed(1)}% 以下`:'待确认'}</b><span>资金成本参考上限</span></div><div class="stat"><b class="num">${Number.isFinite(currentYield)?`${currentYield.toFixed(1)}%`:'—'}</b><span>可持续股息率</span></div><div class="stat"><b class="num">${Number.isFinite(staticPaybackYears)?`${staticPaybackYears.toFixed(1)} 年`:'—'}</b><span>静态分红回本年限</span></div></div><div class="analysis-source">资金成本上限是保守研究参考，未计税费、股价变化和未来分红调整。</div></div></div>
     <div class="d-sec"><h4>现金流质量</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b>${cashFlow.label}</b><span>自由现金流结论</span></div><div class="stat"><b class="num">${Number.isFinite(financials.operatingCashFlow)?fmtCNY(financials.operatingCashFlow):'待核验'}</b><span>经营现金流</span></div><div class="stat"><b class="num">${Number.isFinite(financials.freeCashFlow)?fmtCNY(financials.freeCashFlow):'待核验'}</b><span>自由现金流</span></div><div class="stat"><b class="num">${Number.isFinite(financials.cashConversion)?`${financials.cashConversion.toFixed(2)} 倍`:'待核验'}</b><span>现金利润比</span></div></div><div class="analysis-source">${cashFlow.detail} · ${cashFlow.source}。自由现金流用于检查分红可持续性，不单独构成买入结论。</div></div></div>
+    <div class="d-sec"><h4>收息与现金流总榜</h4><div class="card">${incomeRanking.map((item,index)=>{const itemCashFlow=aShareCashFlowFacts(item);return `<a class="scenario-row ranking-row ${item.code===x.code?'current':''}" href="#/a-share/${item.code.replace(/\.(SH|SZ)$/i,'')}"><b><span class="num">${index+1}</span> · ${item.name}</b><span>${itemCashFlow.label} · 可持续股息率 ${rateOrDash(item.sustainableDividendYield)}</span><strong>${aShareScoreProfile(item).overall} 分</strong></a>`}).join('')}<div class="analysis-source">按最终收息质量分横向排序，并同时展示自由现金流结论；分数只用于比较，不代表未来收益。</div></div></div>
     <div class="d-sec"><h4>不同价格对应的收息率</h4><div class="card">${priceLevels.map(([label,priceValue,display])=>`<div class="scenario-row"><b>${label}</b><span>${display||'未收录'}</span><strong>${Number.isFinite(yieldAt(priceValue))?`${yieldAt(priceValue).toFixed(1)}%`:'—'}</strong></div>`).join('')}<div class="analysis-source">按当前每股可持续分红估算；未来分红变化会改变实际股息率。</div></div></div>
     <div class="d-sec"><h4>10万元分红压力测试</h4><div class="card">${stressRows.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>估算股息率 ${Number(row[1]).toFixed(1)}%</span><strong>${fmtCNY(row[2])}/年</strong></div>`).join('')}<div class="analysis-note"><b>压力测试用途：</b>先确认即使分红下降，现金流是否仍满足你的资金成本和持有期限。</div></div></div>
     <div class="d-sec"><h4>10万元五年累计分红</h4><div class="card">${fiveYearRows.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[2]}</span><strong>${fmtCNY(row[1])}</strong></div>`).join('')}<div class="analysis-source">未计股价变化、税费和分红再投资；用于比较现金流韧性，不代表未来承诺。</div></div></div>

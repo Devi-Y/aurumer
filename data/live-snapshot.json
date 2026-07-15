@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-07-15T04:22:33.406Z",
-  "durationMs": 17883,
+  "updatedAt": "2026-07-15T05:21:39.547Z",
+  "durationMs": 28736,
   "sources": [
     {
       "id": "yahoo",
@@ -28,6 +28,13 @@
       "id": "sec",
       "name": "SEC EDGAR 13F",
       "url": "https://www.sec.gov/edgar/search/",
+      "ok": true,
+      "error": null
+    },
+    {
+      "id": "tencent-a",
+      "name": "腾讯证券 A股公开行情",
+      "url": "https://qt.gtimg.cn/q=",
       "ok": true,
       "error": null
     }
@@ -2559,19 +2566,7 @@
         "profitScore": 100,
         "valueScore": 64,
         "finalScore": 89,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 3,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "MSFT",
@@ -2606,19 +2601,7 @@
         "profitScore": 99,
         "valueScore": 85,
         "finalScore": 86,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "AAPL",
@@ -2653,19 +2636,7 @@
         "profitScore": 100,
         "valueScore": 54,
         "finalScore": 74,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "GOOGL",
@@ -2700,19 +2671,7 @@
         "profitScore": 96,
         "valueScore": 71,
         "finalScore": 81,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "AMZN",
@@ -2747,19 +2706,7 @@
         "profitScore": 65,
         "valueScore": 72,
         "finalScore": 68,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "META",
@@ -2794,19 +2741,7 @@
         "profitScore": 91,
         "valueScore": 79,
         "finalScore": 84,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 3,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "TSLA",
@@ -2841,19 +2776,7 @@
         "profitScore": 51,
         "valueScore": 0,
         "finalScore": 34,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": false,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "AMD",
@@ -2888,19 +2811,7 @@
         "profitScore": 62,
         "valueScore": 0,
         "finalScore": 54,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": false,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "AVGO",
@@ -2935,19 +2846,7 @@
         "profitScore": 98,
         "valueScore": 11,
         "finalScore": 67,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "PLTR",
@@ -2982,19 +2881,7 @@
         "profitScore": 96,
         "valueScore": 0,
         "finalScore": 68,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "SMCI",
@@ -3029,19 +2916,7 @@
         "profitScore": 57,
         "valueScore": 95,
         "finalScore": 81,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": false,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "ARM",
@@ -3076,19 +2951,7 @@
         "profitScore": 71,
         "valueScore": 0,
         "finalScore": 53,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "TSM",
@@ -3123,19 +2986,7 @@
         "profitScore": 100,
         "valueScore": 56,
         "finalScore": 87,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 3,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "ASML",
@@ -3170,19 +3021,7 @@
         "profitScore": 97,
         "valueScore": 31,
         "finalScore": 76,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "COIN",
@@ -3217,19 +3056,7 @@
         "profitScore": 69,
         "valueScore": 76,
         "finalScore": 69,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "MSTR",
@@ -3264,19 +3091,7 @@
         "profitScore": 0,
         "valueScore": 100,
         "finalScore": 46,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": false,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 0,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "CRWD",
@@ -3311,19 +3126,7 @@
         "profitScore": 40,
         "valueScore": 44,
         "finalScore": 53,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": false,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "NOW",
@@ -3358,19 +3161,7 @@
         "profitScore": 66,
         "valueScore": 35,
         "finalScore": 61,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": false,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "V",
@@ -3405,19 +3196,7 @@
         "profitScore": 100,
         "valueScore": 68,
         "finalScore": 80,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "MA",
@@ -3452,19 +3231,7 @@
         "profitScore": 100,
         "valueScore": 73,
         "finalScore": 84,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "NFLX",
@@ -3499,19 +3266,7 @@
         "profitScore": 89,
         "valueScore": 90,
         "finalScore": 84,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "ORCL",
@@ -3546,19 +3301,7 @@
         "profitScore": 90,
         "valueScore": 100,
         "finalScore": 88,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "CRM",
@@ -3593,19 +3336,7 @@
         "profitScore": 71,
         "valueScore": 99,
         "finalScore": 77,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "SNOW",
@@ -3640,19 +3371,7 @@
         "profitScore": 0,
         "valueScore": 54,
         "finalScore": 44,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": false,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "SHOP",
@@ -3687,19 +3406,7 @@
         "profitScore": 61,
         "valueScore": 0,
         "finalScore": 52,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": false,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "UBER",
@@ -3734,19 +3441,7 @@
         "profitScore": 81,
         "valueScore": 100,
         "finalScore": 85,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       },
       {
         "symbol": "JPM",
@@ -3781,19 +3476,7 @@
         "profitScore": 81,
         "valueScore": 87,
         "finalScore": 74,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "BRK.B",
@@ -3828,19 +3511,7 @@
         "profitScore": 68,
         "valueScore": 100,
         "finalScore": 71,
-        "qualityCriteria": {
-          "cashRich": true,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "LLY",
@@ -3875,19 +3546,7 @@
         "profitScore": 100,
         "valueScore": 42,
         "finalScore": 83,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": true
-        },
-        "qualityMatchCount": 2,
-        "qualityEligible": true,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": true
       },
       {
         "symbol": "COST",
@@ -3922,91 +3581,13 @@
         "profitScore": 58,
         "valueScore": 47,
         "finalScore": 56,
-        "qualityCriteria": {
-          "cashRich": false,
-          "highProfit": true,
-          "highGrowth": false
-        },
-        "qualityMatchCount": 1,
-        "qualityEligible": false,
-        "qualityThresholds": {
-          "liquidAssets": 20000000,
-          "netIncome": 5000000,
-          "profitMargin": 15,
-          "revenueGrowth": 20
-        }
+        "qualityEligible": false
       }
     ],
     "temperature": {
       "value": 58,
       "label": "中性",
       "hint": "VIX 16.5，标普500相对近60日均线 +2.1%——该温度由真实行情计算，不是官方指数"
-    },
-    "strategyBacktest": {
-      "status": "insufficient_history",
-      "releaseReady": false,
-      "tradingDays": 3,
-      "firstSignalDate": "2026-07-10",
-      "lastSignalDate": "2026-07-14",
-      "minimumTradingDays": 90,
-      "holdingDays": [
-        5,
-        20
-      ],
-      "transactionCostBps": 10,
-      "horizons": {
-        "5": {
-          "horizon": 5,
-          "sampleCount": 0,
-          "winRate": null,
-          "return": {
-            "average": null,
-            "median": null,
-            "minimum": null,
-            "maximum": null
-          },
-          "drawdown": {
-            "average": null,
-            "median": null,
-            "minimum": null,
-            "maximum": null
-          },
-          "pricePlan": {
-            "sampleCount": 0,
-            "buyTriggered": 0,
-            "targetHitRate": null,
-            "stopHitRate": null
-          },
-          "transactionCostBps": 10,
-          "examples": []
-        },
-        "20": {
-          "horizon": 20,
-          "sampleCount": 0,
-          "winRate": null,
-          "return": {
-            "average": null,
-            "median": null,
-            "minimum": null,
-            "maximum": null
-          },
-          "drawdown": {
-            "average": null,
-            "median": null,
-            "minimum": null,
-            "maximum": null
-          },
-          "pricePlan": {
-            "sampleCount": 0,
-            "buyTriggered": 0,
-            "targetHitRate": null,
-            "stopHitRate": null
-          },
-          "transactionCostBps": 10,
-          "examples": []
-        }
-      },
-      "methodology": "每个信号日只使用当日已保存的财务、热度与价格字段；使用未来交易日价格计算持有期收益、胜率和路径最大回撤，并双边扣除交易成本。样本不足时不发布策略结论。"
     }
   },
   "hk": {
@@ -4034,16 +3615,17 @@
         "stabilizingManager": null,
         "publicOfferShares": null,
         "extractedFrom": "HKEX 新上市公告",
-        "sponsorNames": [],
-        "sponsor": null,
+        "sponsorNames": [
+          "华富建业企业融资有限公司",
+          "同人融资有限公司"
+        ],
+        "sponsor": "华富建业企业融资有限公司、同人融资有限公司",
         "underwriterNames": [],
         "cornerstoneInvestors": [],
         "cornerstoneAmount": null,
         "cornerstonePercent": null,
         "prospectusExtracted": true,
         "modelEstimate": {
-          "sampleCount": 20,
-          "intervalPercent": 90,
           "subscriptionMultiple": {
             "low": 144,
             "mid": 445,
@@ -4297,7 +3879,7 @@
           "fiveDayHighChange": 35.1,
           "fiveDayHigh": 42.72,
           "fiveDayHighDate": "2026-07-13",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "08090",
@@ -4328,7 +3910,7 @@
           "fiveDayHighChange": 12.54,
           "fiveDayHigh": 7,
           "fiveDayHighDate": "2026-07-08",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "07687",
@@ -4359,7 +3941,7 @@
           "fiveDayHighChange": 15.1,
           "fiveDayHigh": 101.2,
           "fiveDayHighDate": "2026-07-08",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "07656",
@@ -4421,54 +4003,9 @@
           "fiveDayHighChange": 6.5,
           "fiveDayHigh": 314.8,
           "fiveDayHighDate": "2026-07-08",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         }
-      ],
-      "modelValidation": {
-        "algorithmVersion": "ipo-nearest-20-2026-07-v1",
-        "method": "按上市日期滚动验证，只使用当时之前发行与认购特征最接近的 20 只新股，并只用此前预测误差校准区间",
-        "interval": "基于此前绝对误差第 90 分位的滚动校准区间",
-        "releaseThresholds": {
-          "minimumGreyMarketSamples": 60,
-          "minimumFirstDaySamples": 60,
-          "minimumFiveDaySamples": 60,
-          "minimumFiveDayHighSamples": 60,
-          "minimumIntervalCoverage": 85,
-          "minimumDirectionAccuracy": 70,
-          "maximumMeanAbsoluteError": 20,
-          "maximumCalibrationHalfWidth": 28
-        },
-        "sampleCount": 77,
-        "greyMarket": {
-          "sampleCount": 67,
-          "intervalCoverage": 89.55223880597015,
-          "directionAccuracy": 77.92207792207793,
-          "meanAbsoluteError": 53.86207792207791,
-          "calibrationHalfWidth": 120.99200000000009
-        },
-        "firstDay": {
-          "sampleCount": 67,
-          "intervalCoverage": 89.55223880597015,
-          "directionAccuracy": 74.02597402597402,
-          "meanAbsoluteError": 65.06012987012987,
-          "calibrationHalfWidth": 126.1520000000001
-        },
-        "fiveDay": {
-          "sampleCount": 60,
-          "intervalCoverage": 86.66666666666667,
-          "directionAccuracy": 77.14285714285715,
-          "meanAbsoluteError": 69.3857142857143,
-          "calibrationHalfWidth": 161.043
-        },
-        "fiveDayHigh": {
-          "sampleCount": 60,
-          "intervalCoverage": 90,
-          "directionAccuracy": 91.42857142857143,
-          "meanAbsoluteError": 86.28785714285716,
-          "calibrationHalfWidth": 165.672
-        },
-        "releaseReady": false
-      }
+      ]
     },
     "history": [
       {
@@ -5290,6 +4827,422 @@
         ]
       }
     ]
+  },
+  "aShare": {
+    "quotes": [
+      {
+        "code": "600900.SH",
+        "name": "长江电力",
+        "currentPrice": 28.67,
+        "currentDividendYield": 3.84,
+        "sustainableDividendYield": 3.64,
+        "currentAdvice": "持有",
+        "score": 96,
+        "summary": "水电现金流稳定，分红连续性最好，适合长期收息核心仓。",
+        "industry": "公用事业 / 水电",
+        "annualDividendPer100k": 3636,
+        "recommendPrice": "29元下方",
+        "buyPrice": "28.5元以下",
+        "safeMarginPrice": "26.8元以下",
+        "rating": "A",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 28.55,
+        "changePercent": 0.42,
+        "asOf": "2026-07-15T05:21:07.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:07.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "600941.SH",
+        "name": "中国移动",
+        "currentPrice": 92.56,
+        "currentDividendYield": 6.2,
+        "sustainableDividendYield": 5.84,
+        "currentAdvice": "买入",
+        "score": 93,
+        "summary": "现金流强、分红稳，适合作为 A 股收息的压舱石。",
+        "industry": "通信运营 / 现金牛",
+        "annualDividendPer100k": 5844,
+        "recommendPrice": "112元下方",
+        "buyPrice": "108元以下",
+        "safeMarginPrice": "102元以下",
+        "rating": "A",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 91.8,
+        "changePercent": 0.83,
+        "asOf": "2026-07-15T05:21:07.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:07.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "601398.SH",
+        "name": "工商银行",
+        "currentPrice": 7.48,
+        "currentDividendYield": 4.55,
+        "sustainableDividendYield": 4.15,
+        "currentAdvice": "等待",
+        "score": 88,
+        "summary": "大行分红稳定，股息率不低，适合稳健收息。",
+        "industry": "银行 / 国有大行",
+        "annualDividendPer100k": 4145,
+        "recommendPrice": "6元下方",
+        "buyPrice": "5.9元以下",
+        "safeMarginPrice": "5.6元以下",
+        "rating": "A",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 7.5,
+        "changePercent": -0.27,
+        "asOf": "2026-07-15T05:21:09.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:09.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "600036.SH",
+        "name": "招商银行",
+        "currentPrice": 37.68,
+        "currentDividendYield": 4.3,
+        "sustainableDividendYield": 4,
+        "currentAdvice": "等待",
+        "score": 91,
+        "summary": "零售银行龙头，分红与资产质量兼顾，适合长期跟踪。",
+        "industry": "银行 / 零售银行",
+        "annualDividendPer100k": 4004,
+        "recommendPrice": "37元下方",
+        "buyPrice": "35.5元以下",
+        "safeMarginPrice": "33.5元以下",
+        "rating": "A",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 37.18,
+        "changePercent": 1.34,
+        "asOf": "2026-07-15T05:21:07.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:07.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "601939.SH",
+        "name": "建设银行",
+        "currentPrice": 9.95,
+        "currentDividendYield": 3.88,
+        "sustainableDividendYield": 3.59,
+        "currentAdvice": "等待",
+        "score": 84,
+        "summary": "分红稳，波动低，适合收息组合搭配。",
+        "industry": "银行 / 国有大行",
+        "annualDividendPer100k": 3585,
+        "recommendPrice": "7.3元下方",
+        "buyPrice": "7.0元以下",
+        "safeMarginPrice": "6.7元以下",
+        "rating": "B",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 10.04,
+        "changePercent": -0.9,
+        "asOf": "2026-07-15T05:21:08.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:08.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "600377.SH",
+        "name": "宁沪高速",
+        "currentPrice": 11.88,
+        "currentDividendYield": 4.73,
+        "sustainableDividendYield": 4.39,
+        "currentAdvice": "等待",
+        "score": 86,
+        "summary": "高速公路现金流稳定，适合做稳健收息底仓。",
+        "industry": "交通运输 / 高速公路",
+        "annualDividendPer100k": 4394,
+        "recommendPrice": "10元下方",
+        "buyPrice": "9.6元以下",
+        "safeMarginPrice": "9.0元以下",
+        "rating": "A",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 12.18,
+        "changePercent": -2.46,
+        "asOf": "2026-07-15T05:21:09.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:09.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "601088.SH",
+        "name": "中国神华",
+        "currentPrice": 43.57,
+        "currentDividendYield": 7.39,
+        "sustainableDividendYield": 5.76,
+        "currentAdvice": "等待",
+        "score": 78,
+        "summary": "股息高，但周期属性更强，价格和周期位置很重要。",
+        "industry": "能源 / 煤炭",
+        "annualDividendPer100k": 5756,
+        "recommendPrice": "42元下方",
+        "buyPrice": "40元以下",
+        "safeMarginPrice": "37元以下",
+        "rating": "B",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 43.42,
+        "changePercent": 0.35,
+        "asOf": "2026-07-15T05:21:08.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:08.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "600938.SH",
+        "name": "中国海油",
+        "currentPrice": 29.8,
+        "currentDividendYield": 5.83,
+        "sustainableDividendYield": 4.74,
+        "currentAdvice": "等待",
+        "score": 79,
+        "summary": "高分红但受油价周期影响，适合等更舒服的价格。",
+        "industry": "能源 / 油气",
+        "annualDividendPer100k": 4744,
+        "recommendPrice": "29元下方",
+        "buyPrice": "28元以下",
+        "safeMarginPrice": "26.5元以下",
+        "rating": "B",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 29.52,
+        "changePercent": 0.95,
+        "asOf": "2026-07-15T05:21:09.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:09.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "000651.SZ",
+        "name": "格力电器",
+        "currentPrice": 39.83,
+        "currentDividendYield": 6,
+        "sustainableDividendYield": 4.97,
+        "currentAdvice": "持有",
+        "score": 78,
+        "summary": "白电龙头，分红不差，但地产和消费周期会影响弹性。",
+        "industry": "家电 / 白电",
+        "annualDividendPer100k": 4965,
+        "recommendPrice": "41元下方",
+        "buyPrice": "39.5元以下",
+        "safeMarginPrice": "37.5元以下",
+        "rating": "B",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 39.18,
+        "changePercent": 1.66,
+        "asOf": "2026-07-15T05:21:09.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:09.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "600585.SH",
+        "name": "海螺水泥",
+        "currentPrice": 17.49,
+        "currentDividendYield": 5.87,
+        "sustainableDividendYield": 5.21,
+        "currentAdvice": "买入",
+        "score": 80,
+        "summary": "老牌分红资产，适合稳健收息与估值折价时布局。",
+        "industry": "建材 / 制造",
+        "annualDividendPer100k": 5214,
+        "recommendPrice": "23元下方",
+        "buyPrice": "21.8元以下",
+        "safeMarginPrice": "20.5元以下",
+        "rating": "B",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 16.87,
+        "changePercent": 3.68,
+        "asOf": "2026-07-15T05:21:08.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:08.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "000333.SZ",
+        "name": "美的集团",
+        "currentPrice": 82.47,
+        "currentDividendYield": 2.4,
+        "sustainableDividendYield": 2.26,
+        "currentAdvice": "等待",
+        "score": 81,
+        "summary": "家电龙头和制造能力都强，收息与成长兼顾。",
+        "industry": "家电 / 智能制造",
+        "annualDividendPer100k": 2262,
+        "recommendPrice": "59元下方",
+        "buyPrice": "56元以下",
+        "safeMarginPrice": "53元以下",
+        "rating": "B",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 81.18,
+        "changePercent": 1.59,
+        "asOf": "2026-07-15T05:21:09.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:09.000Z",
+        "priceSource": "腾讯证券公开行情"
+      },
+      {
+        "code": "600011.SH",
+        "name": "华能国际",
+        "currentPrice": 6.9,
+        "currentDividendYield": 6.37,
+        "sustainableDividendYield": 5.54,
+        "currentAdvice": "买入",
+        "score": 72,
+        "summary": "电力资产有现金流，但受煤价和电价周期影响较明显。",
+        "industry": "电力 / 火电",
+        "annualDividendPer100k": 5545,
+        "recommendPrice": "8.2元下方",
+        "buyPrice": "7.9元以下",
+        "safeMarginPrice": "7.5元以下",
+        "rating": "B",
+        "buy_zone_low": null,
+        "buy_zone_high": null,
+        "previousClose": 6.91,
+        "changePercent": -0.14,
+        "asOf": "2026-07-15T05:21:08.000Z",
+        "source": "腾讯证券公开行情",
+        "priceAsOf": "2026-07-15T05:21:08.000Z",
+        "priceSource": "腾讯证券公开行情"
+      }
+    ],
+    "fundamentals": [
+      {
+        "symbol": "600900",
+        "period": "mock",
+        "dividendYield": 3.8,
+        "sustainableDividendYield": 3.6,
+        "dividendScore": 96,
+        "industry": "公用事业 / 水电",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "600941",
+        "period": "mock",
+        "dividendYield": 5.2,
+        "sustainableDividendYield": 4.9,
+        "dividendScore": 93,
+        "industry": "通信运营 / 现金牛",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "601398",
+        "period": "mock",
+        "dividendYield": 5.6,
+        "sustainableDividendYield": 5.1,
+        "dividendScore": 88,
+        "industry": "银行 / 国有大行",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "600036",
+        "period": "mock",
+        "dividendYield": 4.4,
+        "sustainableDividendYield": 4.1,
+        "dividendScore": 91,
+        "industry": "银行 / 零售银行",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "601939",
+        "period": "mock",
+        "dividendYield": 5.3,
+        "sustainableDividendYield": 4.9,
+        "dividendScore": 84,
+        "industry": "银行 / 国有大行",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "600377",
+        "period": "mock",
+        "dividendYield": 5.7,
+        "sustainableDividendYield": 5.3,
+        "dividendScore": 86,
+        "industry": "交通运输 / 高速公路",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "601088",
+        "period": "mock",
+        "dividendYield": 7.7,
+        "sustainableDividendYield": 6,
+        "dividendScore": 78,
+        "industry": "能源 / 煤炭",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "600938",
+        "period": "mock",
+        "dividendYield": 5.9,
+        "sustainableDividendYield": 4.8,
+        "dividendScore": 79,
+        "industry": "能源 / 油气",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "000651",
+        "period": "mock",
+        "dividendYield": 5.8,
+        "sustainableDividendYield": 4.8,
+        "dividendScore": 78,
+        "industry": "家电 / 白电",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "600585",
+        "period": "mock",
+        "dividendYield": 4.5,
+        "sustainableDividendYield": 4,
+        "dividendScore": 80,
+        "industry": "建材 / 制造",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "000333",
+        "period": "mock",
+        "dividendYield": 3.4,
+        "sustainableDividendYield": 3.2,
+        "dividendScore": 81,
+        "industry": "家电 / 智能制造",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      },
+      {
+        "symbol": "600011",
+        "period": "mock",
+        "dividendYield": 5.4,
+        "sustainableDividendYield": 4.7,
+        "dividendScore": 72,
+        "industry": "电力 / 火电",
+        "buyZoneLow": null,
+        "buyZoneHigh": null
+      }
+    ],
+    "asOf": "2026-07-15T05:21:09.000Z",
+    "source": "腾讯证券公开行情"
   },
   "investors": [
     {
@@ -6372,429 +6325,10 @@
   ],
   "strategyHealth": {
     "hk": {
-      "releaseReady": false,
-      "status": "not_ready",
-      "note": "暗盘和首日的历史绝对误差仍过大，当前不发布具体涨幅。最终认购倍数在申购截止后才完整可见，不能被当成提前申购信号。",
-      "sampleCount": 77
+      "releaseReady": false
     },
     "us": {
-      "releaseReady": false,
-      "pricePlanReleaseReady": false,
-      "status": "insufficient_history",
-      "note": "已保存 3 个交易日快照；至少需要 90 个交易日，完成无前视回测后才评估收益、回撤、胜率和交易成本。当前仍不承诺盈利。",
-      "eligibleCount": 16,
-      "candidateReady": false,
-      "snapshotDays": 3,
-      "firstSignalDate": "2026-07-10",
-      "lastSignalDate": "2026-07-14",
-      "backtest": {
-        "status": "insufficient_history",
-        "releaseReady": false,
-        "tradingDays": 3,
-        "firstSignalDate": "2026-07-10",
-        "lastSignalDate": "2026-07-14",
-        "minimumTradingDays": 90,
-        "holdingDays": [
-          5,
-          20
-        ],
-        "transactionCostBps": 10,
-        "horizons": {
-          "5": {
-            "horizon": 5,
-            "sampleCount": 0,
-            "winRate": null,
-            "return": {
-              "average": null,
-              "median": null,
-              "minimum": null,
-              "maximum": null
-            },
-            "drawdown": {
-              "average": null,
-              "median": null,
-              "minimum": null,
-              "maximum": null
-            },
-            "pricePlan": {
-              "sampleCount": 0,
-              "buyTriggered": 0,
-              "targetHitRate": null,
-              "stopHitRate": null
-            },
-            "transactionCostBps": 10,
-            "examples": []
-          },
-          "20": {
-            "horizon": 20,
-            "sampleCount": 0,
-            "winRate": null,
-            "return": {
-              "average": null,
-              "median": null,
-              "minimum": null,
-              "maximum": null
-            },
-            "drawdown": {
-              "average": null,
-              "median": null,
-              "minimum": null,
-              "maximum": null
-            },
-            "pricePlan": {
-              "sampleCount": 0,
-              "buyTriggered": 0,
-              "targetHitRate": null,
-              "stopHitRate": null
-            },
-            "transactionCostBps": 10,
-            "examples": []
-          }
-        },
-        "methodology": "每个信号日只使用当日已保存的财务、热度与价格字段；使用未来交易日价格计算持有期收益、胜率和路径最大回撤，并双边扣除交易成本。样本不足时不发布策略结论。"
-      }
+      "pricePlanReleaseReady": false
     }
-  },
-  "aShare": {
-    "quotes": [
-      {
-        "code": "600900.SH",
-        "name": "长江电力",
-        "currentPrice": 28.96,
-        "currentDividendYield": 3.8,
-        "sustainableDividendYield": 3.6,
-        "currentAdvice": "买入",
-        "score": 96,
-        "summary": "水电现金流稳定，分红连续性最好，适合长期收息核心仓。",
-        "industry": "公用事业 / 水电",
-        "annualDividendPer100k": 3600,
-        "recommendPrice": "29元下方",
-        "buyPrice": "28.5元以下",
-        "safeMarginPrice": "26.8元以下",
-        "rating": "A",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "600941.SH",
-        "name": "中国移动",
-        "currentPrice": 110.4,
-        "currentDividendYield": 5.2,
-        "sustainableDividendYield": 4.9,
-        "currentAdvice": "买入",
-        "score": 93,
-        "summary": "现金流强、分红稳，适合作为 A 股收息的压舱石。",
-        "industry": "通信运营 / 现金牛",
-        "annualDividendPer100k": 4900,
-        "recommendPrice": "112元下方",
-        "buyPrice": "108元以下",
-        "safeMarginPrice": "102元以下",
-        "rating": "A",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "601398.SH",
-        "name": "工商银行",
-        "currentPrice": 6.08,
-        "currentDividendYield": 5.6,
-        "sustainableDividendYield": 5.1,
-        "currentAdvice": "持有",
-        "score": 88,
-        "summary": "大行分红稳定，股息率不低，适合稳健收息。",
-        "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 5100,
-        "recommendPrice": "6元下方",
-        "buyPrice": "5.9元以下",
-        "safeMarginPrice": "5.6元以下",
-        "rating": "A",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "600036.SH",
-        "name": "招商银行",
-        "currentPrice": 36.8,
-        "currentDividendYield": 4.4,
-        "sustainableDividendYield": 4.1,
-        "currentAdvice": "买入",
-        "score": 91,
-        "summary": "零售银行龙头，分红与资产质量兼顾，适合长期跟踪。",
-        "industry": "银行 / 零售银行",
-        "annualDividendPer100k": 4100,
-        "recommendPrice": "37元下方",
-        "buyPrice": "35.5元以下",
-        "safeMarginPrice": "33.5元以下",
-        "rating": "A",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "601939.SH",
-        "name": "建设银行",
-        "currentPrice": 7.28,
-        "currentDividendYield": 5.3,
-        "sustainableDividendYield": 4.9,
-        "currentAdvice": "持有",
-        "score": 84,
-        "summary": "分红稳，波动低，适合收息组合搭配。",
-        "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 4900,
-        "recommendPrice": "7.3元下方",
-        "buyPrice": "7.0元以下",
-        "safeMarginPrice": "6.7元以下",
-        "rating": "B",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "600377.SH",
-        "name": "宁沪高速",
-        "currentPrice": 9.85,
-        "currentDividendYield": 5.7,
-        "sustainableDividendYield": 5.3,
-        "currentAdvice": "持有",
-        "score": 86,
-        "summary": "高速公路现金流稳定，适合做稳健收息底仓。",
-        "industry": "交通运输 / 高速公路",
-        "annualDividendPer100k": 5300,
-        "recommendPrice": "10元下方",
-        "buyPrice": "9.6元以下",
-        "safeMarginPrice": "9.0元以下",
-        "rating": "A",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "601088.SH",
-        "name": "中国神华",
-        "currentPrice": 41.8,
-        "currentDividendYield": 7.7,
-        "sustainableDividendYield": 6,
-        "currentAdvice": "等待",
-        "score": 78,
-        "summary": "股息高，但周期属性更强，价格和周期位置很重要。",
-        "industry": "能源 / 煤炭",
-        "annualDividendPer100k": 6000,
-        "recommendPrice": "42元下方",
-        "buyPrice": "40元以下",
-        "safeMarginPrice": "37元以下",
-        "rating": "B",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "600938.SH",
-        "name": "中国海油",
-        "currentPrice": 29.45,
-        "currentDividendYield": 5.9,
-        "sustainableDividendYield": 4.8,
-        "currentAdvice": "等待",
-        "score": 79,
-        "summary": "高分红但受油价周期影响，适合等更舒服的价格。",
-        "industry": "能源 / 油气",
-        "annualDividendPer100k": 4800,
-        "recommendPrice": "29元下方",
-        "buyPrice": "28元以下",
-        "safeMarginPrice": "26.5元以下",
-        "rating": "B",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "000651.SZ",
-        "name": "格力电器",
-        "currentPrice": 41.2,
-        "currentDividendYield": 5.8,
-        "sustainableDividendYield": 4.8,
-        "currentAdvice": "持有",
-        "score": 78,
-        "summary": "白电龙头，分红不差，但地产和消费周期会影响弹性。",
-        "industry": "家电 / 白电",
-        "annualDividendPer100k": 4800,
-        "recommendPrice": "41元下方",
-        "buyPrice": "39.5元以下",
-        "safeMarginPrice": "37.5元以下",
-        "rating": "B",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "600585.SH",
-        "name": "海螺水泥",
-        "currentPrice": 22.8,
-        "currentDividendYield": 4.5,
-        "sustainableDividendYield": 4,
-        "currentAdvice": "持有",
-        "score": 80,
-        "summary": "老牌分红资产，适合稳健收息与估值折价时布局。",
-        "industry": "建材 / 制造",
-        "annualDividendPer100k": 4000,
-        "recommendPrice": "23元下方",
-        "buyPrice": "21.8元以下",
-        "safeMarginPrice": "20.5元以下",
-        "rating": "B",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "000333.SZ",
-        "name": "美的集团",
-        "currentPrice": 58.3,
-        "currentDividendYield": 3.4,
-        "sustainableDividendYield": 3.2,
-        "currentAdvice": "持有",
-        "score": 81,
-        "summary": "家电龙头和制造能力都强，收息与成长兼顾。",
-        "industry": "家电 / 智能制造",
-        "annualDividendPer100k": 3200,
-        "recommendPrice": "59元下方",
-        "buyPrice": "56元以下",
-        "safeMarginPrice": "53元以下",
-        "rating": "B",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      },
-      {
-        "code": "600011.SH",
-        "name": "华能国际",
-        "currentPrice": 8.14,
-        "currentDividendYield": 5.4,
-        "sustainableDividendYield": 4.7,
-        "currentAdvice": "等待",
-        "score": 72,
-        "summary": "电力资产有现金流，但受煤价和电价周期影响较明显。",
-        "industry": "电力 / 火电",
-        "annualDividendPer100k": 4700,
-        "recommendPrice": "8.2元下方",
-        "buyPrice": "7.9元以下",
-        "safeMarginPrice": "7.5元以下",
-        "rating": "B",
-        "buy_zone_low": null,
-        "buy_zone_high": null
-      }
-    ],
-    "fundamentals": [
-      {
-        "symbol": "600900",
-        "period": "mock",
-        "dividendYield": 3.8,
-        "sustainableDividendYield": 3.6,
-        "dividendScore": 96,
-        "industry": "公用事业 / 水电",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "600941",
-        "period": "mock",
-        "dividendYield": 5.2,
-        "sustainableDividendYield": 4.9,
-        "dividendScore": 93,
-        "industry": "通信运营 / 现金牛",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "601398",
-        "period": "mock",
-        "dividendYield": 5.6,
-        "sustainableDividendYield": 5.1,
-        "dividendScore": 88,
-        "industry": "银行 / 国有大行",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "600036",
-        "period": "mock",
-        "dividendYield": 4.4,
-        "sustainableDividendYield": 4.1,
-        "dividendScore": 91,
-        "industry": "银行 / 零售银行",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "601939",
-        "period": "mock",
-        "dividendYield": 5.3,
-        "sustainableDividendYield": 4.9,
-        "dividendScore": 84,
-        "industry": "银行 / 国有大行",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "600377",
-        "period": "mock",
-        "dividendYield": 5.7,
-        "sustainableDividendYield": 5.3,
-        "dividendScore": 86,
-        "industry": "交通运输 / 高速公路",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "601088",
-        "period": "mock",
-        "dividendYield": 7.7,
-        "sustainableDividendYield": 6,
-        "dividendScore": 78,
-        "industry": "能源 / 煤炭",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "600938",
-        "period": "mock",
-        "dividendYield": 5.9,
-        "sustainableDividendYield": 4.8,
-        "dividendScore": 79,
-        "industry": "能源 / 油气",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "000651",
-        "period": "mock",
-        "dividendYield": 5.8,
-        "sustainableDividendYield": 4.8,
-        "dividendScore": 78,
-        "industry": "家电 / 白电",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "600585",
-        "period": "mock",
-        "dividendYield": 4.5,
-        "sustainableDividendYield": 4,
-        "dividendScore": 80,
-        "industry": "建材 / 制造",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "000333",
-        "period": "mock",
-        "dividendYield": 3.4,
-        "sustainableDividendYield": 3.2,
-        "dividendScore": 81,
-        "industry": "家电 / 智能制造",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      },
-      {
-        "symbol": "600011",
-        "period": "mock",
-        "dividendYield": 5.4,
-        "sustainableDividendYield": 4.7,
-        "dividendScore": 72,
-        "industry": "电力 / 火电",
-        "buyZoneLow": null,
-        "buyZoneHigh": null
-      }
-    ]
   }
 }

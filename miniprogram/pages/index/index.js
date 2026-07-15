@@ -30,12 +30,20 @@ Page({
   onLoad() {
     this.refreshAnswers();
   },
-  refreshAnswers() {
+  onPullDownRefresh() {
+    this.refreshAnswers(() => wx.stopPullDownRefresh());
+  },
+  refreshAnswers(done) {
     wx.request({
       url: "https://devi-y.github.io/aurumer/data/live-snapshot.json",
       timeout: 8000,
       success: ({ data }) => {
-        const listing = (data.hk?.listings || [])[0];
+        const verdictOrder = { "值得打": 0, "谨慎打": 1, "不建议": 2, "待核验": 3 };
+        const listing = [...(data.hk?.listings || [])]
+          .sort((left, right) =>
+            (verdictOrder[left.strategyAssessment?.verdict] ?? 9) -
+            (verdictOrder[right.strategyAssessment?.verdict] ?? 9),
+          )[0];
         const nvda = (data.us?.stocks || []).find((item) => item.symbol === "NVDA");
         const aShare = [...(data.aShare?.quotes || [])]
           .sort((left, right) => (right.score || 0) - (left.score || 0))[0];
@@ -56,6 +64,17 @@ Page({
             answer: answers[item.id] || item.question,
           })),
         });
+      },
+      fail: () => {
+        this.setData({
+          entries: this.data.entries.map((item) => ({
+            ...item,
+            answer: item.question,
+          })),
+        });
+      },
+      complete: () => {
+        if (typeof done === "function") done();
       },
     });
   },

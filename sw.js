@@ -1,4 +1,4 @@
-const CACHE_NAME = "aurum-shell-v2";
+const CACHE_NAME = "aurum-shell-v3";
 const BASE = "/aurumer/";
 const SHELL = [
   BASE,

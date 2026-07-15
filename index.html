@@ -1117,6 +1117,8 @@ const LIVE={
   updatedAt:null,
   sources:[],
   usMarketNote:'',
+  hkMarketNote:'',
+  aShareMarketNote:'',
   hkBacktest:null,
   strategyHealth:null,
   hasUS:false,
@@ -1158,8 +1160,9 @@ function formatShares(value){
   return Number.isFinite(value)?`${value.toFixed(0)} 股`:'—';
 }
 function marketUpdateLine(prefix){
-  const ts=LIVE.updatedAt?fmtDate(LIVE.updatedAt):'时间待确认';
-  return `<div class="source-line">${prefix} 数据更新时间 ${ts}</div>`;
+  const note=prefix==='美股'?LIVE.usMarketNote:prefix==='A股'?LIVE.aShareMarketNote:LIVE.hkMarketNote;
+  const fallback=LIVE.updatedAt?`资料整理于 ${fmtDate(LIVE.updatedAt)}`:'资料时间待确认';
+  return `<div class="source-line">${prefix} ${note||fallback}</div>`;
 }
 function aShareRating(item){
   if(item.rating)return item.rating;
@@ -1251,8 +1254,8 @@ function syncAShareAliases(item){
 function stockHeatRank(stock){
   return Number.isFinite(stock.heatScore) ? stock.heatScore : Number.isFinite(stock.score) ? stock.score : 0;
 }
-function stockQualityCount(stock){
-  return Number.isFinite(stock.qualityMatchCount)?stock.qualityMatchCount:0;
+function stockQualityEligible(stock){
+  return Boolean(stock.qualityEligible);
 }
 function hotMarketPool(stocks, limit=10){
   return [...stocks]
@@ -1262,7 +1265,7 @@ function hotMarketPool(stocks, limit=10){
 }
 function hotQualityPool(stocks, limit=3){
   const pool=hotMarketPool(stocks,10)
-    .filter(stock=>stockQualityCount(stock)>=2)
+    .filter(stock=>stockQualityEligible(stock))
     .slice(0,limit);
   return pool.length?pool:hotMarketPool(stocks,limit);
 }
@@ -1421,7 +1424,11 @@ function cleanShareUrl(){
   if(page==='us')return `${publicBase}us-stocks/`;
   if(page==='a-shares')return `${publicBase}a-shares/`;
   if(page==='gurus')return `${publicBase}gurus/`;
-  if(page==='ipo'&&id)return `${publicBase}hk-ipo/${encodeURIComponent(id)}`;
+  if(page==='ipo'&&id){
+    const listing=findIPO(id);
+    const code=listing?ipoPublicCode(listing):normalizeIPOPublicCode(id);
+    return `${publicBase}hk-ipo/${encodeURIComponent(code||id)}`;
+  }
   if(page==='stock'&&id)return `${publicBase}stocks/${encodeURIComponent(id.toUpperCase())}`;
   if(page==='a-share'&&id)return `${publicBase}a-shares/${encodeURIComponent(id)}`;
   if(page==='investor'&&id)return `${publicBase}gurus/${encodeURIComponent(id)}`;
@@ -1678,8 +1685,6 @@ function applyLiveData(payload){
         ['市场情绪',Math.min(100,stock.heatScore||50)]
       ];
       stock.fundamentals=data;
-      stock.qualityCriteria=data.qualityCriteria||{};
-      stock.qualityMatchCount=data.qualityMatchCount||0;
       stock.qualityEligible=Boolean(data.qualityEligible);
       syncUSAliases(stock);
     });
@@ -1732,6 +1737,7 @@ function applyLiveData(payload){
     HK_TEMP.hint=payload.hk.temperature.hint;
   }
   LIVE.hkBacktest=payload.hk?.backtest||null;
+  LIVE.hkMarketNote=LIVE.updatedAt?`资料整理于 ${fmtDate(LIVE.updatedAt)}`:'';
 
   if(payload.aShare?.quotes?.length){
     const byCode=new Map(payload.aShare.quotes.map(row=>[
@@ -1757,9 +1763,15 @@ function applyLiveData(payload){
         recommendPrice:live.recommendPrice,
         buyPrice:live.buyPrice,
         safeMarginPrice:live.safeMarginPrice,
+        changePercent:live.changePercent,
+        priceAsOf:live.priceAsOf||live.asOf||null,
+        priceSource:live.priceSource||live.source||'公开行情',
       });
       syncAShareAliases(item);
     });
+    const latest=payload.aShare.quotes.map(item=>item.priceAsOf||item.asOf).filter(Boolean).sort().at(-1);
+    const source=payload.aShare.source||payload.aShare.quotes.find(item=>item.priceSource)?.priceSource||'公开行情';
+    LIVE.aShareMarketNote=latest?`行情截至 ${fmtDate(latest)} · ${source}`:`资料整理于 ${fmtDate(LIVE.updatedAt)} · ${source}`;
   }
 
   const liveManagers=payload.investors||[];
@@ -1975,6 +1987,14 @@ function routeFromPath(pathname){
   if(parts[0]==='gurus')return parts[1]?`investor/${parts[1].toLowerCase()}`:'gurus';
   if(parts[0]==='history')return 'history';
   return '';
+}
+function normalizeIPOPublicCode(value){
+  const raw=String(value||'').replace(/\.HK$/i,'');
+  const digits=raw.match(/\d{1,5}/)?.[0]||'';
+  return digits?digits.padStart(5,'0'):'';
+}
+function ipoPublicCode(item){
+  return normalizeIPOPublicCode(item?.rawCode||item?.stockCode||item?.code||item?.id);
 }
 function findIPO(id){
   const normalized=(id||'').toLowerCase().replace(/^hk-/,'').replace(/\.hk$/,'');
@@ -2266,7 +2286,7 @@ function ipoCard(x,groupLabel,rank,score){
           ?'可以关注，但只适合控制申购规模。'
           :'风险或资料完整度不合格，暂不参与。';
   const chipClass=x.vc==='ended'?'ended':effectiveLabel==='值得打'?'buy':effectiveLabel==='谨慎打'?'caution':'skip';
-  return `<article class="compact-card ${x.vc==='ended'?'muted':''}" onclick="go('#/ipo/${x.id}')">
+  return `<article class="compact-card ${x.vc==='ended'?'muted':''}" onclick="go('#/ipo/${ipoPublicCode(x)}')">
     <div class="compact-top"><span class="compact-rank">${rank}</span><div class="compact-title"><h3>${x.name}<span class="num">${x.code}</span></h3></div><div class="quote-now"><b class="num">${score} 分</b><span>${x.vc==='ended'?'复盘分':'综合分'}</span></div></div>
     <div class="compact-answer"><span class="result-chip ${chipClass}">${effectiveLabel}</span> ${answer}</div>
     <div class="compact-foot"><span>查看</span><span class="arrow">›</span></div>
@@ -2424,7 +2444,7 @@ function stockRankInfo(x){
 function stockCard(x,i,groupId){
   const price=Number.isFinite(x.current_price)?x.current_price:x.price;
   const score=stockGroupScore(x,groupId);
-  return `<article class="compact-card" data-quality-matches="${stockQualityCount(x)}" onclick="go('#/stock/${x.t}')">
+  return `<article class="compact-card" onclick="go('#/stock/${x.t}')">
     <div class="compact-top">
       <span class="compact-rank">${i+1}</span><div class="compact-title"><h3>${x.t}<span>${x.n}</span></h3></div>
       <div class="quote-now"><b class="num">${score} 分</b><span>$${Number(price).toFixed(2)} · ${pct(x.chg)}</span></div>
@@ -2489,13 +2509,14 @@ function aShareRankInfo(item){
 }
 function aShareCard(item,index,label){
   const score=aShareScoreProfile(item).overall;
+  const priceText=Number.isFinite(item.currentPrice)?`${item.currentPrice.toFixed(2)} 元`:'价格待确认';
   return `<article class="compact-card" onclick="go('#/a-share/${encodeURIComponent(item.code.replace(/\.(SH|SZ)$/i,''))}')">
     <div class="compact-top">
       <span class="compact-rank">${index+1}</span>
       <div class="compact-title">
         <h3>${item.name}<span class="code">${item.code}</span></h3>
       </div>
-      <div class="quote-now"><b class="num">${score} 分</b><span>股息率 ${fmtPct(item.currentDividendYield)}</span></div>
+      <div class="quote-now"><b class="num">${score} 分</b><span>${priceText} · 股息率 ${fmtPct(item.currentDividendYield)}</span></div>
     </div>
     <div class="compact-answer"><b>${label}：</b>${item.summary}</div>
     <div class="compact-foot"><span>查看</span><span class="arrow">›</span></div>
@@ -2681,6 +2702,7 @@ function renderAShare(x){
         <div class="stat"><b class="num">${x.currentAdvice}</b><span>当前建议</span></div>
       </div>
       <div class="t2" style="margin-top:10px">分红再投资：${x.dividendReinvestment}</div>
+      <div class="source-line">价格来源：${x.priceSource||'公开资料'} · ${x.priceAsOf?`行情截至 ${fmtDate(x.priceAsOf)}`:'资料时间待确认'}</div>
     </div></div>
     <div class="d-sec"><h4>具体资料</h4><div class="card facts-card"><table class="kv">
       <tr><td>股票名称</td><td>${x.name}</td></tr>
@@ -2771,7 +2793,7 @@ function renderHKBacktest(){
   });
 }
 function renderUSHeatTop10(){
-  const items=US_STOCKS.filter(item=>stockQualityCount(item)>=2).sort((a,b)=>stockHeatRank(b)-stockHeatRank(a)).slice(0,10);
+  const items=US_STOCKS.filter(stockQualityEligible).sort((a,b)=>stockHeatRank(b)-stockHeatRank(a)).slice(0,10);
   analysisShell({
     active:'us',
     backRoute:'#/us/hot',
@@ -2952,7 +2974,7 @@ function renderIPO(x){
       ['可能降级','关键资料缺失、市场变化或风险显著增加','转为保守'],
       ['价格更新','最终发行价与最新交易数据确认后','更新参考'],
     ],'最终定价、配发结果、暗盘和上市后五个交易日','港股')}
-    ${deepAnalysisEntry(`#/ipo/${x.id}/analysis`,'继续看完整复盘','查看实际表现、资料、风险和结论变化。')}`
+    ${deepAnalysisEntry(`#/ipo/${ipoPublicCode(x)}/analysis`,'继续看完整复盘','查看实际表现、资料、风险和结论变化。')}`
   );
 }
 function stockPriceAnswers(x){
@@ -3021,6 +3043,7 @@ function renderStock(x){
       <div class="price-cell"><span>距高点</span><b>${Number.isFinite(position.drawdownFromHigh)?pct(Number(position.drawdownFromHigh.toFixed(1))):'暂缺'}</b><small>用于判断是否追高</small></div>
     </div>
     <div class="price-note">${planReady?`${answers.status}；仅供研究参考，不构成买卖指令。`:'价格答案暂未形成可靠参考。'}</div>
+    <div class="source-line">美股行情截至 ${fmtDate(x.asOf)} · Yahoo Finance 公共行情</div>
     <div class="d-sec"><h4>一眼看懂</h4><div class="card">
       <div class="evidence-grid">
         <div class="evidence-item"><span>综合排名</span><b>${scoreValue} 分 · 第 ${rankInfo.rank}/${rankInfo.total} 名</b><small>${rankInfo.label}内比较</small></div>
@@ -3159,7 +3182,7 @@ function renderIPOAnalysis(x){
     ];
   analysisShell({
     active:'hk',
-    backRoute:`#/ipo/${x.id}`,
+    backRoute:`#/ipo/${ipoPublicCode(x)}`,
     title:`${x.name} · 完整复盘`,
     subtitle:'只看最终分数、排名、实际表现、资料和风险。',
     body:`<div class="d-sec"><h4>最终结果</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${rankInfo.score}</b><span>${isEnded?'复盘分':'综合分'}</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>同组排名</span></div><div class="stat"><b>${isPending?'暂不参与':x.verdict}</b><span>${isEnded?'历史状态':'当前结论'}</span></div><div class="stat"><b>${knownFacts}/6</b><span>资料完整度</span></div></div><div class="analysis-source">历史项目按实际表现复盘，当前项目以最新公开资料为准。</div></div></div>

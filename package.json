@@ -5,12 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "audit:candidates": "node scripts/audit-strategy-candidates.mjs",
-    "capture:us": "node scripts/pages-capture-us-history.mjs",
-    "snapshot": "node scripts/write-live-snapshot.mjs"
+    "routes": "node scripts/write-route-adapters.mjs"
   },
-  "dependencies": {
-    "opencc-js": "^1.4.0",
-    "pdf-parse": "^1.1.1"
-  }
+  "dependencies": {}
 }

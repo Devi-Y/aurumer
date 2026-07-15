@@ -1,9 +1,11 @@
-const CACHE_NAME = "aurum-shell-v1";
+const CACHE_NAME = "aurum-shell-v2";
 const BASE = "/aurumer/";
 const SHELL = [
   BASE,
   `${BASE}index.html`,
   `${BASE}manifest.webmanifest`,
+  `${BASE}icons/aurum-192.png`,
+  `${BASE}icons/aurum-512.png`,
   `${BASE}icons/aurum.svg`,
 ];
 

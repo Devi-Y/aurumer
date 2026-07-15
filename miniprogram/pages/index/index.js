@@ -4,6 +4,7 @@ const ENTRIES = [
     kicker: "HK · 新股",
     title: "港股打新",
     question: "这只新股值不值得打？中签后怎么卖？",
+    answer: "这只新股值不值得打？中签后怎么卖？",
     tone: "hk",
   },
   {
@@ -11,6 +12,7 @@ const ENTRIES = [
     kicker: "US · 机会",
     title: "美股投资",
     question: "七姐妹和热门 AI 股，现在贵不贵？",
+    answer: "七姐妹和热门 AI 股，现在贵不贵？",
     tone: "us",
   },
   {
@@ -18,12 +20,45 @@ const ENTRIES = [
     kicker: "CN · 收息",
     title: "A股收息",
     question: "资金成本低于多少，适合长期收息？",
+    answer: "资金成本低于多少，适合长期收息？",
     tone: "a",
   },
 ];
 
 Page({
-  data: { entries: ENTRIES },
+  data: { entries: ENTRIES.map((item) => ({ ...item })) },
+  onLoad() {
+    this.refreshAnswers();
+  },
+  refreshAnswers() {
+    wx.request({
+      url: "https://devi-y.github.io/aurumer/data/live-snapshot.json",
+      timeout: 8000,
+      success: ({ data }) => {
+        const listing = (data.hk?.listings || [])[0];
+        const nvda = (data.us?.stocks || []).find((item) => item.symbol === "NVDA");
+        const aShare = [...(data.aShare?.quotes || [])]
+          .sort((left, right) => (right.score || 0) - (left.score || 0))[0];
+        const answers = {
+          hk: listing
+            ? `${listing.name} · ${listing.strategyAssessment?.verdict || "查看最新结论"}`
+            : "当前暂无可核验的新股",
+          us: nvda
+            ? `NVDA · $${Number(nvda.price).toFixed(2)} · 查看价格答案`
+            : "查看七姐妹与热度前三",
+          a: aShare
+            ? `${aShare.name} · ${aShare.currentAdvice || "查看收息结论"}`
+            : "查看高股息收息答案",
+        };
+        this.setData({
+          entries: this.data.entries.map((item) => ({
+            ...item,
+            answer: answers[item.id] || item.question,
+          })),
+        });
+      },
+    });
+  },
   openEntry(event) {
     const target = event.currentTarget.dataset.target;
     wx.navigateTo({ url: `/pages/webview/index?target=${target}` });

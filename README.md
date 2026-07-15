@@ -13,6 +13,10 @@
 - 美股投资：https://devi-y.github.io/aurumer/#/us
 - A股收息：https://devi-y.github.io/aurumer/#/a-shares
 - 聪明人持仓：https://devi-y.github.io/aurumer/#/gurus
+- 港股短链接：https://devi-y.github.io/aurumer/hk-ipo/
+- 美股短链接：https://devi-y.github.io/aurumer/us-stocks/
+- A股短链接：https://devi-y.github.io/aurumer/a-shares/
+- 持仓短链接：https://devi-y.github.io/aurumer/gurus/
 - AI 可读说明：https://devi-y.github.io/aurumer/llms.txt
 
 ## 产品定位
@@ -53,12 +57,20 @@
 
 ## 当前数据
 
-- 更新时间：2026-07-14T11:42:37.835Z
-- 港股新股：15 只（12 只历史样本 + 3 只实时样本）
+- 更新时间：2026-07-15T02:48:31.742Z
+- 港股新股：13 只（12 只历史样本 + 1 只实时样本）
 - 美股行情：30 只
 - 美股基本面：30 只
 - A股收息：12 只
 - 13F 投资人：9 位
+
+## 多端使用
+
+- 网页：固定 GitHub Pages 地址，电脑和手机浏览器自动响应式适配。
+- 手机桌面：站点提供 `manifest.webmanifest` 和 Service Worker，可作为 PWA 添加到主屏幕。
+- 微信小程序：`miniprogram/` 提供原生三级入口首页，详情通过 `web-view` 使用同一套 H5 数据和页面。
+- 微信发布前唯一必须人工完成的步骤：填写正式 AppID，并把 `https://devi-y.github.io` 配置为小程序业务域名。
+- 分享：港股、美股、A股和聪明人详情页支持系统分享；不支持系统分享时自动复制短链接。
 
 ## 公开展示边界
 
@@ -67,6 +79,7 @@
 - A股已提供分红质量、价格层级、分红计算器、年度压力测试与五年累计现金流情景。
 - 聪明人持仓已区分公开披露事实与望潮解读，并提示 13F 时间滞后。
 - 公开页面不展示内部判断规则、权重、阈值或评分拆解，只展示最终分数、排名、结论、事实与风险。
+- 公开单页只消费内部产出的最终答案，不在浏览器中重新计算策略权重。
 - 所有结论都展示升级、降级或继续等待的条件，不承诺收益，也不使用占位价格。
 
 页面数据仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议、收益承诺或买卖指令。

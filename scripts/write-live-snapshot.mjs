@@ -86,15 +86,17 @@ function buildHistoricalHKListings(backtest) {
       boardLotShares,
       boardLot: boardLotShares ? `${boardLotShares}股/手` : "以历史招股文件为准",
       entryFee: boardLotAmount,
-      offerStart: row.listingDate || null,
-      offerDeadline: row.listingDate || null,
+      // Listing day is not the historical application period. Leave unknown
+      // dates empty rather than publishing a plausible but incorrect value.
+      offerStart: null,
+      offerDeadline: null,
       listingDate: row.listingDate || null,
       sponsor: Array.isArray(row.sponsorNames) && row.sponsorNames.length
         ? row.sponsorNames.join("、")
         : row.sponsors || "见历史招股文件",
       sponsorNames: Array.isArray(row.sponsorNames) ? row.sponsorNames : [],
-      underwriterNames: [],
-      stabilizingManager: "见历史招股文件",
+      underwriterNames: Array.isArray(row.underwriterNames) ? row.underwriterNames : [],
+      stabilizingManager: row.stabilizingManager || "见历史招股文件",
       cornerstoneInvestors: [],
       cornerstonePercent: Number.isFinite(row.cornerstonePercent) ? row.cornerstonePercent : null,
       publicOversubscription: Number.isFinite(row.publicOversubscription) ? row.publicOversubscription : null,
@@ -103,6 +105,7 @@ function buildHistoricalHKListings(backtest) {
       isAH: Boolean(row.isAH),
       historical: true,
       listingStatus: "ended",
+      reviewNote: row.reviewNote || null,
       historicalReview: {
         verdict: "已结束",
         greyMarketChange,
@@ -202,7 +205,7 @@ try {
   previousPublicSnapshot = null;
 }
 
-const payload = await withTimeout(fetchLiveData({ deepHK: true }), 60_000, "实时抓数");
+const payload = await withTimeout(fetchLiveData({ deepHK: true }), 120_000, "实时抓数");
 if (!payload.aShare) {
   payload.aShare = await buildStaticASharePayload();
 }

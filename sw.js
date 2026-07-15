@@ -1,5 +1,5 @@
-const CACHE_NAME = "aurum-shell-v5";
-const BASE = "/aurumer/";
+const CACHE_NAME = "aurum-shell-v7";
+const BASE = new URL(self.registration.scope).pathname;
 const SHELL = [
   BASE,
   `${BASE}index.html`,

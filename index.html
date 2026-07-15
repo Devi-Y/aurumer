@@ -1350,14 +1350,18 @@ const GROWTH_INVITE_TEXT=`我最近在内测一个港美股投资答案工具：
 工具内测免费，但首批只拉 10 个人，前提是有港美股账户和基础投资经验。
 
 可以把持仓截图发我，金额不限，关键信息可打码。我会根据真实反馈继续优化。`;
-const HOMEPAGE_INTRO_TEXT=`望潮 Aurum｜港美股投资答案工具
+function publicShareBase(){
+  if(location.hostname==='aurumer.com'||location.hostname==='www.aurumer.com')return `${location.origin}/`;
+  return 'https://devi-y.github.io/aurumer/';
+}
+function homepageIntroText(){return `望潮 Aurum｜港美股投资答案工具
 
 港股看打新答案，美股看机会与估值，A股看分红和现金流，聪明人持仓看资金方向。
 
 不替你喊买卖，只帮你少看噪音，更快找到下一步。
 
 公开体验：
-https://devi-y.github.io/aurumer/`;
+${publicShareBase()}`;}
 async function copyTextContent(text, button, successLabel='已复制'){
   const target=button&&button.nodeType===1?button:null;
   const restoreLabel=target?.textContent?.trim()||'复制';
@@ -1389,12 +1393,12 @@ async function copyTextContent(text, button, successLabel='已复制'){
 }
 window.copyTextContent=copyTextContent;
 window.copyGrowthInvite=button=>copyTextContent(GROWTH_INVITE_TEXT,button);
-window.copyHomepageLink=button=>copyTextContent('https://devi-y.github.io/aurumer/',button);
-window.copyHomepageIntro=button=>copyTextContent(HOMEPAGE_INTRO_TEXT,button);
+window.copyHomepageLink=button=>copyTextContent(publicShareBase(),button);
+window.copyHomepageIntro=button=>copyTextContent(homepageIntroText(),button);
 function cleanShareUrl(){
   const route=location.hash.replace(/^#\/?/,'')||routeFromPath(location.pathname);
   const [page,id]=route.split('/');
-  const publicBase='https://devi-y.github.io/aurumer/';
+  const publicBase=publicShareBase();
   if(page==='hk')return `${publicBase}hk-ipo/`;
   if(page==='us')return `${publicBase}us-stocks/`;
   if(page==='a-shares')return `${publicBase}a-shares/`;

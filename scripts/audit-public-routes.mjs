@@ -21,6 +21,8 @@ for (const spec of specs) {
   await access(target);
   const html = await readFile(target, "utf8");
   assert(html.includes(spec.canonical), `${spec.route} 缺少 canonical`);
+  assert(html.includes(spec.description), `${spec.route} 分享说明未同步`);
+  assert(html.includes(`#/${spec.hash}`), `${spec.route} 跳转目标错误`);
   assert(html.includes("og:description"), `${spec.route} 缺少分享说明`);
   assert(html.includes("aurum-share.png"), `${spec.route} 缺少分享图`);
   assert(!/strategyAssessment|modelEstimate|modelValidation/.test(html), `${spec.route} 泄露内部字段`);

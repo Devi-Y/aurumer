@@ -4,6 +4,8 @@ import { resolve } from "node:path";
 const root = resolve(import.meta.dirname, "..");
 const html = await readFile(resolve(root, "index.html"), "utf8");
 const dailyHtml = await readFile(resolve(root, "daily.html"), "utf8");
+const manifest = JSON.parse(await readFile(resolve(root, "manifest.webmanifest"), "utf8"));
+const serviceWorker = await readFile(resolve(root, "sw.js"), "utf8");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -42,8 +44,11 @@ assert(html.includes("动作时间线"), "聪明人深度页缺少动作时间�
 assert(html.includes("function renderLoadingApp"), "页面缺少加载状态");
 assert(html.includes("function pageNav"), "详情页缺少返回与首页导航");
 assert(html.includes("function mobileNav"), "移动端缺少底部导航");
+assert(html.includes("function publicShareBase"), "分享链接不能自动适配正式域名");
 assert(/@media\(max-width:420px\)/.test(html), "缺少手机端布局规则");
 assert(/overflow-x:clip/.test(html), "页面没有阻止横向溢出");
+assert(manifest.start_url === "./" && manifest.scope === "./", "PWA 启动路径仍绑定单一域名目录");
+assert(serviceWorker.includes("self.registration.scope"), "离线缓存路径不能自动适配正式域名");
 const aShareGroupsBody = html.match(/function getAShareGroups\(\)\{([\s\S]*?)\n\}/)?.[1] || "";
 const aShareGroupIdBody = html.match(/function aShareGroupIdFor\(item\)\{([\s\S]*?)\n\}/)?.[1] || "";
 assert(aShareGroupsBody.includes("item.currentAdvice==='买入'"), "A股买入组缺少买入条件");

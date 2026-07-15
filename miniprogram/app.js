@@ -1,5 +1,7 @@
+const { PUBLIC_ORIGIN } = require("./config");
+
 App({
   globalData: {
-    publicBase: "https://devi-y.github.io/aurumer/",
+    publicBase: `${PUBLIC_ORIGIN}/`,
   },
 });

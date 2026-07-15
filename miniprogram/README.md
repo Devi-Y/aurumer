@@ -4,7 +4,7 @@
 
 正式发布前需要在微信公众平台完成两项人工配置：
 
-1. 将根目录 `project.config.json` 的 `appid` 换成正式小程序 AppID。
+1. 将本目录 `project.config.json` 的 `appid` 从 `touristappid` 换成正式小程序 AppID。
 2. 在“开发管理 -> 开发设置”中，把 `https://devi-y.github.io` 同时加入“服务器域名（request 合法域名）”和“业务域名”。
 
-除上述微信平台权限配置外，代码已可直接用微信开发者工具导入根目录预览。
+除上述微信平台权限配置外，代码已可直接用微信开发者工具导入 `miniprogram/` 目录预览。

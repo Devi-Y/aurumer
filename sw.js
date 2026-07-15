@@ -1,12 +1,17 @@
-const CACHE_NAME = "aurum-shell-v3";
+const CACHE_NAME = "aurum-shell-v5";
 const BASE = "/aurumer/";
 const SHELL = [
   BASE,
   `${BASE}index.html`,
+  `${BASE}daily.html`,
+  `${BASE}legacy.html`,
   `${BASE}manifest.webmanifest`,
   `${BASE}icons/aurum-192.png`,
   `${BASE}icons/aurum-512.png`,
   `${BASE}icons/aurum.svg`,
+  `${BASE}assets/aurum-share.png`,
+  `${BASE}assets/dashboard.css`,
+  `${BASE}assets/dashboard.js`,
 ];
 
 self.addEventListener("install", (event) => {

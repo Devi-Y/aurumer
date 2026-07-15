@@ -89,7 +89,7 @@ function deriveHoldingView(holding, maps) {
     return { name:item?.name || code, current, change:Number(item?.changePercent), action:{text,tone}, detail:'legacy.html#/a-shares', shares, cost, source:item?.priceAsOf ? `${item.priceSource || '公开行情'} · ${formatDateTime(item.priceAsOf)}` : '数据待核验' };
   }
   const item = maps.hk.get(code);
-  const assessment = item?.strategyAssessment || {};
+  const assessment = item?.publicAnswer || {};
   return { name:item?.name || code, current:null, change:null, action:{text:assessment.action || assessment.verdict || '港股持仓行情暂未接入',tone:'wait'}, detail:'legacy.html#/hk', shares, cost, source:item?.source || '港交所公开资料' };
 }
 
@@ -105,7 +105,7 @@ function getUSFocus(data) {
 function getHKFocus(data) {
   const listings = (data.hk?.listings || []).filter(item => !item.historical && item.listingStatus !== 'ended');
   if (!listings.length) return null;
-  return listings.find(item => item.strategyAssessment?.verdict) || listings[0];
+  return listings.find(item => item.publicAnswer?.verdict) || listings[0];
 }
 
 function getGuruFocus(data) {
@@ -145,7 +145,7 @@ function renderConclusions() {
   }
   const hk = getHKFocus(data);
   if (hk) {
-    const assessment = hk.strategyAssessment || {};
+    const assessment = hk.publicAnswer || {};
     cards.push(conclusionCard({
       type:'港股打新', title:`${hk.name || hk.code || hk.stockCode || '新股'} · 申购判断`, status:assessment.verdict || '待核验', tone:assessment.verdict?.includes('不') ? 'risk' : assessment.verdict?.includes('值得') ? 'good' : 'wait',
       answer:assessment.action || '核心招股资料已进入核验，未完成前不输出确定答案。',

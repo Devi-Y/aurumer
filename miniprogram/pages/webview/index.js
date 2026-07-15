@@ -1,7 +1,9 @@
+const { PUBLIC_ORIGIN } = require("../../config");
+
 const TARGETS = {
-  hk: { title: "港股打新", url: "https://devi-y.github.io/aurumer/hk-ipo/" },
-  us: { title: "美股投资", url: "https://devi-y.github.io/aurumer/us-stocks/" },
-  a: { title: "A股收息", url: "https://devi-y.github.io/aurumer/a-shares/" },
+  hk: { title: "港股打新", url: `${PUBLIC_ORIGIN}/hk-ipo/` },
+  us: { title: "美股投资", url: `${PUBLIC_ORIGIN}/us-stocks/` },
+  a: { title: "A股收息", url: `${PUBLIC_ORIGIN}/a-shares/` },
 };
 
 Page({

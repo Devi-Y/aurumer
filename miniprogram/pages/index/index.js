@@ -1,3 +1,5 @@
+const { PUBLIC_ORIGIN } = require("../../config");
+
 const ENTRIES = [
   {
     id: "hk",
@@ -35,21 +37,21 @@ Page({
   },
   refreshAnswers(done) {
     wx.request({
-      url: "https://devi-y.github.io/aurumer/data/live-snapshot.json",
+      url: `${PUBLIC_ORIGIN}/data/live-snapshot.json`,
       timeout: 8000,
       success: ({ data }) => {
         const verdictOrder = { "值得打": 0, "谨慎打": 1, "不建议": 2, "待核验": 3 };
         const listing = [...(data.hk?.listings || [])]
           .sort((left, right) =>
-            (verdictOrder[left.strategyAssessment?.verdict] ?? 9) -
-            (verdictOrder[right.strategyAssessment?.verdict] ?? 9),
+            (verdictOrder[left.publicAnswer?.verdict] ?? 9) -
+            (verdictOrder[right.publicAnswer?.verdict] ?? 9),
           )[0];
         const nvda = (data.us?.stocks || []).find((item) => item.symbol === "NVDA");
         const aShare = [...(data.aShare?.quotes || [])]
           .sort((left, right) => (right.score || 0) - (left.score || 0))[0];
         const answers = {
           hk: listing
-            ? `${listing.name} · ${listing.strategyAssessment?.verdict || "查看最新结论"}`
+            ? `${listing.name} · ${listing.publicAnswer?.verdict || "查看最新结论"}`
             : "当前暂无可核验的新股",
           us: nvda
             ? `NVDA · $${Number(nvda.price).toFixed(2)} · 查看价格答案`

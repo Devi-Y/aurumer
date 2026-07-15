@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>望潮 Aurum｜每日投资答案</title>
+  <meta name="description" content="望潮 Aurum：每天先看今日结论，再看自己的持仓。覆盖美股投资、港股打新、聪明人持仓与A股收息。">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="theme-color" content="#F5F2EB">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="望潮 Aurum">
+  <link rel="canonical" href="https://devi-y.github.io/aurumer/daily.html">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:site_name" content="望潮 Aurum">
+  <meta property="og:title" content="望潮 Aurum｜每日投资答案">
+  <meta property="og:description" content="30秒看清今日结论、持仓状态和下一步。">
+  <meta property="og:url" content="https://devi-y.github.io/aurumer/daily.html">
+  <meta property="og:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="望潮 Aurum｜每日投资答案">
+  <meta name="twitter:description" content="少看行情噪音，每天先看结论。">
+  <meta name="twitter:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/aurum-192.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+  <link rel="stylesheet" href="assets/dashboard.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="望潮首页">望潮 <small>Aurum</small></a>
+      <nav class="top-actions" aria-label="主导航">
+        <a href="legacy.html#/us">完整工具</a>
+        <a class="primary-link" href="growth.html">加入内测</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-topline">
+          <span id="session-badge" class="session-badge">正在判断市场时段</span>
+          <span id="updated-at" class="updated-at">数据加载中</span>
+        </div>
+        <h1 id="hero-title">每天先看结论，再看持仓。</h1>
+        <p id="session-copy">望潮会根据早间、盘中、晚间与美股时段，自动调整你最该先看的内容。</p>
+        <div id="reminder" class="reminder" hidden></div>
+      </section>
+
+      <section class="section" aria-labelledby="today-title">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">TODAY</span>
+            <h2 id="today-title">今日结论</h2>
+          </div>
+          <a href="legacy.html#/us">查看全部答案 →</a>
+        </div>
+        <div id="daily-conclusions" class="conclusion-grid" aria-live="polite">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      </section>
+
+      <section class="section holdings-section" aria-labelledby="holdings-title">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">MY PORTFOLIO</span>
+            <h2 id="holdings-title">我的持仓</h2>
+          </div>
+          <button id="open-holding-form" class="text-button" type="button">＋ 添加持仓</button>
+        </div>
+        <p class="privacy-note">持仓数据只保存在当前浏览器，不上传服务器。</p>
+        <div id="holdings-list" class="holdings-list" aria-live="polite"></div>
+      </section>
+
+      <section class="section" aria-labelledby="channels-title">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">EXPLORE</span>
+            <h2 id="channels-title">四个投资入口</h2>
+          </div>
+          <span class="section-note">按当前优先级排列</span>
+        </div>
+        <div id="channel-grid" class="channel-grid">
+          <a class="channel-card us" href="legacy.html#/us">
+            <span class="channel-order">01</span>
+            <div><b>美股投资</b><p id="us-channel-copy">机会、估值与价格纪律</p></div><i>→</i>
+          </a>
+          <a class="channel-card hk" href="legacy.html#/hk">
+            <span class="channel-order">02</span>
+            <div><b>港股打新</b><p id="hk-channel-copy">申购、暗盘、首日与回溯</p></div><i>→</i>
+          </a>
+          <a class="channel-card guru" href="legacy.html#/gurus">
+            <span class="channel-order">03</span>
+            <div><b>聪明人持仓</b><p id="guru-channel-copy">只看公开披露的资金方向</p></div><i>→</i>
+          </a>
+          <a class="channel-card a" href="legacy.html#/a-shares">
+            <span class="channel-order">04</span>
+            <div><b>A股收息</b><p id="a-channel-copy">股息、现金流与资金成本</p></div><i>→</i>
+          </a>
+        </div>
+      </section>
+
+      <section class="member-card" aria-labelledby="member-title">
+        <div>
+          <span class="eyebrow">MEMBER</span>
+          <h2 id="member-title">免费先看判断，内测版再看完整价格区间。</h2>
+          <p>公开版提供结论、三个依据和一个风险；内测版补充买入、止盈、止损参考区间与替代标的。</p>
+        </div>
+        <a href="growth.html">查看内测说明</a>
+      </section>
+    </main>
+
+    <footer>
+      <p>数据来自公开行情、公司财务资料、港交所与 SEC 披露；每条结论以页面标注的时间和来源为准。</p>
+      <p>本工具仅用于信息整理、数据分析和投资研究辅助，不构成投资建议、收益承诺或买卖指令。</p>
+      <div class="footer-links"><a href="cockpit.html">方法说明</a><a href="legacy.html">完整工具</a><a href="PRODUCT_PLAN.md">产品规划</a></div>
+    </footer>
+  </div>
+
+  <dialog id="holding-dialog" class="holding-dialog">
+    <form id="holding-form" method="dialog">
+      <div class="dialog-head">
+        <div><span class="eyebrow">ADD HOLDING</span><h2>添加一只持仓</h2></div>
+        <button id="close-holding-form" class="icon-button" type="button" aria-label="关闭">×</button>
+      </div>
+      <label>市场
+        <select id="holding-market" required>
+          <option value="US">美股</option>
+          <option value="HK">港股</option>
+          <option value="A">A股</option>
+        </select>
+      </label>
+      <label>股票代码
+        <input id="holding-code" name="code" placeholder="例如 NVDA / 00700 / 600036" autocomplete="off" required>
+      </label>
+      <div class="form-grid">
+        <label>持仓成本
+          <input id="holding-cost" name="cost" type="number" min="0" step="0.001" placeholder="每股成本" required>
+        </label>
+        <label>持仓数量（选填）
+          <input id="holding-shares" name="shares" type="number" min="0" step="0.001" placeholder="用于计算盈亏">
+        </label>
+      </div>
+      <p class="form-hint">第一阶段仅支持手动录入；后续再增加持仓截图识别。</p>
+      <button class="submit-button" type="submit">保存持仓</button>
+    </form>
+  </dialog>
+
+  <script src="assets/dashboard.js" defer></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-07-15T05:48:03.515Z",
-  "durationMs": 20626,
+  "updatedAt": "2026-07-15T07:31:33.179Z",
+  "durationMs": 19884,
   "sources": [
     {
       "id": "yahoo",
@@ -35,6 +35,13 @@
       "id": "tencent-a",
       "name": "腾讯证券 A股公开行情",
       "url": "https://qt.gtimg.cn/q=",
+      "ok": true,
+      "error": null
+    },
+    {
+      "id": "eastmoney-a-financial",
+      "name": "东方财富 A股公开财务数据",
+      "url": "https://datacenter-web.eastmoney.com/api/data/v1/get",
       "ok": true,
       "error": null
     }
@@ -3585,9 +3592,9 @@
       }
     ],
     "temperature": {
-      "value": 58,
+      "value": 59,
       "label": "中性",
-      "hint": "VIX 16.5，标普500相对近60日均线 +2.1%——该温度由真实行情计算，不是官方指数"
+      "hint": "VIX 16.21，标普500相对近60日均线 +2.1%——该温度由真实行情计算，不是官方指数"
     }
   },
   "hk": {
@@ -3615,36 +3622,23 @@
         "stabilizingManager": null,
         "publicOfferShares": null,
         "extractedFrom": "HKEX 新上市公告",
-        "sponsorNames": [],
-        "sponsor": null,
+        "sponsorNames": [
+          "华富建业企业融资有限公司",
+          "同人融资有限公司"
+        ],
+        "sponsor": "华富建业企业融资有限公司、同人融资有限公司",
         "underwriterNames": [],
         "cornerstoneInvestors": [],
         "cornerstoneAmount": null,
         "cornerstonePercent": null,
         "prospectusExtracted": true,
-        "modelEstimate": {
-          "subscriptionMultiple": {
-            "low": 144,
-            "mid": 445,
-            "high": 3739
-          },
-          "oneLotWinRate": {
-            "low": 0.5,
-            "mid": 4,
-            "high": 12
-          },
-          "greyMarketChange": null,
-          "firstDayChange": null,
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "低"
-        },
-        "strategyAssessment": {
+        "publicAnswer": {
           "verdict": "待核验",
-          "action": "缺少招股价、一手股数、申购截止时间，暂不提供申购结论。"
+          "action": "缺少招股价、一手股数、申购截止时间，暂不提供申购结论。",
+          "score": 0
         },
-        "historicalReview": null
+        "historicalReview": null,
+        "publishedEstimate": null
       }
     ],
     "temperature": {
@@ -4039,37 +4033,19 @@
           "fiveDayChange": null,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 327.49,
-          "oneLotWinRate": 0.69,
-          "greyMarketChange": {
-            "low": -4.64,
-            "high": -4.64,
-            "mid": -4.64
-          },
-          "firstDayChange": {
-            "low": 4.69,
-            "high": 4.69,
-            "mid": 4.69
-          },
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-00537",
@@ -4105,37 +4081,19 @@
           "fiveDayChange": null,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 356.86,
-          "oneLotWinRate": 8,
-          "greyMarketChange": {
-            "low": -17.36,
-            "high": -17.36,
-            "mid": -17.36
-          },
-          "firstDayChange": {
-            "low": -37.36,
-            "high": -37.36,
-            "mid": -37.36
-          },
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-03752",
@@ -4171,37 +4129,19 @@
           "fiveDayChange": null,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 156.58,
-          "oneLotWinRate": 10,
-          "greyMarketChange": {
-            "low": -1.84,
-            "high": -1.84,
-            "mid": -1.84
-          },
-          "firstDayChange": {
-            "low": 15.21,
-            "high": 15.21,
-            "mid": 15.21
-          },
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-02797",
@@ -4243,37 +4183,19 @@
           "fiveDayChange": null,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 1688.1,
-          "oneLotWinRate": 0.09,
-          "greyMarketChange": {
-            "low": 93.75,
-            "high": 93.75,
-            "mid": 93.75
-          },
-          "firstDayChange": {
-            "low": 162.5,
-            "high": 162.5,
-            "mid": 162.5
-          },
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-02475",
@@ -4309,37 +4231,19 @@
           "fiveDayChange": null,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 3.78,
-          "oneLotWinRate": 100,
-          "greyMarketChange": {
-            "low": -4.95,
-            "high": -4.95,
-            "mid": -4.95
-          },
-          "firstDayChange": {
-            "low": -1.55,
-            "high": -1.55,
-            "mid": -1.55
-          },
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-01770",
@@ -4375,37 +4279,19 @@
           "fiveDayChange": null,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 1067.54,
-          "oneLotWinRate": 3,
-          "greyMarketChange": {
-            "low": 3.38,
-            "high": 3.38,
-            "mid": 3.38
-          },
-          "firstDayChange": {
-            "low": 1.73,
-            "high": 1.73,
-            "mid": 1.73
-          },
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-01377",
@@ -4441,37 +4327,19 @@
           "fiveDayChange": null,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 354.64,
-          "oneLotWinRate": 3,
-          "greyMarketChange": {
-            "low": -10.53,
-            "high": -10.53,
-            "mid": -10.53
-          },
-          "firstDayChange": {
-            "low": -1.79,
-            "high": -1.79,
-            "mid": -1.79
-          },
-          "fiveDayChange": null,
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-09971",
@@ -4507,41 +4375,19 @@
           "fiveDayChange": 33.46,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 4812.72,
-          "oneLotWinRate": 0.17,
-          "greyMarketChange": {
-            "low": 9.93,
-            "high": 9.93,
-            "mid": 9.93
-          },
-          "firstDayChange": {
-            "low": 5.06,
-            "high": 5.06,
-            "mid": 5.06
-          },
-          "fiveDayChange": {
-            "low": 33.46,
-            "high": 33.46,
-            "mid": 33.46
-          },
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-08090",
@@ -4577,41 +4423,19 @@
           "fiveDayChange": -11.41,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 3015.69,
-          "oneLotWinRate": 0.5,
-          "greyMarketChange": {
-            "low": 7.23,
-            "high": 7.23,
-            "mid": 7.23
-          },
-          "firstDayChange": {
-            "low": 3.38,
-            "high": 3.38,
-            "mid": 3.38
-          },
-          "fiveDayChange": {
-            "low": -11.41,
-            "high": -11.41,
-            "mid": -11.41
-          },
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-07687",
@@ -4647,41 +4471,19 @@
           "fiveDayChange": 1.63,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 157.82,
-          "oneLotWinRate": 10,
-          "greyMarketChange": {
-            "low": 4.07,
-            "high": 4.07,
-            "mid": 4.07
-          },
-          "firstDayChange": {
-            "low": 9.99,
-            "high": 9.99,
-            "mid": 9.99
-          },
-          "fiveDayChange": {
-            "low": 1.63,
-            "high": 1.63,
-            "mid": 1.63
-          },
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-07656",
@@ -4717,41 +4519,19 @@
           "fiveDayChange": 33.33,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 3646.06,
-          "oneLotWinRate": 3,
-          "greyMarketChange": {
-            "low": -16.94,
-            "high": -16.94,
-            "mid": -16.94
-          },
-          "firstDayChange": {
-            "low": -3.05,
-            "high": -3.05,
-            "mid": -3.05
-          },
-          "fiveDayChange": {
-            "low": 33.33,
-            "high": 33.33,
-            "mid": 33.33
-          },
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       },
       {
         "id": "hk-history-06880",
@@ -4787,41 +4567,19 @@
           "fiveDayChange": 0,
           "fiveDayHighChange": null
         },
-        "modelEstimate": {
-          "sampleCount": 1,
-          "intervalPercent": null,
-          "subscriptionMultiple": 413.63,
-          "oneLotWinRate": 5,
-          "greyMarketChange": {
-            "low": -0.34,
-            "high": -0.34,
-            "mid": -0.34
-          },
-          "firstDayChange": {
-            "low": 0,
-            "high": 0,
-            "mid": 0
-          },
-          "fiveDayChange": {
-            "low": 0,
-            "high": 0,
-            "mid": 0
-          },
-          "fiveDayHighChange": null,
-          "publishable": false,
-          "confidence": "历史"
-        },
-        "strategyAssessment": {
-          "verdict": "已结束",
-          "action": "历史样本已结束，只保留结果回顾。"
-        },
         "one": "历史样本，仅供回顾。",
         "pros": [
           "来自港股历史回顾样本"
         ],
         "cons": [
           "不代表当前申购机会"
-        ]
+        ],
+        "publicAnswer": {
+          "verdict": "已结束",
+          "action": "历史样本已结束，只保留结果回顾。",
+          "score": null
+        },
+        "publishedEstimate": null
       }
     ]
   },
@@ -4830,14 +4588,14 @@
       {
         "code": "600900.SH",
         "name": "长江电力",
-        "currentPrice": 28.7,
-        "currentDividendYield": 3.83,
-        "sustainableDividendYield": 3.63,
+        "currentPrice": 28.68,
+        "currentDividendYield": 3.84,
+        "sustainableDividendYield": 3.64,
         "currentAdvice": "持有",
         "score": 96,
         "summary": "水电现金流稳定，分红连续性最好，适合长期收息核心仓。",
         "industry": "公用事业 / 水电",
-        "annualDividendPer100k": 3633,
+        "annualDividendPer100k": 3635,
         "recommendPrice": "29元下方",
         "buyPrice": "28.5元以下",
         "safeMarginPrice": "26.8元以下",
@@ -4845,23 +4603,23 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 28.55,
-        "changePercent": 0.53,
-        "asOf": "2026-07-15T05:47:40.000Z",
+        "changePercent": 0.46,
+        "asOf": "2026-07-15T07:30:55.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:40.000Z",
+        "priceAsOf": "2026-07-15T07:30:55.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600941.SH",
         "name": "中国移动",
-        "currentPrice": 92.55,
-        "currentDividendYield": 6.2,
-        "sustainableDividendYield": 5.85,
+        "currentPrice": 92.8,
+        "currentDividendYield": 6.19,
+        "sustainableDividendYield": 5.83,
         "currentAdvice": "买入",
         "score": 93,
         "summary": "现金流强、分红稳，适合作为 A 股收息的压舱石。",
         "industry": "通信运营 / 现金牛",
-        "annualDividendPer100k": 5845,
+        "annualDividendPer100k": 5829,
         "recommendPrice": "112元下方",
         "buyPrice": "108元以下",
         "safeMarginPrice": "102元以下",
@@ -4869,23 +4627,23 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 91.8,
-        "changePercent": 0.82,
-        "asOf": "2026-07-15T05:47:40.000Z",
+        "changePercent": 1.09,
+        "asOf": "2026-07-15T07:30:43.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:40.000Z",
+        "priceAsOf": "2026-07-15T07:30:43.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "601398.SH",
         "name": "工商银行",
-        "currentPrice": 7.5,
-        "currentDividendYield": 4.54,
+        "currentPrice": 7.51,
+        "currentDividendYield": 4.53,
         "sustainableDividendYield": 4.13,
         "currentAdvice": "等待",
         "score": 88,
         "summary": "大行分红稳定，股息率不低，适合稳健收息。",
         "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 4134,
+        "annualDividendPer100k": 4129,
         "recommendPrice": "6元下方",
         "buyPrice": "5.9元以下",
         "safeMarginPrice": "5.6元以下",
@@ -4893,23 +4651,23 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 7.5,
-        "changePercent": 0,
-        "asOf": "2026-07-15T05:47:39.000Z",
+        "changePercent": 0.13,
+        "asOf": "2026-07-15T07:30:57.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:39.000Z",
+        "priceAsOf": "2026-07-15T07:30:57.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600036.SH",
         "name": "招商银行",
-        "currentPrice": 37.82,
-        "currentDividendYield": 4.28,
-        "sustainableDividendYield": 3.99,
+        "currentPrice": 37.76,
+        "currentDividendYield": 4.29,
+        "sustainableDividendYield": 4,
         "currentAdvice": "等待",
         "score": 91,
         "summary": "零售银行龙头，分红与资产质量兼顾，适合长期跟踪。",
         "industry": "银行 / 零售银行",
-        "annualDividendPer100k": 3989,
+        "annualDividendPer100k": 3996,
         "recommendPrice": "37元下方",
         "buyPrice": "35.5元以下",
         "safeMarginPrice": "33.5元以下",
@@ -4917,23 +4675,23 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 37.18,
-        "changePercent": 1.72,
-        "asOf": "2026-07-15T05:47:40.000Z",
+        "changePercent": 1.56,
+        "asOf": "2026-07-15T07:30:46.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:40.000Z",
+        "priceAsOf": "2026-07-15T07:30:46.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "601939.SH",
         "name": "建设银行",
-        "currentPrice": 9.99,
+        "currentPrice": 10,
         "currentDividendYield": 3.86,
         "sustainableDividendYield": 3.57,
         "currentAdvice": "等待",
         "score": 84,
         "summary": "分红稳，波动低，适合收息组合搭配。",
         "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 3571,
+        "annualDividendPer100k": 3567,
         "recommendPrice": "7.3元下方",
         "buyPrice": "7.0元以下",
         "safeMarginPrice": "6.7元以下",
@@ -4941,10 +4699,10 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 10.04,
-        "changePercent": -0.5,
-        "asOf": "2026-07-15T05:47:41.000Z",
+        "changePercent": -0.4,
+        "asOf": "2026-07-15T07:30:47.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:41.000Z",
+        "priceAsOf": "2026-07-15T07:30:47.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
@@ -4966,22 +4724,22 @@
         "buy_zone_high": null,
         "previousClose": 12.18,
         "changePercent": -2.3,
-        "asOf": "2026-07-15T05:47:39.000Z",
+        "asOf": "2026-07-15T07:30:54.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:39.000Z",
+        "priceAsOf": "2026-07-15T07:30:54.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "601088.SH",
         "name": "中国神华",
-        "currentPrice": 43.67,
+        "currentPrice": 43.69,
         "currentDividendYield": 7.37,
         "sustainableDividendYield": 5.74,
         "currentAdvice": "等待",
         "score": 78,
         "summary": "股息高，但周期属性更强，价格和周期位置很重要。",
         "industry": "能源 / 煤炭",
-        "annualDividendPer100k": 5743,
+        "annualDividendPer100k": 5740,
         "recommendPrice": "42元下方",
         "buyPrice": "40元以下",
         "safeMarginPrice": "37元以下",
@@ -4989,23 +4747,23 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 43.42,
-        "changePercent": 0.58,
-        "asOf": "2026-07-15T05:47:41.000Z",
+        "changePercent": 0.62,
+        "asOf": "2026-07-15T07:30:59.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:41.000Z",
+        "priceAsOf": "2026-07-15T07:30:59.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600938.SH",
         "name": "中国海油",
-        "currentPrice": 29.69,
-        "currentDividendYield": 5.85,
-        "sustainableDividendYield": 4.76,
+        "currentPrice": 29.79,
+        "currentDividendYield": 5.83,
+        "sustainableDividendYield": 4.75,
         "currentAdvice": "等待",
         "score": 79,
         "summary": "高分红但受油价周期影响，适合等更舒服的价格。",
         "industry": "能源 / 油气",
-        "annualDividendPer100k": 4761,
+        "annualDividendPer100k": 4745,
         "recommendPrice": "29元下方",
         "buyPrice": "28元以下",
         "safeMarginPrice": "26.5元以下",
@@ -5013,23 +4771,23 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 29.52,
-        "changePercent": 0.58,
-        "asOf": "2026-07-15T05:47:39.000Z",
+        "changePercent": 0.91,
+        "asOf": "2026-07-15T07:30:42.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:39.000Z",
+        "priceAsOf": "2026-07-15T07:30:42.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "000651.SZ",
         "name": "格力电器",
-        "currentPrice": 39.86,
-        "currentDividendYield": 5.99,
-        "sustainableDividendYield": 4.96,
+        "currentPrice": 39.83,
+        "currentDividendYield": 6,
+        "sustainableDividendYield": 4.97,
         "currentAdvice": "持有",
         "score": 78,
         "summary": "白电龙头，分红不差，但地产和消费周期会影响弹性。",
         "industry": "家电 / 白电",
-        "annualDividendPer100k": 4961,
+        "annualDividendPer100k": 4965,
         "recommendPrice": "41元下方",
         "buyPrice": "39.5元以下",
         "safeMarginPrice": "37.5元以下",
@@ -5037,23 +4795,23 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 39.18,
-        "changePercent": 1.74,
-        "asOf": "2026-07-15T05:47:42.000Z",
+        "changePercent": 1.66,
+        "asOf": "2026-07-15T07:30:36.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:42.000Z",
+        "priceAsOf": "2026-07-15T07:30:36.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600585.SH",
         "name": "海螺水泥",
-        "currentPrice": 17.54,
-        "currentDividendYield": 5.85,
-        "sustainableDividendYield": 5.2,
+        "currentPrice": 17.65,
+        "currentDividendYield": 5.81,
+        "sustainableDividendYield": 5.17,
         "currentAdvice": "买入",
         "score": 80,
         "summary": "老牌分红资产，适合稳健收息与估值折价时布局。",
         "industry": "建材 / 制造",
-        "annualDividendPer100k": 5200,
+        "annualDividendPer100k": 5167,
         "recommendPrice": "23元下方",
         "buyPrice": "21.8元以下",
         "safeMarginPrice": "20.5元以下",
@@ -5061,23 +4819,23 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 16.87,
-        "changePercent": 3.97,
-        "asOf": "2026-07-15T05:47:41.000Z",
+        "changePercent": 4.62,
+        "asOf": "2026-07-15T07:30:50.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:41.000Z",
+        "priceAsOf": "2026-07-15T07:30:50.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "000333.SZ",
         "name": "美的集团",
-        "currentPrice": 82.47,
+        "currentPrice": 82.67,
         "currentDividendYield": 2.4,
         "sustainableDividendYield": 2.26,
         "currentAdvice": "等待",
         "score": 81,
         "summary": "家电龙头和制造能力都强，收息与成长兼顾。",
         "industry": "家电 / 智能制造",
-        "annualDividendPer100k": 2262,
+        "annualDividendPer100k": 2257,
         "recommendPrice": "59元下方",
         "buyPrice": "56元以下",
         "safeMarginPrice": "53元以下",
@@ -5085,23 +4843,23 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 81.18,
-        "changePercent": 1.59,
-        "asOf": "2026-07-15T05:47:42.000Z",
+        "changePercent": 1.84,
+        "asOf": "2026-07-15T07:30:57.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:42.000Z",
+        "priceAsOf": "2026-07-15T07:30:57.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600011.SH",
         "name": "华能国际",
-        "currentPrice": 6.88,
-        "currentDividendYield": 6.39,
-        "sustainableDividendYield": 5.56,
+        "currentPrice": 6.9,
+        "currentDividendYield": 6.37,
+        "sustainableDividendYield": 5.54,
         "currentAdvice": "买入",
         "score": 72,
         "summary": "电力资产有现金流，但受煤价和电价周期影响较明显。",
         "industry": "电力 / 火电",
-        "annualDividendPer100k": 5561,
+        "annualDividendPer100k": 5545,
         "recommendPrice": "8.2元下方",
         "buyPrice": "7.9元以下",
         "safeMarginPrice": "7.5元以下",
@@ -5109,136 +4867,292 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 6.91,
-        "changePercent": -0.43,
-        "asOf": "2026-07-15T05:47:41.000Z",
+        "changePercent": -0.14,
+        "asOf": "2026-07-15T07:30:53.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-15T05:47:41.000Z",
+        "priceAsOf": "2026-07-15T07:30:53.000Z",
         "priceSource": "腾讯证券公开行情"
       }
     ],
     "fundamentals": [
       {
         "symbol": "600900",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 3.8,
         "sustainableDividendYield": 3.6,
         "dividendScore": 96,
         "industry": "公用事业 / 水电",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "600900.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 60562925570.41,
+        "capitalExpenditure": 18488466859.29,
+        "freeCashFlow": 42074458711.12,
+        "freeCashFlowMargin": 48.79,
+        "cashConversion": 1.76,
+        "revenue": 86241940222.2,
+        "revenueGrowth": 2.071287620863,
+        "netProfit": 34502809176.39,
+        "netProfitGrowth": 6.174992912414,
+        "roe": 15.9,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "600941",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 5.2,
         "sustainableDividendYield": 4.9,
         "dividendScore": 93,
         "industry": "通信运营 / 现金牛",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "600941.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 232919000000,
+        "capitalExpenditure": 156951000000,
+        "freeCashFlow": 75968000000,
+        "freeCashFlowMargin": 7.23,
+        "cashConversion": 1.7,
+        "revenue": 1050187000000,
+        "revenueGrowth": 0.905877345284,
+        "netProfit": 137095000000,
+        "netProfitGrowth": -0.923590584868,
+        "roe": 9.9,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "601398",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 5.6,
         "sustainableDividendYield": 5.1,
         "dividendScore": 88,
         "industry": "银行 / 国有大行",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "601398.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 1890530000000,
+        "capitalExpenditure": 38239000000,
+        "freeCashFlow": 1852291000000,
+        "freeCashFlowMargin": 220.97,
+        "cashConversion": 5.13,
+        "revenue": 838270000000,
+        "revenueGrowth": 2.003764892559,
+        "netProfit": 368562000000,
+        "netProfitGrowth": 0.737707830527,
+        "roe": 9.45,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "600036",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 4.4,
         "sustainableDividendYield": 4.1,
         "dividendScore": 91,
         "industry": "银行 / 零售银行",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "600036.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 451457000000,
+        "capitalExpenditure": 28141000000,
+        "freeCashFlow": 423316000000,
+        "freeCashFlowMargin": 125.42,
+        "cashConversion": 3.01,
+        "revenue": 337532000000,
+        "revenueGrowth": 0.013037500593,
+        "netProfit": 150181000000,
+        "netProfitGrowth": 1.206272617612,
+        "roe": 13.44,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "601939",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 5.3,
         "sustainableDividendYield": 4.9,
         "dividendScore": 84,
         "industry": "银行 / 国有大行",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "601939.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 2101242000000,
+        "capitalExpenditure": 23564000000,
+        "freeCashFlow": 2077678000000,
+        "freeCashFlowMargin": 273,
+        "cashConversion": 6.2,
+        "revenue": 761049000000,
+        "revenueGrowth": 1.884814651191,
+        "netProfit": 338906000000,
+        "netProfitGrowth": 0.992022695238,
+        "roe": 10.04,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "600377",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 5.7,
         "sustainableDividendYield": 5.3,
         "dividendScore": 86,
         "industry": "交通运输 / 高速公路",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "600377.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 6761638748.35,
+        "capitalExpenditure": 7626330153.97,
+        "freeCashFlow": -864691405.6199999,
+        "freeCashFlowMargin": -4.26,
+        "cashConversion": 1.47,
+        "revenue": 20289199757.75,
+        "revenueGrowth": -12.539783704129,
+        "netProfit": 4593870605.31,
+        "netProfitGrowth": -7.132464043526,
+        "roe": 11.48,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "601088",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 7.7,
         "sustainableDividendYield": 6,
         "dividendScore": 78,
         "industry": "能源 / 煤炭",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "601088.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 75059000000,
+        "capitalExpenditure": 48398000000,
+        "freeCashFlow": 26661000000,
+        "freeCashFlowMargin": 9.04,
+        "cashConversion": 1.42,
+        "revenue": 294916000000,
+        "revenueGrowth": -13.205881314231,
+        "netProfit": 52849000000,
+        "netProfitGrowth": -5.29701639638,
+        "roe": 12.76,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "600938",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 5.9,
         "sustainableDividendYield": 4.8,
         "dividendScore": 79,
         "industry": "能源 / 油气",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "600938.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 209042000000,
+        "capitalExpenditure": 111555000000,
+        "freeCashFlow": 97487000000,
+        "freeCashFlowMargin": 24.48,
+        "cashConversion": 1.71,
+        "revenue": 398220000000,
+        "revenueGrowth": -5.299805472455,
+        "netProfit": 122082000000,
+        "netProfitGrowth": -11.493736225496,
+        "roe": 15.64,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "000651",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 5.8,
         "sustainableDividendYield": 4.8,
         "dividendScore": 78,
         "industry": "家电 / 白电",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "000651.SZ",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 46383114754.02,
+        "capitalExpenditure": 1717311068.1,
+        "freeCashFlow": 44665803685.92,
+        "freeCashFlowMargin": 26.1,
+        "cashConversion": 1.6,
+        "revenue": 171118161275.41,
+        "revenueGrowth": -9.955852619215,
+        "netProfit": 29003103411.66,
+        "netProfitGrowth": -9.885068912898,
+        "roe": 20.3,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "600585",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 4.5,
         "sustainableDividendYield": 4,
         "dividendScore": 80,
         "industry": "建材 / 制造",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "600585.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 16643907685,
+        "capitalExpenditure": 9636323135,
+        "freeCashFlow": 7007584550,
+        "freeCashFlowMargin": 8.49,
+        "cashConversion": 2.05,
+        "revenue": 82532050796,
+        "revenueGrowth": -9.334944983251,
+        "netProfit": 8113068470,
+        "netProfitGrowth": 5.417673218667,
+        "roe": 4.27,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "000333",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 3.4,
         "sustainableDividendYield": 3.2,
         "dividendScore": 81,
         "industry": "家电 / 智能制造",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "000333.SZ",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 53345930000,
+        "capitalExpenditure": 11141889000,
+        "freeCashFlow": 42204041000,
+        "freeCashFlowMargin": 9.2,
+        "cashConversion": 1.21,
+        "revenue": 458502407000,
+        "revenueGrowth": 12.080186188339,
+        "netProfit": 43945411000,
+        "netProfitGrowth": 14.033631938896,
+        "roe": 19.7,
+        "source": "东方财富公开财务数据"
       },
       {
         "symbol": "600011",
-        "period": "mock",
+        "period": "2025年报",
         "dividendYield": 5.4,
         "sustainableDividendYield": 4.7,
         "dividendScore": 72,
         "industry": "电力 / 火电",
         "buyZoneLow": null,
-        "buyZoneHigh": null
+        "buyZoneHigh": null,
+        "code": "600011.SH",
+        "reportDate": "2025-12-31",
+        "operatingCashFlow": 67212899994,
+        "capitalExpenditure": 58326323386,
+        "freeCashFlow": 8886576608,
+        "freeCashFlowMargin": 3.88,
+        "cashConversion": 4.66,
+        "revenue": 229288057955,
+        "revenueGrowth": -6.623011353949,
+        "netProfit": 14409553809,
+        "netProfitGrowth": 42.169232943717,
+        "roe": 19.04,
+        "source": "东方财富公开财务数据"
       }
     ],
-    "asOf": "2026-07-15T05:47:42.000Z",
+    "asOf": "2026-07-15T07:30:59.000Z",
     "source": "腾讯证券公开行情"
   },
   "investors": [
@@ -5373,6 +5287,8 @@
           "issuer": "AON PLC"
         }
       ],
+      "trackingScore": 99,
+      "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1067983",
       "isLive": true
@@ -5492,6 +5408,8 @@
           "issuer": "HILTON WORLDWIDE HLDGS INC"
         }
       ],
+      "trackingScore": 98,
+      "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1336528",
       "isLive": true
@@ -5607,6 +5525,8 @@
           "issuer": "LAUDER ESTEE COS INC"
         }
       ],
+      "trackingScore": 89,
+      "trackingSummary": "公开申报可用，但需要结合披露时滞。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1649339",
       "isLive": true
@@ -5742,6 +5662,8 @@
           "issuer": "Futu Holdings Ltd"
         }
       ],
+      "trackingScore": 95,
+      "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1697748",
       "isLive": true
@@ -5856,6 +5778,8 @@
         }
       ],
       "sold": [],
+      "trackingScore": 94,
+      "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1709323",
       "isLive": true
@@ -5991,6 +5915,8 @@
           "issuer": "Entegris Inc"
         }
       ],
+      "trackingScore": 91,
+      "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1536411",
       "isLive": true
@@ -6126,6 +6052,8 @@
           "issuer": "GODADDY INC"
         }
       ],
+      "trackingScore": 97,
+      "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1350694",
       "isLive": true
@@ -6180,6 +6108,8 @@
         }
       ],
       "sold": [],
+      "trackingScore": 73,
+      "trackingSummary": "公开资料有限，只适合做方向参考。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=783412",
       "isLive": true
@@ -6315,17 +6245,11 @@
           "issuer": "COHERENT CORP"
         }
       ],
+      "trackingScore": 100,
+      "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=2045724",
       "isLive": true
     }
-  ],
-  "strategyHealth": {
-    "hk": {
-      "releaseReady": false
-    },
-    "us": {
-      "pricePlanReleaseReady": false
-    }
-  }
+  ]
 }

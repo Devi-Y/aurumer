@@ -2245,6 +2245,12 @@ function hkRankInfo(x){
   const ordered=sortByScore(group?.items||[x],hkDisplayScore);
   return {rank:Math.max(1,ordered.findIndex(item=>item.id===x.id)+1),total:ordered.length,score:hkDisplayScore(x)};
 }
+function hkScoreLabel(x,score=hkDisplayScore(x)){
+  return x.vc==='pending'?'待评分':`${score} 分`;
+}
+function hkRankLabel(x,rankInfo=hkRankInfo(x)){
+  return x.vc==='pending'?'待排名':`第 ${rankInfo.rank}/${rankInfo.total} 名`;
+}
 function ipoCard(x,groupLabel,rank,score){
   const effectiveLabel=x.vc==='pending'?'暂不参与':groupLabel;
   const historical=x.historicalReview||null;
@@ -2259,7 +2265,7 @@ function ipoCard(x,groupLabel,rank,score){
           :'风险或资料完整度不合格，暂不参与。';
   const chipClass=x.vc==='ended'?'ended':effectiveLabel==='值得打'?'buy':effectiveLabel==='谨慎打'?'caution':'skip';
   return `<a class="compact-card ${x.vc==='ended'?'muted':''}" href="#/ipo/${ipoPublicCode(x)}">
-    <div class="compact-top"><span class="compact-rank">${rank}</span><div class="compact-title"><h3>${x.name}<span class="num">${x.code}</span></h3></div><div class="quote-now"><b class="num">${score} 分</b><span>${x.vc==='ended'?'复盘分':'综合分'}</span></div></div>
+    <div class="compact-top"><span class="compact-rank">${rank}</span><div class="compact-title"><h3>${x.name}<span class="num">${x.code}</span></h3></div><div class="quote-now"><b class="num">${hkScoreLabel(x,score)}</b><span>${x.vc==='ended'?'复盘分':x.vc==='pending'?'资料待核验':'综合分'}</span></div></div>
     <div class="compact-answer"><span class="result-chip ${chipClass}">${effectiveLabel}</span> ${answer}</div>
     <div class="compact-foot"><span>查看</span><span class="arrow">›</span></div>
   </a>`;
@@ -2508,14 +2514,14 @@ function aShareCard(item,index,label){
 }
 function getAShareGroups(){
   return [
-    {id:'buy',label:'买入',copy:'分红和价格都合格。',items:A_SHARES.filter(item=>item.currentAdvice==='买入'||item.currentAdvice==='持有').sort((a,b)=>(b.score||0)-(a.score||0))},
-    {id:'wait',label:'等待',copy:'公司可看，价格还要等。',items:A_SHARES.filter(item=>item.currentAdvice==='等待').sort((a,b)=>(b.score||0)-(a.score||0))},
+    {id:'buy',label:'买入',copy:'分红和价格都合格。',items:A_SHARES.filter(item=>item.currentAdvice==='买入').sort((a,b)=>(b.score||0)-(a.score||0))},
+    {id:'wait',label:'等待',copy:'公司可看，价格还要等。',items:A_SHARES.filter(item=>['持有','等待','观察'].includes(item.currentAdvice)).sort((a,b)=>(b.score||0)-(a.score||0))},
     {id:'avoid',label:'回避',copy:'分红或价格风险不合格。',items:A_SHARES.filter(item=>item.currentAdvice==='回避').sort((a,b)=>(b.score||0)-(a.score||0))},
   ];
 }
 function aShareGroupIdFor(item){
-  if(item?.currentAdvice==='买入'||item?.currentAdvice==='持有')return 'buy';
-  if(item?.currentAdvice==='等待')return 'wait';
+  if(item?.currentAdvice==='买入')return 'buy';
+  if(['持有','等待','观察'].includes(item?.currentAdvice))return 'wait';
   return 'avoid';
 }
 function renderAShares(){
@@ -2575,6 +2581,13 @@ function aShareCalcMarkup(item, amount, years){
       <div class="stat"><b class="num">${result.paybackYears ? `${result.paybackYears.toFixed(1)} 年` : '暂不适用'}</b><span>回本年限</span></div>
     </div>`;
 }
+function aShareCalcNote(item, amount, years){
+  const result=calcAShareDividend(item, amount, years);
+  if(!Number.isFinite(result.price)||result.price<=0||!Number.isFinite(result.dividendPerShare)){
+    return '持仓数量与每股分红暂待核验。';
+  }
+  return `按当前价格买入约可持有 ${formatShares(result.shares)}，每股年分红约 ${fmtCNY(result.dividendPerShare)}；按当前假设持有 ${result.safeYears} 年。`;
+}
 window.aShareCalcYears = window.aShareCalcYears || {};
 window.setAShareYears = (id, years) => {
   window.aShareCalcYears[id] = years;
@@ -2583,11 +2596,16 @@ window.setAShareYears = (id, years) => {
 window.updateAShareCalc = (id) => {
   const amountEl = document.querySelector(`#a-share-amount-${id}`);
   const outputEl = document.querySelector(`#a-share-result-${id}`);
+  const noteEl = document.querySelector(`#a-share-note-${id}`);
   if (!amountEl || !outputEl) return;
   const years = window.aShareCalcYears[id] || Number(document.querySelector(`#a-share-years-${id}`)?.value) || 3;
   const item = A_SHARES.find((row) => row.code.replace(/\W/g, '') === id);
   if (!item) return;
   outputEl.innerHTML = aShareCalcMarkup(item, amountEl.value, years);
+  if(noteEl)noteEl.textContent=aShareCalcNote(item,amountEl.value,years);
+  document.querySelectorAll(`#a-share-years-${id} [data-year]`).forEach(button=>{
+    button.classList.toggle('on',Number(button.dataset.year)===Number(years));
+  });
 };
 function aShareCashFlowFacts(item){
   const data=item.financials||{};
@@ -2695,13 +2713,13 @@ function renderAShare(x){
         </div>
         <div class="calc-row">
           <label>持有年限</label>
-          <div class="calc-years">
-            ${[1,3,5,10].map(year=>`<button class="pill ${initialYears===year?'on':''}" onclick="window.aShareCalcYears['${calcId}']=${year};updateAShareCalc('${calcId}')">${year} 年</button>`).join('')}
+          <div class="calc-years" id="a-share-years-${calcId}">
+            ${[1,3,5,10].map(year=>`<button class="pill ${initialYears===year?'on':''}" data-year="${year}" onclick="setAShareYears('${calcId}',${year})">${year} 年</button>`).join('')}
           </div>
         </div>
       </div>
       <div id="a-share-result-${calcId}">${aShareCalcMarkup(x, 100000, initialYears)}</div>
-      <div class="t2" style="margin-top:10px">按当前价格买入约可持有 ${formatShares(Number.isFinite(x.currentPrice)?100000 / x.currentPrice:NaN)}，每股年分红约 ${fmtCNY(Number.isFinite(x.currentPrice)&&Number.isFinite(x.sustainableDividendYield)?x.currentPrice * x.sustainableDividendYield / 100:NaN)}。</div>
+      <div class="t2" id="a-share-note-${calcId}" style="margin-top:10px">${aShareCalcNote(x,100000,initialYears)}</div>
     </div></div>
     <div class="d-sec"><h4>价格与分红</h4><div class="card">
       <div class="price-map" style="grid-template-columns:1fr 1fr 1fr">
@@ -2726,9 +2744,9 @@ function renderAShare(x){
       <tr><td>股票名称</td><td>${x.name}</td></tr>
       <tr><td>股票代码</td><td class="num">${x.code}</td></tr>
       <tr><td>所属行业</td><td>${x.industry}</td></tr>
-      <tr><td>当前价格</td><td class="num">${x.currentPrice.toFixed(2)} 元</td></tr>
-      <tr><td>当前股息率</td><td class="num">${x.currentDividendYield.toFixed(1)}%</td></tr>
-      <tr><td>可持续股息率</td><td class="num">${x.sustainableDividendYield.toFixed(1)}%</td></tr>
+      <tr><td>当前价格</td><td class="num">${Number.isFinite(x.currentPrice)?`${x.currentPrice.toFixed(2)} 元`:'待确认'}</td></tr>
+      <tr><td>当前股息率</td><td class="num">${currentYieldText}</td></tr>
+      <tr><td>可持续股息率</td><td class="num">${sustainableYieldText}</td></tr>
       <tr><td>推荐关注价格</td><td>${x.recommendPrice}</td></tr>
       <tr><td>合理买入价格</td><td>${x.buyPrice}</td></tr>
       <tr><td>高安全边际价</td><td>${x.safeMarginPrice}</td></tr>
@@ -2937,7 +2955,7 @@ function renderIPO(x){
         <div class="decision-metric"><b>${answers.dark}</b><span>${isEnded?'暗盘实际表现':'暗盘预测'}</span></div>
         <div class="decision-metric"><b>${answers.firstDay}</b><span>${isEnded?'首日实际表现':'首日预测'}</span></div>
         <div class="decision-metric"><b>${answers.week}</b><span>${isEnded?'五日内最高':'五日卖出参考'}</span></div>
-        <div class="decision-metric"><b class="num">${rankInfo.score} 分 · 第 ${rankInfo.rank} 名</b><span>${isEnded?'同组复盘排名':'同组综合排名'}</span></div>
+        <div class="decision-metric"><b class="num">${isPending?'待评分 · 待排名':`${rankInfo.score} 分 · 第 ${rankInfo.rank} 名`}</b><span>${isEnded?'同组复盘排名':isPending?'资料核验状态':'同组综合排名'}</span></div>
         <div class="decision-metric"><b class="num">${isEnded?(formatHistoricalPrice(review?.fiveDayChange,x)||'第五日价格暂未收录'):`${knownFacts}/6 项`}</b><span>${isEnded?'第五日收盘':'资料完整度'}</span></div>
       </div>
       <div class="share-foot"><span>仅供研究，不构成投资建议</span><button class="copy-btn" onclick="shareCurrentPage(this)">转发答案</button></div>
@@ -2958,7 +2976,7 @@ function renderIPO(x){
         <div class="stat"><b class="num">${Number.isFinite(review?.firstDayChange)?pct(review.firstDayChange):'未收录'}</b><span>首日实际</span></div>
         <div class="stat"><b class="num">${Number.isFinite(review?.fiveDayChange)?pct(review.fiveDayChange):'未收录'}</b><span>第五日收盘</span></div>
       </div><div class="t2" style="margin-top:10px">复盘分只比较历史实际表现，不代表当时的申购评分。</div>${x.reviewNote?`<div class="notice" style="margin-top:12px"><b>当时为什么没有推荐：</b>${x.reviewNote}</div>`:''}`
-      :isPending?`<div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${rankInfo.score}</b><span>综合分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>同组排名</span></div><div class="stat"><b>资料不足</b><span>暂不参与</span></div></div>`
+      :isPending?`<div class="stats g3" style="margin-top:0"><div class="stat"><b>待评分</b><span>资料尚未齐全</span></div><div class="stat"><b>待排名</b><span>不使用占位数字</span></div><div class="stat"><b>资料不足</b><span>暂不参与</span></div></div>`
       :`<div class="stats g3" style="margin-top:0">
         <div class="stat"><b class="num">${scoreProfile.overall}</b><span>综合评分</span></div>
         <div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>同组排名</span></div>
@@ -3192,7 +3210,7 @@ function renderIPOAnalysis(x){
     backRoute:`#/ipo/${ipoPublicCode(x)}`,
     title:`${x.name} · 完整复盘`,
     subtitle:'只看最终分数、排名、实际表现、资料和风险。',
-    body:`<div class="d-sec"><h4>最终结果</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${rankInfo.score}</b><span>${isEnded?'复盘分':'综合分'}</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>同组排名</span></div><div class="stat"><b>${isPending?'暂不参与':x.verdict}</b><span>${isEnded?'历史状态':'当前结论'}</span></div><div class="stat"><b>${knownFacts}/6</b><span>资料完整度</span></div></div><div class="analysis-source">历史项目按实际表现复盘，当前项目以最新公开资料为准。</div></div></div>
+    body:`<div class="d-sec"><h4>最终结果</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${isPending?'待评分':rankInfo.score}</b><span>${isEnded?'复盘分':isPending?'资料尚未齐全':'综合分'}</span></div><div class="stat"><b class="num">${hkRankLabel(x,rankInfo)}</b><span>同组排名</span></div><div class="stat"><b>${isPending?'暂不参与':x.verdict}</b><span>${isEnded?'历史状态':'当前结论'}</span></div><div class="stat"><b>${knownFacts}/6</b><span>资料完整度</span></div></div><div class="analysis-source">历史项目按实际表现复盘，当前项目以最新公开资料为准。</div></div></div>
     <div class="d-sec"><h4>${isEnded?'实际表现':'价格答案'}</h4><div class="card">${resultRows.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[2]}</span><strong>${row[1]}</strong></div>`).join('')}</div></div>
     ${isEnded?`<div class="d-sec"><h4>这次复盘看什么</h4><div class="card">${reviewRows.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-note"><b>当时为什么没有推荐：</b>${x.reviewNote||'申购时点资料没有完整保存，因此不能形成可复核的申购结论。'}</div></div></div>`:''}
     ${isEnded?ipoHistoryContext(x):''}

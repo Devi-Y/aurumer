@@ -29,10 +29,21 @@ function scoreRank(items, key) {
   return new Map(ordered.map((item, index) => [item.id || item.symbol || item.code, index + 1]));
 }
 
+function hkReviewScore(item) {
+  const review = item.historicalReview || {};
+  const outcomes = [review.greyMarketChange, review.firstDayChange, review.fiveDayChange]
+    .map(Number)
+    .filter(Number.isFinite);
+  if (!outcomes.length) return null;
+  const average = outcomes.reduce((sum, value) => sum + value, 0) / outcomes.length;
+  return Math.max(0, Math.min(100, Math.round(50 + average / 2)));
+}
+
 function hkItems(snapshot) {
   const current = (snapshot.hk && snapshot.hk.listings ? snapshot.hk.listings : []).map((item) => {
     const verdict = item.publicAnswer && item.publicAnswer.verdict ? item.publicAnswer.verdict : "待核验";
     const group = verdict === "值得打" ? "worth" : verdict === "谨慎打" ? "caution" : "avoid";
+    const publicScore = item.publicAnswer && item.publicAnswer.score;
     return {
       id: String(item.rawCode || item.code || item.id).replace(/\.HK$/i, ""),
       market: "hk",
@@ -40,7 +51,11 @@ function hkItems(snapshot) {
       name: item.name || "港股新股",
       code: item.code || item.rawCode,
       badge: verdict === "待核验" ? "不建议" : verdict,
-      score: number(item.publicAnswer && item.publicAnswer.score),
+      score: verdict === "待核验"
+        ? null
+        : publicScore !== null && publicScore !== undefined && publicScore !== "" && Number.isFinite(Number(publicScore))
+          ? Number(publicScore)
+          : null,
       one: item.publicAnswer && item.publicAnswer.action ? item.publicAnswer.action : "资料不足，暂不参与。",
       raw: item,
     };
@@ -52,11 +67,18 @@ function hkItems(snapshot) {
     name: item.name || "历史新股",
     code: item.code || item.stockCode,
     badge: "已结束",
-    score: null,
+    score: hkReviewScore(item),
     one: item.reviewNote || "申购已结束，查看暗盘与上市后表现。",
     raw: item,
   }));
-  return [...current, ...ended];
+  const items = [...current, ...ended];
+  for (const group of ["worth", "caution", "avoid", "ended"]) {
+    const ranked = items
+      .filter((item) => item.group === group && Number.isFinite(item.score))
+      .sort((left, right) => right.score - left.score);
+    ranked.forEach((item, index) => { item.rank = index + 1; });
+  }
+  return items;
 }
 
 function stockAction(stock) {
@@ -92,9 +114,11 @@ function usItems(snapshot) {
   });
   const bySymbol = new Map(stocks.map((item) => [item.symbol, item]));
   const seven = MAGNIFICENT_SEVEN.map((symbol) => bySymbol.get(symbol)).filter(Boolean).map((item) => make(item, "seven", "七姐妹"));
-  const hot = stocks
+  const nonSeven = stocks
     .filter((item) => !MAGNIFICENT_SEVEN.includes(item.symbol))
-    .sort((left, right) => number(right.heatScore) - number(left.heatScore))
+    .sort((left, right) => number(right.heatScore) - number(left.heatScore));
+  const qualityHot = nonSeven.filter((item) => item.fund && item.fund.qualityEligible);
+  const hot = (qualityHot.length >= 3 ? qualityHot : nonSeven)
     .slice(0, 3)
     .map((item) => make(item, "hot", "热度前三"));
   const gurus = (snapshot.investors || []).map((investor) => ({

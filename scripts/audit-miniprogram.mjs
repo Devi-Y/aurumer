@@ -1,6 +1,7 @@
 import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const miniRoot = path.join(root, "miniprogram");
@@ -56,8 +57,33 @@ assert(snapshot.aShare.quotes.length >= 12, "小程序 A 股不足 12 只");
 assert(snapshot.aShare.fundamentals.length >= 12, "小程序 A 股现金流数据不足 12 只");
 assert(snapshot.investors.length >= 8, "小程序聪明人持仓不足 8 位");
 
-const indexSource = await readFile(path.join(miniRoot, "pages", "index", "index.js"), "utf8");
 const sectionSource = await readFile(path.join(miniRoot, "utils", "answers.js"), "utf8");
+const miniModule = { exports: {} };
+vm.runInNewContext(sectionSource, { module: miniModule, exports: miniModule.exports });
+const answers = miniModule.exports;
+const miniUsItems = answers.allItems(snapshot, "us");
+const miniAShareItems = answers.allItems(snapshot, "a");
+const miniHKItems = answers.allItems(snapshot, "hk");
+const sevenSymbols = new Set(["NVDA", "MSFT", "AAPL", "GOOGL", "AMZN", "META", "TSLA"]);
+const fundamentals = new Map(snapshot.us.fundamentals.map((item) => [item.symbol, item]));
+const nonSeven = snapshot.us.stocks
+  .filter((item) => !sevenSymbols.has(item.symbol))
+  .sort((left, right) => Number(right.heatScore || 0) - Number(left.heatScore || 0));
+const qualityHot = nonSeven.filter((item) => fundamentals.get(item.symbol)?.qualityEligible);
+const expectedHot = (qualityHot.length >= 3 ? qualityHot : nonSeven).slice(0, 3).map((item) => item.symbol);
+const actualHot = miniUsItems.filter((item) => item.group === "hot").map((item) => item.id);
+assert(JSON.stringify(actualHot) === JSON.stringify(expectedHot), `小程序热度前三口径不一致：${actualHot.join(",")}`);
+for (const item of miniAShareItems) {
+  const advice = item.raw.currentAdvice;
+  if (advice === "买入") assert(item.group === "buy", `${item.name} 应归入买入组`);
+  if (["持有", "等待", "观察"].includes(advice)) assert(item.group === "wait", `${item.name} 应归入等待组`);
+}
+for (const item of miniHKItems.filter((entry) => entry.raw.publicAnswer?.verdict === "待核验")) {
+  assert(item.score === null, `${item.name} 资料待核验时不应显示 0 分`);
+  assert(!item.rank, `${item.name} 资料待核验时不应生成占位排名`);
+}
+
+const indexSource = await readFile(path.join(miniRoot, "pages", "index", "index.js"), "utf8");
 const detailSource = await readFile(path.join(miniRoot, "pages", "detail", "index.js"), "utf8");
 const detailTemplate = await readFile(path.join(miniRoot, "pages", "detail", "index.wxml"), "utf8");
 const detailContract = `${detailSource}\n${detailTemplate}`;
@@ -69,6 +95,8 @@ for (const label of ["买入参考", "止盈参考", "止损参考", "自由现�
   assert(detailContract.includes(label), `小程序详情缺少关键内容：${label}`);
 }
 assert(!indexSource.includes("pages/webview/index?target=${target}"), "小程序首页仍直接依赖 web-view");
+assert(!detailSource.includes("raw.currentPrice || 0"), "小程序 A 股缺失价格仍会显示 0 元");
+assert(!detailSource.includes("raw.trackingScore || 0"), "小程序缺失跟踪分仍会显示 0 分");
 
 const projectConfig = JSON.parse(await readFile(path.join(miniRoot, "project.config.json"), "utf8"));
 const appIdState = projectConfig.appid === "touristappid" ? "旅游 AppID，仅可本地预览" : "正式 AppID 已配置";

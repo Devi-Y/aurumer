@@ -16,7 +16,7 @@ Page({
         .map((item, index) => ({
           id: item.id, name: item.name, code: item.code, badge: item.badge,
           scoreText: item.score > 0 ? `${item.score} 分` : "资料待核验",
-          rankText: item.rank ? `第 ${item.rank} 名` : `第 ${index + 1} 项`,
+          rankText: item.rank ? `第 ${item.rank} 名` : "暂不排名",
           one: item.one,
         }));
       this.snapshot = snapshot;

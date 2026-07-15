@@ -13,10 +13,14 @@ function assert(condition, message) {
 
 const entryBody = html.match(/function renderEntry\(\)\{([\s\S]*?)\n\}\n\n\/\* =+ 二级页面/)?.[1] || "";
 assert(entryBody, "无法定位一级首页渲染函数");
-assert((entryBody.match(/homePortalCard\(\{/g) || []).length === 3, "一级首页必须只有三个市场入口");
+assert((entryBody.match(/homePortalCard\(\{/g) || []).length === 4, "一级首页必须是四宫格入口");
 assert(entryBody.includes("href:'#/hk'"), "一级首页缺少港股入口");
 assert(entryBody.includes("href:'#/us'"), "一级首页缺少美股入口");
 assert(entryBody.includes("href:'#/a-shares'"), "一级首页缺少A股入口");
+assert(entryBody.includes("href:'#/gurus'"), "一级首页缺少聪明人持仓入口");
+for (const feature of ["今日新股结论", "性价比排名", "自由现金流筛选", "买入与卖出变化"]) {
+  assert(entryBody.includes(feature), `首页四宫格缺少功能说明：${feature}`);
+}
 
 for (const text of [
   "{id:'buy',label:'值得打'",

@@ -6,10 +6,13 @@
   "scripts": {
     "start": "node server.mjs",
     "routes": "node scripts/write-route-adapters.mjs",
+    "sync:mini": "node scripts/sync-miniprogram-data.mjs",
     "check:public": "node scripts/audit-public-data.mjs",
     "check:pages": "node scripts/audit-public-routes.mjs",
     "check:ui": "node scripts/audit-ui-contract.mjs",
-    "audit": "npm run check:public && npm run check:pages && npm run check:ui"
+    "check:mini": "node scripts/audit-miniprogram.mjs",
+    "check:domain": "node scripts/check-custom-domain.mjs",
+    "audit": "npm run check:public && npm run check:pages && npm run check:ui && npm run check:mini"
   },
   "dependencies": {}
 }

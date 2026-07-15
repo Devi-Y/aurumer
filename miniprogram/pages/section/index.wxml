@@ -1,0 +1,25 @@
+<view class="page-shell">
+  <view class="top-actions">
+    <button bindtap="goBack">‹ 返回</button>
+    <button bindtap="goHome">首页</button>
+  </view>
+  <view class="hero {{meta.tone}}">
+    <text class="eyebrow">望潮 Aurum · 先看结论</text>
+    <text class="title">{{meta.title}}</text>
+    <text class="lead">{{meta.one}}</text>
+  </view>
+  <view class="group-list">
+    <button wx:for="{{groups}}" wx:key="id" class="group-card" data-group="{{item.id}}" bindtap="openGroup" hover-class="card-active">
+      <view class="group-copy">
+        <text class="group-title">{{item.title}}</text>
+        <text class="group-one">{{item.one}}</text>
+      </view>
+      <view class="group-meta">
+        <text>{{item.count}}</text>
+        <text class="arrow">›</text>
+      </view>
+    </button>
+  </view>
+  <text class="source">{{source}}</text>
+  <text class="disclaimer">先看一句话结论，需要时再进入具体标的。</text>
+</view>

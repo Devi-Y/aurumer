@@ -1,0 +1,13 @@
+<view class="page-shell">
+  <view class="top-actions"><button bindtap="goBack">‹ 返回</button><button bindtap="goHome">首页</button></view>
+  <view class="page-head"><text class="eyebrow">望潮 Aurum · 一句话答案</text><text class="title">{{title}}</text><text class="lead">{{one}}</text></view>
+  <view wx:if="{{items.length}}" class="item-list">
+    <button wx:for="{{items}}" wx:key="id" class="item-card" data-id="{{item.id}}" bindtap="openItem" hover-class="card-active">
+      <view class="item-top"><view><text class="item-name">{{item.name}}</text><text class="item-code">{{item.code}}</text></view><text class="badge">{{item.badge}}</text></view>
+      <text class="answer">{{item.one}}</text>
+      <view class="item-foot"><text>{{item.scoreText}} · {{item.rankText}}</text><text>看详细答案 ›</text></view>
+    </button>
+  </view>
+  <view wx:else class="empty"><text class="empty-title">当前暂无符合条件的标的</text><text>不使用占位数据凑答案。</text></view>
+  <text class="source">{{source}}</text>
+</view>

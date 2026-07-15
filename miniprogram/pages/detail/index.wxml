@@ -1,0 +1,26 @@
+<view class="page-shell">
+  <view class="top-actions"><button bindtap="goBack">‹ 返回</button><button bindtap="goHome">首页</button></view>
+  <view wx:if="{{ready}}">
+    <view class="answer-card">
+      <text class="eyebrow">望潮 Aurum · 最终答案</text>
+      <view class="title-row"><view><text class="title">{{view.title}}</text><text class="code">{{view.code}}</text></view><text class="badge">{{view.badge}}</text></view>
+      <text class="answer">{{view.answer}}</text>
+      <view class="score-row"><text>{{view.score}}</text><text>{{view.rank}}</text></view>
+    </view>
+    <view class="metric-grid">
+      <view wx:for="{{view.metrics}}" wx:key="*this" class="metric"><text>{{item[0]}}</text><text>{{item[1]}}</text></view>
+    </view>
+    <view wx:if="{{view.facts.length}}" class="section-card">
+      <text class="section-title">关键资料</text>
+      <view wx:for="{{view.facts}}" wx:key="*this" class="fact"><text>{{item[0]}}</text><text>{{item[1]}}</text></view>
+    </view>
+    <view wx:if="{{view.holdings.length}}" class="section-card">
+      <text class="section-title">主要持仓变化</text>
+      <view wx:for="{{view.holdings}}" wx:key="name" class="fact"><text>{{item.name}}</text><text>{{item.value}}</text></view>
+    </view>
+    <view class="risk"><text class="section-title">风险提醒</text><text>{{view.risk}}</text></view>
+    <button class="deep-button" bindtap="openDeep">继续看完整分析</button>
+    <text class="source">{{source}}</text>
+  </view>
+  <view wx:else class="empty"><text>答案暂时不可用</text><text>请稍后下拉刷新。</text></view>
+</view>

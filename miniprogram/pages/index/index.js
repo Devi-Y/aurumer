@@ -1,4 +1,4 @@
-const { PUBLIC_ORIGIN } = require("../../config");
+const { loadSnapshot } = require("../../data/store");
 
 const ENTRIES = [
   {
@@ -36,10 +36,8 @@ Page({
     this.refreshAnswers(() => wx.stopPullDownRefresh());
   },
   refreshAnswers(done) {
-    wx.request({
-      url: `${PUBLIC_ORIGIN}/data/live-snapshot.json`,
-      timeout: 8000,
-      success: ({ data }) => {
+    loadSnapshot(
+      (data, source) => {
         const verdictOrder = { "值得打": 0, "谨慎打": 1, "不建议": 2, "待核验": 3 };
         const listing = [...(data.hk?.listings || [])]
           .sort((left, right) =>
@@ -65,24 +63,15 @@ Page({
             ...item,
             answer: answers[item.id] || item.question,
           })),
+          source,
         });
       },
-      fail: () => {
-        this.setData({
-          entries: this.data.entries.map((item) => ({
-            ...item,
-            answer: item.question,
-          })),
-        });
-      },
-      complete: () => {
-        if (typeof done === "function") done();
-      },
-    });
+      done,
+    );
   },
   openEntry(event) {
     const target = event.currentTarget.dataset.target;
-    wx.navigateTo({ url: `/pages/webview/index?target=${target}` });
+    wx.navigateTo({ url: `/pages/section/index?market=${target}` });
   },
   onShareAppMessage() {
     return {

@@ -20,5 +20,6 @@
       <text class="question">{{item.answer}}</text>
     </button>
   </view>
+  <text class="data-source">{{source || '正在读取同步数据'}}</text>
   <text class="disclaimer">仅用于信息整理和投资研究辅助，不构成投资建议或买卖指令。</text>
 </view>

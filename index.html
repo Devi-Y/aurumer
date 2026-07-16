@@ -87,6 +87,11 @@ img,svg,canvas{max-width:100%}
 .data-badge.partial,.data-badge.stale{color:var(--amber);background:var(--amber-soft)}
 .data-badge.fallback{color:var(--ink2);background:var(--gray-soft)}
 .data-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.module-data-state{display:inline-flex;align-items:center;gap:7px;margin:14px 2px 0;padding:6px 10px;border:1px solid rgba(23,126,82,.18);border-radius:999px;background:rgba(228,243,235,.72);color:var(--down);font-size:11.5px;font-weight:700}
+.module-data-state.syncing{border-color:rgba(169,120,21,.18);background:var(--amber-soft);color:var(--amber)}
+.module-data-state .data-dot{width:7px;height:7px;box-shadow:0 0 0 3px rgba(23,126,82,.10)}
+.list-guidance{margin:0 2px 12px;padding:9px 12px;border-left:3px solid var(--line);border-radius:0 12px 12px 0;background:rgba(255,253,249,.56);color:var(--ink2);font-size:11.5px;line-height:1.65}
+.detail-platform-disclaimer{margin-top:14px;padding:10px 13px;border:1px solid var(--line);border-radius:13px;background:rgba(255,253,249,.7);color:var(--ink2);font-size:11.5px;line-height:1.6;text-align:center}
 .source-line{font-size:11px;color:var(--ink3);margin-top:5px}
 .source-line a{color:var(--ink2);text-decoration:underline;text-underline-offset:2px}
 .level-path{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 2px 12px;font-size:11.5px;color:var(--ink3)}
@@ -218,6 +223,19 @@ img,svg,canvas{max-width:100%}
 .compact-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2)}
 .metric-chip{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;background:var(--bg);border:1px solid var(--line2);font-size:11px;font-weight:650;color:var(--ink2)}
 .compact-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line2);font-size:12px;font-weight:700;color:var(--accent)}
+.quick-price-action{display:inline-flex;align-items:center;min-height:30px;padding:4px 9px;border:1px solid rgba(182,76,53,.22);border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:800;cursor:pointer}
+.quick-price-action:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.us-price-float{position:fixed;left:50%;bottom:22px;z-index:90;width:min(460px,calc(100% - 24px));padding:15px 16px;border:1px solid var(--line);border-radius:20px;background:rgba(255,253,249,.97);color:var(--ink);box-shadow:0 20px 60px rgba(31,43,42,.24);backdrop-filter:blur(16px);animation:floatUp .2s ease-out}
+.us-price-float-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.us-price-float-head b{font-size:15px}.us-price-float-head span{display:block;margin-top:2px;font-size:11px;color:var(--ink3)}
+.us-price-float-close{width:30px;height:30px;border:1px solid var(--line);border-radius:50%;background:var(--card);color:var(--ink2);font-size:17px;line-height:1;cursor:pointer}
+.us-price-float-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.us-price-float-item{padding:10px 11px;border-radius:13px;background:var(--bg)}
+.us-price-float-item span{display:block;font-size:10.5px;color:var(--ink2)}.us-price-float-item strong{display:block;margin-top:3px;font-size:15px;color:var(--ink)}
+.us-price-float-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line2);font-size:10.5px;color:var(--ink3)}
+.us-price-float-foot a{font-size:11.5px;font-weight:800;color:var(--accent);white-space:nowrap}
+@keyframes floatUp{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+.us-price-float{transform:translateX(-50%)}
 .compact-rank{width:25px;flex-shrink:0;padding-top:1px;font-family:Georgia,serif;font-size:17px;font-weight:800;color:var(--accent)}
 .quality-pill{padding:4px 8px;border-radius:999px;background:var(--down-soft);color:var(--down);font-size:11px;font-weight:800;white-space:nowrap}
 
@@ -510,6 +528,7 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   .mobile-nav button{flex:1;min-height:48px;border:0;background:transparent;color:var(--ink3);border-radius:13px;padding:7px 0 6px;font-size:11px;font-weight:700;cursor:pointer}
   .mobile-nav button svg{display:block;margin:0 auto 2px;width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2}
   .mobile-nav button.on{background:var(--ink);color:#fff}
+  .us-price-float{bottom:calc(82px + env(safe-area-inset-bottom))}
 }
 @media(max-width:640px){
   body{font-size:16px}
@@ -1471,7 +1490,16 @@ function mobileNav(active){
     <button class="${active==='a'?'on':''}" onclick="go('#/a-shares')">${navIcon('a')}A股</button>
   </nav>`;
 }
-function dataStateNotice(){ return ''; }
+function chinaTodayLabel(){
+  return new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'long',day:'numeric'}).format(new Date());
+}
+function dataStateNotice(){
+  const syncing=LIVE.status==='loading';
+  return `<div class="module-data-state ${syncing?'syncing':''}" role="status"><span class="data-dot"></span><span>数据状态：${syncing?'正在同步':'实时更新'} · ${chinaTodayLabel()}</span></div>`;
+}
+function detailPlatformDisclaimer(){
+  return '<div class="detail-platform-disclaimer">本平台数据仅供学习参考，不构成投资建议</div>';
+}
 function glossary(names){
   return `<div class="notice">看不懂术语？${names.map(name=>term(name)).join(' · ')}</div>`;
 }
@@ -2148,7 +2176,7 @@ function footer(){
   return `<footer>本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议、收益承诺或买卖指令。港美股和A股投资均存在本金亏损风险，请结合个人资产、风险承受能力和资金期限独立判断。</footer>`;
 }
 function renderLoadingApp(){
-  $('#app').innerHTML=header()+`
+  $('#app').innerHTML=header()+dataStateNotice()+`
   <div class="card loading-shell" aria-live="polite" style="margin-top:20px;padding:28px 22px">
     <div class="loading-copy">正在同步最新数据。</div>
     <div class="loading-bars" aria-hidden="true"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div>
@@ -2249,7 +2277,7 @@ function renderEntry(){
   const guruLead=managers[0]||null;
   const guruMove=guruLead?.moves?.[0]||null;
   const guruToday=guruLead?`${guruLead.name} · ${guruMove?guruMove[2]:'看最新持仓变化'}`:waitingText;
-  $('#app').innerHTML=header()+`
+  $('#app').innerHTML=header()+dataStateNotice()+`
   <section class="home-section" id="home-entrances" style="margin-top:18px">
     <div class="home-core-grid">
       ${homePortalCard({
@@ -2409,18 +2437,28 @@ function hkGroupIdFor(item){
 }
 function renderHK(){
   const groups=getHKGroups();
-  $('#app').innerHTML=`${pageNav('', '返回')}
+  $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
   <div class="simple-page-title"><h1>港股打新：先选结论</h1></div>
   <div class="level-menu">${groups.map(group=>levelEntryCard({title:group.label,count:group.items.length,copy:group.copy,href:`#/hk/${group.id}`,tone:group.tone})).join('')}</div>
   `+footer()+mobileNav('hk');
+}
+function hkEmptyState(group){
+  const messages={
+    buy:'当前暂无“值得打”的新股。宁可错过，也不勉强参与。',
+    caution:'当前暂无需要谨慎观察的新股，可以稍后再来看。',
+    skip:'当前暂无“不建议”标的。',
+    ended:'当前暂无已结束的新股记录。',
+  };
+  return `<div class="empty-answer">${messages[group.id]||`当前暂无${group.label}的标的。`}</div>`;
 }
 function renderHKGroup(groupId){
   const group=getHKGroups().find(item=>item.id===groupId);
   if(!group)return renderNotFound('未找到这个港股分类','#/hk');
   const rankedItems=sortByScore(group.items,hkDisplayScore);
-  $('#app').innerHTML=`${pageNav('#/hk', '返回港股打新')}
+  $('#app').innerHTML=`${pageNav('#/hk', '返回港股打新')}${dataStateNotice()}
   <div class="simple-page-title"><h1>${group.label}</h1><span>${group.items.length} 只</span></div>
-  <section class="group-list">${rankedItems.length?rankedItems.map((item,index)=>ipoCard(item,group.label,index+1,hkDisplayScore(item))).join(''):`<div class="empty-answer">当前暂无${group.label}的标的。</div>`}</section>
+  ${group.id==='ended'?'<div class="list-guidance">复盘分仅比较历史实际表现，不代表当时的申购评分。</div>':''}
+  <section class="group-list">${rankedItems.length?rankedItems.map((item,index)=>ipoCard(item,group.label,index+1,hkDisplayScore(item))).join(''):hkEmptyState(group)}</section>
   ${group.id==='ended'?deepAnalysisEntry('#/hk/backtest','查看历史表现','汇总已收录标的的暗盘、首日和五日实际表现。'):''}
   ${marketUpdateLine('港股')}
   `+specialDisclaimer('新股结论、暗盘与卖出价格仅供研究参考，不构成任何买卖建议。')+footer()+mobileNav('hk');
@@ -2480,6 +2518,9 @@ function stockRankInfo(x){
   const ordered=sortByScore(group?.items||[x],item=>stockGroupScore(item,group?.id));
   return {rank:Math.max(1,ordered.findIndex(item=>item.t===x.t)+1),total:ordered.length,score:stockGroupScore(x,group?.id),label:group?.label||'美股'};
 }
+function quickPriceAction(symbol){
+  return `<span class="quick-price-action" role="button" tabindex="0" onclick="showUSPriceFloat(event,'${symbol}')" onkeydown="if(event.key==='Enter'||event.key===' '){showUSPriceFloat(event,'${symbol}')}" aria-label="快速查看 ${symbol} 止盈止损区间">快速看止盈止损</span>`;
+}
 function stockCard(x,i,groupId){
   const price=Number.isFinite(x.current_price)?x.current_price:x.price;
   const score=stockGroupScore(x,groupId);
@@ -2489,7 +2530,7 @@ function stockCard(x,i,groupId){
       <div class="quote-now"><b class="num">${score} 分</b><span>$${Number(price).toFixed(2)} · ${pct(x.chg)}</span></div>
     </div>
     <div class="compact-answer"><b>${stockPublicTag(x)}：</b>${stockAction(x)}。</div>
-    <div class="compact-foot"><span>看完整答案</span><span class="arrow">›</span></div>
+    <div class="compact-foot">${quickPriceAction(x.t)}<span>完整答案 <span class="arrow">›</span></span></div>
   </a>`;
 }
 function investorTrackingScore(v){
@@ -2532,7 +2573,7 @@ function renderUSStocks(){
       :renderDataUnavailable('us');
   }
   const groups=getUSGroups();
-  $('#app').innerHTML=`${pageNav('', '返回')}
+  $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
   <div class="simple-page-title"><h1>美股投资：先选方向</h1></div>
   <div class="level-menu">${groups.map(group=>levelEntryCard({title:group.label,count:group.items.length,copy:group.copy,href:`#/us/${group.id}`,tone:'us'})).join('')}</div>
   `+footer()+mobileNav('us');
@@ -2542,7 +2583,7 @@ function renderUSGroup(groupId){
   if(!group)return renderNotFound('未找到这个美股分类','#/us');
   if(group.id==='gurus')return renderGurus();
   const rankedItems=sortByScore(group.items,item=>stockGroupScore(item,group.id));
-  $('#app').innerHTML=`${pageNav('#/us', '返回美股投资')}
+  $('#app').innerHTML=`${pageNav('#/us', '返回美股投资')}${dataStateNotice()}
   <div class="simple-page-title"><h1>${group.label}</h1><span>${group.items.length} 只</span></div>
   <section class="group-list">${rankedItems.length?rankedItems.map((item,index)=>stockCard(item,index,group.id)).join(''):'<div class="empty-answer">当前暂无可展示的标的。</div>'}</section>
   ${group.id==='hot'?`${deepAnalysisEntry('#/us/hot-10','查看完整热度前十','比较全市场热度、价格变化、热度原因和当前动作。')}${deepAnalysisEntry('#/us/value','查看性价比指数','比较公司质量、价格位置、综合评分与价格答案状态。')}`:''}
@@ -2592,7 +2633,7 @@ function renderAShares(){
       :renderDataUnavailable('a');
   }
   const groups=getAShareGroups();
-  $('#app').innerHTML=`${pageNav('', '返回')}
+  $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
   <div class="simple-page-title"><h1>A股收息：先选动作</h1></div>
   <div class="level-menu">${groups.map(group=>levelEntryCard({title:group.label,count:group.items.length,copy:group.copy,href:`#/a-shares/${group.id}`,tone:'a'})).join('')}</div>
   `+footer()+mobileNav('a');
@@ -2600,8 +2641,9 @@ function renderAShares(){
 function renderAShareGroup(groupId){
   const group=getAShareGroups().find(item=>item.id===groupId);
   if(!group)return renderNotFound('未找到这个A股收息分类','#/a-shares');
-  $('#app').innerHTML=`${pageNav('#/a-shares', '返回A股收息')}
+  $('#app').innerHTML=`${pageNav('#/a-shares', '返回A股收息')}${dataStateNotice()}
   <div class="simple-page-title"><h1>${group.label}</h1><span>${group.items.length} 只</span></div>
+  <div class="list-guidance">判断标准：买入＝股息率&gt;3%且FCF/市值&gt;5%；等待＝公司可看但价格偏高；回避＝分红或价格风险不合格。</div>
   <section class="group-list">${group.items.length?group.items.map((item,index)=>aShareCard(item,index,group.label)).join(''):'<div class="empty-answer">当前暂无符合条件的标的。</div>'}</section>
   ${marketUpdateLine('A股')}
   ${specialDisclaimer('A股收息测算仅用于研究参考，不构成任何买卖建议。')}`+footer()+mobileNav('a');
@@ -2834,7 +2876,7 @@ function renderAShare(x){
 /* =============== 四级页面：名人持仓 =============== */
 function renderGurus(){
   const allManagers=getLiveInvestors();
-  $('#app').innerHTML=`${pageNav('#/us', '返回美股投资')}
+  $('#app').innerHTML=`${pageNav('#/us', '返回美股投资')}${dataStateNotice()}
   <div class="simple-page-title"><h1>聪明人最近做了什么？</h1><span>${allManagers.length} 位</span></div>
   <section class="group-list">${allManagers.length?allManagers.map((item,index)=>investorCard(item,index,allManagers.length)).join(''):'<div class="empty-answer">当前暂无可展示的持仓。</div>'}</section>
   ${specialDisclaimer('持仓变化仅供研究参考，公开披露存在时间滞后。')}`+footer()+mobileNav('us');
@@ -2852,10 +2894,10 @@ function decisionChangeSection(rows,nextCheck,prefix){
   </div></div>`;
 }
 function analysisShell({active,backRoute,title,subtitle,body,disclaimer}){
-  $('#app').innerHTML=`${pageNav(backRoute,'返回完整答案')}
+  $('#app').innerHTML=`${pageNav(backRoute,'返回完整答案')}${dataStateNotice()}
     <div class="group-head"><div class="eyebrow">第五级 · 深度分析</div><h1>${title}</h1><p>${subtitle}</p></div>
     ${body}
-    ${specialDisclaimer(disclaimer)}`+footer()+mobileNav(active);
+    ${specialDisclaimer(disclaimer)}${detailPlatformDisclaimer()}`+footer()+mobileNav(active);
 }
 function percentOrDash(value,digits=1){
   return Number.isFinite(value)?`${value>=0?'+':''}${Number(value).toFixed(digits)}%`:'—';
@@ -2905,7 +2947,7 @@ function renderUSHeatTop10(){
     backRoute:'#/us/hot',
     title:'美股 · 热度前十',
     subtitle:'按当前市场关注度排序，分数只用于横向比较。',
-    body:`<div class="group-list">${items.map((item,index)=>`<a class="compact-card" href="#/stock/${item.t}"><div class="compact-top"><div class="compact-title"><h3><span class="num">${index+1}</span> ${item.t}<span>${item.n}</span></h3></div><div class="quote-now"><b class="num">$${Number(item.price).toFixed(2)}</b><span class="${item.chg>=0?'upc':'dnc'}">${pct(item.chg)}</span></div></div><div class="answer-block"><div class="answer-line"><strong>现在怎么看</strong><b>${stockAction(item)}</b></div>${insightMeters([['市场热度',stockHeatRank(item),stockHeatReason(item)]])}</div><div class="compact-foot"><span>查看价格与基本面</span><span class="arrow">›</span></div></a>`).join('')}</div>
+    body:`<div class="group-list">${items.map((item,index)=>`<a class="compact-card" href="#/stock/${item.t}"><div class="compact-top"><div class="compact-title"><h3><span class="num">${index+1}</span> ${item.t}<span>${item.n}</span></h3></div><div class="quote-now"><b class="num">$${Number(item.price).toFixed(2)}</b><span class="${item.chg>=0?'upc':'dnc'}">${pct(item.chg)}</span></div></div><div class="answer-block"><div class="answer-line"><strong>现在怎么看</strong><b>${stockAction(item)}</b></div>${insightMeters([['市场热度',stockHeatRank(item),stockHeatReason(item)]])}</div><div class="compact-foot">${quickPriceAction(item.t)}<span>完整答案 <span class="arrow">›</span></span></div></a>`).join('')}</div>
     <div class="d-sec"><h4>怎么看这张榜</h4><div class="analysis-grid"><div class="analysis-card"><h4>分数越高</h4><p>代表当前市场关注度更高，不代表未来涨幅更大。</p></div><div class="analysis-card"><h4>先看价格</h4><p>热度不能直接当成买入信号，进入单股页再看买入、止盈和止损参考。</p></div></div></div>`,
     disclaimer:'美股热度排名基于当前已整理的公开行情与成交变化，不构成买卖建议。',
   });
@@ -2917,7 +2959,7 @@ function renderUSValueIndex(){
     backRoute:'#/us/hot',
     title:'美股 · 性价比指数',
     subtitle:'把公司质量、估值与价格位置合在一起排序；分数用于比较，不是收益承诺。',
-    body:`<div class="group-list">${items.map((item,index)=>{const answers=stockPriceAnswers(item);const profile=usValueProfile(item);return `<a class="compact-card" href="#/stock/${item.t}"><div class="compact-top"><div class="compact-title"><h3><span class="num">${index+1}</span> ${item.t}<span>${item.n}</span></h3></div><div class="quote-now"><b class="num">${profile.score} 分</b><span>${profile.grade} 级</span></div></div><div class="answer-block"><div class="answer-line"><strong>当前动作</strong><b>${stockAction(item)}</b></div><div class="answer-line"><strong>价格答案</strong><span>${answers.available?`买入 ${answers.buy} · 止盈 ${answers.sell} · 止损 ${answers.stop}`:'当前数据不足'}</span></div>${insightMeters([['性价比',profile.score,answers.status]])}</div><div class="compact-foot"><span>查看完整性价比分析</span><span class="arrow">›</span></div></a>`}).join('')}</div>`,
+    body:`<div class="group-list">${items.map((item,index)=>{const answers=stockPriceAnswers(item);const profile=usValueProfile(item);return `<a class="compact-card" href="#/stock/${item.t}"><div class="compact-top"><div class="compact-title"><h3><span class="num">${index+1}</span> ${item.t}<span>${item.n}</span></h3></div><div class="quote-now"><b class="num">${profile.score} 分</b><span>${profile.grade} 级</span></div></div><div class="answer-block"><div class="answer-line"><strong>当前动作</strong><b>${stockAction(item)}</b></div><div class="answer-line"><strong>价格答案</strong><span>${answers.available?`买入 ${answers.buy} · 止盈 ${answers.sell} · 止损 ${answers.stop}`:'当前数据不足'}</span></div>${insightMeters([['性价比',profile.score,answers.status]])}</div><div class="compact-foot">${quickPriceAction(item.t)}<span>完整答案 <span class="arrow">›</span></span></div></a>`}).join('')}</div>`,
     disclaimer:'性价比指数与研究参考价仅供横向研究，不构成买卖建议；未完成历史验证的价格可能失效。',
   });
 }
@@ -2935,7 +2977,7 @@ function detailShell(head,body){
       :route.startsWith('a-share/')
         ?specialDisclaimer('A股收息价格与分红测算仅供研究参考，不构成任何买卖建议。')
         :specialDisclaimer('港股卖出价格仅供研究参考，不构成任何买卖建议。');
-  $('#app').innerHTML=`${pageNav(null, '返回')}${head}${body}`+extra+footer()+mobileNav(active);
+  $('#app').innerHTML=`${pageNav(null, '返回')}${dataStateNotice()}${head}${body}`+extra+detailPlatformDisclaimer()+footer()+mobileNav(active);
 }
 function formatExitPriceRange(change,x){
   const base=Number.isFinite(x.offerPriceValue)?x.offerPriceValue:Number.isFinite(x.priceHigh)?x.priceHigh:null;
@@ -3090,6 +3132,27 @@ function stockPriceAnswers(x){
     status:'研究参考价，仍需持续验证',
   };
 }
+function closeUSPriceFloat(){
+  document.getElementById('us-price-float')?.remove();
+}
+function showUSPriceFloat(event,symbol){
+  event?.preventDefault();
+  event?.stopPropagation();
+  const stock=US_STOCKS.find(item=>item.t===symbol);
+  if(!stock)return;
+  const answers=stockPriceAnswers(stock);
+  closeUSPriceFloat();
+  const float=document.createElement('div');
+  float.id='us-price-float';
+  float.className='us-price-float';
+  float.setAttribute('role','dialog');
+  float.setAttribute('aria-label',`${stock.t} 止盈止损区间`);
+  float.innerHTML=`<div class="us-price-float-head"><div><b>${stock.t} · ${stock.n}</b><span>${stockAction(stock)}</span></div><button class="us-price-float-close" type="button" onclick="closeUSPriceFloat()" aria-label="关闭">×</button></div>
+    <div class="us-price-float-grid"><div class="us-price-float-item"><span>建议止盈区间</span><strong>${answers.sell}</strong></div><div class="us-price-float-item"><span>建议止损区间</span><strong>${answers.stop}</strong></div></div>
+    <div class="us-price-float-foot"><span>${answers.available?answers.status:'价格答案暂未形成可靠参考'}</span><a href="#/stock/${stock.t}" onclick="closeUSPriceFloat()">查看完整答案 ›</a></div>`;
+  document.body.appendChild(float);
+  float.querySelector('.us-price-float-close')?.focus();
+}
 function usValueProfile(x){
   const score=clampScore(Number.isFinite(x.final_score)?x.final_score:Number.isFinite(x.score)?x.score:0);
   return {score,grade:x.final_grade||gradeFromScore(score)};
@@ -3119,7 +3182,7 @@ function renderStock(x){
   detailShell(
     `<div class="d-head"><h1>${x.t}<span class="code" style="font-size:15px">${x.n}</span></h1>
     <div class="sub">${x.tags.map(t=>`<span class="chip mini tag">${t}</span>`).join('')}</div></div>`,
-    `${dataStateNotice()}<div class="decision-hero">
+    `<div class="decision-hero">
       <div class="decision-kicker">望潮 Aurum · 美股投资</div>
       <h2>${x.t} 现在怎么看？</h2>
       <p>${currentObservation}</p>

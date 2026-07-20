@@ -16,12 +16,15 @@ const INVESTOR_NAMES = {
 };
 
 function number(value, fallback = 0) {
+  if (value === null || value === undefined || value === "") return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function money(value, currency = "$") {
-  return Number.isFinite(Number(value)) ? `${currency}${number(value).toFixed(2)}` : "暂缺";
+  return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value))
+    ? `${currency}${number(value).toFixed(2)}`
+    : "暂缺";
 }
 
 function scoreRank(items, key) {
@@ -193,18 +196,11 @@ function findItem(snapshot, market, id) {
   return allItems(snapshot, market).find((item) => String(item.id).toUpperCase() === String(id).toUpperCase());
 }
 
-function publicRoute(item) {
-  if (item.market === "hk") return { target: "ipo", id: item.id };
-  if (item.market === "us") return { target: "stock", id: item.id };
-  if (item.market === "a") return { target: "ashare", id: item.id };
-  return { target: "guru", id: item.id };
-}
-
 module.exports = {
+  INVESTOR_NAMES,
   US_NAMES,
   allItems,
   findItem,
   groupDefinitions,
   money,
-  publicRoute,
 };

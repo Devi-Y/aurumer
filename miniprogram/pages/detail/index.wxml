@@ -15,12 +15,29 @@
       <view wx:for="{{view.facts}}" wx:key="*this" class="fact"><text>{{item[0]}}</text><text>{{item[1]}}</text></view>
     </view>
     <view wx:if="{{view.holdings.length}}" class="section-card">
-      <text class="section-title">主要持仓变化</text>
+      <text class="section-title">公开持仓变化</text>
       <view wx:for="{{view.holdings}}" wx:key="name" class="fact"><text>{{item.name}}</text><text>{{item.value}}</text></view>
     </view>
+    <view wx:if="{{view.analysis.length}}" class="section-card analysis-card">
+      <text class="section-title">站内完整分析</text>
+      <view wx:for="{{view.analysis}}" wx:key="title" class="analysis-block">
+        <text class="analysis-title">{{item.title}}</text>
+        <text class="analysis-body">{{item.body}}</text>
+      </view>
+    </view>
+    <view wx:if="{{view.actions.length}}" class="section-card">
+      <text class="section-title">下一步怎么做</text>
+      <view wx:for="{{view.actions}}" wx:key="label" class="action-row">
+        <text>{{item.label}}</text>
+        <text>{{item.value}}</text>
+      </view>
+    </view>
     <view class="risk"><text class="section-title">风险提醒</text><text>{{view.risk}}</text></view>
-    <button class="deep-button" bindtap="openDeep">继续看完整分析</button>
-    <text class="source">{{source}}</text>
+    <view class="data-note">
+      <text>{{source}}</text>
+      <text>{{view.sourceNote}}</text>
+    </view>
+    <text class="disclaimer">{{view.disclaimer}}</text>
   </view>
   <view wx:else class="empty"><text>答案暂时不可用</text><text>请稍后下拉刷新。</text></view>
 </view>

@@ -10,7 +10,6 @@ const requiredPages = [
   "pages/section/index",
   "pages/list/index",
   "pages/detail/index",
-  "pages/webview/index",
 ];
 const forbiddenKeys = new Set([
   "strategyHealth",
@@ -41,6 +40,7 @@ for (const page of requiredPages) {
     await access(path.join(miniRoot, `${page}.${extension}`));
   }
 }
+assert(!appConfig.pages.some((page) => page.includes("webview")), "小程序仍注册了外部 web-view 页面");
 
 const generatedSource = await readFile(path.join(miniRoot, "data", "live-snapshot.js"), "utf8");
 const match = generatedSource.match(/module\.exports\s*=\s*([\s\S]+);\s*$/);
@@ -85,6 +85,7 @@ for (const item of miniHKItems.filter((entry) => entry.raw.publicAnswer?.verdict
 
 const indexSource = await readFile(path.join(miniRoot, "pages", "index", "index.js"), "utf8");
 const appSource = await readFile(path.join(miniRoot, "app.js"), "utf8");
+const storeSource = await readFile(path.join(miniRoot, "data", "store.js"), "utf8");
 const detailSource = await readFile(path.join(miniRoot, "pages", "detail", "index.js"), "utf8");
 const detailTemplate = await readFile(path.join(miniRoot, "pages", "detail", "index.wxml"), "utf8");
 const detailContract = `${detailSource}\n${detailTemplate}`;
@@ -92,11 +93,14 @@ assert(indexSource.includes("pages/section/index"), "小程序首页仍未进入
 for (const label of ["值得打", "谨慎打", "不建议", "已结束", "七姐妹", "热度前三", "聪明人持仓", "买入", "等待", "回避"]) {
   assert(sectionSource.includes(label), `小程序缺少二级入口：${label}`);
 }
-for (const label of ["买入参考", "止盈参考", "止损参考", "自由现金流", "主要持仓变化"]) {
+for (const label of ["买入参考", "止盈参考", "止损参考", "自由现金流", "公开持仓变化", "站内完整分析", "下一步怎么做"]) {
   assert(detailContract.includes(label), `小程序详情缺少关键内容：${label}`);
 }
 assert(!indexSource.includes("pages/webview/index?target=${target}"), "小程序首页仍直接依赖 web-view");
-assert(appSource.includes('require("./config")'), "小程序公开域名存在重复配置");
+assert(!appSource.includes("PUBLIC_ORIGIN"), "小程序 App 仍依赖外部网页域名");
+assert(!storeSource.includes("wx.request"), "小程序数据层仍依赖运行时外部请求");
+assert(!detailSource.includes("openDeep"), "小程序详情仍保留外链分析入口");
+assert(!detailContract.includes("继续看完整分析"), "小程序详情仍会引导用户离开原生页面");
 assert(!detailSource.includes("raw.currentPrice || 0"), "小程序 A 股缺失价格仍会显示 0 元");
 assert(!detailSource.includes("raw.trackingScore || 0"), "小程序缺失跟踪分仍会显示 0 分");
 

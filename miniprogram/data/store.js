@@ -1,5 +1,4 @@
 const bundledSnapshot = require("./live-snapshot");
-const { PUBLIC_ORIGIN } = require("../config");
 
 function isUsableSnapshot(snapshot) {
   return Boolean(
@@ -10,22 +9,18 @@ function isUsableSnapshot(snapshot) {
   );
 }
 
+function formatSnapshotDate(value) {
+  const date = new Date(value);
+  if (!value || Number.isNaN(date.getTime())) return "更新时间待核验";
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+}
+
 function loadSnapshot(onUpdate, onComplete) {
   if (isUsableSnapshot(bundledSnapshot)) {
-    onUpdate(bundledSnapshot, "本地同步数据");
+    const updatedAt = formatSnapshotDate(bundledSnapshot.updatedAt);
+    onUpdate(bundledSnapshot, `公开数据快照 · ${updatedAt}`);
   }
-
-  wx.request({
-    url: `${PUBLIC_ORIGIN}/data/live-snapshot.json`,
-    timeout: 8000,
-    success: ({ data }) => {
-      if (isUsableSnapshot(data)) onUpdate(data, "在线公开数据");
-    },
-    fail: () => {},
-    complete: () => {
-      if (typeof onComplete === "function") onComplete();
-    },
-  });
+  if (typeof onComplete === "function") onComplete();
 }
 
 module.exports = { bundledSnapshot, loadSnapshot };

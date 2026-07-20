@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>望潮 Aurum｜港美股投资答案工具</title>
-<meta name="description" content="望潮 Aurum：港股打新、美股机会、A股收息与聪明人持仓，一页看清结论、估值、风险和下一步。">
+<title>望潮 Aurum｜港美股与黄金投资答案工具</title>
+<meta name="description" content="望潮 Aurum：港股打新、美股机会、A股收息、黄金投资与聪明人持仓，一页看清结论、价格、风险和下一步。">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#F7F4EE">
 <meta name="mobile-web-app-capable" content="yes">
@@ -15,15 +15,15 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:site_name" content="望潮 Aurum">
-<meta property="og:title" content="望潮 Aurum｜港美股投资答案工具">
-<meta property="og:description" content="港股看打新答案，美股看机会与估值，A股看分红和现金流，聪明人持仓看资金方向。">
+<meta property="og:title" content="望潮 Aurum｜港美股与黄金投资答案工具">
+<meta property="og:description" content="港股看打新，美股看机会，A股看收息，黄金看价格与宏观驱动。">
 <meta property="og:url" content="https://devi-y.github.io/aurumer/">
 <meta property="og:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="望潮 Aurum｜港美股投资答案工具">
-<meta name="twitter:description" content="少看行情噪音，更快找到港股、美股和A股的下一步。">
+<meta name="twitter:title" content="望潮 Aurum｜港美股与黄金投资答案工具">
+<meta name="twitter:description" content="少看行情噪音，更快找到港股、美股、A股和黄金的下一步。">
 <meta name="twitter:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/aurum-192.png">
@@ -128,6 +128,8 @@ img,svg,canvas{max-width:100%}
 .home-portal.a{background:linear-gradient(135deg,#243C43,#436B72)}
 .home-portal.risk{background:linear-gradient(135deg,#303742,#59626E)}
 .home-portal.guru{background:linear-gradient(135deg,#223A42,#496A5F)}
+.home-portal.gold{grid-column:1/-1;min-height:206px;background:linear-gradient(135deg,#6F531B,#B4872E 58%,#C99E49)}
+.home-portal.gold .features{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .hero-actions,.growth-actions,.share-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .hero-actions{position:relative;z-index:1;margin-top:16px}
 .hero-actions a,.hero-actions button,.growth-actions a,.growth-actions button,.share-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;font-weight:750;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s,border-color .15s,background .15s,color .15s}
@@ -274,6 +276,14 @@ img,svg,canvas{max-width:100%}
 .level-entry.ended{border-left:4px solid var(--ink3)}
 .level-entry.us{border-left:4px solid var(--forest)}
 .level-entry.a{border-left:4px solid #436B72}
+.level-entry.gold{border-left:4px solid var(--gold)}
+.gold-quote-grid,.gold-driver-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gold-quote,.gold-driver{padding:15px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
+.gold-quote small,.gold-driver small{display:block;color:var(--ink3);font-size:11px;font-weight:700}
+.gold-quote strong{display:block;margin-top:4px;font-size:23px;line-height:1.2;color:var(--ink)}
+.gold-quote span,.gold-driver p{display:block;margin-top:5px;color:var(--ink2);font-size:12px;line-height:1.55}
+.gold-driver b{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:14px}
+.gold-driver b span{margin:0;color:var(--gold);font-size:16px}
 .group-head{margin:18px 2px 14px}
 .group-head .eyebrow{font-size:11px;font-weight:800;letter-spacing:1.8px;color:var(--accent)}
 .group-head h1{margin-top:4px;font-size:25px;line-height:1.25;letter-spacing:-.5px}
@@ -540,11 +550,13 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   .home-portal h4{font-size:20px}
   .home-portal .features{gap:5px;margin-top:11px}
   .home-portal .features li{font-size:11.5px}
+  .home-portal.gold .features{grid-template-columns:1fr}
   .home-panel,.home-step{min-height:auto}
   .growth-meta,.version-compare{grid-template-columns:1fr}
   .share-grid{grid-template-columns:1fr 1fr}
   .evidence-grid{grid-template-columns:1fr}
   .analysis-grid{grid-template-columns:1fr}
+  .gold-quote-grid,.gold-driver-grid{grid-template-columns:1fr}
   .insight-meters{grid-template-columns:1fr}
   .peer-grid{grid-template-columns:1fr}
   .scenario-row{grid-template-columns:minmax(0,1fr) auto}
@@ -1171,11 +1183,14 @@ const LIVE={
   usMarketNote:'',
   hkMarketNote:'',
   aShareMarketNote:'',
+  goldMarketNote:'',
   hkBacktest:null,
   hasUS:false,
   hasHK:false,
   hasAShare:false,
   hasInvestors:false,
+  hasGold:false,
+  gold:null,
   liveInvestorIds:new Set(),
   error:null
 };
@@ -1212,7 +1227,7 @@ function formatShares(value){
   return Number.isFinite(value)?`${value.toFixed(0)} 股`:'—';
 }
 function marketUpdateLine(prefix){
-  const note=prefix==='美股'?LIVE.usMarketNote:prefix==='A股'?LIVE.aShareMarketNote:LIVE.hkMarketNote;
+  const note=prefix==='美股'?LIVE.usMarketNote:prefix==='A股'?LIVE.aShareMarketNote:prefix==='黄金'?LIVE.goldMarketNote:LIVE.hkMarketNote;
   const fallback=LIVE.updatedAt?`资料整理于 ${fmtDate(LIVE.updatedAt)}`:'资料时间待确认';
   return `<div class="source-line">${prefix} ${note||fallback}</div>`;
 }
@@ -1450,6 +1465,7 @@ function cleanShareUrl(){
   if(page==='us')return `${publicBase}us-stocks/`;
   if(page==='a-shares')return `${publicBase}a-shares/`;
   if(page==='gurus')return `${publicBase}gurus/`;
+  if(page==='gold')return `${publicBase}gold/${id?`${encodeURIComponent(id)}/`:''}`;
   if(page==='ipo'&&id){
     const listing=findIPO(id);
     const code=listing?ipoPublicCode(listing):normalizeIPOPublicCode(id);
@@ -1668,6 +1684,9 @@ function applyLiveData(payload){
   LIVE.hasHK=Boolean(payload.hk?.listings?.length||payload.hk?.history?.length||payload.hk?.backtest?.recent?.length);
   LIVE.hasAShare=Boolean(payload.aShare?.quotes?.length);
   LIVE.hasInvestors=Boolean(payload.investors?.length);
+  LIVE.hasGold=Boolean(payload.gold?.quotes?.international&&payload.gold?.answer);
+  LIVE.gold=payload.gold||null;
+  LIVE.goldMarketNote=payload.gold?.updatedAt?`更新于 ${fmtDate(payload.gold.updatedAt)}`:'';
 
   if(payload.us?.stocks?.length){
     const bySymbol=new Map(payload.us.stocks.map(row=>[row.symbol,row]));
@@ -2038,6 +2057,7 @@ function routeFromPath(pathname){
   if(parts[0]==='a-shares')return parts[1]?`a-share/${parts[1].toUpperCase()}`:'a-shares';
   if(parts[0]==='stocks'&&parts[1])return `stock/${parts[1].toUpperCase()}`;
   if(parts[0]==='gurus')return parts[1]?`investor/${parts[1].toLowerCase()}`:'gurus';
+  if(parts[0]==='gold')return parts[1]?`gold/${parts[1].toLowerCase()}`:'gold';
   if(parts[0]==='history')return 'history';
   return '';
 }
@@ -2103,6 +2123,7 @@ window.goBack=()=>{
     const item=findIPO(id);
     return go(item?`#/hk/${hkGroupIdFor(item)}`:'#/hk');
   }
+  if(page==='gold'&&id)return go('#/gold');
   if((page==='hk'||page==='us'||page==='a-shares')&&id)return go(`#/${page}`);
   go('');
 };
@@ -2113,14 +2134,15 @@ function router(){
     const [page,id,view]=h.split('/');
     window.scrollTo(0,0);
     const booting=LIVE.status==='loading';
-    if(booting&&['hk','us','a-shares','gurus','ipo','a-share','stock','investor'].includes(page)){
-      const active=page==='us'||page==='stock'||page==='gurus'||page==='investor'?'us':page==='a-shares'||page==='a-share'?'a':'hk';
-      const titles={hk:'港股打新',us:'美股投资','a-shares':'A股收息',gurus:'聪明人持仓',ipo:'港股新股答案','a-share':'A股收息答案',stock:'美股答案',investor:'持仓答案'};
+    if(booting&&['hk','us','a-shares','gurus','gold','ipo','a-share','stock','investor'].includes(page)){
+      const active=page==='us'||page==='stock'||page==='gurus'||page==='investor'?'us':page==='a-shares'||page==='a-share'?'a':page==='gold'?'home':'hk';
+      const titles={hk:'港股打新',us:'美股投资','a-shares':'A股收息',gurus:'聪明人持仓',gold:'黄金投资',ipo:'港股新股答案','a-share':'A股收息答案',stock:'美股答案',investor:'持仓答案'};
       return renderMarketLoading(active,titles[page]||'正在加载','正在准备页面内容。');
     }
     if(page==='hk'&&!booting&&!LIVE.hasHK)return renderDataUnavailable('hk');
     if(page==='us'&&!booting&&!LIVE.hasUS)return renderDataUnavailable('us');
     if(page==='a-shares'&&!booting&&!LIVE.hasAShare)return renderDataUnavailable('a');
+    if(page==='gold'&&!booting&&!LIVE.hasGold)return renderDataUnavailable('home');
     if((page==='gurus'||page==='investor')&&!booting&&!LIVE.hasInvestors)return renderDataUnavailable('us');
     if(page==='hk')return id==='backtest'?renderHKBacktest():id?renderHKGroup(id):renderHKIPO();
     if(page==='us'){
@@ -2130,6 +2152,7 @@ function router(){
       return id?renderUSGroup(id):renderUSStocks();
     }
     if(page==='a-shares')return id?renderAShareGroup(id):renderAShares();
+    if(page==='gold')return id?renderGoldPage(id):renderGold();
     if(page==='gurus')return renderGurus();
     if(page==='ipo'){const x=findIPO(id);return x?(view==='analysis'?renderIPOAnalysis(x):renderIPO(x)):renderNotFound('未找到这只港股新股','#/hk')}
     if(page==='a-share'){const x=findAShare(id);return x?(view==='analysis'?renderAShareAnalysis(x):renderAShare(x)):renderNotFound('未找到这只A股收息标的','#/a-shares')}
@@ -2149,7 +2172,7 @@ function router(){
       ?'us'
       :page==='a-shares'||page==='a-share'
         ?'a'
-        :'hk';
+        :page==='gold'?'home':'hk';
     renderRenderError(active,error?.message||'渲染失败');
   }
 }
@@ -2173,7 +2196,7 @@ function pageNav(backRoute=null,backLabel='返回'){
   </nav>`;
 }
 function footer(){
-  return `<footer>本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议、收益承诺或买卖指令。港美股和A股投资均存在本金亏损风险，请结合个人资产、风险承受能力和资金期限独立判断。</footer>`;
+  return `<footer>本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议、收益承诺或买卖指令。港美股、A股和黄金投资均存在本金亏损风险，请结合个人资产、风险承受能力和资金期限独立判断。</footer>`;
 }
 function renderLoadingApp(){
   $('#app').innerHTML=header()+dataStateNotice()+`
@@ -2212,6 +2235,7 @@ function homeNav(){
     ['港股打新', '#/hk'],
     ['美股投资', '#/us'],
     ['A股收息', '#/a-shares'],
+    ['黄金投资', '#/gold'],
     ['聪明人持仓', '#/gurus'],
     ['投资驾驶舱说明', 'cockpit.html'],
   ];
@@ -2277,6 +2301,9 @@ function renderEntry(){
   const guruLead=managers[0]||null;
   const guruMove=guruLead?.moves?.[0]||null;
   const guruToday=guruLead?`${guruLead.name} · ${guruMove?guruMove[2]:'看最新持仓变化'}`:waitingText;
+  const goldToday=LIVE.hasGold
+    ?`${LIVE.gold.answer.action} · ${LIVE.gold.quotes.international.price} 美元/盎司`
+    :waitingText;
   $('#app').innerHTML=header()+dataStateNotice()+`
   <section class="home-section" id="home-entrances" style="margin-top:18px">
     <div class="home-core-grid">
@@ -2311,6 +2338,14 @@ function renderEntry(){
         features:['大佬买了什么','买入与卖出变化','优缺点与建议'],
         answer:guruToday,
         href:'#/gurus',
+      })}
+      ${homePortalCard({
+        tone:'gold',
+        kicker:'GOLD · 配置',
+        title:'黄金投资',
+        features:['现在适不适合买','伦敦金与上海金','价格位置与宏观风险'],
+        answer:goldToday,
+        href:'#/gold',
       })}
     </div>
   </section>
@@ -2647,6 +2682,116 @@ function renderAShareGroup(groupId){
   <section class="group-list">${group.items.length?group.items.map((item,index)=>aShareCard(item,index,group.label)).join(''):'<div class="empty-answer">当前暂无符合条件的标的。</div>'}</section>
   ${marketUpdateLine('A股')}
   ${specialDisclaimer('A股收息测算仅用于研究参考，不构成任何买卖建议。')}`+footer()+mobileNav('a');
+}
+
+/* =============== 黄金投资：答案、价格、驱动 =============== */
+function goldRangeText(range){
+  if(!range||!Number.isFinite(range.low)||!Number.isFinite(range.high))return '暂未形成可靠区间';
+  const digits=range.currency==='CNY/g'?1:0;
+  const unit=range.currency==='CNY/g'?'元/克':'美元/盎司';
+  return range.low===range.high
+    ?`${Number(range.low).toFixed(digits)} ${unit}`
+    :`${Number(range.low).toFixed(digits)}–${Number(range.high).toFixed(digits)} ${unit}`;
+}
+function goldIndicator(id){
+  return LIVE.gold?.indicators?.find(item=>item.id===id)||null;
+}
+function goldIndicatorValue(item){
+  if(!item||!Number.isFinite(item.value))return '待更新';
+  return `${Number(item.value).toFixed(Math.abs(item.value)>=100?1:2)}${item.unit||''}`;
+}
+function goldPriceCard(label,quote){
+  if(!quote)return `<div class="gold-quote"><small>${label}</small><strong>待更新</strong><span>当前数据尚未返回。</span></div>`;
+  const digits=quote.currency==='CNY/g'?1:1;
+  const unit=quote.currency==='CNY/g'?'元/克':'美元/盎司';
+  return `<div class="gold-quote"><small>${label} · ${quote.name||quote.symbol}</small><strong class="num">${Number(quote.price).toFixed(digits)} ${unit}</strong><span>${pct(quote.changePercent)} · 截至 ${fmtDate(quote.asOf)}</span></div>`;
+}
+function goldDriverCard(item){
+  return `<div class="gold-driver"><small>${item.label}</small><b><span class="num">${goldIndicatorValue(item)}</span><em>${fmtDate(item.asOf)}</em></b><p>${item.note}</p></div>`;
+}
+function goldSources(){
+  const sources=(LIVE.gold?.sources||[]).filter(source=>source.ok&&source.url);
+  if(!sources.length)return '';
+  return `<div class="d-sec"><h4>公开资料</h4><div class="card"><div class="official-links">${sources.map(source=>`<a class="official-link" href="${source.url}" target="_blank" rel="noopener">${source.name} ↗</a>`).join('')}</div><div class="t2" style="margin-top:10px">各项数据发布日期不同，页面逐项标注日期，不把延迟数据写成实时数据。</div></div></div>`;
+}
+function renderGold(){
+  const answer=LIVE.gold.answer;
+  const groups=[
+    {title:'现在能买吗',copy:`一句话：${answer.conclusion}`,href:'#/gold/answer'},
+    {title:'价格位置',copy:'同时看国际金价、上海金和研究参考区间。',href:'#/gold/price'},
+    {title:'驱动与风险',copy:'看实际利率、美元、流动性和持仓拥挤度。',href:'#/gold/drivers'},
+  ];
+  $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
+  <div class="simple-page-title"><h1>黄金投资：先选问题</h1></div>
+  <div class="level-menu">${groups.map(group=>levelEntryCard({title:group.title,count:'查看',copy:group.copy,href:group.href,tone:'gold'})).join('')}</div>
+  ${marketUpdateLine('黄金')}
+  ${specialDisclaimer('黄金价格受利率、美元、流动性和事件冲击影响，研究区间不构成买卖指令。')}`+footer()+mobileNav('home');
+}
+function renderGoldAnswer(){
+  const gold=LIVE.gold;
+  const answer=gold.answer;
+  const plan=answer.pricePlan||{};
+  $('#app').innerHTML=`${pageNav('#/gold', '返回黄金投资')}${dataStateNotice()}
+  <section class="decision-hero">
+    <div class="eyebrow">望潮 Aurum · 黄金答案</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:10px"><div><h2>${answer.action}</h2><p>${answer.conclusion}</p></div>${ring(answer.score,72,7,20)}</div>
+    <div class="price-map" style="margin-top:18px">
+      <div class="price-cell"><span>国际金关注区</span><b>${goldRangeText(plan.internationalWatch)}</b></div>
+      <div class="price-cell"><span>上海金关注区</span><b>${goldRangeText(plan.domesticWatch)}</b></div>
+      <div class="price-cell"><span>风险下沿</span><b>${goldRangeText(plan.internationalRisk)}</b></div>
+    </div>
+    <div class="advice" style="margin-top:14px"><b>先做什么：</b>${answer.action==='可分批关注'?'分批，不追涨；每次只处理计划仓位的一部分。':answer.action==='暂时回避'?'先不新增仓位，等待价格与宏观条件改善。':'先观察价格是否进入关注区，再决定是否分批。'}</div>
+  </section>
+  <div class="d-sec"><h4>为什么</h4><div class="card"><div class="pros-cons"><div><b>支持</b><ul>${(answer.reasons.length?answer.reasons:['暂未形成足够支持信号']).map(item=>`<li>${item}</li>`).join('')}</ul></div><div><b>风险</b><ul>${(answer.risks.length?answer.risks:['仍需防范突发事件和快速波动']).map(item=>`<li>${item}</li>`).join('')}</ul></div></div></div></div>
+  ${deepAnalysisEntry('#/gold/analysis','查看深度分析','展开价格趋势、宏观驱动、仓位拥挤和数据日期。')}
+  ${detailPlatformDisclaimer()}${specialDisclaimer('以上为研究参考区间，不构成投资建议或收益承诺。')}`+footer()+mobileNav('home');
+}
+function renderGoldPrice(){
+  const gold=LIVE.gold;
+  const international=gold.quotes.international;
+  const domestic=gold.quotes.domestic;
+  const plan=gold.answer.pricePlan||{};
+  const history=(gold.history?.international||[]).map(item=>item.close).filter(Number.isFinite);
+  $('#app').innerHTML=`${pageNav('#/gold', '返回黄金投资')}${dataStateNotice()}
+  <div class="simple-page-title"><h1>黄金价格位置</h1><span>双市场</span></div>
+  <div class="gold-quote-grid">${goldPriceCard('国际金价',international)}${goldPriceCard('上海金 Au99.99',domestic)}</div>
+  <div class="d-sec"><h4>近 180 个交易日</h4><div class="card">${history.length>2?sparkSVG(history,760,150,'#B4872E'):'<div class="empty-answer">趋势数据待更新。</div>'}<div class="stats g3" style="margin-top:12px"><div class="stat"><span>近 20 日</span><b>${fmtPct(international.returns?.day20)}</b></div><div class="stat"><span>近 60 日</span><b>${fmtPct(international.returns?.day60)}</b></div><div class="stat"><span>近 180 日位置</span><b>${Number.isFinite(international.percentile180)?`${international.percentile180}% 分位`:'待更新'}</b></div></div></div></div>
+  <div class="d-sec"><h4>研究参考区间</h4><div class="card"><div class="price-map"><div class="price-cell"><span>国际金关注区</span><b>${goldRangeText(plan.internationalWatch)}</b></div><div class="price-cell"><span>国际金上方参考</span><b>${goldRangeText(plan.internationalUpper)}</b></div><div class="price-cell"><span>国际金风险下沿</span><b>${goldRangeText(plan.internationalRisk)}</b></div><div class="price-cell"><span>上海金关注区</span><b>${goldRangeText(plan.domesticWatch)}</b></div></div></div></div>
+  ${detailPlatformDisclaimer()}${specialDisclaimer('国际金与上海金交易时段、汇率和溢价不同，两个价格不能直接等同比较。')}`+footer()+mobileNav('home');
+}
+function renderGoldDrivers(){
+  const indicators=LIVE.gold.indicators||[];
+  $('#app').innerHTML=`${pageNav('#/gold', '返回黄金投资')}${dataStateNotice()}
+  <div class="simple-page-title"><h1>黄金为什么涨跌？</h1><span>基于公开数据</span></div>
+  <div class="guide-card"><b>一句话看懂</b><p>实际利率和美元代表机会成本，金融条件代表流动性，持仓与上海金溢价用于提醒拥挤和本地价格风险。</p></div>
+  <div class="gold-driver-grid">${indicators.map(goldDriverCard).join('')}</div>
+  ${deepAnalysisEntry('#/gold/analysis','查看完整分析','把价格、宏观、持仓和风险放在同一页。')}
+  ${goldSources()}${detailPlatformDisclaimer()}`+footer()+mobileNav('home');
+}
+function renderGoldAnalysis(){
+  const gold=LIVE.gold;
+  const answer=gold.answer;
+  const realYield=goldIndicator('realYield');
+  const dollar=goldIndicator('dollar');
+  const positioning=goldIndicator('positioning');
+  const premium=goldIndicator('domesticPremium');
+  $('#app').innerHTML=`${pageNav('#/gold/answer', '返回黄金答案')}${dataStateNotice()}
+  <div class="simple-page-title"><h1>黄金深度分析</h1><span>${answer.score} 分 · ${answer.grade}</span></div>
+  <div class="analysis-grid">
+    <section class="card"><h3>价格</h3><p class="t2">国际金近 60 日 ${fmtPct(gold.quotes.international.returns?.day60)}，处于近 180 日 ${gold.quotes.international.percentile180}% 分位。当前动作：${answer.action}。</p></section>
+    <section class="card"><h3>机会成本</h3><p class="t2">10 年实际利率 ${goldIndicatorValue(realYield)}。${realYield?.note||'数据待更新。'}</p></section>
+    <section class="card"><h3>美元与流动性</h3><p class="t2">广义美元 ${goldIndicatorValue(dollar)}，近 20 日 ${fmtPct(dollar?.change20)}。美元和金融条件变化可能放大黄金波动。</p></section>
+    <section class="card"><h3>拥挤与溢价</h3><p class="t2">管理基金净多仓占比 ${goldIndicatorValue(positioning)}；上海金折算溢价 ${goldIndicatorValue(premium)}。两项过高时都不适合追涨。</p></section>
+  </div>
+  <div class="d-sec"><h4>结论边界</h4><div class="card"><div class="advice"><b>当前结论：</b>${answer.conclusion}</div><div class="t2" style="margin-top:10px">这里不展示内部评分权重，只保留可核验事实、最终答案和风险。黄金没有“必涨”信号，价格区间需要随交易日数据持续更新。</div></div></div>
+  ${goldSources()}${detailPlatformDisclaimer()}${specialDisclaimer('黄金可用于组合分散，但仍会出现大幅回撤；请独立判断仓位和持有期限。')}`+footer()+mobileNav('home');
+}
+function renderGoldPage(id){
+  if(id==='answer')return renderGoldAnswer();
+  if(id==='price')return renderGoldPrice();
+  if(id==='drivers')return renderGoldDrivers();
+  if(id==='analysis')return renderGoldAnalysis();
+  return renderNotFound('未找到这个黄金答案','#/gold');
 }
 window.renderHKIPO = renderHKIPO;
 window.renderUSStocks = renderUSStocks;

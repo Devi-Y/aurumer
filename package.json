@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.mjs",
+    "start": "python3 -m http.server 8000",
     "routes": "node scripts/write-route-adapters.mjs",
     "sync:mini": "node scripts/sync-miniprogram-data.mjs",
     "check:public": "node scripts/audit-public-data.mjs",

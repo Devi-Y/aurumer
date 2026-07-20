@@ -19,6 +19,7 @@ const publicSnapshot = {
     history: snapshot.hk?.history || [],
   },
   aShare: snapshot.aShare,
+  gold: snapshot.gold,
   investors: snapshot.investors,
 };
 

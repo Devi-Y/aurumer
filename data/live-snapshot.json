@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-07-18T04:25:52.810Z",
-  "durationMs": 23456,
+  "updatedAt": "2026-07-20T03:58:14.298Z",
+  "durationMs": 17590,
   "sources": [
     {
       "id": "yahoo",
@@ -42,6 +42,34 @@
       "id": "eastmoney-a-financial",
       "name": "东方财富 A股公开财务数据",
       "url": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+      "ok": true,
+      "error": null
+    },
+    {
+      "id": "gold-yahoo",
+      "name": "国际金价与黄金 ETF",
+      "url": "https://finance.yahoo.com/quote/GC=F/",
+      "ok": true,
+      "error": null
+    },
+    {
+      "id": "gold-fred",
+      "name": "FRED 宏观指标",
+      "url": "https://fred.stlouisfed.org/",
+      "ok": true,
+      "error": null
+    },
+    {
+      "id": "gold-cftc",
+      "name": "CFTC 黄金持仓",
+      "url": "https://www.cftc.gov/dea/newcot/f_disagg.txt",
+      "ok": true,
+      "error": null
+    },
+    {
+      "id": "gold-sge",
+      "name": "上海黄金交易所 Au99.99",
+      "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-06-20&end_date=2026-07-20",
       "ok": true,
       "error": null
     }
@@ -3622,8 +3650,11 @@
         "stabilizingManager": null,
         "publicOfferShares": null,
         "extractedFrom": "HKEX 新上市公告",
-        "sponsorNames": [],
-        "sponsor": null,
+        "sponsorNames": [
+          "华富建业企业融资有限公司",
+          "同人融资有限公司"
+        ],
+        "sponsor": "华富建业企业融资有限公司、同人融资有限公司",
         "underwriterNames": [],
         "cornerstoneInvestors": [],
         "cornerstoneAmount": null,
@@ -3683,7 +3714,7 @@
           "fiveDayHighChange": 21.83,
           "fiveDayHigh": 122.2,
           "fiveDayHighDate": "2026-07-10",
-          "fiveDaySource": "腾讯港股日线"
+          "fiveDaySource": "东方财富港股日线"
         },
         {
           "stockCode": "00537",
@@ -3714,7 +3745,7 @@
           "fiveDayHighChange": -17.36,
           "fiveDayHigh": 38,
           "fiveDayHighDate": "2026-07-09",
-          "fiveDaySource": "腾讯港股日线"
+          "fiveDaySource": "东方财富港股日线"
         },
         {
           "stockCode": "03752",
@@ -3745,7 +3776,7 @@
           "fiveDayHighChange": 86.84,
           "fiveDayHigh": 71,
           "fiveDayHighDate": "2026-07-13",
-          "fiveDaySource": "腾讯港股日线"
+          "fiveDaySource": "东方财富港股日线"
         },
         {
           "stockCode": "02797",
@@ -3816,7 +3847,7 @@
           "fiveDayHighChange": 0.74,
           "fiveDayHigh": 63.75,
           "fiveDayHighDate": "2026-07-10",
-          "fiveDaySource": "腾讯港股日线"
+          "fiveDaySource": "东方财富港股日线"
         },
         {
           "stockCode": "01770",
@@ -3909,7 +3940,7 @@
           "fiveDayHighChange": 35.1,
           "fiveDayHigh": 42.72,
           "fiveDayHighDate": "2026-07-13",
-          "fiveDaySource": "腾讯港股日线"
+          "fiveDaySource": "东方财富港股日线"
         },
         {
           "stockCode": "08090",
@@ -3940,7 +3971,7 @@
           "fiveDayHighChange": 12.54,
           "fiveDayHigh": 7,
           "fiveDayHighDate": "2026-07-08",
-          "fiveDaySource": "腾讯港股日线"
+          "fiveDaySource": "东方财富港股日线"
         },
         {
           "stockCode": "07687",
@@ -3971,7 +4002,7 @@
           "fiveDayHighChange": 15.1,
           "fiveDayHigh": 101.2,
           "fiveDayHighDate": "2026-07-08",
-          "fiveDaySource": "腾讯港股日线"
+          "fiveDaySource": "东方财富港股日线"
         },
         {
           "stockCode": "07656",
@@ -4033,7 +4064,7 @@
           "fiveDayHighChange": 6.5,
           "fiveDayHigh": 314.8,
           "fiveDayHighDate": "2026-07-08",
-          "fiveDaySource": "腾讯港股日线"
+          "fiveDaySource": "东方财富港股日线"
         }
       ]
     },
@@ -4626,290 +4657,290 @@
     "quotes": [
       {
         "code": "600900.SH",
-        "name": "XD长江电",
-        "currentPrice": 27.99,
-        "currentDividendYield": 3.93,
-        "sustainableDividendYield": 3.72,
-        "currentAdvice": "买入",
+        "name": "长江电力",
+        "currentPrice": 28.81,
+        "currentDividendYield": 3.82,
+        "sustainableDividendYield": 3.62,
+        "currentAdvice": "持有",
         "score": 96,
         "summary": "水电现金流稳定，分红连续性最好，适合长期收息核心仓。",
         "industry": "公用事业 / 水电",
-        "annualDividendPer100k": 3725,
+        "annualDividendPer100k": 3619,
         "recommendPrice": "29元下方",
         "buyPrice": "28.5元以下",
         "safeMarginPrice": "26.8元以下",
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 27.45,
-        "changePercent": 1.97,
-        "asOf": "2026-07-17T08:14:56.000Z",
+        "previousClose": 27.99,
+        "changePercent": 2.93,
+        "asOf": "2026-07-20T03:57:30.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:56.000Z",
+        "priceAsOf": "2026-07-20T03:57:30.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600941.SH",
         "name": "中国移动",
-        "currentPrice": 93.4,
-        "currentDividendYield": 6.15,
-        "sustainableDividendYield": 5.79,
+        "currentPrice": 95.91,
+        "currentDividendYield": 5.99,
+        "sustainableDividendYield": 5.64,
         "currentAdvice": "买入",
         "score": 93,
         "summary": "现金流强、分红稳，适合作为 A 股收息的压舱石。",
         "industry": "通信运营 / 现金牛",
-        "annualDividendPer100k": 5792,
+        "annualDividendPer100k": 5640,
         "recommendPrice": "112元下方",
         "buyPrice": "108元以下",
         "safeMarginPrice": "102元以下",
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 93.05,
-        "changePercent": 0.38,
-        "asOf": "2026-07-17T08:14:39.000Z",
+        "previousClose": 93.4,
+        "changePercent": 2.69,
+        "asOf": "2026-07-20T03:57:45.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:39.000Z",
+        "priceAsOf": "2026-07-20T03:57:45.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "601398.SH",
         "name": "工商银行",
-        "currentPrice": 7.57,
-        "currentDividendYield": 4.5,
-        "sustainableDividendYield": 4.1,
+        "currentPrice": 7.67,
+        "currentDividendYield": 4.44,
+        "sustainableDividendYield": 4.04,
         "currentAdvice": "等待",
         "score": 88,
         "summary": "大行分红稳定，股息率不低，适合稳健收息。",
         "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 4096,
+        "annualDividendPer100k": 4043,
         "recommendPrice": "6元下方",
         "buyPrice": "5.9元以下",
         "safeMarginPrice": "5.6元以下",
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 7.39,
-        "changePercent": 2.44,
-        "asOf": "2026-07-17T08:14:58.000Z",
+        "previousClose": 7.57,
+        "changePercent": 1.32,
+        "asOf": "2026-07-20T03:57:32.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:58.000Z",
+        "priceAsOf": "2026-07-20T03:57:32.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600036.SH",
         "name": "招商银行",
-        "currentPrice": 38.02,
-        "currentDividendYield": 4.26,
-        "sustainableDividendYield": 3.97,
+        "currentPrice": 38.65,
+        "currentDividendYield": 4.19,
+        "sustainableDividendYield": 3.9,
         "currentAdvice": "等待",
         "score": 91,
         "summary": "零售银行龙头，分红与资产质量兼顾，适合长期跟踪。",
         "industry": "银行 / 零售银行",
-        "annualDividendPer100k": 3968,
+        "annualDividendPer100k": 3904,
         "recommendPrice": "37元下方",
         "buyPrice": "35.5元以下",
         "safeMarginPrice": "33.5元以下",
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 37.67,
-        "changePercent": 0.93,
-        "asOf": "2026-07-17T08:14:49.000Z",
+        "previousClose": 38.02,
+        "changePercent": 1.66,
+        "asOf": "2026-07-20T03:57:30.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:49.000Z",
+        "priceAsOf": "2026-07-20T03:57:30.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "601939.SH",
         "name": "建设银行",
-        "currentPrice": 10.16,
-        "currentDividendYield": 3.8,
-        "sustainableDividendYield": 3.51,
+        "currentPrice": 10.38,
+        "currentDividendYield": 3.72,
+        "sustainableDividendYield": 3.44,
         "currentAdvice": "等待",
         "score": 84,
         "summary": "分红稳，波动低，适合收息组合搭配。",
         "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 3511,
+        "annualDividendPer100k": 3437,
         "recommendPrice": "7.3元下方",
         "buyPrice": "7.0元以下",
         "safeMarginPrice": "6.7元以下",
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 9.8,
-        "changePercent": 3.67,
-        "asOf": "2026-07-17T08:14:56.000Z",
+        "previousClose": 10.16,
+        "changePercent": 2.17,
+        "asOf": "2026-07-20T03:57:53.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:56.000Z",
+        "priceAsOf": "2026-07-20T03:57:53.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600377.SH",
         "name": "宁沪高速",
-        "currentPrice": 11.81,
-        "currentDividendYield": 4.75,
-        "sustainableDividendYield": 4.42,
+        "currentPrice": 12.15,
+        "currentDividendYield": 4.62,
+        "sustainableDividendYield": 4.3,
         "currentAdvice": "等待",
         "score": 86,
         "summary": "高速公路现金流稳定，适合做稳健收息底仓。",
         "industry": "交通运输 / 高速公路",
-        "annualDividendPer100k": 4420,
+        "annualDividendPer100k": 4297,
         "recommendPrice": "10元下方",
         "buyPrice": "9.6元以下",
         "safeMarginPrice": "9.0元以下",
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 11.83,
-        "changePercent": -0.17,
-        "asOf": "2026-07-17T08:14:55.000Z",
+        "previousClose": 11.81,
+        "changePercent": 2.88,
+        "asOf": "2026-07-20T03:57:28.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:55.000Z",
+        "priceAsOf": "2026-07-20T03:57:28.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "601088.SH",
         "name": "中国神华",
-        "currentPrice": 43.95,
-        "currentDividendYield": 7.32,
-        "sustainableDividendYield": 5.71,
+        "currentPrice": 45.11,
+        "currentDividendYield": 7.14,
+        "sustainableDividendYield": 5.56,
         "currentAdvice": "等待",
         "score": 78,
         "summary": "股息高，但周期属性更强，价格和周期位置很重要。",
         "industry": "能源 / 煤炭",
-        "annualDividendPer100k": 5706,
+        "annualDividendPer100k": 5560,
         "recommendPrice": "42元下方",
         "buyPrice": "40元以下",
         "safeMarginPrice": "37元以下",
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 43.27,
-        "changePercent": 1.57,
-        "asOf": "2026-07-17T08:14:55.000Z",
+        "previousClose": 43.95,
+        "changePercent": 2.64,
+        "asOf": "2026-07-20T03:57:31.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:55.000Z",
+        "priceAsOf": "2026-07-20T03:57:31.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600938.SH",
         "name": "中国海油",
-        "currentPrice": 28.97,
-        "currentDividendYield": 6,
-        "sustainableDividendYield": 4.88,
-        "currentAdvice": "持有",
+        "currentPrice": 31.87,
+        "currentDividendYield": 5.45,
+        "sustainableDividendYield": 4.44,
+        "currentAdvice": "等待",
         "score": 79,
         "summary": "高分红但受油价周期影响，适合等更舒服的价格。",
         "industry": "能源 / 油气",
-        "annualDividendPer100k": 4880,
+        "annualDividendPer100k": 4436,
         "recommendPrice": "29元下方",
         "buyPrice": "28元以下",
         "safeMarginPrice": "26.5元以下",
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 28.96,
-        "changePercent": 0.03,
-        "asOf": "2026-07-17T08:14:45.000Z",
+        "previousClose": 28.97,
+        "changePercent": 10.01,
+        "asOf": "2026-07-20T03:57:26.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:45.000Z",
+        "priceAsOf": "2026-07-20T03:57:26.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "000651.SZ",
         "name": "格力电器",
-        "currentPrice": 39.95,
-        "currentDividendYield": 5.98,
-        "sustainableDividendYield": 4.95,
+        "currentPrice": 40.12,
+        "currentDividendYield": 5.96,
+        "sustainableDividendYield": 4.93,
         "currentAdvice": "持有",
         "score": 78,
         "summary": "白电龙头，分红不差，但地产和消费周期会影响弹性。",
         "industry": "家电 / 白电",
-        "annualDividendPer100k": 4950,
+        "annualDividendPer100k": 4929,
         "recommendPrice": "41元下方",
         "buyPrice": "39.5元以下",
         "safeMarginPrice": "37.5元以下",
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 39.83,
-        "changePercent": 0.3,
-        "asOf": "2026-07-17T08:14:36.000Z",
+        "previousClose": 39.95,
+        "changePercent": 0.43,
+        "asOf": "2026-07-20T03:57:24.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:36.000Z",
+        "priceAsOf": "2026-07-20T03:57:24.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600585.SH",
         "name": "海螺水泥",
-        "currentPrice": 17.67,
-        "currentDividendYield": 5.81,
-        "sustainableDividendYield": 5.16,
+        "currentPrice": 17.81,
+        "currentDividendYield": 5.76,
+        "sustainableDividendYield": 5.12,
         "currentAdvice": "买入",
         "score": 80,
         "summary": "老牌分红资产，适合稳健收息与估值折价时布局。",
         "industry": "建材 / 制造",
-        "annualDividendPer100k": 5161,
+        "annualDividendPer100k": 5121,
         "recommendPrice": "23元下方",
         "buyPrice": "21.8元以下",
         "safeMarginPrice": "20.5元以下",
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 17.55,
-        "changePercent": 0.68,
-        "asOf": "2026-07-17T08:14:53.000Z",
+        "previousClose": 17.67,
+        "changePercent": 0.79,
+        "asOf": "2026-07-20T03:57:34.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:53.000Z",
+        "priceAsOf": "2026-07-20T03:57:34.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "000333.SZ",
         "name": "美的集团",
-        "currentPrice": 82.71,
-        "currentDividendYield": 2.4,
-        "sustainableDividendYield": 2.26,
+        "currentPrice": 83.14,
+        "currentDividendYield": 2.38,
+        "sustainableDividendYield": 2.24,
         "currentAdvice": "等待",
         "score": 81,
         "summary": "家电龙头和制造能力都强，收息与成长兼顾。",
         "industry": "家电 / 智能制造",
-        "annualDividendPer100k": 2256,
+        "annualDividendPer100k": 2244,
         "recommendPrice": "59元下方",
         "buyPrice": "56元以下",
         "safeMarginPrice": "53元以下",
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 81.8,
-        "changePercent": 1.11,
-        "asOf": "2026-07-17T08:14:27.000Z",
+        "previousClose": 82.71,
+        "changePercent": 0.52,
+        "asOf": "2026-07-20T03:57:09.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:27.000Z",
+        "priceAsOf": "2026-07-20T03:57:09.000Z",
         "priceSource": "腾讯证券公开行情"
       },
       {
         "code": "600011.SH",
         "name": "华能国际",
-        "currentPrice": 6.92,
-        "currentDividendYield": 6.35,
-        "sustainableDividendYield": 5.53,
+        "currentPrice": 7.21,
+        "currentDividendYield": 6.1,
+        "sustainableDividendYield": 5.31,
         "currentAdvice": "买入",
         "score": 72,
         "summary": "电力资产有现金流，但受煤价和电价周期影响较明显。",
         "industry": "电力 / 火电",
-        "annualDividendPer100k": 5529,
+        "annualDividendPer100k": 5306,
         "recommendPrice": "8.2元下方",
         "buyPrice": "7.9元以下",
         "safeMarginPrice": "7.5元以下",
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 6.75,
-        "changePercent": 2.52,
-        "asOf": "2026-07-17T08:14:51.000Z",
+        "previousClose": 6.92,
+        "changePercent": 4.19,
+        "asOf": "2026-07-20T03:57:53.000Z",
         "source": "腾讯证券公开行情",
-        "priceAsOf": "2026-07-17T08:14:51.000Z",
+        "priceAsOf": "2026-07-20T03:57:53.000Z",
         "priceSource": "腾讯证券公开行情"
       }
     ],
@@ -5191,8 +5222,908 @@
         "source": "东方财富公开财务数据"
       }
     ],
-    "asOf": "2026-07-17T08:14:58.000Z",
+    "asOf": "2026-07-20T03:57:53.000Z",
     "source": "腾讯证券公开行情"
+  },
+  "gold": {
+    "status": "live",
+    "updatedAt": "2026-07-20T03:57:59.034Z",
+    "quotes": {
+      "international": {
+        "symbol": "GC=F",
+        "name": "COMEX 黄金",
+        "price": 4031.7,
+        "currency": "USD/oz",
+        "changePercent": 0.47,
+        "asOf": "2026-07-20T03:47:51.000Z",
+        "returns": {
+          "day20": -4.6,
+          "day60": -14.8,
+          "day180": 1.7
+        },
+        "percentile180": 9
+      },
+      "domestic": {
+        "symbol": "Au99.99",
+        "name": "上海金 Au99.99",
+        "price": 872.5,
+        "currency": "CNY/g",
+        "changePercent": -0.55,
+        "asOf": "2026-07-17"
+      },
+      "etf": {
+        "symbol": "GLD",
+        "price": 368.4,
+        "changePercent": 0.95,
+        "asOf": "2026-07-17T20:00:00.000Z"
+      },
+      "usdCny": {
+        "symbol": "USD/CNY",
+        "price": 6.77,
+        "changePercent": -0.03,
+        "asOf": "2026-07-20T03:57:49.000Z"
+      }
+    },
+    "indicators": [
+      {
+        "id": "realYield",
+        "label": "10年实际利率",
+        "value": 2.35,
+        "unit": "%",
+        "asOf": "2026-07-16",
+        "note": "越高，持有黄金的机会成本通常越高。"
+      },
+      {
+        "id": "breakeven",
+        "label": "10年通胀预期",
+        "value": 2.24,
+        "unit": "%",
+        "asOf": "2026-07-17",
+        "note": "反映市场对未来平均通胀的定价。"
+      },
+      {
+        "id": "dollar",
+        "label": "广义美元指数",
+        "value": 120.5046,
+        "unit": "",
+        "asOf": "2026-07-10",
+        "change20": 0.8,
+        "note": "美元走强通常会压制以美元计价的黄金。"
+      },
+      {
+        "id": "financialConditions",
+        "label": "金融条件",
+        "value": -0.538,
+        "unit": "",
+        "asOf": "2026-07-10",
+        "note": "正值偏紧，负值偏松。"
+      },
+      {
+        "id": "positioning",
+        "label": "管理基金净多仓占比",
+        "value": 31.5,
+        "unit": "%",
+        "asOf": "2026-07-14",
+        "note": "过高时要防止多头拥挤。"
+      },
+      {
+        "id": "domesticPremium",
+        "label": "上海金折算溢价",
+        "value": -0.6,
+        "unit": "%",
+        "asOf": "2026-07-17",
+        "note": "比较 Au99.99 与国际金价人民币折算值。"
+      }
+    ],
+    "answer": {
+      "score": 64,
+      "grade": "C",
+      "action": "继续观察",
+      "conclusion": "继续观察；价格已回到近半年相对低位。",
+      "reasons": [
+        "价格已回到近半年相对低位"
+      ],
+      "risks": [
+        "金价已落到中期趋势线下方"
+      ],
+      "pricePlan": {
+        "status": "research",
+        "internationalWatch": {
+          "low": 3929,
+          "high": 4048,
+          "currency": "USD/oz"
+        },
+        "internationalUpper": {
+          "low": 4189,
+          "high": 4283,
+          "currency": "USD/oz"
+        },
+        "internationalRisk": {
+          "low": 3901,
+          "high": 3901,
+          "currency": "USD/oz"
+        },
+        "domesticWatch": {
+          "low": 850.1,
+          "high": 875.8,
+          "currency": "CNY/g"
+        },
+        "domesticUpper": {
+          "low": 906.3,
+          "high": 926.6,
+          "currency": "CNY/g"
+        },
+        "domesticRisk": {
+          "low": 844,
+          "high": 844,
+          "currency": "CNY/g"
+        }
+      }
+    },
+    "history": {
+      "international": [
+        {
+          "date": "2025-10-29",
+          "close": 3983.7
+        },
+        {
+          "date": "2025-10-30",
+          "close": 4001.3
+        },
+        {
+          "date": "2025-10-31",
+          "close": 3982.2
+        },
+        {
+          "date": "2025-11-03",
+          "close": 4000.3
+        },
+        {
+          "date": "2025-11-04",
+          "close": 3947.7
+        },
+        {
+          "date": "2025-11-05",
+          "close": 3980.3
+        },
+        {
+          "date": "2025-11-06",
+          "close": 3979.9
+        },
+        {
+          "date": "2025-11-07",
+          "close": 3999.4
+        },
+        {
+          "date": "2025-11-10",
+          "close": 4111.8
+        },
+        {
+          "date": "2025-11-11",
+          "close": 4106.8
+        },
+        {
+          "date": "2025-11-12",
+          "close": 4204.4
+        },
+        {
+          "date": "2025-11-13",
+          "close": 4186.9
+        },
+        {
+          "date": "2025-11-14",
+          "close": 4087.6
+        },
+        {
+          "date": "2025-11-17",
+          "close": 4068.3
+        },
+        {
+          "date": "2025-11-18",
+          "close": 4061.3
+        },
+        {
+          "date": "2025-11-19",
+          "close": 4077.7
+        },
+        {
+          "date": "2025-11-20",
+          "close": 4056.5
+        },
+        {
+          "date": "2025-11-21",
+          "close": 4076.7
+        },
+        {
+          "date": "2025-11-24",
+          "close": 4091.9
+        },
+        {
+          "date": "2025-11-25",
+          "close": 4139.2
+        },
+        {
+          "date": "2025-11-26",
+          "close": 4165.2
+        },
+        {
+          "date": "2025-11-28",
+          "close": 4218.3
+        },
+        {
+          "date": "2025-12-01",
+          "close": 4239.3
+        },
+        {
+          "date": "2025-12-02",
+          "close": 4186.6
+        },
+        {
+          "date": "2025-12-03",
+          "close": 4199.3
+        },
+        {
+          "date": "2025-12-04",
+          "close": 4211.8
+        },
+        {
+          "date": "2025-12-05",
+          "close": 4212.9
+        },
+        {
+          "date": "2025-12-08",
+          "close": 4187.2
+        },
+        {
+          "date": "2025-12-09",
+          "close": 4206.7
+        },
+        {
+          "date": "2025-12-10",
+          "close": 4196.4
+        },
+        {
+          "date": "2025-12-11",
+          "close": 4285.5
+        },
+        {
+          "date": "2025-12-12",
+          "close": 4300.1
+        },
+        {
+          "date": "2025-12-15",
+          "close": 4306.7
+        },
+        {
+          "date": "2025-12-16",
+          "close": 4304.5
+        },
+        {
+          "date": "2025-12-17",
+          "close": 4347.5
+        },
+        {
+          "date": "2025-12-18",
+          "close": 4339.5
+        },
+        {
+          "date": "2025-12-19",
+          "close": 4361.4
+        },
+        {
+          "date": "2025-12-22",
+          "close": 4444.6
+        },
+        {
+          "date": "2025-12-23",
+          "close": 4482.8
+        },
+        {
+          "date": "2025-12-24",
+          "close": 4480.6
+        },
+        {
+          "date": "2025-12-26",
+          "close": 4529.1
+        },
+        {
+          "date": "2025-12-29",
+          "close": 4325.1
+        },
+        {
+          "date": "2025-12-30",
+          "close": 4370.1
+        },
+        {
+          "date": "2025-12-31",
+          "close": 4325.6
+        },
+        {
+          "date": "2026-01-02",
+          "close": 4314.4
+        },
+        {
+          "date": "2026-01-05",
+          "close": 4436.9
+        },
+        {
+          "date": "2026-01-06",
+          "close": 4482.2
+        },
+        {
+          "date": "2026-01-07",
+          "close": 4449.3
+        },
+        {
+          "date": "2026-01-08",
+          "close": 4449.7
+        },
+        {
+          "date": "2026-01-09",
+          "close": 4490.3
+        },
+        {
+          "date": "2026-01-12",
+          "close": 4604.3
+        },
+        {
+          "date": "2026-01-13",
+          "close": 4589.2
+        },
+        {
+          "date": "2026-01-14",
+          "close": 4626.3
+        },
+        {
+          "date": "2026-01-15",
+          "close": 4616.3
+        },
+        {
+          "date": "2026-01-16",
+          "close": 4588.4
+        },
+        {
+          "date": "2026-01-20",
+          "close": 4759.6
+        },
+        {
+          "date": "2026-01-21",
+          "close": 4831.8
+        },
+        {
+          "date": "2026-01-22",
+          "close": 4908.8
+        },
+        {
+          "date": "2026-01-23",
+          "close": 4976.2
+        },
+        {
+          "date": "2026-01-26",
+          "close": 5079.7
+        },
+        {
+          "date": "2026-01-27",
+          "close": 5079.9
+        },
+        {
+          "date": "2026-01-28",
+          "close": 5301.6
+        },
+        {
+          "date": "2026-01-29",
+          "close": 5318.4
+        },
+        {
+          "date": "2026-01-30",
+          "close": 4713.9
+        },
+        {
+          "date": "2026-02-02",
+          "close": 4622.5
+        },
+        {
+          "date": "2026-02-03",
+          "close": 4903.7
+        },
+        {
+          "date": "2026-02-04",
+          "close": 4920.4
+        },
+        {
+          "date": "2026-02-05",
+          "close": 4861.4
+        },
+        {
+          "date": "2026-02-06",
+          "close": 4951.2
+        },
+        {
+          "date": "2026-02-09",
+          "close": 5050.9
+        },
+        {
+          "date": "2026-02-10",
+          "close": 5003.8
+        },
+        {
+          "date": "2026-02-11",
+          "close": 5071.6
+        },
+        {
+          "date": "2026-02-12",
+          "close": 4923.7
+        },
+        {
+          "date": "2026-02-13",
+          "close": 5022
+        },
+        {
+          "date": "2026-02-17",
+          "close": 4882.9
+        },
+        {
+          "date": "2026-02-18",
+          "close": 4986.5
+        },
+        {
+          "date": "2026-02-19",
+          "close": 4975.9
+        },
+        {
+          "date": "2026-02-20",
+          "close": 5059.3
+        },
+        {
+          "date": "2026-02-23",
+          "close": 5204.7
+        },
+        {
+          "date": "2026-02-24",
+          "close": 5155.8
+        },
+        {
+          "date": "2026-02-25",
+          "close": 5206.4
+        },
+        {
+          "date": "2026-02-26",
+          "close": 5176.5
+        },
+        {
+          "date": "2026-02-27",
+          "close": 5230.5
+        },
+        {
+          "date": "2026-03-02",
+          "close": 5294.4
+        },
+        {
+          "date": "2026-03-03",
+          "close": 5107.4
+        },
+        {
+          "date": "2026-03-04",
+          "close": 5120.2
+        },
+        {
+          "date": "2026-03-05",
+          "close": 5065.3
+        },
+        {
+          "date": "2026-03-06",
+          "close": 5146.1
+        },
+        {
+          "date": "2026-03-09",
+          "close": 5091.5
+        },
+        {
+          "date": "2026-03-10",
+          "close": 5229.7
+        },
+        {
+          "date": "2026-03-11",
+          "close": 5167.4
+        },
+        {
+          "date": "2026-03-12",
+          "close": 5115.8
+        },
+        {
+          "date": "2026-03-13",
+          "close": 5052.5
+        },
+        {
+          "date": "2026-03-16",
+          "close": 4994
+        },
+        {
+          "date": "2026-03-17",
+          "close": 5001
+        },
+        {
+          "date": "2026-03-18",
+          "close": 4889.9
+        },
+        {
+          "date": "2026-03-19",
+          "close": 4600.7
+        },
+        {
+          "date": "2026-03-20",
+          "close": 4570.4
+        },
+        {
+          "date": "2026-03-23",
+          "close": 4404.1
+        },
+        {
+          "date": "2026-03-24",
+          "close": 4399.3
+        },
+        {
+          "date": "2026-03-25",
+          "close": 4549.8
+        },
+        {
+          "date": "2026-03-26",
+          "close": 4375.5
+        },
+        {
+          "date": "2026-03-27",
+          "close": 4492
+        },
+        {
+          "date": "2026-03-30",
+          "close": 4526
+        },
+        {
+          "date": "2026-03-31",
+          "close": 4647.6
+        },
+        {
+          "date": "2026-04-01",
+          "close": 4783.2
+        },
+        {
+          "date": "2026-04-02",
+          "close": 4651.5
+        },
+        {
+          "date": "2026-04-06",
+          "close": 4656.8
+        },
+        {
+          "date": "2026-04-07",
+          "close": 4657.1
+        },
+        {
+          "date": "2026-04-08",
+          "close": 4749.5
+        },
+        {
+          "date": "2026-04-09",
+          "close": 4792.2
+        },
+        {
+          "date": "2026-04-10",
+          "close": 4761.9
+        },
+        {
+          "date": "2026-04-13",
+          "close": 4742.4
+        },
+        {
+          "date": "2026-04-14",
+          "close": 4825
+        },
+        {
+          "date": "2026-04-15",
+          "close": 4800
+        },
+        {
+          "date": "2026-04-16",
+          "close": 4785.4
+        },
+        {
+          "date": "2026-04-17",
+          "close": 4857.6
+        },
+        {
+          "date": "2026-04-20",
+          "close": 4806.6
+        },
+        {
+          "date": "2026-04-21",
+          "close": 4698.4
+        },
+        {
+          "date": "2026-04-22",
+          "close": 4732.5
+        },
+        {
+          "date": "2026-04-23",
+          "close": 4705.1
+        },
+        {
+          "date": "2026-04-24",
+          "close": 4722.3
+        },
+        {
+          "date": "2026-04-27",
+          "close": 4675.4
+        },
+        {
+          "date": "2026-04-28",
+          "close": 4591.5
+        },
+        {
+          "date": "2026-04-29",
+          "close": 4545.2
+        },
+        {
+          "date": "2026-04-30",
+          "close": 4614.7
+        },
+        {
+          "date": "2026-05-01",
+          "close": 4629.9
+        },
+        {
+          "date": "2026-05-04",
+          "close": 4519.5
+        },
+        {
+          "date": "2026-05-05",
+          "close": 4555.8
+        },
+        {
+          "date": "2026-05-06",
+          "close": 4681.9
+        },
+        {
+          "date": "2026-05-07",
+          "close": 4699.8
+        },
+        {
+          "date": "2026-05-08",
+          "close": 4720.4
+        },
+        {
+          "date": "2026-05-11",
+          "close": 4718.7
+        },
+        {
+          "date": "2026-05-12",
+          "close": 4677.6
+        },
+        {
+          "date": "2026-05-13",
+          "close": 4697.7
+        },
+        {
+          "date": "2026-05-14",
+          "close": 4678.1
+        },
+        {
+          "date": "2026-05-15",
+          "close": 4555.8
+        },
+        {
+          "date": "2026-05-18",
+          "close": 4552.5
+        },
+        {
+          "date": "2026-05-19",
+          "close": 4506.3
+        },
+        {
+          "date": "2026-05-20",
+          "close": 4531.3
+        },
+        {
+          "date": "2026-05-21",
+          "close": 4539.8
+        },
+        {
+          "date": "2026-05-22",
+          "close": 4521
+        },
+        {
+          "date": "2026-05-26",
+          "close": 4500.4
+        },
+        {
+          "date": "2026-05-27",
+          "close": 4447.5
+        },
+        {
+          "date": "2026-05-28",
+          "close": 4499.3
+        },
+        {
+          "date": "2026-05-29",
+          "close": 4560.5
+        },
+        {
+          "date": "2026-06-01",
+          "close": 4475.2
+        },
+        {
+          "date": "2026-06-02",
+          "close": 4489.1
+        },
+        {
+          "date": "2026-06-03",
+          "close": 4436.7
+        },
+        {
+          "date": "2026-06-04",
+          "close": 4475.8
+        },
+        {
+          "date": "2026-06-05",
+          "close": 4337.1
+        },
+        {
+          "date": "2026-06-08",
+          "close": 4335.9
+        },
+        {
+          "date": "2026-06-09",
+          "close": 4260
+        },
+        {
+          "date": "2026-06-10",
+          "close": 4108.2
+        },
+        {
+          "date": "2026-06-11",
+          "close": 4090.3
+        },
+        {
+          "date": "2026-06-12",
+          "close": 4215
+        },
+        {
+          "date": "2026-06-15",
+          "close": 4328
+        },
+        {
+          "date": "2026-06-16",
+          "close": 4330.9
+        },
+        {
+          "date": "2026-06-17",
+          "close": 4358.9
+        },
+        {
+          "date": "2026-06-18",
+          "close": 4224.1
+        },
+        {
+          "date": "2026-06-22",
+          "close": 4181.9
+        },
+        {
+          "date": "2026-06-23",
+          "close": 4129.9
+        },
+        {
+          "date": "2026-06-24",
+          "close": 3990.3
+        },
+        {
+          "date": "2026-06-25",
+          "close": 4030.5
+        },
+        {
+          "date": "2026-06-26",
+          "close": 4078.7
+        },
+        {
+          "date": "2026-06-29",
+          "close": 4022.3
+        },
+        {
+          "date": "2026-06-30",
+          "close": 4022.9
+        },
+        {
+          "date": "2026-07-01",
+          "close": 4068.3
+        },
+        {
+          "date": "2026-07-02",
+          "close": 4112.7
+        },
+        {
+          "date": "2026-07-06",
+          "close": 4155.1
+        },
+        {
+          "date": "2026-07-07",
+          "close": 4145.3
+        },
+        {
+          "date": "2026-07-08",
+          "close": 4070.9
+        },
+        {
+          "date": "2026-07-09",
+          "close": 4130.6
+        },
+        {
+          "date": "2026-07-10",
+          "close": 4104.1
+        },
+        {
+          "date": "2026-07-13",
+          "close": 3997
+        },
+        {
+          "date": "2026-07-14",
+          "close": 4061.1
+        },
+        {
+          "date": "2026-07-15",
+          "close": 4044
+        },
+        {
+          "date": "2026-07-16",
+          "close": 3985.6
+        },
+        {
+          "date": "2026-07-17",
+          "close": 4012.7
+        },
+        {
+          "date": "2026-07-20",
+          "close": 4031.7
+        }
+      ],
+      "domestic": [
+        {
+          "date": "2026-07-16",
+          "close": 877.32
+        },
+        {
+          "date": "2026-07-17",
+          "close": 872.48
+        }
+      ]
+    },
+    "sources": [
+      {
+        "id": "gold-yahoo",
+        "name": "国际金价与黄金 ETF",
+        "url": "https://finance.yahoo.com/quote/GC=F/",
+        "ok": true,
+        "error": null
+      },
+      {
+        "id": "gold-fred",
+        "name": "FRED 宏观指标",
+        "url": "https://fred.stlouisfed.org/",
+        "ok": true,
+        "error": null
+      },
+      {
+        "id": "gold-cftc",
+        "name": "CFTC 黄金持仓",
+        "url": "https://www.cftc.gov/dea/newcot/f_disagg.txt",
+        "ok": true,
+        "error": null
+      },
+      {
+        "id": "gold-sge",
+        "name": "上海黄金交易所 Au99.99",
+        "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-06-20&end_date=2026-07-20",
+        "ok": true,
+        "error": null
+      }
+    ]
   },
   "investors": [
     {

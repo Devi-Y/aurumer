@@ -22,6 +22,7 @@ function findForbiddenKeys(value, path = "$", matches = []) {
     "modelEstimate",
     "modelValidation",
     "qualityCriteria",
+    "internalAssessment",
   ]);
   for (const [key, child] of Object.entries(value)) {
     const next = `${path}.${key}`;
@@ -59,6 +60,11 @@ assert(
   "A股必须使用可核验现金流资料，不能发布 mock 财务",
 );
 assert((snapshot.investors || []).length >= 9, "聪明人持仓不足 9 位");
+assert(snapshot.gold?.quotes?.international, "黄金国际行情缺失");
+assert(snapshot.gold?.quotes?.domestic, "上海金 Au99.99 行情缺失");
+assert(Number.isFinite(snapshot.gold?.answer?.score), "黄金最终答案与评分缺失");
+assert(snapshot.gold?.answer?.pricePlan?.internationalWatch, "黄金国际金关注区间缺失");
+assert((snapshot.gold?.indicators || []).length >= 6, "黄金驱动数据不足 6 项");
 assert(
   snapshot.investors.every((item) => Number.isFinite(item.trackingScore)),
   "每位聪明人必须有最终跟踪价值分",

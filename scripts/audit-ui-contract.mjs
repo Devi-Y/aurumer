@@ -13,13 +13,14 @@ function assert(condition, message) {
 
 const entryBody = html.match(/function renderEntry\(\)\{([\s\S]*?)\n\}\n\n\/\* =+ 二级页面/)?.[1] || "";
 assert(entryBody, "无法定位一级首页渲染函数");
-assert((entryBody.match(/homePortalCard\(\{/g) || []).length === 4, "一级首页必须是四宫格入口");
+assert((entryBody.match(/homePortalCard\(\{/g) || []).length === 5, "一级首页必须包含五个投资入口");
 assert(entryBody.includes("href:'#/hk'"), "一级首页缺少港股入口");
 assert(entryBody.includes("href:'#/us'"), "一级首页缺少美股入口");
 assert(entryBody.includes("href:'#/a-shares'"), "一级首页缺少A股入口");
 assert(entryBody.includes("href:'#/gurus'"), "一级首页缺少聪明人持仓入口");
-for (const feature of ["今日新股结论", "性价比排名", "自由现金流筛选", "买入与卖出变化"]) {
-  assert(entryBody.includes(feature), `首页四宫格缺少功能说明：${feature}`);
+assert(entryBody.includes("href:'#/gold'"), "一级首页缺少黄金投资入口");
+for (const feature of ["今日新股结论", "性价比排名", "自由现金流筛选", "买入与卖出变化", "伦敦金与上海金"]) {
+  assert(entryBody.includes(feature), `首页入口缺少功能说明：${feature}`);
 }
 
 for (const text of [
@@ -55,6 +56,11 @@ assert(html.includes("买入＝股息率&gt;3%且FCF/市值&gt;5%"), "A股分类
 assert(html.includes("数据状态：${syncing?'正在同步':'实时更新'}"), "模块顶部缺少动态数据状态");
 assert(html.includes("本平台数据仅供学习参考，不构成投资建议"), "详情页缺少统一学习免责声明");
 assert(html.includes("function showUSPriceFloat"), "美股列表缺少止盈止损浮层交互");
+for (const marker of ["function renderGold", "function renderGoldAnswer", "function renderGoldPrice", "function renderGoldDrivers", "function renderGoldAnalysis"]) {
+  assert(html.includes(marker), `黄金页面缺失：${marker}`);
+}
+assert(html.includes("国际金关注区") && html.includes("上海金关注区"), "黄金答案缺少双市场价格区间");
+assert(!html.includes("internalAssessment"), "公开页面泄露黄金内部评分拆解");
 assert(html.includes("建议止盈区间") && html.includes("建议止损区间"), "美股价格浮层字段不完整");
 assert(html.includes("quickPriceAction(item.t)"), "美股扩展榜单缺少快速价格入口");
 assert(html.includes("function renderLoadingApp"), "页面缺少加载状态");

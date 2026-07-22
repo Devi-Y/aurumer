@@ -25,6 +25,22 @@ const ENTRIES = [
     answer: "资金成本低于多少，适合长期收息？",
     tone: "a",
   },
+  {
+    id: "gold",
+    kicker: "GOLD · 配置",
+    title: "黄金投资",
+    question: "国际金与上海金，现在处在什么位置？",
+    answer: "国际金与上海金，现在处在什么位置？",
+    tone: "gold",
+  },
+  {
+    id: "guru",
+    kicker: "SMART MONEY · 研究",
+    title: "聪明人持仓",
+    question: "港股 3 · 美股 5 · A股 3，为什么选、怎么学？",
+    answer: "港股 3 · 美股 5 · A股 3，为什么选、怎么学？",
+    tone: "guru",
+  },
 ];
 
 Page({
@@ -57,6 +73,10 @@ Page({
           a: aShare
             ? `${aShare.name} · ${aShare.currentAdvice || "查看收息结论"}`
             : "查看高股息收息答案",
+          gold: data.gold?.answer
+            ? `${data.gold.answer.action} · 国际金 ${data.gold.quotes?.international?.price || "待更新"}`
+            : "查看国际金与上海金",
+          guru: "港股 3 · 美股 5 · A股 3",
         };
         this.setData({
           entries: this.data.entries.map((item) => ({
@@ -75,11 +95,11 @@ Page({
   },
   onShareAppMessage() {
     return {
-      title: "望潮 Aurum｜港美股投资答案工具",
+      title: "望潮 Aurum｜港美股、黄金与聪明人持仓",
       path: "/pages/index/index",
     };
   },
   onShareTimeline() {
-    return { title: "望潮 Aurum｜港美股投资答案工具" };
+    return { title: "望潮 Aurum｜港美股、黄金与聪明人持仓" };
   },
 });

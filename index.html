@@ -127,9 +127,9 @@ img,svg,canvas{max-width:100%}
 .home-portal.us{background:linear-gradient(135deg,#1E3A31,#356450)}
 .home-portal.a{background:linear-gradient(135deg,#243C43,#436B72)}
 .home-portal.risk{background:linear-gradient(135deg,#303742,#59626E)}
-.home-portal.guru{background:linear-gradient(135deg,#223A42,#496A5F)}
-.home-portal.gold{grid-column:1/-1;min-height:206px;background:linear-gradient(135deg,#6F531B,#B4872E 58%,#C99E49)}
-.home-portal.gold .features{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.home-portal.gold{background:linear-gradient(135deg,#6F531B,#B4872E 58%,#C99E49)}
+.home-portal.guru{grid-column:1/-1;min-height:206px;background:linear-gradient(135deg,#302C4D,#5C527E)}
+.home-portal.guru .features{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .hero-actions,.growth-actions,.share-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .hero-actions{position:relative;z-index:1;margin-top:16px}
 .hero-actions a,.hero-actions button,.growth-actions a,.growth-actions button,.share-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;font-weight:750;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s,border-color .15s,background .15s,color .15s}
@@ -250,6 +250,17 @@ img,svg,canvas{max-width:100%}
 .market-tabs{display:flex;gap:7px;overflow-x:auto;padding:1px 0 10px;scrollbar-width:none}.market-tabs::-webkit-scrollbar{display:none}
 .market-tab{border:1px solid var(--line);border-radius:999px;background:var(--card);padding:7px 12px;color:var(--ink2);font-size:12.5px;font-weight:750;white-space:nowrap;cursor:pointer}.market-tab.on{border-color:var(--ink);background:var(--ink);color:#fff}
 .market-tab em{font-style:normal;opacity:.72;margin-left:3px;font-size:11px}
+.smart-selection-note{margin:10px 0 12px;padding:12px 14px;border:1px dashed var(--line);border-radius:14px;background:rgba(255,255,255,.46);color:var(--ink2);font-size:12px;line-height:1.7}
+.smart-performance{margin-top:12px;padding:12px 13px;border-radius:14px;background:linear-gradient(135deg,var(--accent-soft),var(--bg));border:1px solid var(--line2)}
+.smart-performance span{display:block;font-size:11px;color:var(--ink2);font-weight:750;letter-spacing:.4px}
+.smart-performance b{display:block;margin-top:2px;font-size:18px;line-height:1.3;color:var(--ink)}
+.smart-performance small{display:block;margin-top:3px;font-size:11px;line-height:1.55;color:var(--ink3)}
+.smart-why-how{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.smart-why-how>div{padding:11px 12px;border-radius:13px;background:var(--bg);border:1px solid var(--line2)}
+.smart-why-how strong{display:block;font-size:11px;letter-spacing:.7px;color:var(--accent)}
+.smart-why-how p{margin-top:4px;font-size:12px;line-height:1.62;color:var(--ink2)}
+.smart-holdings{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.smart-holdings .arrow{margin-left:auto}
 .active-panel{margin-top:2px}.active-panel .section-intro{margin:5px 2px 10px}.active-panel .section-intro p{display:none}
 .compact-card{padding:14px 16px 12px;margin-bottom:9px;border-radius:16px}
 .compact-title h3{font-size:15.5px}.compact-answer{margin:9px 0 8px;font-size:13.5px}.compact-foot{margin-top:9px;padding-top:8px}
@@ -550,7 +561,8 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   .home-portal h4{font-size:20px}
   .home-portal .features{gap:5px;margin-top:11px}
   .home-portal .features li{font-size:11.5px}
-  .home-portal.gold .features{grid-template-columns:1fr}
+  .home-portal.guru .features{grid-template-columns:1fr}
+  .smart-why-how{grid-template-columns:1fr}
   .home-panel,.home-step{min-height:auto}
   .growth-meta,.version-compare{grid-template-columns:1fr}
   .share-grid{grid-template-columns:1fr 1fr}
@@ -628,11 +640,12 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
 <div id="app"></div>
 <noscript>
   <main>
-    <h1>望潮 Aurum｜港美股投资答案工具</h1>
-    <p>港股看打新答案，美股看机会与估值，A股看分红和现金流，聪明人持仓看资金方向。</p>
+    <h1>望潮 Aurum｜港美股、黄金与聪明人持仓答案工具</h1>
+    <p>港股看打新，美股看机会，A股看收息，黄金看配置，最后从港股 3、美股 5、A股 3 个聪明人组合学习 WHY 与 HOW。</p>
     <p>本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议、收益承诺或买卖指令。</p>
   </main>
 </noscript>
+<script src="assets/smart-money.js"></script>
 <script>
 let HK_LIVE_IPOS = [];
 function getHKListings(){
@@ -891,6 +904,12 @@ const INVESTORS = [
  holds:[['BAC','美国银行','—','历史持有','大型银行规模与存款优势'],['WFC','富国银行','—','历史持有','传统银行长期持仓'],['BABA','阿里巴巴','—','历史持有','低估值与中国消费互联网机会'],['USB','美国合众银行','—','历史持有','审慎经营的区域银行'],['BYDDF','比亚迪','—','历史参考','早期识别制造能力与长期增长']],
  moves:[],pros:['强调能力圈、耐心和少数重大决策','投资原则简单但长期有效'],cons:['不再有新的个人交易行为','Daily Journal 申报不等同于芒格个人全部资产'],advice:'只学习原则与历史案例，不应把机构后续申报称为芒格的新动作。'}
 ];
+
+for(const [id,meta] of Object.entries(globalThis.AURUM_SMART_MONEY?.usMeta||{})){
+  const investor=INVESTORS.find(item=>item.id===id);
+  if(investor)Object.assign(investor,meta);
+}
+INVESTORS.push(...(globalThis.AURUM_SMART_MONEY?.curated||[]));
 
 const A_SHARES = [
   {
@@ -1195,6 +1214,10 @@ const LIVE={
   error:null
 };
 
+function isInvestorVisible(investor){
+  return Boolean(investor?.featuredSmartMoney)||LIVE.liveInvestorIds.has(investor?.id);
+}
+
 function fmtMoney(value){
   if(!Number.isFinite(value))return '—';
   if(value>=1e8)return `${(value/1e8).toFixed(1)} 亿美元`;
@@ -1407,7 +1430,8 @@ const GROWTH_INVITE_TEXT=`我最近在内测一个港美股投资答案工具：
 1）港股新股值不值得打，中签后怎么卖；
 2）美股七姐妹和热门 AI 股，现在贵不贵；
 3）A股高股息资产，资金成本低于多少才值得买；
-4）巴菲特、李录、达利欧等聪明人持仓有什么变化。
+4）国际金与上海金，现在处在什么价格位置；
+5）港股 3、美股 5、A股 3 个聪明人组合为什么选、普通人怎么学。
 
 工具内测免费，但首批只拉 10 个人，前提是有港美股账户和基础投资经验。
 
@@ -1416,9 +1440,9 @@ function publicShareBase(){
   if(location.hostname==='aurumer.com'||location.hostname==='www.aurumer.com')return `${location.origin}/`;
   return 'https://devi-y.github.io/aurumer/';
 }
-function homepageIntroText(){return `望潮 Aurum｜港美股投资答案工具
+function homepageIntroText(){return `望潮 Aurum｜港美股、黄金与聪明人持仓答案工具
 
-港股看打新答案，美股看机会与估值，A股看分红和现金流，聪明人持仓看资金方向。
+入口依次是港股打新、美股机会、A股收息、黄金投资、聪明人持仓。最后一个模块分港股 3、美股 5、A股 3，并解释 WHY 与 HOW。
 
 不替你喊买卖，只帮你少看噪音，更快找到下一步。
 
@@ -2043,7 +2067,7 @@ function tempStrip(t,name){
 /* =============== 状态与路由 =============== */
 let usSort='hot';
 let hkFilter='pending';
-let guruFilter='all';
+let guruFilter='hk';
 let hkView='';
 let usView='seven';
 let aShareView='buy';
@@ -2110,7 +2134,7 @@ window.goBack=()=>{
   const route=location.hash.replace(/^#\/?/,'')||routeFromPath(location.pathname);
   const [page,id,view]=route.split('/');
   if(view==='analysis')return go(`#/${page}/${id}`);
-  if(page==='investor')return go('#/us/gurus');
+  if(page==='investor')return go('#/gurus');
   if(page==='a-share'){
     const item=findAShare(id);
     return go(item?`#/a-shares/${aShareGroupIdFor(item)}`:'#/a-shares');
@@ -2135,7 +2159,7 @@ function router(){
     window.scrollTo(0,0);
     const booting=LIVE.status==='loading';
     if(booting&&['hk','us','a-shares','gurus','gold','ipo','a-share','stock','investor'].includes(page)){
-      const active=page==='us'||page==='stock'||page==='gurus'||page==='investor'?'us':page==='a-shares'||page==='a-share'?'a':page==='gold'?'home':'hk';
+      const active=page==='us'||page==='stock'?'us':page==='gurus'||page==='investor'||page==='gold'?'home':page==='a-shares'||page==='a-share'?'a':'hk';
       const titles={hk:'港股打新',us:'美股投资','a-shares':'A股收息',gurus:'聪明人持仓',gold:'黄金投资',ipo:'港股新股答案','a-share':'A股收息答案',stock:'美股答案',investor:'持仓答案'};
       return renderMarketLoading(active,titles[page]||'正在加载','正在准备页面内容。');
     }
@@ -2143,7 +2167,6 @@ function router(){
     if(page==='us'&&!booting&&!LIVE.hasUS)return renderDataUnavailable('us');
     if(page==='a-shares'&&!booting&&!LIVE.hasAShare)return renderDataUnavailable('a');
     if(page==='gold'&&!booting&&!LIVE.hasGold)return renderDataUnavailable('home');
-    if((page==='gurus'||page==='investor')&&!booting&&!LIVE.hasInvestors)return renderDataUnavailable('us');
     if(page==='hk')return id==='backtest'?renderHKBacktest():id?renderHKGroup(id):renderHKIPO();
     if(page==='us'){
       if(id==='gurus')return renderGurus();
@@ -2158,8 +2181,7 @@ function router(){
     if(page==='a-share'){const x=findAShare(id);return x?(view==='analysis'?renderAShareAnalysis(x):renderAShare(x)):renderNotFound('未找到这只A股收息标的','#/a-shares')}
     if(page==='stock'){const x=US_STOCKS.find(i=>i.t===id);return x?(view==='analysis'?renderStockAnalysis(x):renderStock(x)):renderNotFound('未找到这只美股','#/us')}
     if(page==='investor'){
-      const investorIds=LIVE.hasInvestors?LIVE.liveInvestorIds:new Set();
-      const x=INVESTORS.find(i=>i.id===id&&investorIds.has(i.id));
+      const x=INVESTORS.find(i=>i.id===id&&isInvestorVisible(i));
       return x?(view==='analysis'?renderInvestorAnalysis(x):renderInvestor(x)):renderNotFound('未找到这位投资人','#/gurus')
     }
     if(page==='history')return renderNotFound('这个页面已隐藏','#/hk');
@@ -2168,11 +2190,13 @@ function router(){
     console.error(error);
     const h=location.hash.replace(/^#\/?/,'')||routeFromPath(location.pathname);
     const page=h.split('/')[0];
-    const active=page==='us'||page==='stock'||page==='gurus'||page==='investor'
+    const active=page==='us'||page==='stock'
       ?'us'
+      :page==='gurus'||page==='investor'||page==='gold'
+        ?'home'
       :page==='a-shares'||page==='a-share'
         ?'a'
-        :page==='gold'?'home':'hk';
+        :'hk';
     renderRenderError(active,error?.message||'渲染失败');
   }
 }
@@ -2271,8 +2295,8 @@ function homeStepCard(step, title, desc){
   </div>`;
 }
 function renderNotFound(message,backRoute){
-  const active=backRoute==='#/us'||backRoute==='#/gurus'?'us':backRoute?.startsWith('#/a-shares')?'a':'hk';
-  const label=active==='us'?'美股投资':active==='a'?'A股收息':'港股打新';
+  const active=backRoute==='#/us'?'us':backRoute==='#/gurus'?'home':backRoute?.startsWith('#/a-shares')?'a':'hk';
+  const label=active==='us'?'美股投资':active==='a'?'A股收息':active==='home'?'聪明人持仓':'港股打新';
   $('#app').innerHTML=header()+pageNav(backRoute, `返回${label}`)+`
   <div class="card" style="margin-top:28px;text-align:center;padding:42px 24px">
     <div class="t1" style="font-size:22px">${message}</div>
@@ -2297,10 +2321,7 @@ function renderEntry(){
   const usToday=usLead?`${usLead.t} · ${stockAction(usLead)}`:waitingText;
   const aLead=LIVE.hasAShare?([...A_SHARES].sort((left,right)=>(right.score||0)-(left.score||0))[0]||null):null;
   const aToday=aLead?`${aLead.name} · ${aLead.currentAdvice||'暂无建议'}`:waitingText;
-  const managers=getLiveInvestors();
-  const guruLead=managers[0]||null;
-  const guruMove=guruLead?.moves?.[0]||null;
-  const guruToday=guruLead?`${guruLead.name} · ${guruMove?guruMove[2]:'看最新持仓变化'}`:waitingText;
+  const guruToday='港股 3 · 美股 5 · A股 3';
   const goldToday=LIVE.hasGold
     ?`${LIVE.gold.answer.action} · ${LIVE.gold.quotes.international.price} 美元/盎司`
     :waitingText;
@@ -2332,14 +2353,6 @@ function renderEntry(){
         href:'#/a-shares',
       })}
       ${homePortalCard({
-        tone:'guru',
-        kicker:'SMART · 持仓',
-        title:'聪明人持仓',
-        features:['大佬买了什么','买入与卖出变化','优缺点与建议'],
-        answer:guruToday,
-        href:'#/gurus',
-      })}
-      ${homePortalCard({
         tone:'gold',
         kicker:'GOLD · 配置',
         title:'黄金投资',
@@ -2347,9 +2360,17 @@ function renderEntry(){
         answer:goldToday,
         href:'#/gold',
       })}
+      ${homePortalCard({
+        tone:'guru',
+        kicker:'SMART MONEY · 研究',
+        title:'聪明人持仓',
+        features:['港股 3 · 美股 5 · A股 3','逐个解释 WHY','讲清普通人怎么学'],
+        answer:guruToday,
+        href:'#/gurus',
+      })}
     </div>
   </section>
-  `+footer();
+  `+footer()+mobileNav('home');
 }
 
 /* =============== 二级页面：港股打新 =============== */
@@ -2577,28 +2598,35 @@ function getLiveInvestors(){
     .filter(item=>LIVE.liveInvestorIds.has(item.id))
     .sort((left,right)=>investorTrackingScore(right)-investorTrackingScore(left)||left.name.localeCompare(right.name,'zh-CN'));
 }
+function getSmartMoneyManagers(market=guruFilter){
+  return INVESTORS
+    .filter(item=>item.featuredSmartMoney&&item.market===market&&isInvestorVisible(item))
+    .sort((left,right)=>(left.selectionOrder||99)-(right.selectionOrder||99));
+}
 function investorRankInfo(v){
-  const items=getLiveInvestors();
+  const items=v.featuredSmartMoney?getSmartMoneyManagers(v.market):getLiveInvestors();
   return {
     score:investorTrackingScore(v),
     rank:Math.max(1,items.findIndex(item=>item.id===v.id)+1),
     total:items.length||1,
   };
 }
-function investorCard(v,index,total){
-  const buys=v.moves.filter(move=>move[1]==='buy').slice(0,2).map(move=>move[2]).join(' · ')||v.holds.slice(0,2).map(h=>h[0]).join(' · ');
-  return `<a class="compact-card" href="#/investor/${v.id}">
-  <div class="compact-top"><span class="compact-rank">${index+1}</span><div class="compact-title"><h3>${v.name}<span>${v.org}</span></h3></div><div class="quote-now"><b class="num">${investorTrackingScore(v)} 分</b><span>第 ${index+1}/${total} 名</span></div></div>
-  <div class="compact-answer">最近关注 ${buys}；学框架，不照抄。</div>
-  <div class="compact-foot"><span>查看</span><span class="arrow">›</span></div>
+function investorCard(v,index){
+  const performanceValue=v.performanceValue||'公开业绩待统一核验';
+  const performanceDetail=v.performanceDetail||'当前仅展示可核验的公开持仓';
+  const why=v.why||v.pros?.[0]||'公开持仓与投资框架具备研究价值。';
+  const how=v.how||v.advice||'先理解方法和风险，再独立判断，不按披露结果机械跟单。';
+  return `<a class="compact-card" data-smart-market="${v.market||'us'}" href="#/investor/${v.id}">
+  <div class="compact-top"><span class="compact-rank">${index+1}</span><div class="compact-title"><h3>${v.name}<span>${v.org} · ${v.style}</span></h3></div><span class="chip mini tag">${v.marketLabel||'美股'}</span></div>
+  <div class="smart-performance"><span>长期公开业绩</span><b class="num">${performanceValue}</b><small>${performanceDetail}</small></div>
+  <div class="smart-why-how"><div><strong>WHY · 为什么选它</strong><p>${why}</p></div><div><strong>HOW · 怎么学</strong><p>${how}</p></div></div>
+  <div class="smart-holdings">${(v.holds||[]).slice(0,5).map(h=>`<span class="chip mini tag num">${h[0]}</span>`).join('')}<span class="arrow">看持仓 ›</span></div>
   </a>`;
 }
 function getUSGroups(){
-  const managers=getLiveInvestors();
   return [
     {id:'seven',label:'七姐妹',copy:'看全球科技龙头。',items:MAGNIFICENT_SEVEN.map(symbol=>US_STOCKS.find(stock=>stock.t===symbol)).filter(Boolean)},
     {id:'hot',label:'热度前三',copy:'看七姐妹之外最热的三只。',items:hotQualityPool(US_STOCKS,3)},
-    {id:'gurus',label:'聪明人持仓',copy:'看聪明人的资金方向。',items:managers},
   ];
 }
 function renderUSStocks(){
@@ -3020,11 +3048,20 @@ function renderAShare(x){
 
 /* =============== 四级页面：名人持仓 =============== */
 function renderGurus(){
-  const allManagers=getLiveInvestors();
-  $('#app').innerHTML=`${pageNav('#/us', '返回美股投资')}${dataStateNotice()}
-  <div class="simple-page-title"><h1>聪明人最近做了什么？</h1><span>${allManagers.length} 位</span></div>
-  <section class="group-list">${allManagers.length?allManagers.map((item,index)=>investorCard(item,index,allManagers.length)).join(''):'<div class="empty-answer">当前暂无可展示的持仓。</div>'}</section>
-  ${specialDisclaimer('持仓变化仅供研究参考，公开披露存在时间滞后。')}`+footer()+mobileNav('us');
+  const guruGroups={
+    hk:{name:'港股',count:3,summary:'长期公开业绩较高、当前港股持仓可核验的 3 个机构组合'},
+    us:{name:'美股',count:5,summary:'长期公开业绩较高、当前 13F 或基金持仓可追踪的 5 个代表'},
+    a:{name:'A股',count:3,summary:'长期基金净值与最新法定季报均可核验的 3 个公募组合'},
+  };
+  const selectedGroup=guruGroups[guruFilter]||guruGroups.hk;
+  const managers=getSmartMoneyManagers(guruFilter);
+  $('#app').innerHTML=`${pageNav('', '返回首页')}${dataStateNotice()}
+  <div class="simple-page-title"><h1>聪明人持仓怎么学？</h1><span>${managers.length} 个</span></div>
+  <div class="smart-selection-note"><b>筛选口径：</b>从长期公开业绩可核验、当前持仓可持续披露的候选中，按表观长期年化收益排序。不同起止区间、币种、份额和风险不可直接横比，因此这是研究名单，不是全球绝对收益榜。</div>
+  <div class="market-tabs">${Object.entries(guruGroups).map(([key,group])=>`<button class="market-tab ${guruFilter===key?'on':''}" onclick="setGuruFilter('${key}')">${group.name}<em>${group.count}</em></button>`).join('')}</div>
+  <div class="market-summary"><div><b>${selectedGroup.name} · ${managers.length} 个</b><span>${selectedGroup.summary}</span></div></div>
+  <section class="group-list">${managers.length?managers.map(investorCard).join(''):'<div class="empty-answer">当前公开持仓尚未完成核验。</div>'}</section>
+  ${specialDisclaimer('历史业绩不代表未来收益；公开持仓通常按月或按季披露，不能当作实时交易信号。')}`+footer()+mobileNav('home');
 }
 
 /* =============== 三级与四级详情页面 =============== */
@@ -3114,11 +3151,11 @@ function parseHoldingWeight(value){
 }
 function detailShell(head,body){
   const route=location.hash.replace(/^#\/?/,'')||routeFromPath(location.pathname);
-  const active=route.startsWith('stock/')||route.startsWith('investor/')?'us':route.startsWith('a-share/')?'a':'hk';
+  const active=route.startsWith('stock/')?'us':route.startsWith('investor/')?'home':route.startsWith('a-share/')?'a':'hk';
   const extra=route.startsWith('stock/')
     ?specialDisclaimer('买入和卖出价格仅供研究参考，不构成任何买卖建议。')
     :route.startsWith('investor/')
-      ?specialDisclaimer('持仓变化仅供研究参考，公开披露存在时间滞后。')
+      ?specialDisclaimer('历史业绩不代表未来收益；公开持仓存在时间滞后，只适合学习框架，不适合照抄。')
       :route.startsWith('a-share/')
         ?specialDisclaimer('A股收息价格与分红测算仅供研究参考，不构成任何买卖建议。')
         :specialDisclaimer('港股卖出价格仅供研究参考，不构成任何买卖建议。');
@@ -3395,37 +3432,38 @@ function renderStock(x){
   );
 }
 function renderInvestor(v){
-  const latestBuy=v.moves.find(move=>move[1]==='buy')?.[2]||v.holds[0]?.[0]||'暂无';
-  const latestSell=v.moves.find(move=>move[1]==='sell')?.[2]||'暂无明显卖出';
-  const rankInfo=investorRankInfo(v);
+  const holds=Array.isArray(v.holds)?v.holds:[];
+  const moves=Array.isArray(v.moves)?v.moves:[];
+  const performanceValue=v.performanceValue||'公开业绩未统一披露';
+  const performanceDetail=v.performanceDetail||'当前只核验公开持仓，不对收益作统一估算';
+  const why=v.why||v.pros?.[0]||'其公开持仓和投资框架具备研究价值。';
+  const how=v.how||v.advice||'理解方法后独立判断，不按披露结果机械跟单。';
+  const sourceLinks=[
+    v.performanceSourceUrl?`<a class="official-link" href="${v.performanceSourceUrl}" target="_blank" rel="noopener">查看业绩依据 ↗</a>`:'',
+    v.sourceUrl&&v.sourceUrl!==v.performanceSourceUrl?`<a class="official-link" href="${v.sourceUrl}" target="_blank" rel="noopener">查看持仓原文 ↗</a>`:'',
+  ].filter(Boolean).join('');
+  const movesBlock=moves.length
+    ?`<div class="card"><ul class="tl">${moves.map(m=>`<li><span class="dot ${m[1]==='buy'?'b':'s'}"></span><div class="tt num">${m[0]}</div><div class="ta">${m[2]}</div><div class="tr">${m[3]}</div></li>`).join('')}</ul></div>`
+    :`<div class="card"><div class="t1">披露说明</div><div class="t2" style="margin-top:7px">${v.q||'公开报告按期披露'}只展示报告时点的组合，不等于今天仍在同一价格持有；公开文件通常也不披露逐笔买卖时间和完整原因。</div></div>`;
+  const nextDisclosure=v.market==='us'?'下一期 13F 或管理人主动公开披露':'下一份基金月报、季报或半年报';
   detailShell(
     `<div class="d-head"><div class="row"><div class="avatar serif" style="width:60px;height:60px;font-size:22px">${v.av}</div>
-    <div class="grow"><h1 style="font-size:22px">${v.name}</h1><div class="sub">${v.org} · ${v.style}</div></div></div></div>`,
+    <div class="grow"><h1 style="font-size:22px">${v.name}</h1><div class="sub">${v.marketLabel||'美股'} · ${v.org} · ${v.style}</div></div></div></div>`,
     `<div class="share-card">
       <div class="share-brand">望潮 Aurum · 聪明人持仓答案</div>
-      <h2>${v.name} 最近做了什么？</h2>
+      <h2>${v.name} 为什么值得跟踪？</h2>
       <div class="share-grid">
-        <div class="share-item"><span>最近买入或增持</span><b>${latestBuy}</b></div>
-        <div class="share-item"><span>最近卖出或减持</span><b>${latestSell}</b></div>
-        <div class="share-item"><span>是否适合参考</span><b>学习框架，不照抄</b></div>
-        <div class="share-item"><span>最大持仓</span><b>${v.holds[0]?.[0]||'暂无'}</b></div>
-        <div class="share-item"><span>跟踪价值</span><b>${rankInfo.score} 分 · 第 ${rankInfo.rank}/${rankInfo.total} 名</b></div>
+        <div class="share-item"><span>长期公开业绩</span><b class="num">${performanceValue}</b></div>
+        <div class="share-item"><span>披露截止</span><b>${v.q||'以原始文件为准'}</b></div>
+        <div class="share-item"><span>最大公开持仓</span><b>${holds[0]?.[0]||'暂无'}</b></div>
+        <div class="share-item"><span>使用原则</span><b>学框架，不照抄</b></div>
       </div>
-      <div class="share-risk"><b>一句话：</b>${v.one}</div>
+      <div class="share-risk"><b>业绩口径：</b>${performanceDetail}${v.performanceBasis?`；${v.performanceBasis}`:''}</div>
       <div class="share-foot"><span>仅供研究，公开持仓存在滞后</span><button class="copy-btn" onclick="shareCurrentPage(this)">转发答案</button></div>
     </div>
-    <div class="d-sec"><h4>先看这四件事</h4><div class="card">
-      <div class="evidence-grid">
-        <div class="evidence-item"><span>投资风格</span><b>${v.style}</b><small>${v.stance}</small></div>
-        <div class="evidence-item"><span>最新披露</span><b>${v.q||'季度待确认'}</b><small>13F 通常在季末后延迟披露</small></div>
-        <div class="evidence-item"><span>组合规模</span><b>${v.aum||'待确认'}</b><small>规模会影响可复制性和换仓速度</small></div>
-        <div class="evidence-item"><span>参考方式</span><b>看方向，不照抄</b><small>先理解变化原因，再结合自己的价格与仓位</small></div>
-        <div class="evidence-item"><span>跟踪价值</span><b>${rankInfo.score} 分 · 第 ${rankInfo.rank}/${rankInfo.total} 名</b><small>${v.trackingSummary||'只比较公开资料的可跟踪程度'}</small></div>
-      </div>
-      <div class="analysis-note"><b>披露说明：</b>买卖原因若没有管理人公开说明，只作为研究解读，不把推测写成事实。</div>
-    </div></div>
-    <div class="d-sec"><h4>具体持仓</h4>${v.holds.map(h=>`<div class="card" style="padding:14px 16px;margin-bottom:10px"><div class="row"><div class="grow"><div class="t1" style="font-size:15px">${h[0]}<span class="code">${h[1]}</span></div></div><span class="chip mini tag">${h[2]}</span><span class="chip mini ${h[3].includes('减')||h[3].includes('卖')?'rich':h[3].includes('增')||h[3].includes('买')||h[3].includes('新')?'cheap':'tag'}">${h[3]}</span></div><div class="t2" style="margin-top:6px">${h[4]}</div></div>`).join('')}</div>
-    <div class="d-sec"><h4>近期动态</h4><div class="card">${v.moves.length?`<ul class="tl">${v.moves.map(m=>`<li><span class="dot ${m[1]==='buy'?'b':'s'}"></span><div class="tt num">${m[0]}</div><div class="ta">${m[2]}</div><div class="tr">${m[3]}</div></li>`).join('')}</ul>`:'<div class="facts-empty">当前没有足够的新动态，只保留最近一期公开持仓。</div>'}</div></div>
+    <div class="d-sec"><h4>WHY / HOW 分析</h4><div class="card"><div class="smart-why-how"><div><strong>WHY · 为什么选它</strong><p>${why}</p></div><div><strong>HOW · 怎么学</strong><p>${how}</p></div></div>${sourceLinks?`<div class="official-links">${sourceLinks}</div>`:''}</div></div>
+    <div class="d-sec"><h4>具体持仓</h4>${holds.map(h=>`<div class="card" style="padding:14px 16px;margin-bottom:10px"><div class="row"><div class="grow"><div class="t1" style="font-size:15px">${h[0]}<span class="code">${h[1]}</span></div></div><span class="chip mini tag">${h[2]}</span><span class="chip mini ${h[3].includes('减')||h[3].includes('卖')?'rich':h[3].includes('增')||h[3].includes('买')||h[3].includes('新')?'cheap':'tag'}">${h[3]}</span></div><div class="t2" style="margin-top:6px"><b style="color:var(--accent)">望潮解读：</b>${h[4]}</div></div>`).join('')||'<div class="card"><div class="t2">当前没有可核验的公开持仓。</div></div>'}</div>
+    <div class="d-sec"><h4>披露与近期变化</h4>${movesBlock}</div>
     <div class="d-sec"><h4>优点与局限</h4><div class="card">
       <ul class="list pro">${(v.pros||[]).map(item=>`<li>${item}</li>`).join('')}</ul>
       <div style="height:8px"></div>
@@ -3435,7 +3473,7 @@ function renderInvestor(v){
       ['方向增强','同一标的连续两个披露期增持，或新进后快速升为核心仓位','提高参考'],
       ['方向减弱','连续减持、清仓，或核心仓位权重明显下降','降低参考'],
       ['仍需等待','只有单期变化、没有公开解释，或披露时间已经过久','不做跟随'],
-    ],'下一期 13F 或管理人主动公开披露','持仓')}
+    ],nextDisclosure,'持仓')}
     <div class="d-sec"><h4>我能不能参考？</h4><div class="advice"><b>望潮建议：</b>${v.advice}</div></div>
     ${deepAnalysisEntry(`#/investor/${v.id}/analysis`,'继续看深度分析','查看持仓集中度、动作时间线和事实与解读边界。')}`
   );
@@ -3638,6 +3676,11 @@ function renderInvestorAnalysis(v){
   const buyMoves=v.moves.filter(item=>item[1]==='buy');
   const sellMoves=v.moves.filter(item=>item[1]==='sell');
   const concentration=topWeight>=70?'高度集中':topWeight>=45?'中度集中':'相对分散';
+  const reportLabel=v.market==='us'?'13F / 基金披露':'基金法定报告';
+  const performanceValue=v.performanceValue||'待统一核验';
+  const performanceDetail=v.performanceDetail||'当前仅核验公开持仓';
+  const why=v.why||v.pros?.[0]||'公开持仓和投资框架具备研究价值。';
+  const how=v.how||v.advice||'理解方法后独立判断，不机械跟单。';
   const nextChecks=[
     ['下一期披露','核对前五大持仓权重是否继续变化','等待公开文件'],
     ['新进与清仓','优先确认方向最明确的新增和退出动作','重点核对'],
@@ -3645,17 +3688,18 @@ function renderInvestorAnalysis(v){
     ['原因证据','只有管理人公开说明时才标记为事实，否则保留为研究解读','区分事实'],
   ];
   analysisShell({
-    active:'us',
+    active:'home',
     backRoute:`#/investor/${v.id}`,
     title:`${v.name} · 持仓深度分析`,
-    subtitle:'区分公开申报事实、望潮解读和普通用户不可直接复制的部分。',
-    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${rankInfo.score}</b><span>跟踪价值分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>公开持仓排名</span></div><div class="stat"><b>看方向</b><span>参考方式</span></div></div><div class="analysis-source">${v.trackingSummary||'分数只比较公开资料的可跟踪程度，不代表投资收益或管理人能力排名。'}</div></div></div>
+    subtitle:'把长期公开业绩、当前持仓、WHY 与 HOW 分开看，区分事实和望潮解读。',
+    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${performanceValue}</b><span>长期公开业绩</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${v.marketLabel||'美股'}筛选顺序</span></div><div class="stat"><b>学框架</b><span>参考方式</span></div></div><div class="analysis-source">${performanceDetail}${v.performanceBasis?`；${v.performanceBasis}`:''}</div></div></div>
+    <div class="d-sec"><h4>WHY / HOW</h4><div class="card"><div class="smart-why-how"><div><strong>WHY · 为什么选它</strong><p>${why}</p></div><div><strong>HOW · 怎么学</strong><p>${how}</p></div></div></div></div>
     <div class="d-sec"><h4>组合结构</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${topWeight.toFixed(1)}%</b><span>前五大合计</span></div><div class="stat"><b>${concentration}</b><span>组合集中度</span></div><div class="stat"><b>${buyMoves.length} / ${sellMoves.length}</b><span>买入 / 卖出动作</span></div></div><div class="analysis-note"><b>解读：</b>集中度越高，观点越清晰，但单一判断错误带来的回撤也越大。</div></div></div>
     <div class="d-sec"><h4>持仓逐项拆解</h4>${v.holds.map(item=>`<div class="card" style="padding:14px 16px;margin-bottom:10px"><div class="row"><div class="grow"><div class="t1">${item[0]} <span class="code">${item[1]}</span></div><div class="t2">公开占比 ${item[2]}</div></div><span class="chip mini tag">${item[3]}</span></div><div class="analysis-note"><b>望潮解读：</b>${item[4]}</div></div>`).join('')}</div>
     <div class="d-sec"><h4>动作时间线</h4><div class="card">${v.moves.length?`<ul class="tl">${v.moves.map(item=>`<li><span class="dot ${item[1]==='buy'?'b':'s'}"></span><div class="tt num">${item[0]}</div><div class="ta">${item[2]}</div><div class="tr">${item[3]}</div></li>`).join('')}</ul>`:'<div class="facts-empty">当前没有足够的连续动作数据。</div>'}</div></div>
     <div class="d-sec"><h4>买卖变化与原因</h4><div class="analysis-grid"><div class="analysis-card"><h4>最近买入 / 增持</h4>${buyMoves.length?buyMoves.map(item=>`<div class="answer-block"><div class="answer-line"><strong>${item[2]}</strong><b>${item[0]}</b></div><div class="analysis-source">原因解读：${item[3]}</div></div>`).join(''):'<p>本期未见明确买入或增持。</p>'}</div><div class="analysis-card"><h4>最近卖出 / 减持</h4>${sellMoves.length?sellMoves.map(item=>`<div class="answer-block"><div class="answer-line"><strong>${item[2]}</strong><b>${item[0]}</b></div><div class="analysis-source">原因解读：${item[3]}</div></div>`).join(''):'<p>本期未见明确卖出或减持。</p>'}</div></div><div class="analysis-source">动作来自公开披露；除非管理人公开说明，否则“原因”均为研究解读，不作为本人原话或实时观点。</div></div>
-    <div class="d-sec"><h4>下一次怎么核验</h4><div class="card">${nextChecks.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-source">当前最新披露：${v.q||'待确认'}；13F 通常滞后，不代表今天仍持有相同仓位。</div></div></div>
-    <div class="d-sec"><h4>事实与解读边界</h4><div class="analysis-grid"><div class="analysis-card"><h4>可以确认的事实</h4><p>最新披露季度为 ${v.q||'待确认'}，组合规模 ${v.aum||'待确认'}；持仓名称、公开占比和季度变化来自公开申报。</p></div><div class="analysis-card"><h4>不能直接确认的内容</h4><p>真实成交日、盘中买卖价格、尚未披露的当前仓位，以及未公开说明的具体买卖原因。</p></div></div></div>
+    <div class="d-sec"><h4>下一次怎么核验</h4><div class="card">${nextChecks.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-source">当前最新披露：${v.q||'待确认'}；${reportLabel}存在时间滞后，不代表今天仍持有相同仓位。</div></div></div>
+    <div class="d-sec"><h4>事实与解读边界</h4><div class="analysis-grid"><div class="analysis-card"><h4>可以确认的事实</h4><p>最新披露为 ${v.q||'待确认'}，组合规模 ${v.aum||'待确认'}；持仓名称、公开占比和报告期变化来自公开文件。</p></div><div class="analysis-card"><h4>不能直接确认的内容</h4><p>真实成交日、盘中买卖价格、尚未披露的当前仓位，以及未公开说明的具体买卖原因。</p></div></div></div>
     <div class="d-sec"><h4>可学习与不可照抄</h4><div class="analysis-grid"><div class="analysis-card"><h4>可学习</h4><ul class="list pro">${v.pros.map(item=>`<li>${item}</li>`).join('')}</ul></div><div class="analysis-card"><h4>不可照抄</h4><ul class="list con">${v.cons.map(item=>`<li>${item}</li>`).join('')}</ul></div></div><div class="advice" style="margin-top:11px"><b>望潮建议：</b>${v.advice}</div></div>`,
     disclaimer:'聪明人持仓来自公开披露，存在时间滞后；原因分析包含研究解读，不代表本人实时观点。',
   });

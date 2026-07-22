@@ -1,4 +1,4 @@
-const CACHE_NAME = "aurum-shell-v7";
+const CACHE_NAME = "aurum-shell-v8";
 const BASE = new URL(self.registration.scope).pathname;
 const SHELL = [
   BASE,
@@ -10,6 +10,7 @@ const SHELL = [
   `${BASE}icons/aurum-512.png`,
   `${BASE}icons/aurum.svg`,
   `${BASE}assets/aurum-share.png`,
+  `${BASE}assets/smart-money.js`,
   `${BASE}assets/dashboard.css`,
   `${BASE}assets/dashboard.js`,
 ];

@@ -15,7 +15,7 @@
       <view wx:for="{{view.facts}}" wx:key="*this" class="fact"><text>{{item[0]}}</text><text>{{item[1]}}</text></view>
     </view>
     <view wx:if="{{view.holdings.length}}" class="section-card">
-      <text class="section-title">公开持仓变化</text>
+      <text class="section-title">公开持仓</text>
       <view wx:for="{{view.holdings}}" wx:key="name" class="fact"><text>{{item.name}}</text><text>{{item.value}}</text></view>
     </view>
     <view wx:if="{{view.analysis.length}}" class="section-card analysis-card">

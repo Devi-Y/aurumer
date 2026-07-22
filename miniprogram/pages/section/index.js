@@ -3,8 +3,10 @@ const { groupDefinitions } = require("../../utils/answers");
 
 const META = {
   hk: { title: "港股打新", one: "先选结论，再看具体新股。", tone: "hk" },
-  us: { title: "美股投资", one: "只看七姐妹、热度前三和聪明人持仓。", tone: "us" },
+  us: { title: "美股投资", one: "只看七姐妹和热度前三。", tone: "us" },
   a: { title: "A股收息", one: "先看买入、等待还是回避。", tone: "a" },
+  gold: { title: "黄金投资", one: "第 4 个模块：先看答案，再看价格与驱动。", tone: "gold" },
+  guru: { title: "聪明人持仓", one: "最后一个模块：港股 3、美股 5、A股 3。", tone: "guru" },
 };
 
 Page({

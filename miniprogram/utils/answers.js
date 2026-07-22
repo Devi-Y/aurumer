@@ -1,3 +1,5 @@
+const { SMART_MONEY_PROFILES } = require("./smart-money");
+
 const MAGNIFICENT_SEVEN = ["NVDA", "MSFT", "AAPL", "GOOGL", "AMZN", "META", "TSLA"];
 
 const US_NAMES = {
@@ -124,20 +126,65 @@ function usItems(snapshot) {
   const hot = (qualityHot.length >= 3 ? qualityHot : nonSeven)
     .slice(0, 3)
     .map((item) => make(item, "hot", "热度前三"));
-  const gurus = (snapshot.investors || []).map((investor) => ({
-    id: investor.id,
-    market: "guru",
-    group: "gurus",
-    name: INVESTOR_NAMES[investor.id] || investor.name,
-    code: investor.name,
-    badge: "聪明人持仓",
-    score: number(investor.trackingScore),
-    one: investor.trackingSummary || "只看公开持仓方向变化，不照抄。",
-    raw: investor,
+  return [...seven, ...hot];
+}
+
+function smartMoneyItems(snapshot) {
+  const liveById = new Map((snapshot.investors || []).map((item) => [item.id, item]));
+  const counts = { hk: 3, us: 5, a: 3 };
+  return SMART_MONEY_PROFILES.map((profile) => {
+    const live = liveById.get(profile.id);
+    const holdings = live && Array.isArray(live.holdings)
+      ? live.holdings.slice(0, 10).map((holding) => ({
+          ticker: holding.ticker,
+          name: holding.issuer || holding.ticker,
+          weight: holding.weight,
+          changeLabel: holding.changeLabel || "变化待核验",
+          interpretation: "13F 只确认报告期持仓；具体买卖原因需另行核验。",
+        }))
+      : (profile.holdings || []).map(([ticker, name, weight, changeLabel, interpretation]) => ({ ticker, name, weight, changeLabel, interpretation }));
+    return {
+      id: profile.id,
+      market: "guru",
+      group: profile.group,
+      name: profile.name,
+      code: profile.performanceValue,
+      badge: profile.marketLabel,
+      score: null,
+      rank: profile.order,
+      scoreText: profile.performanceValue,
+      rankText: `第 ${profile.order}/${counts[profile.group]} 名`,
+      one: `WHY：${profile.why} HOW：${profile.how}`,
+      raw: {
+        ...live,
+        profile,
+        holdings,
+        reportDate: live?.reportDate || profile.report || "以最新公开报告为准",
+        filingDate: live?.filingDate || profile.report || "以原始文件为准",
+        source: live?.source || profile.sourceName,
+      },
+    };
+  });
+}
+
+function goldItems(snapshot) {
+  const gold = snapshot.gold || {};
+  const action = gold.answer?.action || "等待数据";
+  const international = gold.quotes?.international;
+  const domestic = gold.quotes?.domestic;
+  const quoteLine = international && domestic
+    ? `${international.price} 美元/盎司 · ${domestic.price} 元/克`
+    : "国际金与上海金资料待核验";
+  const rows = [
+    ["answer", "answer", "当前答案", action, gold.answer?.conclusion || "先看价格位置，再判断是否关注。"],
+    ["price", "price", "价格位置", "国际金 / 上海金", quoteLine],
+    ["drivers", "drivers", "驱动与风险", "宏观指标", "实际利率、美元、金融条件、持仓拥挤与上海金溢价。"],
+    ["analysis", "analysis", "深度分析", "HOW", "把价格、机会成本、拥挤度和风险放在同一页。"],
+  ];
+  return rows.map(([id, group, name, badge, one]) => ({
+    id, market: "gold", group, name, code: id === "price" ? quoteLine : "黄金", badge,
+    score: id === "answer" ? number(gold.answer?.score) : null, rank: 1, one, raw: { ...gold, view: id },
   }));
-  const guruRanks = scoreRank(gurus.map((item) => ({ ...item, trackingScore: item.score })), "trackingScore");
-  gurus.forEach((item) => { item.rank = guruRanks.get(item.id); });
-  return [...seven, ...hot, ...gurus];
 }
 
 function aShareItems(snapshot) {
@@ -166,29 +213,46 @@ function allItems(snapshot, market) {
   if (market === "hk") return hkItems(snapshot);
   if (market === "us") return usItems(snapshot);
   if (market === "a") return aShareItems(snapshot);
+  if (market === "gold") return goldItems(snapshot);
+  if (market === "guru") return smartMoneyItems(snapshot);
   return [];
 }
 
 function groupDefinitions(snapshot, market) {
   const items = allItems(snapshot, market);
-  const definitions = market === "hk"
-    ? [
+  let definitions;
+  if (market === "hk") {
+    definitions = [
         ["worth", "值得打", "当前资料支持参与。"],
         ["caution", "谨慎打", "有机会，但风险不能忽略。"],
         ["avoid", "不建议", "资料不足或风险偏高，先不参与。"],
         ["ended", "已结束", "只复盘实际暗盘和上市表现。"],
-      ]
-    : market === "us"
-      ? [
+      ];
+  } else if (market === "us") {
+    definitions = [
           ["seven", "七姐妹", "只看最核心的全球科技龙头。"],
           ["hot", "热度前三", "排除七姐妹后，市场最关注的三只。"],
-          ["gurus", "聪明人持仓", "看方向变化，不盲目抄作业。"],
-        ]
-      : [
+        ];
+  } else if (market === "a") {
+    definitions = [
           ["buy", "买入", "价格与现金流都达到观察条件。"],
           ["wait", "等待", "公司可以看，但价格还不够好。"],
           ["avoid", "回避", "分红或现金流暂不匹配。"],
         ];
+  } else if (market === "gold") {
+    definitions = [
+      ["answer", "当前答案", "先看黄金现在是否值得继续关注。"],
+      ["price", "价格位置", "同时看国际金与上海金。"],
+      ["drivers", "驱动与风险", "把利率、美元、持仓和溢价放在一起。"],
+      ["analysis", "深度分析", "把数据转成可执行的观察框架。"],
+    ];
+  } else {
+    definitions = [
+      ["hk", "港股 · 3 个", "长期业绩与当前港股持仓均可核验。"],
+      ["us", "美股 · 5 个", "公开业绩与 13F / 基金持仓可追踪。"],
+      ["a", "A股 · 3 个", "基金净值与最新法定报告均可核验。"],
+    ];
+  }
   return definitions.map(([id, title, one]) => ({ id, title, one, count: items.filter((item) => item.group === id).length }));
 }
 

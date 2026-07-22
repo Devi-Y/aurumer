@@ -30,6 +30,9 @@ for (const spec of specs) {
 
 const sitemap = await readFile(resolve(root, "sitemap.xml"), "utf8");
 assert(!/\/history\/?</.test(sitemap), "公开 sitemap 不得包含历史策略页");
+for (const route of ["value-partners-classic", "fidelity-china-special", "jpm-china-growth", "chinaamc-largecap", "fullgoal-tianhui", "xq-herun"]) {
+  assert(sitemap.includes(`/gurus/${route}`), `公开 sitemap 缺少聪明人页面：${route}`);
+}
 assert(specs.length >= 80, `可分享直达页不足：${specs.length}`);
 
 console.log(`公开直达页检查通过：${specs.length} 条`);

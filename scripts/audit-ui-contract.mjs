@@ -6,6 +6,7 @@ const html = await readFile(resolve(root, "index.html"), "utf8");
 const dailyHtml = await readFile(resolve(root, "daily.html"), "utf8");
 const manifest = JSON.parse(await readFile(resolve(root, "manifest.webmanifest"), "utf8"));
 const serviceWorker = await readFile(resolve(root, "sw.js"), "utf8");
+const smartMoney = await readFile(resolve(root, "assets/smart-money.js"), "utf8");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -19,7 +20,10 @@ assert(entryBody.includes("href:'#/us'"), "一级首页缺少美股入口");
 assert(entryBody.includes("href:'#/a-shares'"), "一级首页缺少A股入口");
 assert(entryBody.includes("href:'#/gurus'"), "一级首页缺少聪明人持仓入口");
 assert(entryBody.includes("href:'#/gold'"), "一级首页缺少黄金投资入口");
-for (const feature of ["今日新股结论", "性价比排名", "自由现金流筛选", "买入与卖出变化", "伦敦金与上海金"]) {
+const portalOrder = ["href:'#/hk'", "href:'#/us'", "href:'#/a-shares'", "href:'#/gold'", "href:'#/gurus'"]
+  .map((marker) => entryBody.indexOf(marker));
+assert(portalOrder.every((position, index) => position >= 0 && (index === 0 || position > portalOrder[index - 1])), "一级首页顺序必须是港股、美股、A股、黄金、聪明人持仓");
+for (const feature of ["今日新股结论", "性价比排名", "自由现金流筛选", "伦敦金与上海金", "逐个解释 WHY"]) {
   assert(entryBody.includes(feature), `首页入口缺少功能说明：${feature}`);
 }
 
@@ -30,13 +34,24 @@ for (const text of [
   "{id:'ended',label:'已结束'",
   "{id:'seven',label:'七姐妹'",
   "{id:'hot',label:'热度前三'",
-  "{id:'gurus',label:'聪明人持仓'",
   "{id:'buy',label:'买入'",
   "{id:'wait',label:'等待'",
   "{id:'avoid',label:'回避'",
 ]) {
   assert(html.includes(text), `二级入口缺失：${text}`);
 }
+
+const usGroupsBody = html.match(/function getUSGroups\(\)\{([\s\S]*?)\n\}/)?.[1] || "";
+assert(usGroupsBody && !usGroupsBody.includes("id:'gurus'"), "聪明人持仓不应继续嵌在美股分组");
+assert(html.includes("hk:{name:'港股',count:3") && html.includes("us:{name:'美股',count:5") && html.includes("a:{name:'A股',count:3"), "聪明人持仓缺少港股3、美股5、A股3分组");
+assert(html.includes("WHY · 为什么选它") && html.includes("HOW · 怎么学"), "聪明人持仓缺少 WHY / HOW 分析");
+for (const id of ["value-partners-classic", "fidelity-china-special", "jpm-china-growth", "chinaamc-largecap", "fullgoal-tianhui", "xq-herun"]) {
+  assert(smartMoney.includes(`id: "${id}"`), `聪明人候选缺失：${id}`);
+}
+for (const id of ["druckenmiller", "burry", "buffett", "ackman", "wood"]) {
+  assert(smartMoney.includes(`${id}: {`), `美股聪明人候选缺失：${id}`);
+}
+assert(serviceWorker.includes("assets/smart-money.js"), "离线缓存缺少聪明人数据文件");
 
 assert(html.includes("compact-rank"), "三级标的卡缺少排名");
 assert(html.includes("综合分"), "三级标的卡缺少分数");

@@ -209,35 +209,92 @@ function buildAShareView(base, item) {
 
 function buildGuruView(base, item) {
   const raw = item.raw || {};
-  const sold = (raw.sold || []).slice(0, 6).map((holding) => holding.ticker).join("、") || "暂无";
-  const changed = (raw.holdings || []).filter((holding) => holding.changeType && holding.changeType !== "same");
+  const profile = raw.profile || {};
+  const groupCounts = { hk: 3, us: 5, a: 3 };
+  const holdings = raw.holdings || [];
 
+  base.title = profile.name || base.title;
+  base.code = profile.org || base.code;
+  base.badge = profile.marketLabel || base.badge;
+  base.score = profile.performanceValue || "业绩待核验";
+  base.rank = profile.order ? `${profile.marketLabel} 第 ${profile.order}/${groupCounts[profile.group]} 名` : "候选池";
+  base.answer = `WHY：${profile.why || item.one} HOW：${profile.how || "学框架，不照抄。"}`;
   base.metrics = [
-    ["跟踪价值", hasNumber(raw.trackingScore) ? `${Number(raw.trackingScore)} 分` : "暂缺"],
-    ["披露季度", raw.reportDate || "待核验"],
+    ["长期公开业绩", profile.performanceValue || "待核验"],
+    ["业绩区间", profile.performanceDetail || "待核验"],
+    ["持仓报告", raw.reportDate || profile.report || "待核验"],
     ["披露日期", raw.filingDate || "待核验"],
-    ["组合规模", formatLarge(raw.portfolioValue)],
+    ["组合规模", hasNumber(raw.portfolioValue) ? formatLarge(raw.portfolioValue) : "以原始文件为准"],
   ];
-  base.holdings = (raw.holdings || []).slice(0, 10).map((holding) => ({
+  base.holdings = holdings.slice(0, 10).map((holding) => ({
     name: holding.ticker,
-    value: `${formatNumber(holding.weight, "%")} · ${holding.changeLabel || "变化待核验"}`,
+    value: `${holding.name || ""} · ${formatNumber(holding.weight, "%")} · ${holding.changeLabel || "变化待核验"}`,
   }));
   base.facts = [
-    ["最近变化", changed.slice(0, 6).map((holding) => `${holding.ticker} ${holding.changeLabel}`).join("；") || "主要持仓基本不变"],
-    ["最近清仓", sold],
+    ["WHY", profile.why || "公开资料待核验"],
+    ["HOW", profile.how || "学框架，不照抄"],
+    ["业绩口径", profile.performanceBasis || "不同区间、币种与份额不可直接横比"],
     ["资料来源", raw.source || "SEC 13F"],
   ];
   base.analysis = [
-    { title: "能不能参考", body: raw.trackingSummary || "只看公开持仓方向变化，不照抄。" },
-    { title: "最近买卖", body: changed.length ? changed.slice(0, 6).map((holding) => `${holding.ticker}：${holding.changeLabel}`).join("；") : "本期主要持仓基本不变。" },
-    { title: "怎么使用", body: "先看仓位变化反映的方向，再结合自己的买入价格、风险承受能力和披露滞后独立判断。" },
+    { title: "WHY · 为什么选它", body: profile.why || "公开业绩和持仓具备研究价值。" },
+    { title: "HOW · 怎么学", body: profile.how || "先理解方法，再独立判断。" },
+    { title: "持仓怎么读", body: holdings.length ? holdings.slice(0, 5).map((holding) => `${holding.ticker}：${holding.interpretation || holding.changeLabel}`).join("；") : "当前持仓资料待核验。" },
+    { title: "比较边界", body: "这是可核验候选池内按表观长期年化排序，不是不同市场、币种和风险口径下的全球绝对榜。" },
   ];
   base.actions = [
-    { label: "适合做", value: "观察机构方向与仓位变化" },
-    { label: "不适合做", value: "按披露价格直接照抄" },
+    { label: "适合做", value: "学习选股框架与组合方向" },
+    { label: "下一次核验", value: profile.group === "us" ? "下一期 13F / 基金报告" : "下一份月报、季报或半年报" },
+    { label: "不适合做", value: "按报告期仓位直接照抄" },
   ];
-  base.risk = "13F 通常滞后数周，只能参考方向，不能代表当前实时持仓。";
-  base.sourceNote = `${raw.source || "SEC 13F"} · ${raw.filingDate || "披露日期待核验"}`;
+  base.risk = "历史业绩不代表未来收益；公开持仓按月或按季披露，不能代表实时仓位或实时买卖理由。";
+  base.sourceNote = `${raw.source || profile.sourceName || "公开报告"} · ${raw.filingDate || profile.report || "披露日期待核验"}`;
+}
+
+function buildGoldView(base, item) {
+  const gold = item.raw || {};
+  const answer = gold.answer || {};
+  const plan = answer.pricePlan || {};
+  const international = gold.quotes?.international || {};
+  const domestic = gold.quotes?.domestic || {};
+  const band = (value) => value && hasNumber(value.low) && hasNumber(value.high) ? `${Number(value.low).toFixed(1)}–${Number(value.high).toFixed(1)} ${value.currency || ""}` : "待核验";
+  const indicatorLine = (gold.indicators || []).map((entry) => `${entry.label} ${entry.value}${entry.unit || ""}`).join("；") || "宏观资料待核验";
+  base.metrics = [
+    ["国际金", hasNumber(international.price) ? `${Number(international.price).toFixed(1)} ${international.currency || "USD/oz"}` : "暂缺"],
+    ["上海金", hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(2)} ${domestic.currency || "CNY/g"}` : "暂缺"],
+    ["当前结论", answer.action || "等待数据"],
+    ["综合观察分", hasNumber(answer.score) ? `${Number(answer.score)} 分` : "暂缺"],
+  ];
+  base.facts = (gold.indicators || []).map((entry) => [entry.label, `${entry.value}${entry.unit || ""} · ${entry.note || ""}`]);
+  if (gold.view === "price") {
+    base.analysis = [
+      { title: "国际金位置", body: `20 日 ${formatPercent(international.returns?.day20)}，60 日 ${formatPercent(international.returns?.day60)}，半年位置约 ${international.percentile180 ?? "暂缺"}% 分位。` },
+      { title: "上海金位置", body: `现价 ${hasNumber(domestic.price) ? Number(domestic.price).toFixed(2) : "暂缺"} 元/克；与国际金还受汇率、境内供需和交易时段影响。` },
+      { title: "研究区间", body: `国际金关注 ${band(plan.internationalWatch)}；上海金关注 ${band(plan.domesticWatch)}。` },
+    ];
+  } else if (gold.view === "drivers") {
+    base.analysis = (gold.indicators || []).map((entry) => ({ title: entry.label, body: `${entry.value}${entry.unit || ""}。${entry.note || ""}` }));
+  } else if (gold.view === "analysis") {
+    base.analysis = [
+      { title: "1 · 价格位置", body: "先看国际金与上海金是否进入观察区，不因单日涨跌追高。" },
+      { title: "2 · 机会成本", body: "实际利率和美元走强通常压制黄金，但关系会随风险事件变化。" },
+      { title: "3 · 拥挤与溢价", body: `结合持仓和上海金溢价判断是否拥挤。当前指标：${indicatorLine}` },
+      { title: "4 · 风险执行", body: "只用能承受波动的仓位，并在价格或宏观逻辑失效时重新评估。" },
+    ];
+  } else {
+    base.analysis = [
+      { title: "现在怎么看", body: answer.conclusion || "先等待价格与宏观资料完整。" },
+      { title: "WHY · 当前依据", body: (answer.reasons || []).join("；") || "当前没有足够的积极依据。" },
+      { title: "主要风险", body: (answer.risks || []).join("；") || "利率、美元与流动性变化会带来回撤。" },
+    ];
+  }
+  base.actions = [
+    { label: "国际金关注区", value: band(plan.internationalWatch) },
+    { label: "上海金关注区", value: band(plan.domesticWatch) },
+    { label: "风险下沿", value: `${band(plan.internationalRisk)} / ${band(plan.domesticRisk)}` },
+  ];
+  base.risk = "黄金会受通胀、实际利率、美元、汇率与流动性共同影响；研究区间不是收益承诺。";
+  base.sourceNote = (gold.sources || []).filter((source) => source.ok).map((source) => source.name).join(" · ") || "公开行情与宏观资料";
 }
 
 function detailView(item, snapshot) {
@@ -245,6 +302,7 @@ function detailView(item, snapshot) {
   if (item.market === "hk") buildHKView(base, item);
   else if (item.market === "us") buildUSView(base, item, snapshot);
   else if (item.market === "a") buildAShareView(base, item);
+  else if (item.market === "gold") buildGoldView(base, item);
   else buildGuruView(base, item);
   return base;
 }

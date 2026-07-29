@@ -1,10 +1,81 @@
 page {
+  box-sizing: border-box;
+  width: 100%;
   min-height: 100%;
-  background: #f4f1e9;
-  color: #1f2b2a;
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  background: #f5f5f5;
+  color: #111111;
+  font-size: 30rpx;
+  line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
 }
 
 button::after {
   border: 0;
+}
+
+button {
+  box-sizing: border-box;
+}
+
+.page-shell {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100vh;
+  padding: 0 0 calc(36rpx + env(safe-area-inset-bottom));
+  background: #f5f5f5;
+}
+
+.page-card {
+  overflow: hidden;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.screen-section-title {
+  display: flex;
+  min-height: 70rpx;
+  padding: 24rpx 28rpx 13rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  color: #8a8a8a;
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.screen-section-title text:last-child {
+  color: #9a9a9a;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+@media (max-width: 340px) {
+  page {
+    font-size: 28rpx;
+  }
+
+  .page-shell {
+    width: 100%;
+  }
+
+  .screen-section-title {
+    padding-right: 22rpx;
+    padding-left: 22rpx;
+  }
+}
+
+@media (min-width: 700px) {
+  .page-shell {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .screen-section-title {
+    padding-right: 32px;
+    padding-left: 32px;
+  }
 }

@@ -1,25 +1,49 @@
-<view class="page-shell">
-  <view class="top-actions">
-    <button bindtap="goBack">‹ 返回</button>
-    <button bindtap="goHome">首页</button>
-  </view>
-  <view class="hero {{meta.tone}}">
-    <text class="eyebrow">望潮 Aurum · 先看结论</text>
-    <text class="title">{{meta.title}}</text>
-    <text class="lead">{{meta.one}}</text>
-  </view>
-  <view class="group-list">
-    <button wx:for="{{groups}}" wx:key="id" class="group-card" data-group="{{item.id}}" bindtap="openGroup" hover-class="card-active">
-      <view class="group-copy">
-        <text class="group-title">{{item.title}}</text>
-        <text class="group-one">{{item.one}}</text>
+<view class="page-shell section-shell">
+  <view class="section-hero {{meta.tone}}">
+    <view class="hero-top">
+      <text class="hero-title">{{meta.title}}</text>
+      <view class="hero-image-wrap">
+        <image class="hero-image" src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
       </view>
-      <view class="group-meta">
-        <text>{{item.count}}</text>
-        <text class="arrow">›</text>
+    </view>
+    <view class="hero-metrics">
+      <view wx:for="{{overview.metrics}}" wx:key="label" class="hero-metric">
+        <text>{{item.label}}</text>
+        <text>{{item.value}}</text>
       </view>
-    </button>
+    </view>
   </view>
-  <text class="source">{{source}}</text>
-  <text class="disclaimer">先看一句话结论，需要时再进入具体标的。</text>
+
+  <view class="insight-panel">
+    <text class="insight-label">结论</text>
+    <text class="insight-conclusion">{{overview.conclusion}}</text>
+  </view>
+
+  <view class="section-heading">
+    <text>继续看</text>
+    <text>{{groups.length}} 项</text>
+  </view>
+
+  <view class="group-panel">
+    <view
+      wx:for="{{groups}}"
+      wx:key="id"
+      class="group-row"
+      data-group="{{item.id}}"
+      bindtap="openGroup"
+      hover-class="tap-active"
+      role="button"
+      aria-label="{{item.title}}，共 {{item.count}} 项"
+    >
+      <text class="group-index">{{item.indexLabel}}</text>
+      <text class="group-title">{{item.title}}</text>
+      <text class="group-count">{{item.count}}</text>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <view class="page-note">
+    <text>{{source}}</text>
+    <text>公开资料整理，仅供研究参考。</text>
+  </view>
 </view>

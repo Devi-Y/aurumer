@@ -29,11 +29,6 @@ function money(value, currency = "$") {
     : "暂缺";
 }
 
-function scoreRank(items, key) {
-  const ordered = [...items].sort((left, right) => number(right[key]) - number(left[key]));
-  return new Map(ordered.map((item, index) => [item.id || item.symbol || item.code, index + 1]));
-}
-
 function hkReviewScore(item) {
   const review = item.historicalReview || {};
   const outcomes = [review.greyMarketChange, review.firstDayChange, review.fiveDayChange]
@@ -46,22 +41,19 @@ function hkReviewScore(item) {
 
 function hkItems(snapshot) {
   const current = (snapshot.hk && snapshot.hk.listings ? snapshot.hk.listings : []).map((item) => {
-    const verdict = item.publicAnswer && item.publicAnswer.verdict ? item.publicAnswer.verdict : "待核验";
-    const group = verdict === "值得打" ? "worth" : verdict === "谨慎打" ? "caution" : "avoid";
-    const publicScore = item.publicAnswer && item.publicAnswer.score;
+    const research = item.researchView || {};
+    const group = research.state === "complete" ? "worth" : research.state === "review" ? "caution" : "avoid";
     return {
       id: String(item.rawCode || item.code || item.id).replace(/\.HK$/i, ""),
       market: "hk",
       group,
       name: item.name || "港股新股",
       code: item.code || item.rawCode,
-      badge: verdict === "待核验" ? "不建议" : verdict,
-      score: verdict === "待核验"
-        ? null
-        : publicScore !== null && publicScore !== undefined && publicScore !== "" && Number.isFinite(Number(publicScore))
-          ? Number(publicScore)
-          : null,
-      one: item.publicAnswer && item.publicAnswer.action ? item.publicAnswer.action : "资料不足，暂不参与。",
+      badge: research.label || "资料不足",
+      score: research.score !== null && research.score !== undefined && research.score !== "" && Number.isFinite(Number(research.score))
+        ? Number(research.score)
+        : null,
+      one: research.note || "关键招股资料尚不完整，当前只展示已核验事实。",
       raw: item,
     };
   });
@@ -73,7 +65,7 @@ function hkItems(snapshot) {
     code: item.code || item.stockCode,
     badge: "已结束",
     score: hkReviewScore(item),
-    one: item.reviewNote || "申购已结束，查看暗盘与上市后表现。",
+    one: item.reviewNote || "发行已结束，可查看暗盘与上市后实际表现。",
     raw: item,
   }));
   const items = [...current, ...ended];
@@ -86,25 +78,21 @@ function hkItems(snapshot) {
   return items;
 }
 
-function stockAction(stock) {
-  const price = number(stock.price);
-  const plan = stock.technicalPlan || {};
-  const buy = number(plan.buy, NaN);
-  const firstTarget = Array.isArray(plan.tp) ? number(plan.tp[0], NaN) : NaN;
-  if (!Number.isFinite(buy) || !Number.isFinite(firstTarget)) return "价格资料不足，继续观察。";
-  if (price <= buy * 1.03) return "接近买入区间，可小仓观察。";
-  if (price >= firstTarget) return "已到目标区间，注意分批止盈。";
-  if (number(stock.weeklyChange) > 8) return "短期涨得快，先别追。";
-  return "未到理想买点，继续等待。";
+function stockObservation(stock) {
+  const values = (stock.history || []).map(Number).filter(Number.isFinite).sort((left, right) => left - right);
+  const price = Number(stock.price);
+  if (!values.length || !Number.isFinite(price)) return "历史价格样本不足，当前只展示已核验行情。";
+  const atOrBelow = values.filter((value) => value <= price).length;
+  const percentile = Math.round((atOrBelow / values.length) * 100);
+  return `当前价格约位于近 ${values.length} 个交易日样本的 ${percentile}% 分位。`;
 }
 
 function usItems(snapshot) {
   const fundamentals = new Map((snapshot.us && snapshot.us.fundamentals ? snapshot.us.fundamentals : []).map((item) => [item.symbol, item]));
   const stocks = (snapshot.us && snapshot.us.stocks ? snapshot.us.stocks : []).map((stock) => {
     const fund = fundamentals.get(stock.symbol) || {};
-    return { ...stock, fund, finalScore: number(fund.finalScore), id: stock.symbol };
+    return { ...stock, fund, id: stock.symbol };
   });
-  const globalRanks = scoreRank(stocks, "finalScore");
   const make = (stock, group, badge) => ({
     id: stock.symbol,
     market: "us",
@@ -112,9 +100,11 @@ function usItems(snapshot) {
     name: US_NAMES[stock.symbol] || stock.symbol,
     code: stock.symbol,
     badge,
-    score: stock.finalScore,
-    rank: globalRanks.get(stock.symbol),
-    one: stockAction(stock),
+    score: null,
+    rank: null,
+    scoreText: group === "hot" ? `热度 ${number(stock.heatScore)} 分` : "公开资料",
+    rankText: badge,
+    one: stockObservation(stock),
     raw: stock,
   });
   const bySymbol = new Map(stocks.map((item) => [item.symbol, item]));
@@ -122,9 +112,7 @@ function usItems(snapshot) {
   const nonSeven = stocks
     .filter((item) => !MAGNIFICENT_SEVEN.includes(item.symbol))
     .sort((left, right) => number(right.heatScore) - number(left.heatScore));
-  const qualityHot = nonSeven.filter((item) => item.fund && item.fund.qualityEligible);
-  const hot = (qualityHot.length >= 3 ? qualityHot : nonSeven)
-    .slice(0, 3)
+  const hot = nonSeven.slice(0, 3)
     .map((item) => make(item, "hot", "热度前三"));
   return [...seven, ...hot];
 }
@@ -169,14 +157,14 @@ function smartMoneyItems(snapshot) {
 
 function goldItems(snapshot) {
   const gold = snapshot.gold || {};
-  const action = gold.answer?.action || "等待数据";
+  const action = gold.answer?.researchLabel || "资料观察";
   const international = gold.quotes?.international;
   const domestic = gold.quotes?.domestic;
   const quoteLine = international && domestic
     ? `${international.price} 美元/盎司 · ${domestic.price} 元/克`
     : "国际金与上海金资料待核验";
   const rows = [
-    ["answer", "answer", "当前答案", action, gold.answer?.conclusion || "先看价格位置，再判断是否关注。"],
+    ["answer", "answer", "资料结论", action, gold.answer?.researchConclusion || "先看价格位置和宏观驱动。"],
     ["price", "price", "价格位置", "国际金 / 上海金", quoteLine],
     ["drivers", "drivers", "驱动与风险", "宏观指标", "实际利率、美元、金融条件、持仓拥挤与上海金溢价。"],
     ["analysis", "analysis", "深度分析", "HOW", "把价格、机会成本、拥挤度和风险放在同一页。"],
@@ -190,20 +178,21 @@ function goldItems(snapshot) {
 function aShareItems(snapshot) {
   const fundamentals = new Map((snapshot.aShare && snapshot.aShare.fundamentals ? snapshot.aShare.fundamentals : []).map((item) => [item.code, item]));
   const quotes = (snapshot.aShare && snapshot.aShare.quotes ? snapshot.aShare.quotes : []);
-  const ranks = scoreRank(quotes.map((item) => ({ ...item, id: item.code })), "score");
   return quotes.map((item) => {
-    const advice = item.currentAdvice || "等待";
-    const group = advice === "买入" ? "buy" : ["持有", "等待", "观察"].includes(advice) ? "wait" : "avoid";
+    const research = item.researchView || {};
+    const group = ["complete", "review", "limited"].includes(research.state) ? research.state : "limited";
     return {
       id: String(item.code).replace(/\.(SH|SZ)$/i, ""),
       market: "a",
       group,
       name: item.name,
       code: item.code,
-      badge: group === "buy" ? "买入" : group === "wait" ? "等待" : "回避",
-      score: number(item.score),
-      rank: ranks.get(item.code),
-      one: item.summary || "先看分红是否有现金流支撑。",
+      badge: research.label || "资料待核验",
+      score: null,
+      rank: null,
+      scoreText: "公开资料",
+      rankText: "不作投资排名",
+      one: research.note || "先核对分红是否有现金流支撑。",
       raw: { ...item, financials: fundamentals.get(item.code) || {} },
     };
   });
@@ -223,9 +212,9 @@ function groupDefinitions(snapshot, market) {
   let definitions;
   if (market === "hk") {
     definitions = [
-        ["worth", "值得打", "当前资料支持参与。"],
-        ["caution", "谨慎打", "有机会，但风险不能忽略。"],
-        ["avoid", "不建议", "资料不足或风险偏高，先不参与。"],
+        ["worth", "资料较完整", "发行、认购与风险资料相对完整。"],
+        ["caution", "重点核验", "部分关键字段或风险仍需核对。"],
+        ["avoid", "资料不足", "当前只展示已核验事实，不给申购动作。"],
         ["ended", "已结束", "只复盘实际暗盘和上市表现。"],
       ];
   } else if (market === "us") {
@@ -235,22 +224,22 @@ function groupDefinitions(snapshot, market) {
         ];
   } else if (market === "a") {
     definitions = [
-          ["buy", "买入", "价格与现金流都达到观察条件。"],
-          ["wait", "等待", "公司可以看，但价格还不够好。"],
-          ["avoid", "回避", "分红或现金流暂不匹配。"],
+          ["complete", "资料较完整", "价格、分红与现金流字段较完整。"],
+          ["review", "现金流待核验", "价格和分红已更新，财务字段仍需核对。"],
+          ["limited", "资料待补充", "当前只展示已经核验的公开字段。"],
         ];
   } else if (market === "gold") {
     definitions = [
-      ["answer", "当前答案", "先看黄金现在是否值得继续关注。"],
+      ["answer", "资料结论", "先看黄金价格位置与宏观驱动。"],
       ["price", "价格位置", "同时看国际金与上海金。"],
       ["drivers", "驱动与风险", "把利率、美元、持仓和溢价放在一起。"],
-      ["analysis", "深度分析", "把数据转成可执行的观察框架。"],
+      ["analysis", "深度分析", "把价格、机会成本与风险放在同一页核对。"],
     ];
   } else {
     definitions = [
-      ["hk", "港股 · 3 个", "长期业绩与当前港股持仓均可核验。"],
-      ["us", "美股 · 5 个", "公开业绩与 13F / 基金持仓可追踪。"],
-      ["a", "A股 · 3 个", "基金净值与最新法定报告均可核验。"],
+      ["hk", "港股 · 3 个", "可核验候选池内，按表观长期年化从高到低排列。"],
+      ["us", "美股 · 5 个", "可核验候选池内，按表观长期年化从高到低排列。"],
+      ["a", "A股 · 3 个", "可核验候选池内，按表观长期年化从高到低排列。"],
     ];
   }
   return definitions.map(([id, title, one]) => ({ id, title, one, count: items.filter((item) => item.group === id).length }));

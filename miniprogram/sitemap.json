@@ -1,4 +1,8 @@
 {
   "desc": "望潮 Aurum 页面索引",
-  "rules": [{ "action": "allow", "page": "*" }]
+  "rules": [
+    { "action": "disallow", "page": "pages/workspace/index" },
+    { "action": "disallow", "page": "pages/member/index" },
+    { "action": "allow", "page": "*" }
+  ]
 }

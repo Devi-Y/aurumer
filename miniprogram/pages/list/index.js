@@ -1,27 +1,100 @@
 const { loadSnapshot } = require("../../data/store");
 const { allItems, groupDefinitions } = require("../../utils/answers");
 
+const MARKET_META = {
+  hk: { label: "港股新股", icon: "/assets/home/hk.svg", tone: "hk" },
+  us: { label: "美股机会", icon: "/assets/home/us.svg", tone: "us" },
+  a: { label: "A股收息", icon: "/assets/home/a.svg", tone: "a" },
+  gold: { label: "黄金机会", icon: "/assets/home/gold.svg", tone: "gold" },
+  guru: { label: "机构持仓", icon: "/assets/home/guru.svg", tone: "guru" },
+};
+
+function hasNumber(value) {
+  return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
+}
+
+function performanceNumber(value) {
+  return Number(String(value || "").match(/\d+(?:\.\d+)?/)?.[0] || 0);
+}
+
+function comparisonMetric(item, market) {
+  if (market === "us" && hasNumber(item.raw?.heatScore)) {
+    return { value: Number(item.raw.heatScore), label: `热度 ${Number(item.raw.heatScore)} 分` };
+  }
+  if (market === "a" && hasNumber(item.raw?.currentDividendYield)) {
+    const value = Number(item.raw.currentDividendYield);
+    return { value, label: `股息率 ${value.toFixed(2)}%` };
+  }
+  if (market === "guru") {
+    const value = performanceNumber(item.raw?.profile?.performanceValue);
+    return value > 0 ? { value, label: `表观长期年化 ${item.raw.profile.performanceValue}` } : null;
+  }
+  if (hasNumber(item.score) && Number(item.score) > 0) {
+    return { value: Number(item.score), label: `${Number(item.score)} 分` };
+  }
+  return null;
+}
+
+function buildInsight(market, group, items) {
+  if (!items.length) {
+    return { label: "本组结论", conclusion: "当前没有符合资料口径的项目。", analysis: "望潮不会使用占位数据凑数量。", metric: "0 项" };
+  }
+  const first = items[0];
+  const prefix = market === "guru" ? "按当前公开口径，" : "这一组先从";
+  return {
+    label: "本组结论",
+    conclusion: `${prefix}${first.name}开始看。${first.one}`,
+    analysis: group?.one || "先核对数据，再阅读完整分析和风险边界。",
+    metric: `${items.length} 项资料`,
+  };
+}
+
 Page({
-  data: { market: "hk", group: "worth", title: "答案列表", one: "一句话看懂，再进详情。", items: [], source: "正在读取同步数据" },
+  data: {
+    market: "hk",
+    group: "worth",
+    meta: MARKET_META.hk,
+    title: "资料列表",
+    one: "一句话看懂，再进详情。",
+    insight: { label: "本组结论", conclusion: "正在整理", analysis: "", metric: "" },
+    items: [],
+    source: "正在读取同步数据",
+  },
   onLoad(options) {
-    this.setData({ market: options.market || "hk", group: options.group || "worth" });
+    const market = MARKET_META[options.market] ? options.market : "hk";
+    this.setData({ market, group: options.group || "worth", meta: MARKET_META[market] });
     this.refresh();
   },
-  onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh()); },
-  refresh(done) {
+  onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
+  refresh(done, force = false) {
     loadSnapshot((snapshot, source) => {
       const group = groupDefinitions(snapshot, this.data.market).find((item) => item.id === this.data.group);
-      const items = allItems(snapshot, this.data.market)
-        .filter((item) => item.group === this.data.group)
-        .map((item, index) => ({
-          id: item.id, name: item.name, code: item.code, badge: item.badge,
+      const rawItems = allItems(snapshot, this.data.market).filter((item) => item.group === this.data.group);
+      const comparable = rawItems.map((item) => comparisonMetric(item, this.data.market));
+      const maxValue = Math.max(...comparable.map((item) => Number(item?.value || 0)), 0);
+      const items = rawItems.map((item, index) => {
+        const visual = comparable[index];
+        return {
+          id: item.id,
+          name: item.name,
+          code: item.code,
+          badge: item.badge,
+          position: index + 1,
+          positionLabel: String(index + 1).padStart(2, "0"),
           scoreText: item.scoreText || (item.score > 0 ? `${item.score} 分` : "资料待核验"),
           rankText: item.rankText || (item.rank ? `第 ${item.rank} 名` : "暂不排名"),
           one: item.one,
-        }));
+          showBar: Boolean(visual && maxValue > 0),
+          barLabel: visual?.label || "",
+          barWidth: visual && maxValue > 0 ? Math.max(12, Math.round((visual.value / maxValue) * 100)) : 0,
+        };
+      });
       this.snapshot = snapshot;
-      this.setData({ title: group ? group.title : "答案列表", one: group ? group.one : "一句话看懂，再进详情。", items, source });
-    }, done);
+      const title = group ? group.title : "资料列表";
+      const one = group ? group.one : "一句话看懂，再进详情。";
+      this.setData({ title, one, items, insight: buildInsight(this.data.market, group, rawItems), source });
+      wx.setNavigationBarTitle({ title });
+    }, done, { force });
   },
   openItem(event) {
     wx.navigateTo({ url: `/pages/detail/index?market=${this.data.market}&id=${encodeURIComponent(event.currentTarget.dataset.id)}` });

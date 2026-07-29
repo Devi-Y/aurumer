@@ -31,12 +31,12 @@ const SMART_MONEY_PROFILES = [
   {
     id: "burry", group: "us", order: 2, name: "迈克尔·伯里", org: "Scion（私人办公室）", marketLabel: "美股",
     performanceValue: "约 26.0% 年化", performanceDetail: "2000–2008 · 累计净回报 +489.34%", performanceBasis: "历史累计净回报折算；当前不再持续公开完整仓位。",
-    why: "在市场共识最强时寻找定价错误，历史回报体现了逆向研究价值。", how: "把持仓当风险雷达，先读证据链和下行空间；不要照抄做空时点。", sourceName: "Michael Lewis 公开回顾",
+    why: "在市场共识最强时寻找定价错误，历史回报体现了逆向研究价值。", how: "把持仓当风险雷达，先读证据链和下行空间；不要照抄报告期仓位。", sourceName: "Michael Lewis 公开回顾",
   },
   {
     id: "buffett", group: "us", order: 3, name: "沃伦·巴菲特", org: "伯克希尔·哈撒韦", marketLabel: "美股",
     performanceValue: "19.7% 年化", performanceDetail: "1965–2025 · 标普同期 10.5%", performanceBasis: "伯克希尔每股市值复合回报，不等同于公开股票组合单独收益。",
-    why: "六十年复利和资本配置记录最完整。", how: "学能力圈、护城河、管理层和买入价格；重点看新建仓，不按季度比例复制。", sourceName: "伯克希尔 2025 年报",
+    why: "六十年复利和资本配置记录最完整。", how: "学能力圈、护城河、管理层和估值纪律；重点看组合变化，不按季度比例复制。", sourceName: "伯克希尔 2025 年报",
   },
   {
     id: "ackman", group: "us", order: 4, name: "比尔·阿克曼", org: "潘兴广场", marketLabel: "美股",
@@ -63,7 +63,7 @@ const SMART_MONEY_PROFILES = [
   {
     id: "xq-herun", group: "a", order: 3, name: "兴全合润", org: "兴证全球 · 谢治宇", marketLabel: "A股",
     performanceValue: "约 13.9% 年化", performanceDetail: "2010–2026Q1 · 累计 +694.17%", performanceBasis: "A 份额公开净值；经理自 2013-01-29 任职，成立初期收益不属于其任期。",
-    why: "长周期累计回报显著高于基准，最新组合把科技景气与化工供需反转结合。", how: "跟踪企业竞争力与产业供需；高波动赛道分批建仓并设组合上限。", report: "2026Q1 季报", sourceName: "兴全合润一季报",
+    why: "长周期累计回报显著高于基准，最新组合把科技景气与化工供需反转结合。", how: "跟踪企业竞争力与产业供需；观察高波动赛道在组合中的比例上限。", report: "2026Q1 季报", sourceName: "兴全合润一季报",
     holdings: [["600160", "巨化股份", 9.68, "季度持有", "制冷剂供给约束带来盈利弹性"], ["688099", "晶晨股份", 7.09, "季度持有", "智能终端芯片平台受益产品升级"], ["300308", "中际旭创", 6.24, "季度持有", "AI 光模块需求强但景气波动大"]],
   },
 ];

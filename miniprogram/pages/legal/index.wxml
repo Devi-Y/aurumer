@@ -1,0 +1,55 @@
+<view class="page-shell legal-shell">
+  <view class="legal-summary-card">
+    <view class="legal-hero-copy">
+      <text class="summary-label">付费前必读</text>
+      <text class="title">会员协议与隐私</text>
+      <text class="date">生效日期 {{legalInfo.effectiveDate}}</text>
+    </view>
+    <view class="legal-hero-image-wrap"><image src="/assets/home/today.svg" mode="aspectFit" aria-hidden="true"></image></view>
+  </view>
+
+  <text class="block-title">先看 4 件事</text>
+  <view class="plain-summary">
+    <view><text>1</text><text>一年 1288 元</text></view>
+    <view><text>2</text><text>不自动续费</text></view>
+    <view><text>3</text><text>不提供荐股</text></view>
+    <view><text>4</text><text>记录可导出删除</text></view>
+  </view>
+
+  <view wx:if="{{draft}}" class="draft-card">
+    <text>正式发布资料待完善</text>
+    <text>正式收费前需补全运营主体并完成文本审查。</text>
+  </view>
+
+  <text class="block-title">服务主体</text>
+  <view class="identity-card">
+    <view><text>运营主体</text><text>{{legalInfo.operatorName}}</text></view>
+    <view><text>联系渠道</text><text>{{legalInfo.contactMethod}}</text></view>
+  </view>
+
+  <text class="block-title">完整条款</text>
+  <view class="policy-list">
+    <view wx:for="{{sections}}" wx:key="title" class="policy-card">
+      <button
+        class="policy-toggle"
+        data-index="{{index}}"
+        bindtap="toggleSection"
+        aria-label="{{item.title}}，{{item.expanded ? '点击收起' : '点击展开'}}"
+      >
+        <text>{{item.title}}</text>
+        <text>{{item.expanded ? '︿' : '﹀'}}</text>
+      </button>
+      <view wx:if="{{item.expanded}}" class="policy-body">
+        <text wx:for="{{item.paragraphs}}" wx:for-item="paragraph" wx:key="*this" class="paragraph">{{paragraph}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="action-card">
+    <button class="primary-action" bindtap="openPlatformPrivacy"><text>微信平台隐私指引</text><text>›</text></button>
+    <button class="secondary-action" bindtap="copyPolicy"><text>复制全部文字</text><text>›</text></button>
+    <button class="secondary-action" open-type="contact" show-message-card="true"><text>联系微信客服</text><text>›</text></button>
+    <button class="member-action" bindtap="openMember"><text>返回会员页</text><text>›</text></button>
+  </view>
+  <text class="footer-note">如有疑问，请在购买前联系微信客服。</text>
+</view>

@@ -1,25 +1,84 @@
-<view class="page-shell">
-  <view class="brand-row">
-    <text class="brand">望潮</text>
-    <text class="brand-en">Aurum</text>
+<view class="page-shell home-shell">
+  <view class="today-card">
+    <view class="today-top">
+      <text class="today-title">今日重点</text>
+      <text class="today-time">{{refreshedAt || '更新中'}}</text>
+    </view>
+    <text class="today-headline">{{today.headline}}</text>
+    <view class="today-metrics">
+      <view wx:for="{{today.metrics}}" wx:key="label" class="today-metric">
+        <text>{{item.label}}</text>
+        <text>{{item.value}}</text>
+      </view>
+    </view>
+    <view
+      class="today-toggle"
+      bindtap="toggleTodayDetails"
+      hover-class="tap-active"
+      role="button"
+      aria-label="{{todayExpanded ? '收起今日重点' : '展开今日重点'}}"
+    >
+      <text>{{todayExpanded ? '收起' : '查看 4 项速览'}}</text>
+      <text>{{todayExpanded ? '︿' : '﹀'}}</text>
+    </view>
   </view>
-  <view class="entry-list">
-    <button
+
+  <view wx:if="{{todayExpanded}}" class="today-detail-panel">
+    <view
+      wx:for="{{today.points}}"
+      wx:key="id"
+      class="today-point"
+      data-market="{{item.id}}"
+      bindtap="openTodayPoint"
+      hover-class="tap-active"
+      role="button"
+      aria-label="{{item.label}}，{{item.value}}"
+    >
+      <text class="point-label">{{item.label}}</text>
+      <view class="point-copy">
+        <text>{{item.value}}</text>
+        <text wx:if="{{item.note}}">{{item.note}}</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <text class="section-label">核心研究</text>
+
+  <view class="entry-grid">
+    <view
       wx:for="{{entries}}"
       wx:key="id"
-      class="entry-card {{item.tone}}"
-      data-target="{{item.id}}"
-      bindtap="openEntry"
-      hover-class="entry-card-active"
+      class="grid-card {{item.tone}}"
+      data-id="{{item.id}}"
+      bindtap="openGridEntry"
+      hover-class="tap-active"
+      hover-stay-time="80"
+      role="button"
+      aria-label="{{item.title}}，{{item.help}}"
     >
-      <text class="kicker">{{item.kicker}}</text>
-      <view class="entry-title-row">
-        <text class="entry-title">{{item.title}}</text>
-        <text class="arrow">›</text>
-      </view>
-      <text class="question">{{item.answer}}</text>
-    </button>
+      <text wx:if="{{item.badge}}" class="entry-badge">{{item.badge}}</text>
+      <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
+      <text class="card-title">{{item.title}}</text>
+    </view>
   </view>
-  <text class="data-source">{{source || '正在读取同步数据'}}</text>
-  <text class="disclaimer">仅用于信息整理和投资研究辅助，不构成投资建议或买卖指令。</text>
+
+  <view
+    class="workspace-strip"
+    bindtap="openWorkspace"
+    hover-class="tap-active"
+    role="button"
+    aria-label="打开我的研究记录"
+  >
+    <view class="workspace-icon-wrap">
+      <image src="/assets/home/decision.svg" mode="aspectFit" aria-hidden="true"></image>
+    </view>
+    <text class="workspace-title">我的研究记录</text>
+    <text class="arrow">›</text>
+  </view>
+
+  <view class="page-footer">
+    <text>{{source || '正在同步最新数据'}}</text>
+    <text>公开资料整理，仅供研究参考。</text>
+  </view>
 </view>

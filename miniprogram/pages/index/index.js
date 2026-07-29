@@ -1,105 +1,208 @@
 const { loadSnapshot } = require("../../data/store");
 
-const ENTRIES = [
+const CORE_ENTRIES = [
   {
     id: "hk",
-    kicker: "HK · 新股",
+    action: "section",
+    icon: "/assets/home/hk.svg",
     title: "港股打新",
-    question: "这只新股值不值得打？中签后怎么卖？",
-    answer: "这只新股值不值得打？中签后怎么卖？",
+    help: "新股资料与历史复盘",
+    detail: "招股资料",
     tone: "hk",
   },
   {
     id: "us",
-    kicker: "US · 机会",
-    title: "美股投资",
-    question: "七姐妹和热门 AI 股，现在贵不贵？",
-    answer: "七姐妹和热门 AI 股，现在贵不贵？",
+    action: "section",
+    icon: "/assets/home/us.svg",
+    title: "美股机会",
+    help: "价格、热度与财务",
+    detail: "价格与财报",
     tone: "us",
   },
   {
     id: "a",
-    kicker: "CN · 收息",
+    action: "section",
+    icon: "/assets/home/a.svg",
     title: "A股收息",
-    question: "资金成本低于多少，适合长期收息？",
-    answer: "资金成本低于多少，适合长期收息？",
+    help: "股息与现金流",
+    detail: "分红与现金流",
     tone: "a",
   },
   {
     id: "gold",
-    kicker: "GOLD · 配置",
-    title: "黄金投资",
-    question: "国际金与上海金，现在处在什么位置？",
-    answer: "国际金与上海金，现在处在什么位置？",
+    action: "section",
+    icon: "/assets/home/gold.svg",
+    title: "黄金机会",
+    help: "价格位置与驱动",
+    detail: "位置与驱动",
     tone: "gold",
   },
   {
+    id: "member",
+    action: "member",
+    icon: "/assets/home/member.svg",
+    title: "年费会员",
+    help: "365天会员与记录工具",
+    detail: "365天 · ¥1288",
+    badge: "¥1288/年",
+    tone: "member",
+  },
+  {
     id: "guru",
-    kicker: "SMART MONEY · 研究",
-    title: "聪明人持仓",
-    question: "港股 3 · 美股 5 · A股 3，为什么选、怎么学？",
-    answer: "港股 3 · 美股 5 · A股 3，为什么选、怎么学？",
+    action: "section",
+    icon: "/assets/home/guru.svg",
+    title: "机构持仓",
+    help: "代表机构、公开持仓与方法",
+    detail: "港3 · 美5 · A3",
     tone: "guru",
   },
 ];
 
+function hasNumber(value) {
+  return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
+}
+
+function shortName(value, fallback) {
+  const name = String(value || fallback || "待更新");
+  return name.length > 8 ? `${name.slice(0, 8)}…` : name;
+}
+
+function signedPercent(value) {
+  if (!hasNumber(value)) return "涨跌待更新";
+  const number = Number(value);
+  return `${number >= 0 ? "+" : ""}${number.toFixed(2)}%`;
+}
+
 Page({
-  data: { entries: ENTRIES.map((item) => ({ ...item })) },
+  data: {
+    entries: CORE_ENTRIES.map((item) => ({ ...item })),
+    today: {
+      headline: "正在整理今天最值得先看的资料",
+      summary: "先看结论，再看数据与风险。",
+      metrics: [],
+      points: [],
+    },
+    todayExpanded: false,
+    refreshedAt: "",
+    source: "",
+  },
   onLoad() {
     this.refreshAnswers();
   },
   onPullDownRefresh() {
-    this.refreshAnswers(() => wx.stopPullDownRefresh());
+    this.refreshAnswers(() => wx.stopPullDownRefresh(), true);
   },
-  refreshAnswers(done) {
+  refreshAnswers(done, force = false) {
     loadSnapshot(
       (data, source) => {
-        const verdictOrder = { "值得打": 0, "谨慎打": 1, "不建议": 2, "待核验": 3 };
-        const listing = [...(data.hk?.listings || [])]
+        const researchOrder = { complete: 0, review: 1, limited: 2 };
+        const listings = [...(data.hk?.listings || [])];
+        const listing = listings
           .sort((left, right) =>
-            (verdictOrder[left.publicAnswer?.verdict] ?? 9) -
-            (verdictOrder[right.publicAnswer?.verdict] ?? 9),
+            (researchOrder[left.researchView?.state] ?? 9) -
+            (researchOrder[right.researchView?.state] ?? 9),
           )[0];
-        const nvda = (data.us?.stocks || []).find((item) => item.symbol === "NVDA");
-        const aShare = [...(data.aShare?.quotes || [])]
-          .sort((left, right) => (right.score || 0) - (left.score || 0))[0];
-        const answers = {
-          hk: listing
-            ? `${listing.name} · ${listing.publicAnswer?.verdict || "查看最新结论"}`
-            : "当前暂无可核验的新股",
-          us: nvda
-            ? `NVDA · $${Number(nvda.price).toFixed(2)} · 查看价格答案`
-            : "查看七姐妹与热度前三",
-          a: aShare
-            ? `${aShare.name} · ${aShare.currentAdvice || "查看收息结论"}`
-            : "查看高股息收息答案",
-          gold: data.gold?.answer
-            ? `${data.gold.answer.action} · 国际金 ${data.gold.quotes?.international?.price || "待更新"}`
-            : "查看国际金与上海金",
-          guru: "港股 3 · 美股 5 · A股 3",
+        const hotStock = [...(data.us?.stocks || [])]
+          .sort((left, right) => Number(right.heatScore || 0) - Number(left.heatScore || 0))[0];
+        const dividendStock = [...(data.aShare?.quotes || [])]
+          .sort((left, right) => Number(right.currentDividendYield || 0) - Number(left.currentDividendYield || 0))[0];
+        const gold = data.gold || {};
+        const internationalGold = gold.quotes?.international || {};
+        const domesticGold = gold.quotes?.domestic || {};
+        const goldConclusion = gold.answer?.researchConclusion || "先核对价格位置与宏观驱动。";
+
+        const today = {
+          headline: goldConclusion,
+          metrics: [
+            {
+              label: "黄金位置",
+              value: hasNumber(internationalGold.percentile180) ? `${Number(internationalGold.percentile180)}%` : "待更新",
+              hint: "近半年分位",
+            },
+            {
+              label: "美股热度",
+              value: hotStock ? hotStock.symbol : "待更新",
+              hint: hotStock ? `${hotStock.heatScore} 分` : "公开热度",
+            },
+            {
+              label: "A股股息",
+              value: dividendStock && hasNumber(dividendStock.currentDividendYield)
+                ? `${Number(dividendStock.currentDividendYield).toFixed(2)}%`
+                : "待更新",
+              hint: dividendStock ? shortName(dividendStock.name, "公开资料") : "公开资料",
+            },
+          ],
+          points: [
+            {
+              id: "gold",
+              label: "黄金",
+              value: hasNumber(internationalGold.price)
+                ? `国际金 ${Number(internationalGold.price).toFixed(1)}，${signedPercent(internationalGold.changePercent)}`
+                : "国际金与上海金资料待更新",
+              note: hasNumber(domesticGold.price) ? `上海金 ${Number(domesticGold.price).toFixed(2)} 元/克` : "",
+            },
+            {
+              id: "us",
+              label: "美股",
+              value: hotStock ? `${hotStock.symbol} 热度 ${hotStock.heatScore} 分` : "市场热度待更新",
+              note: hotStock ? `今日 ${signedPercent(hotStock.changePercent)}` : "",
+            },
+            {
+              id: "a",
+              label: "A股",
+              value: dividendStock ? `${dividendStock.name} · 股息率 ${Number(dividendStock.currentDividendYield || 0).toFixed(2)}%` : "收息资料待更新",
+              note: dividendStock?.researchView?.label || "先核对现金流",
+            },
+            {
+              id: "hk",
+              label: "港股",
+              value: listing ? `${listing.name} · ${listing.researchView?.label || "查看资料"}` : "暂无可核验新股",
+              note: `当前 ${listings.length} 只 · 不用占位数字凑结论`,
+            },
+          ],
         };
+
         this.setData({
-          entries: this.data.entries.map((item) => ({
-            ...item,
-            answer: answers[item.id] || item.question,
-          })),
+          today,
+          refreshedAt: this.formatTime(new Date(data.updatedAt)),
           source,
         });
       },
       done,
+      { force },
     );
   },
-  openEntry(event) {
-    const target = event.currentTarget.dataset.target;
-    wx.navigateTo({ url: `/pages/section/index?market=${target}` });
+  formatTime(date) {
+    const pad = (value) => String(value).padStart(2, "0");
+    return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  },
+  toggleTodayDetails() {
+    this.setData({ todayExpanded: !this.data.todayExpanded });
+  },
+  openTodayPoint(event) {
+    const market = event.currentTarget.dataset.market;
+    if (market) wx.navigateTo({ url: `/pages/section/index?market=${market}` });
+  },
+  openGridEntry(event) {
+    const id = event.currentTarget.dataset.id;
+    const entry = this.data.entries.find((item) => item.id === id);
+    if (!entry) return;
+    if (entry.action === "section") {
+      wx.navigateTo({ url: `/pages/section/index?market=${entry.id}` });
+      return;
+    }
+    if (entry.action === "member") wx.navigateTo({ url: "/pages/member/index" });
+  },
+  openWorkspace() {
+    wx.navigateTo({ url: "/pages/workspace/index?focus=watch" });
   },
   onShareAppMessage() {
     return {
-      title: "望潮 Aurum｜港美股、黄金与聪明人持仓",
+      title: "望潮 Aurum｜今日重点与市场研究",
       path: "/pages/index/index",
     };
   },
   onShareTimeline() {
-    return { title: "望潮 Aurum｜港美股、黄金与聪明人持仓" };
+    return { title: "望潮 Aurum｜今日重点与市场研究" };
   },
 });

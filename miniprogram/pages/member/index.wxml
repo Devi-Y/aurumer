@@ -1,0 +1,89 @@
+<view class="page-shell member-shell {{state.active ? 'member-shell-active' : ''}}">
+  <view class="member-status-card">
+    <view class="member-hero-copy">
+      <text class="status-value {{state.active ? 'active' : ''}}">{{state.statusTitle}}</text>
+      <text class="status-title">望潮年费会员</text>
+      <text class="status-detail">{{state.statusDetail}}</text>
+    </view>
+    <view class="member-hero-image-wrap"><image src="/assets/home/member.svg" mode="aspectFit" aria-hidden="true"></image></view>
+  </view>
+
+  <text class="block-title">年度方案</text>
+  <view class="plan-list">
+    <view wx:for="{{state.plans}}" wx:key="id" class="plan-card">
+      <text class="recommend-label">一年</text>
+      <text class="plan-name">365 天会员</text>
+      <view class="price-row">
+        <text>{{item.priceMain}}</text>
+        <text>{{item.priceUnit}}</text>
+      </view>
+      <view class="plain-promises">
+        <text>微信支付</text>
+        <text>不自动续费</text>
+        <text>到期不扣款</text>
+      </view>
+      <text class="checkout-note">点击后直接打开微信收银台</text>
+      <button class="legal-link" bindtap="openLegal">协议与退款规则 <text>›</text></button>
+    </view>
+  </view>
+
+  <text class="block-title">会员功能</text>
+  <view class="benefit-panel">
+    <view class="benefit"><text>✓</text><text>保存关注</text></view>
+    <view class="benefit"><text>✓</text><text>记录想法</text></view>
+    <view class="benefit"><text>✓</text><text>复制导出</text></view>
+    <button class="workspace-cta" bindtap="openWorkspace">
+      <text>{{state.active ? '打开我的记录' : '查看记录工具'}}</text>
+      <text>›</text>
+    </button>
+  </view>
+
+  <text wx:if="{{state.orders.length}}" class="block-title">购买记录</text>
+  <view wx:if="{{state.orders.length}}" class="order-card">
+    <button class="orders-toggle" bindtap="toggleOrders">
+      <text>购买记录（{{state.orders.length}}）</text>
+      <text>{{showOrders ? '收起 ︿' : '查看 ﹀'}}</text>
+    </button>
+    <view wx:if="{{showOrders}}" class="order-list">
+      <view wx:for="{{state.orders}}" wx:key="orderId" class="order-row">
+        <view class="order-main">
+          <view class="order-title"><text>{{item.planName}}</text><text>{{item.statusLabel}}</text></view>
+          <text>{{item.amountLabel}} · {{item.paidLabel ? '支付 ' + item.paidLabel : '创建 ' + item.createdLabel}}</text>
+          <text>{{item.orderCode}}{{item.expiresLabel ? ' · 权益至 ' + item.expiresLabel : ''}}</text>
+          <text wx:if="{{item.refundLabel}}" class="refund-label">{{item.refundLabel}}</text>
+        </view>
+        <button class="copy-order" data-order="{{item.orderId}}" bindtap="copyOrder">复制单号</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="notice-card">
+    <button class="notice-toggle" bindtap="toggleNotice">
+      <text>购买须知</text>
+      <text>{{showNotice ? '收起 ︿' : '查看 ﹀'}}</text>
+    </button>
+    <view wx:if="{{showNotice}}" class="notice-content">
+      <view class="rule-row"><text>续费</text><text>到期不会自动扣款。</text></view>
+      <view class="rule-row"><text>开通</text><text>微信核对付款后自动生效。</text></view>
+      <view class="rule-row"><text>退款</text><text>联系客服核对并原路处理。</text></view>
+      <button class="contact-button" open-type="contact" show-message-card="true">联系微信客服</button>
+    </view>
+  </view>
+
+  <text class="disclaimer">公开资料与记录工具，不提供荐股或具体买卖建议，不承诺收益。</text>
+
+  <view wx:if="{{state.plans.length && !state.active}}" class="pay-dock">
+    <view class="pay-dock-copy">
+      <text>365 天会员</text>
+      <text>¥1,288 · 不自动续费</text>
+    </view>
+    <button
+      class="buy-button {{!state.purchaseAllowed ? 'is-disabled' : ''}}"
+      data-plan="{{state.plans[0].id}}"
+      bindtap="buy"
+      disabled="{{paying || settling || !state.purchaseAllowed}}"
+      loading="{{paying}}"
+    >{{settling ? '会员开通中' : (state.purchaseAllowed ? '立即微信支付' : '支付准备中')}}</button>
+    <text class="dock-consent">点击即确认已满 18 周岁，并同意会员协议、隐私说明和退款规则</text>
+  </view>
+</view>

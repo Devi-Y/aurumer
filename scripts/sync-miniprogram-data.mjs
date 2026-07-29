@@ -1,27 +1,15 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourcePath = path.join(root, "data", "live-snapshot.json");
 const outputPath = path.join(root, "miniprogram", "data", "live-snapshot.js");
 const snapshot = JSON.parse(await readFile(sourcePath, "utf8"));
-
-const publicSnapshot = {
-  status: snapshot.status,
-  updatedAt: snapshot.updatedAt,
-  us: {
-    stocks: snapshot.us?.stocks || [],
-    fundamentals: snapshot.us?.fundamentals || [],
-  },
-  hk: {
-    listings: snapshot.hk?.listings || [],
-    history: snapshot.hk?.history || [],
-  },
-  aShare: snapshot.aShare,
-  gold: snapshot.gold,
-  investors: snapshot.investors,
-};
+const require = createRequire(import.meta.url);
+const { sanitizeSnapshot } = require("../cloudfunctions/aurum-data/sanitize.js");
+const publicSnapshot = sanitizeSnapshot(snapshot);
 
 await mkdir(path.dirname(outputPath), { recursive: true });
 await writeFile(

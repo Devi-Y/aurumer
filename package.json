@@ -7,12 +7,30 @@
     "start": "python3 -m http.server 8000",
     "routes": "node scripts/write-route-adapters.mjs",
     "sync:mini": "node scripts/sync-miniprogram-data.mjs",
+    "sync:latest": "node scripts/sync-latest-public.mjs && npm run sync:mini",
     "check:public": "node scripts/audit-public-data.mjs",
     "check:pages": "node scripts/audit-public-routes.mjs",
     "check:ui": "node scripts/audit-ui-contract.mjs",
     "check:mini": "node scripts/audit-miniprogram.mjs",
+    "check:payment": "node scripts/audit-payment.mjs",
     "check:domain": "node scripts/check-custom-domain.mjs",
-    "audit": "npm run check:public && npm run check:pages && npm run check:ui && npm run check:mini"
+    "audit": "npm run check:public && npm run check:pages && npm run check:ui && npm run check:mini && npm run check:payment"
   },
-  "dependencies": {}
+  "description": "港股打新、美股投资、A股收息、黄金投资与聪明人持仓工具的公开只读镜像。",
+  "main": "sw.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Devi-Y/aurumer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Devi-Y/aurumer/issues"
+  },
+  "homepage": "https://github.com/Devi-Y/aurumer#readme"
 }

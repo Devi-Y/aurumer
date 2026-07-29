@@ -3,14 +3,17 @@
     "pages/index/index",
     "pages/section/index",
     "pages/list/index",
-    "pages/detail/index"
+    "pages/detail/index",
+    "pages/member/index",
+    "pages/legal/index",
+    "pages/workspace/index"
   ],
   "window": {
     "navigationBarTitleText": "望潮 Aurum",
-    "navigationBarBackgroundColor": "#F4F1E9",
+    "navigationBarBackgroundColor": "#FFFFFF",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#F4F1E9",
-    "backgroundTextStyle": "light"
+    "backgroundColor": "#F5F5F5",
+    "backgroundTextStyle": "dark"
   },
   "sitemapLocation": "sitemap.json",
   "style": "v2"

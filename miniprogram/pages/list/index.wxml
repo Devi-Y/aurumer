@@ -1,13 +1,62 @@
-<view class="page-shell">
-  <view class="top-actions"><button bindtap="goBack">‹ 返回</button><button bindtap="goHome">首页</button></view>
-  <view class="page-head"><text class="eyebrow">望潮 Aurum · 一句话答案</text><text class="title">{{title}}</text><text class="lead">{{one}}</text></view>
-  <view wx:if="{{items.length}}" class="item-list">
-    <button wx:for="{{items}}" wx:key="id" class="item-card" data-id="{{item.id}}" bindtap="openItem" hover-class="card-active">
-      <view class="item-top"><view><text class="item-name">{{item.name}}</text><text class="item-code">{{item.code}}</text></view><text class="badge">{{item.badge}}</text></view>
-      <text class="answer">{{item.one}}</text>
-      <view class="item-foot"><text>{{item.scoreText}} · {{item.rankText}}</text><text>看详细答案 ›</text></view>
-    </button>
+<view class="page-shell list-shell">
+  <view class="list-summary {{meta.tone}}">
+    <view class="summary-copy">
+      <text class="title">{{title}}</text>
+      <text class="item-count">{{items.length}} 项</text>
+    </view>
+    <view class="summary-image-wrap">
+      <image class="summary-image" src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
+    </view>
   </view>
-  <view wx:else class="empty"><text class="empty-title">当前暂无符合条件的标的</text><text>不使用占位数据凑答案。</text></view>
-  <text class="source">{{source}}</text>
+
+  <view class="list-insight">
+    <text class="insight-label">先看结论</text>
+    <text class="insight-conclusion">{{insight.conclusion}}</text>
+  </view>
+
+  <view class="section-heading">
+    <text>全部</text>
+    <text>点开看详情</text>
+  </view>
+
+  <view wx:if="{{items.length}}" class="item-panel">
+    <view
+      wx:for="{{items}}"
+      wx:key="id"
+      class="item-row"
+      data-id="{{item.id}}"
+      bindtap="openItem"
+      hover-class="tap-active"
+      role="button"
+      aria-label="{{item.name}}，{{item.one}}"
+    >
+      <text class="item-number">{{item.positionLabel}}</text>
+      <view class="item-main">
+        <view class="item-top">
+          <view class="item-identity">
+            <text class="item-name">{{item.name}}</text>
+            <text wx:if="{{item.code}}" class="item-code">{{item.code}}</text>
+          </view>
+          <text class="badge">{{item.badge}}</text>
+        </view>
+        <text class="answer">{{item.one}}</text>
+        <view wx:if="{{item.showBar}}" class="data-bar-block">
+          <view class="data-bar-copy"><text>{{item.barLabel}}</text></view>
+          <view class="data-bar-track"><view class="data-bar-value" style="width: {{item.barWidth}}%;"></view></view>
+        </view>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <view wx:else class="empty">
+    <image src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
+    <text class="empty-title">暂无可展示资料</text>
+    <text>下拉刷新再试</text>
+  </view>
+
+  <view class="page-note">
+    <text>{{source}}</text>
+    <text>公开资料整理，仅供研究参考。</text>
+  </view>
 </view>

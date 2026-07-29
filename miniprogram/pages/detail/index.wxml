@@ -1,43 +1,119 @@
-<view class="page-shell">
-  <view class="top-actions"><button bindtap="goBack">‹ 返回</button><button bindtap="goHome">首页</button></view>
-  <view wx:if="{{ready}}">
-    <view class="answer-card">
-      <text class="eyebrow">望潮 Aurum · 最终答案</text>
-      <view class="title-row"><view><text class="title">{{view.title}}</text><text class="code">{{view.code}}</text></view><text class="badge">{{view.badge}}</text></view>
-      <text class="answer">{{view.answer}}</text>
-      <view class="score-row"><text>{{view.score}}</text><text>{{view.rank}}</text></view>
-    </view>
-    <view class="metric-grid">
-      <view wx:for="{{view.metrics}}" wx:key="*this" class="metric"><text>{{item[0]}}</text><text>{{item[1]}}</text></view>
-    </view>
-    <view wx:if="{{view.facts.length}}" class="section-card">
-      <text class="section-title">关键资料</text>
-      <view wx:for="{{view.facts}}" wx:key="*this" class="fact"><text>{{item[0]}}</text><text>{{item[1]}}</text></view>
-    </view>
-    <view wx:if="{{view.holdings.length}}" class="section-card">
-      <text class="section-title">公开持仓</text>
-      <view wx:for="{{view.holdings}}" wx:key="name" class="fact"><text>{{item.name}}</text><text>{{item.value}}</text></view>
-    </view>
-    <view wx:if="{{view.analysis.length}}" class="section-card analysis-card">
-      <text class="section-title">站内完整分析</text>
-      <view wx:for="{{view.analysis}}" wx:key="title" class="analysis-block">
-        <text class="analysis-title">{{item.title}}</text>
-        <text class="analysis-body">{{item.body}}</text>
+<view class="page-shell detail-shell">
+  <view wx:if="{{ready}}" class="detail-content">
+    <view class="detail-summary {{view.tone}}">
+      <view class="summary-top">
+        <view class="summary-identity">
+          <text class="summary-label">{{view.marketLabel}}</text>
+          <text class="title">{{view.title}}</text>
+          <text class="code">{{view.code}}</text>
+        </view>
+        <view class="detail-image-wrap">
+          <image class="detail-image" src="{{view.icon}}" mode="aspectFit" aria-hidden="true"></image>
+        </view>
+      </view>
+      <view class="conclusion-card">
+        <text>一句话结论</text>
+        <text>{{view.quickAnswer}}</text>
+      </view>
+      <view class="score-row">
+        <text wx:if="{{view.badge}}">{{view.badge}}</text>
+        <text>{{view.score}}</text>
+        <text>{{view.rank}}</text>
       </view>
     </view>
-    <view wx:if="{{view.actions.length}}" class="section-card">
-      <text class="section-title">下一步怎么做</text>
-      <view wx:for="{{view.actions}}" wx:key="label" class="action-row">
-        <text>{{item.label}}</text>
-        <text>{{item.value}}</text>
+
+    <text wx:if="{{view.metrics.length}}" class="block-title">关键数据</text>
+    <view wx:if="{{view.metrics.length}}" class="metric-panel">
+      <view wx:for="{{view.metrics}}" wx:key="*this" class="metric">
+        <text>{{item[0]}}</text>
+        <text>{{item[1]}}</text>
       </view>
     </view>
-    <view class="risk"><text class="section-title">风险提醒</text><text>{{view.risk}}</text></view>
+
+    <text wx:if="{{view.visual}}" class="block-title">数据图示</text>
+    <view wx:if="{{view.visual}}" class="visual-card">
+      <view class="visual-heading">
+        <text>{{view.visual.title}}</text>
+        <text>{{view.visual.note}}</text>
+      </view>
+      <view wx:if="{{view.visual.kind == 'columns'}}" class="column-chart">
+        <view wx:for="{{view.visual.items}}" wx:key="id" class="column-slot">
+          <view class="column-value" style="height: {{item.height}}%;"></view>
+        </view>
+      </view>
+      <view wx:if="{{view.visual.kind == 'columns'}}" class="column-labels">
+        <text>{{view.visual.lowLabel}}</text>
+        <text>{{view.visual.latestLabel}}</text>
+        <text>{{view.visual.highLabel}}</text>
+      </view>
+      <view wx:if="{{view.visual.kind == 'bars'}}" class="bar-chart">
+        <view wx:for="{{view.visual.items}}" wx:key="id" class="bar-row">
+          <view class="bar-copy"><text>{{item.label}}</text><text>{{item.valueText}}</text></view>
+          <view class="bar-track"><view class="bar-value {{item.tone}}" style="width: {{item.width}}%;"></view></view>
+        </view>
+      </view>
+    </view>
+
+    <button class="details-toggle" bindtap="toggleDetails">
+      <text>{{detailsExpanded ? '收起完整分析' : '查看完整分析'}}</text>
+      <text>{{detailsExpanded ? '︿' : '﹀'}}</text>
+    </button>
+
+    <view wx:if="{{detailsExpanded}}" class="expanded-content">
+      <text wx:if="{{view.facts.length}}" class="block-title">关键事实</text>
+      <view wx:if="{{view.facts.length}}" class="section-card">
+        <view wx:for="{{view.facts}}" wx:key="*this" class="fact-row">
+          <text>{{item[0]}}</text>
+          <text>{{item[1]}}</text>
+        </view>
+      </view>
+
+      <text wx:if="{{view.holdings.length}}" class="block-title">公开持仓</text>
+      <view wx:if="{{view.holdings.length}}" class="section-card">
+        <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
+          <text>{{item.name}}</text>
+          <text>{{item.value}}</text>
+        </view>
+      </view>
+
+      <text wx:if="{{view.analysis.length}}" class="block-title">为什么 · 怎么看</text>
+      <view wx:if="{{view.analysis.length}}" class="section-card analysis-card">
+        <view wx:for="{{view.analysis}}" wx:key="title" class="analysis-block">
+          <text class="analysis-index">{{item.indexLabel}}</text>
+          <view class="analysis-copy">
+            <text class="analysis-title">{{item.title}}</text>
+            <text class="analysis-body">{{item.body}}</text>
+          </view>
+        </view>
+      </view>
+
+      <text wx:if="{{view.actions.length}}" class="block-title">下一步</text>
+      <view wx:if="{{view.actions.length}}" class="section-card">
+        <view wx:for="{{view.actions}}" wx:key="label" class="action-row">
+          <text>{{item.label}}</text>
+          <text>{{item.value}}</text>
+        </view>
+      </view>
+
+      <text class="block-title">风险提醒</text>
+      <view class="risk-card"><text>{{view.risk}}</text></view>
+    </view>
+
+    <button class="member-cta" bindtap="openWorkspace" aria-label="保存到我的记录">
+      <text>保存到我的记录</text>
+      <text class="cta-arrow">›</text>
+    </button>
+
     <view class="data-note">
       <text>{{source}}</text>
       <text>{{view.sourceNote}}</text>
     </view>
     <text class="disclaimer">{{view.disclaimer}}</text>
   </view>
-  <view wx:else class="empty"><text>答案暂时不可用</text><text>请稍后下拉刷新。</text></view>
+
+  <view wx:else class="empty">
+    <image src="/assets/home/today.svg" mode="aspectFit" aria-hidden="true"></image>
+    <text>资料暂时不可用</text>
+    <text>请稍后下拉刷新。</text>
+  </view>
 </view>

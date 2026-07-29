@@ -1,0 +1,13 @@
+{
+  "name": "aurum-member",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "ws": "8.21.1",
+    "wx-server-sdk": "4.0.2"
+  },
+  "overrides": {
+    "lodash.unset": "4.18.0"
+  }
+}

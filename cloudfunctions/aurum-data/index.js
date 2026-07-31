@@ -5,7 +5,12 @@ const { sanitizeSnapshot } = require("./sanitize");
 
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 const CACHE_TTL_MS = 10 * 60 * 1000;
-const REQUEST_TIMEOUT_MS = 8 * 1000;
+// 云函数在控制台配置的执行上限是 3 秒。回源超时必须留在这个预算之内，否则平台会先
+// 把函数整个杀掉，下面 main 里的数据库兜底根本没机会执行，用户直接拿到硬错误——
+// 兜底链路写得再全也是摆设。剩余时间留给回源失败后读一次数据库缓存。
+const FUNCTION_TIMEOUT_MS = 3 * 1000;
+const DATABASE_FALLBACK_BUDGET_MS = 900;
+const REQUEST_TIMEOUT_MS = FUNCTION_TIMEOUT_MS - DATABASE_FALLBACK_BUDGET_MS;
 const MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
 
 // 内存缓存只在同一个函数实例里有效，冷启动后必然为空。此时唯一的数据来源是
@@ -56,7 +61,32 @@ async function writePersistedSnapshot(payload) {
   try {
     await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).set({ data: record });
   } catch (error) {
+    // 集合要先存在才能写。自动建一次可以省掉部署后手动去控制台开集合的步骤，
+    // 漏建时缓存会静默失效、每次请求都跨境回源，而这种退化很难被察觉。
+    if (await ensureCollection(error)) {
+      try {
+        await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).set({ data: record });
+        return;
+      } catch (retryError) {
+        console.warn("建集合后写入数据库缓存仍失败", retryError && retryError.message);
+        return;
+      }
+    }
     console.warn("写入数据库缓存失败", error && error.message);
+  }
+}
+
+async function ensureCollection(error) {
+  const message = String((error && error.message) || "");
+  if (!/collection not exists|not exist|DATABASE_COLLECTION_NOT_EXIST/i.test(message)) return false;
+  const db = getDatabase();
+  if (!db || typeof db.createCollection !== "function") return false;
+  try {
+    await db.createCollection(CACHE_COLLECTION);
+    return true;
+  } catch (createError) {
+    // 并发实例同时建集合时后来者会报已存在，这不算失败。
+    return /already exist/i.test(String((createError && createError.message) || ""));
   }
 }
 

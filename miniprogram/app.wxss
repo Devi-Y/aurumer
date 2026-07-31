@@ -2,8 +2,8 @@ page {
   box-sizing: border-box;
   width: 100%;
   min-height: 100%;
-  background: #f5f5f5;
-  color: #111111;
+  background: #f4f6f5;
+  color: #1a211c;
   font-size: 30rpx;
   line-height: 1.6;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
@@ -22,7 +22,7 @@ button {
   width: 100%;
   min-height: 100vh;
   padding: 0 0 calc(36rpx + env(safe-area-inset-bottom));
-  background: #f5f5f5;
+  background: #f4f6f5;
 }
 
 .page-card {
@@ -38,13 +38,13 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
-  color: #8a8a8a;
-  font-size: 27rpx;
+  color: #7a827c;
+  font-size: 26rpx;
   font-weight: 600;
 }
 
 .screen-section-title text:last-child {
-  color: #9a9a9a;
+  color: #9aa19c;
   font-size: 24rpx;
   font-weight: 500;
 }
@@ -54,7 +54,7 @@ button {
 .page-nav {
   display: flex;
   padding: 28rpx;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .page-nav-button {
@@ -64,16 +64,26 @@ button {
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  border: 1rpx solid #dfe4e1;
+  border: 1rpx solid #d7ddd9;
   border-radius: 16rpx;
   background: #ffffff;
-  color: #2f4a3c;
+  color: #3d4f44;
   font-size: 28rpx;
   font-weight: 600;
 }
 
+.page-nav-button:last-child {
+  border-color: #0b7a53;
+  background: #0b7a53;
+  color: #ffffff;
+}
+
 .page-nav-button.tap-active {
   background: #eef3f0;
+}
+
+.page-nav-button:last-child.tap-active {
+  background: #096844;
 }
 
 @media (max-width: 340px) {

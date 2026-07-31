@@ -51,23 +51,23 @@
 .status-value,
 .status-title,
 .status-detail { display: block; }
-.status-value { color: #777e79; font-size: 23rpx; font-weight: 720; }
-.status-value.active { color: #07a854; }
-.status-title { margin-top: 7rpx; color: #171b18; font-size: 38rpx; font-weight: 850; line-height: 1.35; }
+.status-value { color: #777e79; font-size: 23rpx; font-weight: 600; }
+.status-value.active { color: #0b7a53; }
+.status-title { margin-top: 7rpx; color: #171b18; font-size: 34rpx; font-weight: 650; line-height: 1.35; }
 .status-detail { margin-top: 6rpx; color: #606762; font-size: 24rpx; line-height: 1.55; }
 
 .block-title {
   display: block;
   margin: 27rpx 6rpx 11rpx;
-  color: #272c28;
-  font-size: 29rpx;
-  font-weight: 780;
+  color: #3a433d;
+  font-size: 28rpx;
+  font-weight: 650;
 }
 
 .plan-card {
   position: relative;
   padding: 27rpx 27rpx 15rpx;
-  border: 2rpx solid #1bb66d;
+  border: 1rpx solid #d7e4db;
 }
 .recommend-label {
   position: absolute;
@@ -75,25 +75,25 @@
   right: 0;
   padding: 7rpx 16rpx 8rpx;
   border-radius: 0 21rpx 0 18rpx;
-  background: #07a854;
+  background: #0b7a53;
   color: #ffffff;
   font-size: 22rpx;
-  font-weight: 750;
+  font-weight: 600;
 }
-.plan-name { display: block; padding-right: 90rpx; color: #202421; font-size: 29rpx; font-weight: 760; }
-.price-row { display: flex; margin-top: 11rpx; align-items: baseline; gap: 7rpx; color: #e45d24; }
-.price-row text:first-child { font-size: 54rpx; font-weight: 900; line-height: 1.1; }
-.price-row text:last-child { font-size: 24rpx; font-weight: 700; }
+.plan-name { display: block; padding-right: 90rpx; color: #202421; font-size: 29rpx; font-weight: 620; }
+.price-row { display: flex; margin-top: 11rpx; align-items: baseline; gap: 7rpx; color: #152019; }
+.price-row text:first-child { font-size: 54rpx; font-weight: 700; line-height: 1.1; }
+.price-row text:last-child { font-size: 24rpx; font-weight: 560; }
 .plain-promises { display: flex; margin-top: 16rpx; flex-wrap: wrap; gap: 9rpx; }
 .plain-promises text {
   padding: 6rpx 12rpx;
-  border-radius: 999rpx;
-  background: #eef8f2;
-  color: #078d4b;
+  border-radius: 8rpx;
+  background: #f0f5f2;
+  color: #3d5a4a;
   font-size: 22rpx;
-  font-weight: 650;
+  font-weight: 560;
 }
-.checkout-note { display: block; margin-top: 13rpx; color: #626963; font-size: 24rpx; }
+.checkout-note { display: none; }
 
 .legal-link,
 .workspace-cta,
@@ -231,16 +231,16 @@
   gap: 8rpx 14rpx;
   border-top: 1rpx solid #e3e7e4;
   background: #ffffff;
-  box-shadow: 0 -8rpx 24rpx rgba(0, 0, 0, .05);
 }
 .pay-dock-copy { min-width: 0; flex: 1; }
 .pay-dock-copy text { display: block; }
-.pay-dock-copy text:first-child { color: #222723; font-size: 23rpx; font-weight: 700; }
-.pay-dock-copy text:last-child { margin-top: 1rpx; color: #e45d24; font-size: 27rpx; font-weight: 850; }
+.pay-dock-copy text:first-child { color: #222723; font-size: 23rpx; font-weight: 600; }
+.pay-dock-copy text:last-child { margin-top: 1rpx; color: #152019; font-size: 27rpx; font-weight: 700; }
 .pay-dock .buy-button { width: 286rpx; flex: none; }
+.dock-hint { display: block; width: 100%; color: #7a827c; font-size: 22rpx; line-height: 1.4; }
 .dock-consent { display: block; width: 100%; color: #858b87; font-size: 24rpx; line-height: 1.5; text-align: center; }
 /* 固定在底部的支付条会盖住正文末尾，返回按钮需要额外留出它的高度。 */
-.page-nav.above-dock { padding-bottom: calc(200rpx + env(safe-area-inset-bottom)); }
+.page-nav.above-dock { padding-bottom: calc(230rpx + env(safe-area-inset-bottom)); }
 
 @media (max-width: 340px) {
   .member-shell { padding-right: 15rpx; padding-left: 15rpx; }

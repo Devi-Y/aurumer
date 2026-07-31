@@ -5,12 +5,6 @@
       <text class="today-time">{{refreshedAt || '更新中'}}</text>
     </view>
     <text class="today-headline">{{today.headline}}</text>
-    <view class="today-metrics">
-      <view wx:for="{{today.metrics}}" wx:key="label" class="today-metric">
-        <text>{{item.label}}</text>
-        <text>{{item.value}}</text>
-      </view>
-    </view>
     <view
       class="today-toggle"
       bindtap="toggleTodayDetails"
@@ -24,6 +18,12 @@
   </view>
 
   <view wx:if="{{todayExpanded}}" class="today-detail-panel">
+    <view class="today-metrics">
+      <view wx:for="{{today.metrics}}" wx:key="label" class="today-metric">
+        <text>{{item.label}}</text>
+        <text>{{item.value}}</text>
+      </view>
+    </view>
     <view
       wx:for="{{today.points}}"
       wx:key="id"

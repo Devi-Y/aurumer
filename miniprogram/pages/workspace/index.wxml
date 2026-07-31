@@ -3,6 +3,7 @@
     <view class="workspace-hero-copy">
       <text class="status-value {{state.active ? 'active' : ''}}">{{state.statusTitle}}</text>
       <text class="title">我的记录</text>
+      <text class="status-detail">{{state.statusDetail}}</text>
     </view>
     <view class="workspace-hero-image-wrap"><image src="/assets/home/decision.svg" mode="aspectFit" aria-hidden="true"></image></view>
   </view>
@@ -18,7 +19,32 @@
   </view>
 
   <view wx:if="{{activeTab == 'watch'}}" class="tab-content">
-    <view id="watch-section" class="form-panel">
+    <view wx:if="{{state.watchItems.length}}" class="record-panel">
+      <view wx:for="{{state.watchItems}}" wx:key="id" class="record-row">
+        <view class="record-top"><text class="record-tag">{{item.marketLabel}}</text><text class="record-date">{{item.dateLabel}}</text></view>
+        <text class="record-title">{{item.name}}<text wx:if="{{item.code}}"> · {{item.code}}</text></text>
+        <text wx:if="{{item.note}}" class="record-note">{{item.note}}</text>
+        <button class="delete-button" data-id="{{item.id}}" bindtap="deleteWatch">删除</button>
+      </view>
+    </view>
+    <view wx:else class="empty-card"><text>还没有关注</text><text>从详情页也能一键带入。</text></view>
+
+    <view
+      wx:if="{{state.watchItems.length && !showWatchForm}}"
+      class="form-toggle"
+      bindtap="toggleWatchForm"
+      hover-class="tap-active"
+      aria-role="button"
+    >
+      <text>添加关注</text>
+      <text>﹀</text>
+    </view>
+
+    <view wx:if="{{showWatchForm || !state.watchItems.length}}" id="watch-section" class="form-panel">
+      <view wx:if="{{state.watchItems.length}}" class="form-toggle is-open" bindtap="toggleWatchForm" hover-class="tap-active" aria-role="button">
+        <text>添加关注</text>
+        <text>︿</text>
+      </view>
       <picker mode="selector" range="{{marketOptions}}" range-key="label" value="{{marketIndex}}" bindchange="changeMarket">
         <view class="picker-field"><text>市场</text><text>{{marketOptions[marketIndex].label}} ›</text></view>
       </picker>
@@ -30,28 +56,9 @@
       </view>
       <button class="primary-button" bindtap="submitWatch" disabled="{{saving}}">{{state.writable ? '保存关注' : '会员开通后可保存'}}</button>
     </view>
-
-    <view wx:if="{{state.watchItems.length}}" class="record-panel">
-      <view wx:for="{{state.watchItems}}" wx:key="id" class="record-row">
-        <view class="record-top"><text class="record-tag">{{item.marketLabel}}</text><text class="record-date">{{item.dateLabel}}</text></view>
-        <text class="record-title">{{item.name}}<text wx:if="{{item.code}}"> · {{item.code}}</text></text>
-        <text wx:if="{{item.note}}" class="record-note">{{item.note}}</text>
-        <button class="delete-button" data-id="{{item.id}}" bindtap="deleteWatch">删除</button>
-      </view>
-    </view>
-    <view wx:else class="empty-card"><text>还没有关注</text><text>从详情页也能一键带入。</text></view>
   </view>
 
   <view wx:if="{{activeTab == 'decision'}}" class="tab-content">
-    <view id="decision-section" class="form-panel">
-      <view class="input-row"><text>标题</text><input class="text-field" maxlength="80" placeholder="这次想记什么" value="{{decisionForm.title}}" bindinput="inputDecisionTitle" /></view>
-      <view class="textarea-row decision-row">
-        <text>内容</text>
-        <textarea class="text-area decision-area" maxlength="1200" auto-height placeholder="写下依据，方便以后复盘" value="{{decisionForm.note}}" bindinput="inputDecisionNote"></textarea>
-      </view>
-      <button class="primary-button" bindtap="submitDecision" disabled="{{saving}}">{{state.writable ? '保存想法' : '会员开通后可保存'}}</button>
-    </view>
-
     <view wx:if="{{state.decisions.length}}" class="record-panel">
       <view wx:for="{{state.decisions}}" wx:key="id" class="record-row decision-card">
         <view class="record-top"><text class="record-tag">想法</text><text class="record-date">{{item.dateLabel}}</text></view>
@@ -61,6 +68,30 @@
       </view>
     </view>
     <view wx:else class="empty-card"><text>还没有想法</text><text>先记一句，未来再复盘。</text></view>
+
+    <view
+      wx:if="{{state.decisions.length && !showDecisionForm}}"
+      class="form-toggle"
+      bindtap="toggleDecisionForm"
+      hover-class="tap-active"
+      aria-role="button"
+    >
+      <text>写下想法</text>
+      <text>﹀</text>
+    </view>
+
+    <view wx:if="{{showDecisionForm || !state.decisions.length}}" id="decision-section" class="form-panel">
+      <view wx:if="{{state.decisions.length}}" class="form-toggle is-open" bindtap="toggleDecisionForm" hover-class="tap-active" aria-role="button">
+        <text>写下想法</text>
+        <text>︿</text>
+      </view>
+      <view class="input-row"><text>标题</text><input class="text-field" maxlength="80" placeholder="这次想记什么" value="{{decisionForm.title}}" bindinput="inputDecisionTitle" /></view>
+      <view class="textarea-row decision-row">
+        <text>内容</text>
+        <textarea class="text-area decision-area" maxlength="1200" auto-height placeholder="写下依据，方便以后复盘" value="{{decisionForm.note}}" bindinput="inputDecisionNote"></textarea>
+      </view>
+      <button class="primary-button" bindtap="submitDecision" disabled="{{saving}}">{{state.writable ? '保存想法' : '会员开通后可保存'}}</button>
+    </view>
   </view>
 
   <view class="management-panel">

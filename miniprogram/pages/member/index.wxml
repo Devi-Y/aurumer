@@ -22,7 +22,6 @@
         <text>不自动续费</text>
         <text>到期不扣款</text>
       </view>
-      <text class="checkout-note">点击后直接打开微信收银台</text>
       <button class="legal-link" bindtap="openLegal">协议与退款规则 <text>›</text></button>
     </view>
   </view>
@@ -82,6 +81,7 @@
       <text>365 天会员</text>
       <text>¥1,288 · 不自动续费</text>
     </view>
+    <text class="dock-hint">点击后直接打开微信收银台</text>
     <button
       class="buy-button {{!state.purchaseAllowed ? 'is-disabled' : ''}}"
       data-plan="{{state.plans[0].id}}"

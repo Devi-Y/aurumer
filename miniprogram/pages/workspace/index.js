@@ -92,6 +92,8 @@ Page({
     loading: true,
     saving: false,
     activeTab: "watch",
+    showWatchForm: false,
+    showDecisionForm: false,
     marketOptions: MARKET_OPTIONS,
     marketIndex: 1,
     watchForm: { name: "", code: "", note: "" },
@@ -109,12 +111,18 @@ Page({
     const market = safeDecode(options.market);
     const marketIndex = Math.max(0, MARKET_OPTIONS.findIndex((item) => item.id === market));
     const focus = safeDecode(options.focus);
+    const name = safeDecode(options.name);
+    const code = safeDecode(options.code);
+    // 从详情页带入名称/代码时直接展开表单；平时有记录则默认先看列表。
+    const fromDetail = Boolean(name || code);
     this.setData({
       activeTab: focus === "decision" ? "decision" : "watch",
-      marketIndex,
+      marketIndex: marketIndex < 0 ? 1 : marketIndex,
+      showWatchForm: fromDetail,
+      showDecisionForm: focus === "decision",
       watchForm: {
-        name: safeDecode(options.name),
-        code: safeDecode(options.code),
+        name,
+        code,
         note: "",
       },
     });
@@ -129,7 +137,12 @@ Page({
     this.setData({ loading: true });
     loadWorkspace()
       .then((workspace) => {
-        this.setData({ state: viewWorkspace(workspace) });
+        const state = viewWorkspace(workspace);
+        const patch = { state };
+        // 空列表时表单必须可见，否则用户找不到录入入口。
+        if (!state.watchItems.length) patch.showWatchForm = true;
+        if (!state.decisions.length) patch.showDecisionForm = true;
+        this.setData(patch);
       })
       .catch((error) => {
         wx.showModal({ title: "工作台暂不可用", content: error.message || "请稍后重试", showCancel: false });
@@ -143,6 +156,12 @@ Page({
     const tab = event.currentTarget.dataset.tab;
     if (tab !== "watch" && tab !== "decision") return;
     this.setData({ activeTab: tab });
+  },
+  toggleWatchForm() {
+    this.setData({ showWatchForm: !this.data.showWatchForm });
+  },
+  toggleDecisionForm() {
+    this.setData({ showDecisionForm: !this.data.showDecisionForm });
   },
   changeMarket(event) {
     this.setData({ marketIndex: Number(event.detail.value) || 0 });
@@ -183,7 +202,7 @@ Page({
     this.runMutation(
       saveWatchItem({ ...this.data.watchForm, market: market.id }),
       "已加入跟踪清单",
-      () => this.setData({ watchForm: { name: "", code: "", note: "" } }),
+      () => this.setData({ watchForm: { name: "", code: "", note: "" }, showWatchForm: false }),
     );
   },
   submitDecision() {
@@ -192,7 +211,7 @@ Page({
     this.runMutation(
       saveDecision(this.data.decisionForm),
       "决策档案已保存",
-      () => this.setData({ decisionForm: { title: "", note: "" } }),
+      () => this.setData({ decisionForm: { title: "", note: "" }, showDecisionForm: false }),
     );
   },
   runMutation(task, successTitle, afterSuccess) {

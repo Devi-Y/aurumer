@@ -31,8 +31,8 @@
 
 .today-title {
   color: #152019;
-  font-size: 34rpx;
-  font-weight: 850;
+  font-size: 32rpx;
+  font-weight: 700;
 }
 
 .today-time {
@@ -45,19 +45,20 @@
   overflow: hidden;
   margin-top: 18rpx;
   color: #1d2a22;
-  font-size: 31rpx;
-  font-weight: 760;
-  line-height: 1.48;
+  font-size: 34rpx;
+  font-weight: 650;
+  line-height: 1.45;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
 }
 
 .today-metrics {
   display: flex;
-  margin-top: 22rpx;
-  padding: 17rpx 0;
-  border-radius: 18rpx;
-  background: #eef7f2;
+  margin: 0;
+  padding: 18rpx 8rpx;
+  border-bottom: 1rpx solid #edf0ee;
+  border-radius: 0;
+  background: #f7faf8;
 }
 
 .today-metric {
@@ -72,7 +73,7 @@
 }
 
 .today-metric + .today-metric {
-  border-left: 1rpx solid #d8e8df;
+  border-left: 1rpx solid #e2e8e4;
 }
 
 .today-metric text:first-child {
@@ -84,9 +85,9 @@
   overflow: hidden;
   max-width: 100%;
   margin-top: 5rpx;
-  color: #08784c;
-  font-size: 29rpx;
-  font-weight: 850;
+  color: #0b7a53;
+  font-size: 28rpx;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -97,9 +98,9 @@
   margin-top: 8rpx;
   align-items: center;
   justify-content: space-between;
-  color: #4e6759;
-  font-size: 23rpx;
-  font-weight: 680;
+  color: #5a6d62;
+  font-size: 24rpx;
+  font-weight: 600;
 }
 
 .today-detail-panel {
@@ -121,9 +122,9 @@
 .point-label {
   width: 70rpx;
   flex: none;
-  color: #078d4b;
+  color: #0b7a53;
   font-size: 24rpx;
-  font-weight: 800;
+  font-weight: 650;
 }
 
 .point-copy {
@@ -138,7 +139,7 @@
 .point-copy text:first-child {
   color: #242b27;
   font-size: 26rpx;
-  font-weight: 680;
+  font-weight: 560;
   line-height: 1.45;
 }
 
@@ -151,9 +152,9 @@
 .section-label {
   display: block;
   padding: 28rpx 4rpx 15rpx;
-  color: #252a27;
-  font-size: 30rpx;
-  font-weight: 820;
+  color: #3a433d;
+  font-size: 28rpx;
+  font-weight: 650;
 }
 
 .entry-grid {
@@ -194,8 +195,8 @@
   margin-top: 14rpx;
   overflow: hidden;
   color: #181d1a;
-  font-size: 28rpx;
-  font-weight: 770;
+  font-size: 27rpx;
+  font-weight: 620;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -206,10 +207,10 @@
   right: 0;
   padding: 6rpx 9rpx;
   border-radius: 0 22rpx 0 13rpx;
-  background: #fff0df;
-  color: #d96720;
+  background: #eef5f1;
+  color: #0b7a53;
   font-size: 22rpx;
-  font-weight: 760;
+  font-weight: 620;
 }
 
 .workspace-strip {
@@ -229,7 +230,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 17rpx;
-  background: #eaf8f0;
+  background: #eaf3ee;
 }
 
 .workspace-icon-wrap image {
@@ -242,7 +243,7 @@
   flex: 1;
   color: #202622;
   font-size: 28rpx;
-  font-weight: 760;
+  font-weight: 620;
 }
 
 .arrow {

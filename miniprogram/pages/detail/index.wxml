@@ -100,7 +100,10 @@
     </view>
 
     <button class="member-cta" bindtap="openWorkspace" aria-label="保存到我的记录">
-      <text>保存到我的记录</text>
+      <view class="cta-copy">
+        <text>保存到我的记录</text>
+        <text class="cta-sub">填入名称与代码，方便以后复盘</text>
+      </view>
       <text class="cta-arrow">›</text>
     </button>
 

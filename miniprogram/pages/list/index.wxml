@@ -16,7 +16,7 @@
 
   <view class="section-heading">
     <text>全部</text>
-    <text>点开看详情</text>
+    <text>{{items.length}} 项</text>
   </view>
 
   <view wx:if="{{items.length}}" class="item-panel">

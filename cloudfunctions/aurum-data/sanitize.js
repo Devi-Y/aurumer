@@ -8,6 +8,16 @@ function hasNumber(value) {
 }
 
 function hkResearchView(item = {}) {
+  // 发行人已公告取消的项目不能再按"资料是否齐全"来评价：它根本不能申购，
+  // 必须单独标注，否则会和正常在售新股混在一起展示。
+  if (item.withdrawn) {
+    return {
+      state: "withdrawn",
+      label: "发行已取消",
+      score: null,
+      note: "发行人已公告本次全球发售及上市不予进行，申请款项按公告安排退回，无法再申购。",
+    };
+  }
   const present = [
     item.prospectusUrl,
     item.offerStart,
@@ -158,11 +168,13 @@ function assertSourceSnapshot(snapshot) {
   if (!snapshot || snapshot.status !== "live" || Number.isNaN(updatedAt)) {
     throw new Error("公开快照状态或更新时间无效");
   }
+  // 机构持仓阈值留出余量：13F 是季度披露，个别机构延迟很常见，
+  // 不该因为少一位就把整份行情（美股、A股、港股、黄金）一起判为不可用。
   const checks = [
     [snapshot.us && snapshot.us.stocks, 20, "美股行情"],
     [snapshot.us && snapshot.us.fundamentals, 20, "美股财务"],
     [snapshot.aShare && snapshot.aShare.quotes, 5, "A 股资料"],
-    [snapshot.investors, 9, "机构持仓"],
+    [snapshot.investors, 6, "机构持仓"],
   ];
   for (const [items, minimum, label] of checks) {
     if (!Array.isArray(items) || items.length < minimum) {

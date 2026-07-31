@@ -48,6 +48,17 @@ assert(
 );
 assert((snapshot.hk?.history || []).length >= 10, "港股历史样本不足 10 只");
 assert((snapshot.hk?.listings || []).length >= 1, "港股当前项目为空");
+
+// 缺少 pdftotext 属于环境配置错误，必然产出"字段全空但看起来正常"的快照，直接拦住。
+// 上游改版导致的抽取失败只告警，不阻断美股、A股与黄金的正常发布。
+const hkExtraction = snapshot.hk?.extraction;
+assert(
+  !hkExtraction?.missingBinary,
+  `构建环境缺少 pdftotext（poppler-utils），港股公告字段无法抽取：${hkExtraction?.reason || ""}`,
+);
+if (hkExtraction && hkExtraction.ok === false) {
+  console.warn(`[告警] ${hkExtraction.reason}`);
+}
 assert((snapshot.aShare?.quotes || []).length === 12, "A股行情必须完整覆盖 12 只");
 assert((snapshot.aShare?.fundamentals || []).length === 12, "A股财务必须完整覆盖 12 只");
 assert(
@@ -59,7 +70,13 @@ assert(
   ),
   "A股必须使用可核验现金流资料，不能发布 mock 财务",
 );
-assert((snapshot.investors || []).length >= 9, "聪明人持仓不足 9 位");
+// 13F 按季度披露，个别机构延迟属于正常情况：低于 6 位才判定为数据异常，
+// 6-8 位只告警，不阻断其余板块发布。
+const investorCount = (snapshot.investors || []).length;
+assert(investorCount >= 6, `聪明人持仓仅 ${investorCount} 位，低于可发布下限 6 位`);
+if (investorCount < 9) {
+  console.warn(`[告警] 聪明人持仓 ${investorCount} 位，少于预期的 9 位，请检查 13F 抓取`);
+}
 assert(snapshot.gold?.quotes?.international, "黄金国际行情缺失");
 assert(snapshot.gold?.quotes?.domestic, "上海金 Au99.99 行情缺失");
 assert(Number.isFinite(snapshot.gold?.answer?.score), "黄金最终答案与评分缺失");

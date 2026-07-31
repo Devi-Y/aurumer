@@ -8,9 +8,57 @@ const CACHE_TTL_MS = 10 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 8 * 1000;
 const MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
 
+// 内存缓存只在同一个函数实例里有效，冷启动后必然为空。此时唯一的数据来源是
+// GitHub Pages，境内访问慢且不稳定，8 秒超时一旦没抢到就直接对用户报错。
+// 这里补一层数据库缓存：净化后仅约 80KB，可以整条存下，冷启动和回源失败都能兜住。
+const CACHE_COLLECTION = "data_snapshot_cache";
+const CACHE_DOC_ID = "live-snapshot";
+const PERSISTED_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
 let cachedResult = null;
 let cachedAt = 0;
 let pendingRefresh = null;
+let database = null;
+
+function getDatabase() {
+  if (database !== null) return database;
+  try {
+    const cloud = require("wx-server-sdk");
+    cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+    database = cloud.database();
+  } catch (error) {
+    console.warn("数据库缓存不可用，仅使用内存缓存", error && error.message);
+    database = false;
+  }
+  return database;
+}
+
+async function readPersistedSnapshot() {
+  const db = getDatabase();
+  if (!db) return null;
+  try {
+    const result = await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).get();
+    const record = result && result.data;
+    if (!record || !record.payload) return null;
+    const age = Date.now() - Number(record.storedAt || 0);
+    if (!Number.isFinite(age) || age > PERSISTED_MAX_AGE_MS) return null;
+    return { ...record.payload, storedAt: record.storedAt };
+  } catch (error) {
+    // 集合不存在或首次部署时会走到这里，属于预期情况，不影响主链路。
+    return null;
+  }
+}
+
+async function writePersistedSnapshot(payload) {
+  const db = getDatabase();
+  if (!db) return;
+  const record = { payload, storedAt: Date.now(), updatedAt: payload.updatedAt };
+  try {
+    await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).set({ data: record });
+  } catch (error) {
+    console.warn("写入数据库缓存失败", error && error.message);
+  }
+}
 
 function readJson(url, redirectsLeft = 2) {
   return new Promise((resolve, reject) => {
@@ -68,6 +116,7 @@ async function refreshSnapshot() {
     fetchedAt,
   };
   cachedAt = Date.now();
+  await writePersistedSnapshot(cachedResult);
   return cachedResult;
 }
 
@@ -87,6 +136,17 @@ exports.main = async (event = {}) => {
   if (event.action && event.action !== "getSnapshot") {
     return { ok: false, error: "UNSUPPORTED_ACTION" };
   }
+
+  // 冷启动且数据库里已有足够新的快照时直接返回，省掉一次跨境回源。
+  if (!event.force && !cachedResult) {
+    const persisted = await readPersistedSnapshot();
+    if (persisted && Date.now() - persisted.storedAt < CACHE_TTL_MS) {
+      cachedResult = persisted;
+      cachedAt = persisted.storedAt;
+      return { ...persisted, cache: "database" };
+    }
+  }
+
   try {
     return await getSnapshot(Boolean(event.force));
   } catch (error) {
@@ -95,6 +155,14 @@ exports.main = async (event = {}) => {
       return {
         ...cachedResult,
         cache: "stale-memory",
+        warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
+      };
+    }
+    const persisted = await readPersistedSnapshot();
+    if (persisted) {
+      return {
+        ...persisted,
+        cache: "stale-database",
         warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
       };
     }

@@ -120,6 +120,16 @@ Page({
   },
   openGroup(event) {
     const group = event.currentTarget.dataset.group;
+    const target = this.data.groups.find((item) => item.id === group);
+    // 空分组不进空列表页；直接说明为什么没有内容，避免"点进去再退回来"的白跑。
+    if (!target || !target.count) {
+      wx.showToast({
+        title: "这一组当前没有符合资料口径的项目",
+        icon: "none",
+        duration: 2000,
+      });
+      return;
+    }
     wx.navigateTo({ url: `/pages/list/index?market=${this.data.market}&group=${group}` });
   },
   goBack() { wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/index/index" }) }); },

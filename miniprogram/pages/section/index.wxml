@@ -28,18 +28,25 @@
     <view
       wx:for="{{groups}}"
       wx:key="id"
-      class="group-row"
+      class="group-row {{item.count ? '' : 'is-empty'}}"
       data-group="{{item.id}}"
       bindtap="openGroup"
-      hover-class="tap-active"
-      role="button"
-      aria-label="{{item.title}}，共 {{item.count}} 项"
+      hover-class="{{item.count ? 'tap-active' : ''}}"
+      aria-role="button"
+      aria-disabled="{{item.count ? 'false' : 'true'}}"
+      aria-label="{{item.title}}，{{item.count ? '共 ' + item.count + ' 项' : '当前没有符合条件的项目，暂不可进入'}}"
     >
       <text class="group-index">{{item.indexLabel}}</text>
       <text class="group-title">{{item.title}}</text>
       <text class="group-count">{{item.count}}</text>
-      <text class="arrow">›</text>
+      <text wx:if="{{item.count}}" class="arrow">›</text>
+      <text wx:else class="group-empty-hint">暂无</text>
     </view>
+  </view>
+
+  <view class="page-nav">
+    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
+    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
   </view>
 
   <view class="page-note">

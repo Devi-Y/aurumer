@@ -1,5 +1,6 @@
 const { loadSnapshot } = require("../../data/store");
 const { findItem, money, INVESTOR_NAMES } = require("../../utils/answers");
+const { openPage } = require("../../utils/nav");
 
 const DETAIL_META = {
   hk: { label: "港股新股", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -119,7 +120,7 @@ function baseView(item) {
     marketLabel: meta.label,
     icon: meta.icon,
     tone: meta.tone,
-    score: item.score > 0 ? `${item.score} 分` : "待核验",
+    score: item.scoreText || (item.score > 0 ? `${item.score} 分` : "待核验"),
     rank: item.rank ? `第 ${item.rank} 名` : "当前分类",
     answer: item.one,
     metrics: [],
@@ -197,6 +198,7 @@ function buildHKView(base, item) {
   base.risk = ended
     ? "历史表现只用于复盘，不能倒推当时必然值得申购。"
     : "新股资料与历史区间只供事实核验，不构成申购或卖出建议，实际表现可能明显偏离。";
+  if (ended && item.rank) base.rank = `首日涨幅第 ${item.rank} 名`;
   base.sourceNote = raw.source || "港交所公开文件与历史结果整理";
 }
 
@@ -439,7 +441,7 @@ Page({
       `name=${encodeURIComponent(this.data.view.title || "")}`,
       `code=${encodeURIComponent(this.data.view.code || "")}`,
     ].join("&");
-    wx.navigateTo({ url: `/pages/workspace/index?${query}` });
+    openPage(`/pages/workspace/index?${query}`);
   },
   onShareAppMessage() {
     return { title: `${this.data.view.title || "研究资料"}｜望潮 Aurum`, path: `/pages/detail/index?market=${this.data.market}&id=${encodeURIComponent(this.data.id)}` };

@@ -72,6 +72,11 @@
 
   <text class="disclaimer">公开资料与记录工具，不提供荐股或具体买卖建议，不承诺收益。</text>
 
+  <view class="page-nav {{state.plans.length && !state.active ? 'above-dock' : ''}}">
+    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
+    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
+  </view>
+
   <view wx:if="{{state.plans.length && !state.active}}" class="pay-dock">
     <view class="pay-dock-copy">
       <text>365 天会员</text>

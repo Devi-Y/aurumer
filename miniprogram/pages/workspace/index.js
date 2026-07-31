@@ -6,6 +6,7 @@ const {
   saveDecision,
   saveWatchItem,
 } = require("../../services/member");
+const { openPage } = require("../../utils/nav");
 
 const MARKET_OPTIONS = [
   { id: "hk", label: "港股" },
@@ -171,7 +172,7 @@ Page({
         : "记录服务暂时不可用，请稍后再试。",
       confirmText: "查看会员",
       success: (result) => {
-        if (result.confirm) wx.navigateTo({ url: "/pages/member/index" });
+        if (result.confirm) openPage("/pages/member/index");
       },
     });
   },
@@ -249,7 +250,7 @@ Page({
     });
   },
   openMember() {
-    wx.navigateTo({ url: "/pages/member/index" });
+    openPage("/pages/member/index");
   },
   goBack() {
     wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/index/index" }) });

@@ -29,20 +29,53 @@ function money(value, currency = "$") {
     : "暂缺";
 }
 
-function hkReviewScore(item) {
+function signedPercent(value, digits = 2) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return `${number >= 0 ? "+" : ""}${number.toFixed(digits)}%`;
+}
+
+// 历史新股只展示真实涨跌幅。此前这里把三个涨跌幅折算成 0-100 的"分数"，
+// 结果首日亏 37% 的标的显示成"34 分"，正负 2% 以内的六只全部挤在 49-51 分，
+// 既看不出差别也读不出亏损，因此直接改为原始百分比。
+function hkOutcome(item) {
   const review = item.historicalReview || {};
-  const outcomes = [review.greyMarketChange, review.firstDayChange, review.fiveDayChange]
-    .map(Number)
-    .filter(Number.isFinite);
-  if (!outcomes.length) return null;
-  const average = outcomes.reduce((sum, value) => sum + value, 0) / outcomes.length;
-  return Math.max(0, Math.min(100, Math.round(50 + average / 2)));
+  const firstDay = Number(review.firstDayChange);
+  const grey = Number(review.greyMarketChange);
+  const fiveDay = Number(review.fiveDayChange);
+  const headline = Number.isFinite(firstDay)
+    ? { value: firstDay, label: `首日 ${signedPercent(firstDay)}` }
+    : Number.isFinite(grey)
+      ? { value: grey, label: `暗盘 ${signedPercent(grey)}` }
+      : null;
+  const parts = [
+    Number.isFinite(grey) ? `暗盘 ${signedPercent(grey)}` : null,
+    Number.isFinite(firstDay) ? `首日 ${signedPercent(firstDay)}` : null,
+    Number.isFinite(fiveDay) ? `五日 ${signedPercent(fiveDay)}` : null,
+  ].filter(Boolean);
+  return { headline, summary: parts.join(" · ") };
+}
+
+// 字段为空有两种完全不同的原因：招股书确实还没披露，或者我们的抽取环节失败了。
+// 混为一谈会让"系统坏了"长期伪装成"市场还没公布"，所以这里必须分开说。
+function hkExtractionNote(item) {
+  const failures = [item.announcementExtraction, item.prospectusExtraction]
+    .filter((entry) => entry && entry.ok === false);
+  if (!failures.length) return null;
+  return failures.some((entry) => entry.engine === "missing-pdftotext")
+    ? "招股文件解析组件缺失，字段暂时取不到；这是望潮的问题，不是公司未披露。"
+    : "招股文件解析失败，字段暂时取不到；已记录待修复，不是公司未披露。";
 }
 
 function hkItems(snapshot) {
   const current = (snapshot.hk && snapshot.hk.listings ? snapshot.hk.listings : []).map((item) => {
     const research = item.researchView || {};
-    const group = research.state === "complete" ? "worth" : research.state === "review" ? "caution" : "avoid";
+    const group = research.state === "withdrawn"
+      ? "cancelled"
+      : research.state === "complete"
+        ? "worth"
+        : research.state === "review" ? "caution" : "avoid";
+    const extractionNote = hkExtractionNote(item);
     return {
       id: String(item.rawCode || item.code || item.id).replace(/\.HK$/i, ""),
       market: "hk",
@@ -53,28 +86,38 @@ function hkItems(snapshot) {
       score: research.score !== null && research.score !== undefined && research.score !== "" && Number.isFinite(Number(research.score))
         ? Number(research.score)
         : null,
-      one: research.note || "关键招股资料尚不完整，当前只展示已核验事实。",
+      scoreText: research.state === "withdrawn"
+        ? "已取消"
+        : (extractionNote ? "解析失败" : "招股资料"),
+      extractionNote,
+      one: extractionNote || research.note || "关键招股资料尚不完整，当前只展示已核验事实。",
       raw: item,
     };
   });
-  const ended = (snapshot.hk && snapshot.hk.history ? snapshot.hk.history : []).map((item) => ({
-    id: String(item.stockCode || item.code || item.id).replace(/\.HK$/i, ""),
-    market: "hk",
-    group: "ended",
-    name: item.name || "历史新股",
-    code: item.code || item.stockCode,
-    badge: "已结束",
-    score: hkReviewScore(item),
-    one: item.reviewNote || "发行已结束，可查看暗盘与上市后实际表现。",
-    raw: item,
-  }));
+  const ended = (snapshot.hk && snapshot.hk.history ? snapshot.hk.history : []).map((item) => {
+    const outcome = hkOutcome(item);
+    return {
+      id: String(item.stockCode || item.code || item.id).replace(/\.HK$/i, ""),
+      market: "hk",
+      group: "ended",
+      name: item.name || "历史新股",
+      code: item.code || item.stockCode,
+      badge: "已结束",
+      score: null,
+      outcomeValue: outcome.headline ? outcome.headline.value : null,
+      scoreText: outcome.headline ? outcome.headline.label : "上市表现待核验",
+      rankText: outcome.summary || "上市表现待核验",
+      one: outcome.summary
+        ? `${outcome.summary}。${item.reviewNote || "只复盘实际结果，不倒推当时结论。"}`
+        : (item.reviewNote || "发行已结束，可查看暗盘与上市后实际表现。"),
+      raw: item,
+    };
+  });
   const items = [...current, ...ended];
-  for (const group of ["worth", "caution", "avoid", "ended"]) {
-    const ranked = items
-      .filter((item) => item.group === group && Number.isFinite(item.score))
-      .sort((left, right) => right.score - left.score);
-    ranked.forEach((item, index) => { item.rank = index + 1; });
-  }
+  const ranked = items
+    .filter((item) => item.group === "ended" && Number.isFinite(item.outcomeValue))
+    .sort((left, right) => right.outcomeValue - left.outcomeValue);
+  ranked.forEach((item, index) => { item.rank = index + 1; });
   return items;
 }
 
@@ -215,6 +258,7 @@ function groupDefinitions(snapshot, market) {
         ["worth", "资料较完整", "发行、认购与风险资料相对完整。"],
         ["caution", "重点核验", "部分关键字段或风险仍需核对。"],
         ["avoid", "资料不足", "当前只展示已核验事实，不给申购动作。"],
+        ["cancelled", "发行已取消", "发行人已公告不进行本次发售，无法申购。"],
         ["ended", "已结束", "只复盘实际暗盘和上市表现。"],
       ];
   } else if (market === "us") {
@@ -251,7 +295,6 @@ function findItem(snapshot, market, id) {
 
 module.exports = {
   INVESTOR_NAMES,
-  US_NAMES,
   allItems,
   findItem,
   groupDefinitions,

@@ -116,4 +116,9 @@
     <text>资料暂时不可用</text>
     <text>请稍后下拉刷新。</text>
   </view>
+
+  <view class="page-nav">
+    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
+    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
+  </view>
 </view>

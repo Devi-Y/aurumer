@@ -1,4 +1,5 @@
 const { loadMemberState, purchase } = require("../../services/member");
+const { openPage } = require("../../utils/nav");
 const legalInfo = require("../../config/legal");
 
 const ANNUAL_PLAN = {
@@ -161,10 +162,15 @@ Page({
     });
   },
   openWorkspace() {
-    wx.navigateTo({ url: "/pages/workspace/index" });
+    openPage("/pages/workspace/index");
   },
   openLegal() {
-    wx.navigateTo({ url: "/pages/legal/index" });
+    // 协议页只用 navigateBack 返回，不会和会员页互相压栈，因此保持普通跳转；
+    // 只在页面栈已满导致跳转失败时兜底，避免点了没反应。
+    wx.navigateTo({
+      url: "/pages/legal/index",
+      fail: () => wx.redirectTo({ url: "/pages/legal/index" }),
+    });
   },
   copyOrder(event) {
     const orderId = String(event.currentTarget.dataset.order || "");

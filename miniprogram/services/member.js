@@ -138,7 +138,6 @@ module.exports = {
   loadMemberState,
   loadWorkspace,
   purchase,
-  previewState,
   removeDecision,
   removeWatchItem,
   saveDecision,

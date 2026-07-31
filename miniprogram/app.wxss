@@ -49,6 +49,33 @@ button {
   font-weight: 500;
 }
 
+/* 页面底部的返回控件。微信自带的返回箭头在左上角且很小，
+   对主要用户群不够好按，所以在正文流末尾再给一组大按钮。 */
+.page-nav {
+  display: flex;
+  padding: 28rpx;
+  gap: 20rpx;
+}
+
+.page-nav-button {
+  display: flex;
+  min-height: 88rpx;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  border: 1rpx solid #dfe4e1;
+  border-radius: 16rpx;
+  background: #ffffff;
+  color: #2f4a3c;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.page-nav-button.tap-active {
+  background: #eef3f0;
+}
+
 @media (max-width: 340px) {
   page {
     font-size: 28rpx;

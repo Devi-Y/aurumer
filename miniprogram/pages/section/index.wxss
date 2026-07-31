@@ -78,7 +78,7 @@
   overflow: hidden;
   max-width: 100%;
   color: #7e8781;
-  font-size: 20rpx;
+  font-size: 22rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -146,6 +146,16 @@
 
 .group-row + .group-row { border-top: 1rpx solid #edf0ee; }
 
+.group-row.is-empty { opacity: 0.45; }
+.group-row.is-empty .group-index { background: #f0f2f1; color: #9aa19c; }
+
+.group-empty-hint {
+  flex: none;
+  color: #9aa19c;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
 .group-index {
   display: flex;
   width: 46rpx;
@@ -156,7 +166,7 @@
   border-radius: 14rpx;
   background: #eaf8f0;
   color: #078d4b;
-  font-size: 19rpx;
+  font-size: 22rpx;
   font-weight: 850;
 }
 
@@ -191,7 +201,7 @@
   align-items: center;
   gap: 7rpx;
   color: #8a918c;
-  font-size: 20rpx;
+  font-size: 22rpx;
   line-height: 1.5;
   text-align: center;
 }

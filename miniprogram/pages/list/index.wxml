@@ -27,7 +27,7 @@
       data-id="{{item.id}}"
       bindtap="openItem"
       hover-class="tap-active"
-      role="button"
+      aria-role="button"
       aria-label="{{item.name}}，{{item.one}}"
     >
       <text class="item-number">{{item.positionLabel}}</text>
@@ -42,7 +42,7 @@
         <text class="answer">{{item.one}}</text>
         <view wx:if="{{item.showBar}}" class="data-bar-block">
           <view class="data-bar-copy"><text>{{item.barLabel}}</text></view>
-          <view class="data-bar-track"><view class="data-bar-value" style="width: {{item.barWidth}}%;"></view></view>
+          <view class="data-bar-track"><view class="data-bar-value {{item.barTone}}" style="width: {{item.barWidth}}%;"></view></view>
         </view>
       </view>
       <text class="arrow">›</text>
@@ -53,6 +53,11 @@
     <image src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
     <text class="empty-title">暂无可展示资料</text>
     <text>下拉刷新再试</text>
+  </view>
+
+  <view class="page-nav">
+    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
+    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
   </view>
 
   <view class="page-note">

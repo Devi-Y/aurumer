@@ -39,7 +39,7 @@
 .date { display: block; }
 .summary-label { color: #078d4b; font-size: 22rpx; font-weight: 720; }
 .title { margin-top: 6rpx; color: #171b18; font-size: 38rpx; font-weight: 850; line-height: 1.35; }
-.date { margin-top: 4rpx; color: #777e79; font-size: 21rpx; }
+.date { margin-top: 4rpx; color: #777e79; font-size: 22rpx; }
 .block-title { display: block; margin: 27rpx 6rpx 11rpx; color: #272c28; font-size: 29rpx; font-weight: 780; }
 
 .plain-summary { display: flex; flex-wrap: wrap; }
@@ -68,7 +68,7 @@
   border-radius: 50%;
   background: #eaf8f0;
   color: #078d4b;
-  font-size: 19rpx;
+  font-size: 22rpx;
   font-weight: 800;
 }
 
@@ -107,7 +107,7 @@
 .policy-card,
 .action-card { display: flex; flex-direction: column; align-items: stretch; }
 .policy-toggle text:first-child { min-width: 0; flex: 1; }
-.policy-toggle text:last-child { flex: none; color: #078d4b; font-size: 21rpx; }
+.policy-toggle text:last-child { flex: none; color: #078d4b; font-size: 22rpx; }
 .policy-body { padding: 0 21rpx 20rpx; border-top: 1rpx solid #edf0ee; background: #fafbfa; }
 .paragraph { display: block; margin-top: 15rpx; color: #454b47; font-size: 24rpx; line-height: 1.72; }
 
@@ -135,7 +135,7 @@
 .primary-action text:last-child,
 .secondary-action text:last-child,
 .member-action text:last-child { color: #afb5b1; font-size: 38rpx; font-weight: 300; }
-.footer-note { display: block; margin: 18rpx auto 0; color: #7b827d; font-size: 20rpx; line-height: 1.55; text-align: center; }
+.footer-note { display: block; margin: 18rpx auto 0; color: #7b827d; font-size: 24rpx; line-height: 1.55; text-align: center; }
 
 @media (max-width: 340px) {
   .legal-shell { padding-right: 15rpx; padding-left: 15rpx; }

@@ -129,9 +129,9 @@
 .record-row { position: relative; padding: 20rpx 21rpx 18rpx; }
 .record-row + .record-row { border-top: 1rpx solid #edf0ee; }
 .record-top { display: flex; padding-right: 70rpx; align-items: center; justify-content: space-between; gap: 12rpx; }
-.record-tag { padding: 4rpx 10rpx; border-radius: 999rpx; background: #eaf8f0; color: #078d4b; font-size: 20rpx; font-weight: 700; }
+.record-tag { padding: 4rpx 10rpx; border-radius: 999rpx; background: #eaf8f0; color: #078d4b; font-size: 22rpx; font-weight: 700; }
 .decision-card .record-tag { background: #f1eef9; color: #665ca1; }
-.record-date { color: #919792; font-size: 20rpx; }
+.record-date { color: #919792; font-size: 22rpx; }
 .record-title,
 .record-note { display: block; padding-right: 70rpx; }
 .record-title { margin-top: 11rpx; color: #222723; font-size: 28rpx; font-weight: 750; line-height: 1.45; overflow-wrap: anywhere; }
@@ -147,7 +147,7 @@
   border-radius: 9rpx;
   background: #fff1ec;
   color: #b44431;
-  font-size: 20rpx;
+  font-size: 22rpx;
   line-height: 1.4;
 }
 
@@ -179,7 +179,7 @@
 .export-button text:last-child,
 .delete-all-button text:last-child { color: #afb5b1; font-size: 38rpx; font-weight: 300; }
 .privacy-note,
-.disclaimer { display: block; margin: 17rpx auto 0; color: #7b827d; font-size: 20rpx; line-height: 1.55; text-align: center; }
+.disclaimer { display: block; margin: 17rpx auto 0; color: #7b827d; font-size: 24rpx; line-height: 1.55; text-align: center; }
 .disclaimer { margin-top: 5rpx; }
 
 @media (max-width: 340px) {

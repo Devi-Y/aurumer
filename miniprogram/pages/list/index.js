@@ -29,10 +29,28 @@ function comparisonMetric(item, market) {
     const value = performanceNumber(item.raw?.profile?.performanceValue);
     return value > 0 ? { value, label: `表观长期年化 ${item.raw.profile.performanceValue}` } : null;
   }
+  // 港股历史新股按真实涨跌幅比较，条长取绝对值、颜色区分涨跌，负数不会被画成"分数低"。
+  if (market === "hk" && hasNumber(item.outcomeValue)) {
+    const value = Number(item.outcomeValue);
+    return { value: Math.abs(value), label: item.scoreText, tone: value < 0 ? "down" : "up" };
+  }
   if (hasNumber(item.score) && Number(item.score) > 0) {
     return { value: Number(item.score), label: `${Number(item.score)} 分` };
   }
   return null;
+}
+
+// 直接用最大值做标尺时，单个极端值会把其余所有条压到最小宽度：港股历史组里
+// 一只 +162% 的新股就让另外 11 只全部贴底，对比条失去意义。这里改用 75 分位
+// 作为标尺，超出的条画满即可。
+function barScaleMax(comparable) {
+  const values = comparable
+    .map((item) => Number(item?.value || 0))
+    .filter((value) => value > 0)
+    .sort((left, right) => left - right);
+  if (!values.length) return 0;
+  const percentile = values[Math.min(values.length - 1, Math.floor(values.length * 0.75))];
+  return Math.max(percentile, values[values.length - 1] / 3, 1);
 }
 
 function buildInsight(market, group, items) {
@@ -71,7 +89,7 @@ Page({
       const group = groupDefinitions(snapshot, this.data.market).find((item) => item.id === this.data.group);
       const rawItems = allItems(snapshot, this.data.market).filter((item) => item.group === this.data.group);
       const comparable = rawItems.map((item) => comparisonMetric(item, this.data.market));
-      const maxValue = Math.max(...comparable.map((item) => Number(item?.value || 0)), 0);
+      const maxValue = barScaleMax(comparable);
       const items = rawItems.map((item, index) => {
         const visual = comparable[index];
         return {
@@ -86,7 +104,10 @@ Page({
           one: item.one,
           showBar: Boolean(visual && maxValue > 0),
           barLabel: visual?.label || "",
-          barWidth: visual && maxValue > 0 ? Math.max(12, Math.round((visual.value / maxValue) * 100)) : 0,
+          barTone: visual?.tone || "",
+          barWidth: visual && maxValue > 0
+            ? Math.min(100, Math.max(12, Math.round((visual.value / maxValue) * 100)))
+            : 0,
         };
       });
       this.snapshot = snapshot;

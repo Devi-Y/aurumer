@@ -15,7 +15,7 @@
       class="today-toggle"
       bindtap="toggleTodayDetails"
       hover-class="tap-active"
-      role="button"
+      aria-role="button"
       aria-label="{{todayExpanded ? '收起今日重点' : '展开今日重点'}}"
     >
       <text>{{todayExpanded ? '收起' : '查看 4 项速览'}}</text>
@@ -31,7 +31,7 @@
       data-market="{{item.id}}"
       bindtap="openTodayPoint"
       hover-class="tap-active"
-      role="button"
+      aria-role="button"
       aria-label="{{item.label}}，{{item.value}}"
     >
       <text class="point-label">{{item.label}}</text>
@@ -54,7 +54,7 @@
       bindtap="openGridEntry"
       hover-class="tap-active"
       hover-stay-time="80"
-      role="button"
+      aria-role="button"
       aria-label="{{item.title}}，{{item.help}}"
     >
       <text wx:if="{{item.badge}}" class="entry-badge">{{item.badge}}</text>
@@ -67,7 +67,7 @@
     class="workspace-strip"
     bindtap="openWorkspace"
     hover-class="tap-active"
-    role="button"
+    aria-role="button"
     aria-label="打开我的研究记录"
   >
     <view class="workspace-icon-wrap">

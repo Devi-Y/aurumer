@@ -112,7 +112,8 @@ Page({
         const goldConclusion = gold.answer?.researchConclusion || "先核对价格位置与宏观驱动。";
 
         const today = {
-          headline: goldConclusion,
+          // 这句结论只讲黄金，不带主语时会被读成对整个市场的判断，所以显式点名。
+          headline: /^黄金/.test(goldConclusion) ? goldConclusion : `黄金：${goldConclusion}`,
           metrics: [
             {
               label: "黄金位置",

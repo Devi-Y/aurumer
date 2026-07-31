@@ -6,7 +6,19 @@ let memorySource = "离线备用数据";
 let fetchedAt = 0;
 let refreshPromise = null;
 
+// 快照当前正好是 9 位机构，阈值也卡在 9，等于完全没有余量：任何一份 13F 延迟披露
+// 都会让整份实时数据被判为不可用，静默退回打包时的离线数据。留出余量，并在数量
+// 明显偏少时告警，而不是直接丢弃全部行情。
+const INVESTOR_MINIMUM = 6;
+const INVESTOR_EXPECTED = 9;
+
 function isUsableSnapshot(snapshot) {
+  const investors = snapshot && Array.isArray(snapshot.investors) ? snapshot.investors : null;
+  if (investors && investors.length >= INVESTOR_MINIMUM && investors.length < INVESTOR_EXPECTED) {
+    console.warn(
+      `[望潮] 机构持仓只有 ${investors.length} 位（预期 ${INVESTOR_EXPECTED} 位），其余数据照常展示`,
+    );
+  }
   return Boolean(
     snapshot
       && snapshot.status === "live"
@@ -15,8 +27,8 @@ function isUsableSnapshot(snapshot) {
       && snapshot.us.stocks.length >= 20
       && Array.isArray(snapshot.aShare && snapshot.aShare.quotes)
       && snapshot.aShare.quotes.length >= 5
-      && Array.isArray(snapshot.investors)
-      && snapshot.investors.length >= 9
+      && investors
+      && investors.length >= INVESTOR_MINIMUM
       && snapshot.gold
       && snapshot.gold.quotes
       && snapshot.gold.quotes.international

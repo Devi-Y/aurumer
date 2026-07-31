@@ -124,7 +124,7 @@
   border-radius: 14rpx;
   background: #eaf8f0;
   color: #078d4b;
-  font-size: 18rpx;
+  font-size: 22rpx;
   font-weight: 850;
 }
 
@@ -153,7 +153,7 @@
 .item-code {
   margin-top: 2rpx;
   color: #8a918c;
-  font-size: 21rpx;
+  font-size: 22rpx;
 }
 
 .badge {
@@ -163,7 +163,7 @@
   border-radius: 999rpx;
   background: #fff1e6;
   color: #b95723;
-  font-size: 19rpx;
+  font-size: 22rpx;
   font-weight: 700;
   line-height: 1.4;
   text-align: center;
@@ -184,7 +184,7 @@
 
 .data-bar-copy {
   color: #4d6959;
-  font-size: 20rpx;
+  font-size: 22rpx;
   font-weight: 680;
 }
 
@@ -201,6 +201,10 @@
   border-radius: 999rpx;
   background: #20ad68;
 }
+
+/* 港股历史表现按境内习惯着色：上涨用红，下跌用绿。 */
+.data-bar-value.up { background: #d4452c; }
+.data-bar-value.down { background: #20ad68; }
 
 .arrow {
   margin-top: 4rpx;
@@ -236,7 +240,7 @@
   align-items: center;
   gap: 7rpx;
   color: #8a918c;
-  font-size: 20rpx;
+  font-size: 22rpx;
   line-height: 1.5;
   text-align: center;
 }

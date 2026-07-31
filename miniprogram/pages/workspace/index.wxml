@@ -70,4 +70,9 @@
 
   <text class="privacy-note">记录仅当前微信用户可见，到期后仍可查看、导出和删除。</text>
   <text class="disclaimer">个人记录工具，不构成投资建议。</text>
+
+  <view class="page-nav">
+    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
+    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
+  </view>
 </view>

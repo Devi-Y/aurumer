@@ -782,9 +782,22 @@ async function handleCloudPayCallback(event) {
   return { errcode: 0, errmsg: "" };
 }
 
+async function hasPendingOrders(openid) {
+  const result = await db.collection(ORDERS)
+    .where({ openid, status: db.command.in(PENDING_STATUSES) })
+    .limit(1)
+    .get();
+  return (result.data || []).length > 0;
+}
+
 async function memberStatus(openid) {
   const config = readiness(openid);
-  await reconcileRecentOrders(openid);
+  // 无待支付/待确认订单时跳过查单：会员页冷启动更快可点「立即微信支付」。
+  // 付款后客户端轮询 status 时一定有 pending，仍会走 reconcileRecentOrders；
+  // 已结算单的退款复核继续由 15 分钟全局对账覆盖。
+  if (await hasPendingOrders(openid)) {
+    await reconcileRecentOrders(openid);
+  }
   const entitlement = await publicEntitlement(openid);
   const reviewRequired = Boolean(entitlement && entitlement.reviewRequired);
   return {

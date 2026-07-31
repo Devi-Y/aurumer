@@ -13,8 +13,10 @@
     "check:ui": "node scripts/audit-ui-contract.mjs",
     "check:mini": "node scripts/audit-miniprogram.mjs",
     "check:payment": "node scripts/audit-payment.mjs",
+    "check:fresh": "node scripts/check-mini-freshness.mjs",
     "check:domain": "node scripts/check-custom-domain.mjs",
-    "audit": "npm run check:public && npm run check:pages && npm run check:ui && npm run check:mini && npm run check:payment"
+    "audit": "npm run check:public && npm run check:pages && npm run check:ui && npm run check:mini && npm run check:payment",
+    "preupload": "npm run sync:latest && npm run audit && npm run check:fresh"
   },
   "description": "港股打新、美股投资、A股收息、黄金投资与聪明人持仓工具的公开只读镜像。",
   "main": "sw.js",

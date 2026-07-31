@@ -138,8 +138,17 @@ function sanitizeGold(gold = {}) {
   } = gold;
   const answer = gold.answer || {};
   const { action, conclusion, pricePlan, score, grade, ...answerRest } = answer;
-  const researchConclusion = String(conclusion || "")
-    .replace(/^(买入|卖出|继续观察|观察|等待)[；;，,\s]*/u, "")
+  // 公开视图不带操作建议，所以要把结论开头的动作词去掉。这里以引擎实际输出的
+  // action 为准：写死词表会砍出病句——action 是「等待更好价格」时，只匹配到「等待」，
+  // 剩下「更好价格；……」被当成结论发到首页、板块页和详情页。
+  const actionPrefix = String(action || "").trim();
+  let researchConclusion = String(conclusion || "").trim();
+  if (actionPrefix && researchConclusion.startsWith(actionPrefix)) {
+    researchConclusion = researchConclusion.slice(actionPrefix.length);
+  }
+  researchConclusion = researchConclusion
+    .replace(/^(买入|卖出|继续观察|观察|等待)/u, "")
+    .replace(/^[；;，,、\s]+/u, "")
     .trim();
   return {
     ...goldRest,

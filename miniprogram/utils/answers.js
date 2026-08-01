@@ -76,9 +76,17 @@ function hkItems(snapshot) {
         ? "worth"
         : research.state === "review" ? "caution" : "avoid";
     const extractionNote = hkExtractionNote(item);
+    const offerBits = [
+      item.offerPrice ? `招股价 ${item.offerPrice}` : null,
+      item.entryFee ? `一手约 ${item.entryFee}` : null,
+      item.offerDeadline ? `认购至 ${item.offerDeadline}` : (item.offerEnd ? `认购至 ${item.offerEnd}` : null),
+      item.listingDate ? `上市 ${item.listingDate}` : null,
+    ].filter(Boolean);
     return {
       id: String(item.rawCode || item.code || item.id).replace(/\.HK$/i, ""),
       market: "hk",
+      // group id 仍用 worth/caution/avoid 以兼容既有路由；展示标题已是「资料较完整」等，
+      // 不再暗示申购动作结论。
       group,
       name: item.name || "港股新股",
       code: item.code || item.rawCode,
@@ -90,7 +98,10 @@ function hkItems(snapshot) {
         ? "已取消"
         : (extractionNote ? "解析失败" : "招股资料"),
       extractionNote,
-      one: extractionNote || research.note || "关键招股资料尚不完整，当前只展示已核验事实。",
+      one: extractionNote
+        || (offerBits.length ? `${offerBits.join(" · ")}。${research.note || "只核验已披露事实，不给申购建议。"}` : null)
+        || research.note
+        || "关键招股资料尚不完整，当前只展示已核验事实。",
       raw: item,
     };
   });

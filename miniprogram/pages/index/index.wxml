@@ -43,6 +43,38 @@
     </view>
   </view>
 
+  <text class="section-label">我的持仓</text>
+  <view class="holdings-panel">
+    <view wx:if="{{holdings.length}}" class="holding-list">
+      <view wx:for="{{holdings}}" wx:key="id" class="holding-row">
+        <view class="holding-main">
+          <text class="holding-name">{{item.name}}</text>
+          <text class="holding-meta">{{item.marketLabel}} · {{item.meta}}</text>
+        </view>
+        <text class="holding-delete" data-id="{{item.id}}" bindtap="deleteHolding" aria-role="button">删除</text>
+      </view>
+    </view>
+    <view wx:else class="holding-empty">
+      <text>本机保存，不需登录</text>
+      <text>先记下代码与名称，每天回来对照公开资料。</text>
+    </view>
+    <view
+      wx:if="{{!showHoldingForm}}"
+      class="holding-add"
+      bindtap="toggleHoldingForm"
+      hover-class="tap-active"
+      aria-role="button"
+    >添加持仓</view>
+    <view wx:else class="holding-form">
+      <input class="holding-input" placeholder="名称，如 拿森智能" value="{{holdingForm.name}}" bindinput="inputHoldingName" />
+      <input class="holding-input" placeholder="代码（选填）" value="{{holdingForm.code}}" bindinput="inputHoldingCode" />
+      <view class="holding-form-actions">
+        <view class="holding-cancel" bindtap="toggleHoldingForm" hover-class="tap-active" aria-role="button">取消</view>
+        <view class="holding-save" bindtap="saveHolding" hover-class="tap-active" aria-role="button">保存到本机</view>
+      </view>
+    </view>
+  </view>
+
   <text class="section-label">核心研究</text>
 
   <view class="entry-grid">
@@ -78,7 +110,7 @@
   </view>
 
   <view class="page-footer">
-    <text>{{source || '正在同步最新数据'}}</text>
-    <text>公开资料整理，仅供研究参考。</text>
+    <text class="{{freshnessKind == 'fresh' ? '' : 'is-stale'}}">{{source || '正在同步最新数据'}}</text>
+    <text>公开资料整理，仅供研究参考。小程序不提供申购或买卖建议。</text>
   </view>
 </view>

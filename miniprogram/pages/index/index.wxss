@@ -157,6 +157,127 @@
   font-weight: 650;
 }
 
+.holdings-panel {
+  overflow: hidden;
+  border: 1rpx solid #e7ece9;
+  border-radius: 24rpx;
+  background: #ffffff;
+}
+
+.holding-empty,
+.holding-row,
+.holding-form {
+  padding: 18rpx 20rpx;
+}
+
+.holding-empty text,
+.holding-meta {
+  display: block;
+}
+
+.holding-empty text:first-child {
+  color: #2a322c;
+  font-size: 27rpx;
+  font-weight: 560;
+}
+
+.holding-empty text:last-child {
+  margin-top: 6rpx;
+  color: #858c87;
+  font-size: 23rpx;
+  line-height: 1.5;
+}
+
+.holding-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.holding-row + .holding-row {
+  border-top: 1rpx solid #edf0ee;
+}
+
+.holding-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.holding-name {
+  display: block;
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.holding-meta {
+  margin-top: 4rpx;
+  color: #858c87;
+  font-size: 22rpx;
+}
+
+.holding-delete {
+  flex: none;
+  color: #7a6560;
+  font-size: 24rpx;
+  padding: 10rpx 4rpx;
+}
+
+.holding-add {
+  display: flex;
+  min-height: 80rpx;
+  align-items: center;
+  justify-content: center;
+  border-top: 1rpx solid #edf0ee;
+  color: #0b7a53;
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.holding-form {
+  border-top: 1rpx solid #edf0ee;
+}
+
+.holding-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 76rpx;
+  margin-top: 10rpx;
+  padding: 0 18rpx;
+  border-radius: 12rpx;
+  background: #f4f6f5;
+  color: #1b211d;
+  font-size: 27rpx;
+}
+
+.holding-form-actions {
+  display: flex;
+  margin-top: 14rpx;
+  gap: 12rpx;
+}
+
+.holding-cancel,
+.holding-save {
+  display: flex;
+  min-height: 76rpx;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12rpx;
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.holding-cancel {
+  background: #eef1ef;
+  color: #4a554e;
+}
+
+.holding-save {
+  background: #0b7a53;
+  color: #ffffff;
+}
+
 .entry-grid {
   display: flex;
   width: 100%;
@@ -268,6 +389,11 @@
   font-size: 22rpx;
   line-height: 1.5;
   text-align: center;
+}
+
+.page-footer .is-stale {
+  color: #8a6a3d;
+  font-weight: 600;
 }
 
 @media (max-width: 340px) {

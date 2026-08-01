@@ -1,5 +1,12 @@
 {
   "permissions": {},
-  "timeout": 3,
-  "memorySize": 256
+  "timeout": 10,
+  "memorySize": 256,
+  "triggers": [
+    {
+      "name": "data-snapshot-warm",
+      "type": "timer",
+      "config": "0 */30 * * * * *"
+    }
+  ]
 }

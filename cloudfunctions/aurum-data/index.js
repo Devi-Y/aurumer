@@ -5,20 +5,16 @@ const { sanitizeSnapshot } = require("./sanitize");
 
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 const CACHE_TTL_MS = 10 * 60 * 1000;
-// 云函数在控制台配置的执行上限是 3 秒。回源超时必须留在这个预算之内，否则平台会先
-// 把函数整个杀掉，下面 main 里的数据库兜底根本没机会执行，用户直接拿到硬错误——
-// 兜底链路写得再全也是摆设。剩余时间留给回源失败后读一次数据库缓存。
-const FUNCTION_TIMEOUT_MS = 3 * 1000;
-const DATABASE_FALLBACK_BUDGET_MS = 900;
+// 函数超时 10 秒：回源留足时间，失败后再读数据库缓存。
+const FUNCTION_TIMEOUT_MS = 10 * 1000;
+const DATABASE_FALLBACK_BUDGET_MS = 1500;
 const REQUEST_TIMEOUT_MS = FUNCTION_TIMEOUT_MS - DATABASE_FALLBACK_BUDGET_MS;
 const MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
 
-// 内存缓存只在同一个函数实例里有效，冷启动后必然为空。此时唯一的数据来源是
-// GitHub Pages，境内访问慢且不稳定，8 秒超时一旦没抢到就直接对用户报错。
-// 这里补一层数据库缓存：净化后仅约 80KB，可以整条存下，冷启动和回源失败都能兜住。
 const CACHE_COLLECTION = "data_snapshot_cache";
 const CACHE_DOC_ID = "live-snapshot";
 const PERSISTED_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const WARM_TRIGGER_NAME = "data-snapshot-warm";
 
 let cachedResult = null;
 let cachedAt = 0;
@@ -49,7 +45,6 @@ async function readPersistedSnapshot() {
     if (!Number.isFinite(age) || age > PERSISTED_MAX_AGE_MS) return null;
     return { ...record.payload, storedAt: record.storedAt };
   } catch (error) {
-    // 集合不存在或首次部署时会走到这里，属于预期情况，不影响主链路。
     return null;
   }
 }
@@ -61,8 +56,6 @@ async function writePersistedSnapshot(payload) {
   try {
     await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).set({ data: record });
   } catch (error) {
-    // 集合要先存在才能写。自动建一次可以省掉部署后手动去控制台开集合的步骤，
-    // 漏建时缓存会静默失效、每次请求都跨境回源，而这种退化很难被察觉。
     if (await ensureCollection(error)) {
       try {
         await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).set({ data: record });
@@ -85,7 +78,6 @@ async function ensureCollection(error) {
     await db.createCollection(CACHE_COLLECTION);
     return true;
   } catch (createError) {
-    // 并发实例同时建集合时后来者会报已存在，这不算失败。
     return /already exist/i.test(String((createError && createError.message) || ""));
   }
 }
@@ -162,17 +154,52 @@ function getSnapshot(force) {
   return pendingRefresh;
 }
 
+function isWarmTimer(event) {
+  return Boolean(
+    event
+    && (event.Type === "Timer" || event.triggerType === "timer")
+    && (event.TriggerName === WARM_TRIGGER_NAME || event.triggerName === WARM_TRIGGER_NAME),
+  );
+}
+
 exports.main = async (event = {}) => {
-  if (event.action && event.action !== "getSnapshot") {
+  const action = event.action || (isWarmTimer(event) ? "warm" : "getSnapshot");
+
+  if (action === "warm") {
+    try {
+      const result = await getSnapshot(true);
+      return { ok: true, warmed: true, updatedAt: result.updatedAt, cache: "refreshed" };
+    } catch (error) {
+      console.error("aurum-data warm failed", error && error.message);
+      const persisted = await readPersistedSnapshot();
+      if (persisted) {
+        cachedResult = persisted;
+        cachedAt = Number(persisted.storedAt || Date.now());
+        return {
+          ok: true,
+          warmed: false,
+          warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
+          updatedAt: persisted.updatedAt,
+          cache: "stale-database",
+        };
+      }
+      return { ok: false, error: "DATA_TEMPORARILY_UNAVAILABLE" };
+    }
+  }
+
+  if (action !== "getSnapshot") {
     return { ok: false, error: "UNSUPPORTED_ACTION" };
   }
 
-  // 冷启动且数据库里已有足够新的快照时直接返回，省掉一次跨境回源。
-  if (!event.force && !cachedResult) {
+  // 普通读请求：内存 → 10 分钟内 DB 缓存 → 再回源；失败再兜底更旧的 DB。
+  if (!event.force) {
+    if (cachedResult && Date.now() - cachedAt < CACHE_TTL_MS) {
+      return { ...cachedResult, cache: "memory" };
+    }
     const persisted = await readPersistedSnapshot();
-    if (persisted && Date.now() - persisted.storedAt < CACHE_TTL_MS) {
+    if (persisted && Date.now() - Number(persisted.storedAt || 0) < CACHE_TTL_MS) {
       cachedResult = persisted;
-      cachedAt = persisted.storedAt;
+      cachedAt = Number(persisted.storedAt || Date.now());
       return { ...persisted, cache: "database" };
     }
   }

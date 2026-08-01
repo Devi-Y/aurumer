@@ -13,6 +13,14 @@
     <button bindtap="openMember">查看会员</button>
   </view>
 
+  <view wx:if="{{localHoldingsCount && state.writable}}" class="migrate-card">
+    <view class="migrate-copy">
+      <text>本机速记 {{localHoldingsCount}} 条</text>
+      <text>可一键写入云端跟踪清单，方便换机继续看。</text>
+    </view>
+    <button class="migrate-button" bindtap="migrateLocalHoldings" loading="{{migrating}}" disabled="{{migrating || saving}}">迁移到云端</button>
+  </view>
+
   <view class="tab-bar">
     <button class="tab {{activeTab == 'watch' ? 'active' : ''}}" data-tab="watch" bindtap="switchTab">关注 {{state.watchItems.length}}</button>
     <button class="tab {{activeTab == 'decision' ? 'active' : ''}}" data-tab="decision" bindtap="switchTab">想法 {{state.decisions.length}}</button>
@@ -101,9 +109,4 @@
 
   <text class="privacy-note">记录仅当前微信用户可见，到期后仍可查看、导出和删除。</text>
   <text class="disclaimer">个人记录工具，不构成投资建议。</text>
-
-  <view class="page-nav">
-    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
-    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
-  </view>
 </view>

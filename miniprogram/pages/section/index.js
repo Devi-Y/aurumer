@@ -1,5 +1,7 @@
 const { loadSnapshot } = require("../../data/store");
 const { allItems, groupDefinitions, formatRange } = require("../../utils/answers");
+const { goHome } = require("../../utils/nav");
+const { track } = require("../../utils/analytics");
 
 const META = {
   hk: {
@@ -150,6 +152,7 @@ Page({
     const market = META[options.market] ? options.market : "hk";
     this.setData({ market, meta: META[market] });
     wx.setNavigationBarTitle({ title: META[market].title });
+    track("section_open", { market: String(market), from: "direct" });
     this.refresh();
   },
   onPullDownRefresh() {
@@ -176,9 +179,16 @@ Page({
     wx.navigateTo({ url: `/pages/list/index?market=${this.data.market}&group=${group}` });
   },
   goBack() {
-    wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/index/index" }) });
+    wx.navigateBack({ fail: () => goHome() });
   },
   goHome() {
-    wx.reLaunch({ url: "/pages/index/index" });
+    goHome();
+  },
+  onShareAppMessage() {
+    track("share_tap", { page: "section", market: this.data.market });
+    return {
+      title: `${this.data.meta.title}｜望潮研究观察`,
+      path: `/pages/section/index?market=${this.data.market}`,
+    };
   },
 });

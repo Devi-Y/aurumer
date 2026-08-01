@@ -8,6 +8,12 @@
     <view class="member-hero-image-wrap"><image src="/assets/home/member.svg" mode="aspectFit" aria-hidden="true"></image></view>
   </view>
 
+  <view wx:if="{{settling || (!state.active && state.orders.length)}}" class="settle-card">
+    <text wx:if="{{settling}}">正在核对微信支付结果…</text>
+    <text wx:else>若已付款但权益未到，可手动刷新。</text>
+    <button class="query-button" bindtap="manualQuery" data-order="{{lastOrderId}}" loading="{{querying}}" disabled="{{querying}}">刷新权益 / 查单</button>
+  </view>
+
   <text class="block-title">年度方案</text>
   <view class="plan-list">
     <view wx:for="{{state.plans}}" wx:key="id" class="plan-card">
@@ -51,7 +57,17 @@
           <text>{{item.orderCode}}{{item.expiresLabel ? ' · 权益至 ' + item.expiresLabel : ''}}</text>
           <text wx:if="{{item.refundLabel}}" class="refund-label">{{item.refundLabel}}</text>
         </view>
-        <button class="copy-order" data-order="{{item.orderId}}" bindtap="copyOrder">复制单号</button>
+        <view class="order-actions">
+          <button class="copy-order" data-order="{{item.orderId}}" bindtap="copyOrder">复制单号</button>
+          <button
+            wx:if="{{item.canQuery || settling}}"
+            class="query-order"
+            data-order="{{item.orderId}}"
+            bindtap="manualQuery"
+            loading="{{querying}}"
+            disabled="{{querying}}"
+          >刷新权益</button>
+        </view>
       </view>
     </view>
   </view>
@@ -63,18 +79,15 @@
     </button>
     <view wx:if="{{showNotice}}" class="notice-content">
       <view class="rule-row"><text>续费</text><text>到期不会自动扣款。</text></view>
-      <view class="rule-row"><text>开通</text><text>微信核对付款后自动生效。</text></view>
-      <view class="rule-row"><text>退款</text><text>联系客服核对并原路处理。</text></view>
+      <view class="rule-row"><text>开通</text><text>微信核对付款后自动生效；也可点「刷新权益」。</text></view>
+      <view class="rule-row"><text>退款①</text><text>联系小程序内微信客服说明原因。</text></view>
+      <view class="rule-row"><text>退款②</text><text>运营方在微信支付商户平台人工原路退款。</text></view>
+      <view class="rule-row"><text>退款③</text><text>订单进入核对后，客服按全额/部分规则处理权益。</text></view>
       <button class="contact-button" open-type="contact" show-message-card="true">联系微信客服</button>
     </view>
   </view>
 
-  <text class="disclaimer">公开资料与记录工具，不提供荐股或具体买卖建议，不承诺收益。</text>
-
-  <view class="page-nav {{state.plans.length && !state.active ? 'above-dock' : ''}}">
-    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
-    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
-  </view>
+  <text class="disclaimer">{{disclaimer}}</text>
 
   <view wx:if="{{state.plans.length && !state.active}}" class="pay-dock">
     <view class="pay-dock-copy">

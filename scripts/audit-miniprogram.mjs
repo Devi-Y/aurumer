@@ -262,7 +262,12 @@ for (const actionField of ["technicalPlan", "targetPrice", "targetUpside", "buy_
   assert(!generatedSource.includes(`\"${actionField}\"`), `小程序离线包仍包含内部价格字段：${actionField}`);
 }
 assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes("pricePlan"), "云函数清洗层应保留公开动作结论与黄金买卖观察区");
-assert(indexTemplate.includes("今天先看这几件事"), "今日重点缺少小白人话副标");
+assert(
+  indexTemplate.includes("今天先看这几件事")
+  || (indexTemplate.includes("todayHelp") && indexSource.includes("今天先看这几件事")),
+  "今日重点缺少小白人话副标",
+);
+
 assert(sectionSource.includes("meta.one") || (await readFile(path.join(miniRoot, "pages", "section", "index.wxml"), "utf8")).includes("meta.one"), "栏目页缺少「这一页帮你干嘛」");
 for (const label of ["望潮年费会员", "365 天会员", "会员功能", "保存关注", "记录想法", "复制导出", "购买须知"]) {
   assert(`${memberPageSource}\n${memberTemplate}`.includes(label), `小程序会员页缺少关键内容：${label}`);

@@ -5,6 +5,7 @@
 
 .workspace-status-card,
 .locked-card,
+.migrate-card,
 .tab-bar,
 .form-panel,
 .record-panel,
@@ -23,6 +24,50 @@
   align-items: center;
   gap: 20rpx;
   background: linear-gradient(145deg, #e9f8f0 0%, #f9fcfa 100%);
+}
+
+.migrate-card {
+  display: flex;
+  margin-top: 16rpx;
+  padding: 18rpx 20rpx;
+  align-items: center;
+  gap: 16rpx;
+  border: 1rpx solid #dceee4;
+  background: #f3fbf7;
+}
+
+.migrate-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.migrate-copy text {
+  display: block;
+}
+
+.migrate-copy text:first-child {
+  color: #1d2a22;
+  font-size: 26rpx;
+  font-weight: 650;
+}
+
+.migrate-copy text:last-child {
+  margin-top: 4rpx;
+  color: #5a6d62;
+  font-size: 22rpx;
+  line-height: 1.45;
+}
+
+.migrate-button {
+  flex: none;
+  min-height: 68rpx;
+  margin: 0;
+  padding: 12rpx 18rpx;
+  border-radius: 12rpx;
+  background: #0b7a53;
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 600;
 }
 .workspace-hero-copy { min-width: 0; flex: 1; }
 .workspace-hero-image-wrap {

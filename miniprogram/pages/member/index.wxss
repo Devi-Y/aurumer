@@ -11,7 +11,8 @@
 .plan-card,
 .benefit-panel,
 .order-card,
-.notice-card {
+.notice-card,
+.settle-card {
   box-sizing: border-box;
   width: 100%;
   overflow: hidden;
@@ -181,6 +182,50 @@
   color: #555b57;
   font-size: 22rpx;
   line-height: 1.4;
+}
+
+.order-actions {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.query-order,
+.query-button {
+  min-height: 62rpx;
+  margin: 0;
+  padding: 11rpx 14rpx;
+  border-radius: 10rpx;
+  background: #0b7a53;
+  color: #ffffff;
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.settle-card {
+  display: flex;
+  margin-top: 16rpx;
+  padding: 18rpx 20rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  border: 1rpx solid #dceee4;
+  background: #f3fbf7;
+}
+
+.settle-card text {
+  min-width: 0;
+  flex: 1;
+  color: #2a4838;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.query-button {
+  flex: none;
+  padding: 14rpx 18rpx;
+  font-weight: 600;
 }
 
 .notice-card { margin-top: 24rpx; }

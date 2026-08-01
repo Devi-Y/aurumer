@@ -19,18 +19,19 @@ assert(entryBody.includes("href:'#/hk'"), "一级首页缺少港股入口");
 assert(entryBody.includes("href:'#/us'"), "一级首页缺少美股入口");
 assert(entryBody.includes("href:'#/a-shares'"), "一级首页缺少A股入口");
 assert(entryBody.includes("href:'#/gurus'"), "一级首页缺少聪明人持仓入口");
-assert(entryBody.includes("href:'#/gold'"), "一级首页缺少黄金投资入口");
+assert(entryBody.includes("href:'#/gold'"), "一级首页缺少黄金追踪入口");
 const portalOrder = ["href:'#/hk'", "href:'#/us'", "href:'#/a-shares'", "href:'#/gold'", "href:'#/gurus'"]
   .map((marker) => entryBody.indexOf(marker));
 assert(portalOrder.every((position, index) => position >= 0 && (index === 0 || position > portalOrder[index - 1])), "一级首页顺序必须是港股、美股、A股、黄金、聪明人持仓");
-for (const feature of ["今日新股结论", "性价比排名", "自由现金流筛选", "伦敦金与上海金", "逐个解释 WHY"]) {
+for (const feature of ["今日新股结论", "七姐妹", "自由现金流筛选", "买点与卖点", "逐个解释 WHY"]) {
   assert(entryBody.includes(feature), `首页入口缺少功能说明：${feature}`);
 }
+assert(entryBody.includes("title:'美股投资'") && entryBody.includes("title:'黄金追踪'"), "首页入口标题需为美股投资与黄金追踪");
 
 for (const text of [
-  "{id:'buy',label:'值得打'",
-  "{id:'caution',label:'谨慎打'",
-  "{id:'skip',label:'不建议'",
+  "{id:'buy',label:'建议申购'",
+  "{id:'caution',label:'暂缓观察'",
+  "{id:'skip',label:'暂不建议'",
   "{id:'ended',label:'已结束'",
   "{id:'seven',label:'七姐妹'",
   "{id:'hot',label:'热度前三'",

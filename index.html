@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>望潮 Aurum｜港美股与黄金投资答案工具</title>
-<meta name="description" content="望潮 Aurum：港股打新、美股机会、A股收息、黄金投资与聪明人持仓，一页看清结论、价格、风险和下一步。">
+<meta name="description" content="望潮 Aurum：港股打新、美股投资、A股收息、黄金追踪与机构持仓，一页看清结论、价格、风险和下一步。">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#F7F4EE">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16,7 +16,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:site_name" content="望潮 Aurum">
 <meta property="og:title" content="望潮 Aurum｜港美股与黄金投资答案工具">
-<meta property="og:description" content="港股看打新，美股看机会，A股看收息，黄金看价格与宏观驱动。">
+<meta property="og:description" content="港股看能不能打，美股看投资重点，A股看收息，黄金看买卖观察区。">
 <meta property="og:url" content="https://devi-y.github.io/aurumer/">
 <meta property="og:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
 <meta property="og:image:width" content="1200">
@@ -641,7 +641,7 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
 <noscript>
   <main>
     <h1>望潮 Aurum｜港美股、黄金与聪明人持仓答案工具</h1>
-    <p>港股看打新，美股看机会，A股看收息，黄金看配置，最后从港股 3、美股 5、A股 3 个聪明人组合学习 WHY 与 HOW。</p>
+    <p>港股看能不能打，美股看七姐妹与热度，A股看收息，黄金看买点卖点，最后从机构持仓学习思路。</p>
     <p>本工具仅用于信息整理、数据分析和投资研究辅助，不构成任何投资建议、收益承诺或买卖指令。</p>
   </main>
 </noscript>
@@ -1442,7 +1442,7 @@ function publicShareBase(){
 }
 function homepageIntroText(){return `望潮 Aurum｜港美股、黄金与聪明人持仓答案工具
 
-入口依次是港股打新、美股机会、A股收息、黄金投资、聪明人持仓。最后一个模块分港股 3、美股 5、A股 3，并解释 WHY 与 HOW。
+入口依次是港股打新、美股投资、A股收息、黄金追踪、聪明人持仓。最后一个模块分港股 3、美股 5、A股 3，并解释 WHY 与 HOW。
 
 不替你喊买卖，只帮你少看噪音，更快找到下一步。
 
@@ -2160,7 +2160,7 @@ function router(){
     const booting=LIVE.status==='loading';
     if(booting&&['hk','us','a-shares','gurus','gold','ipo','a-share','stock','investor'].includes(page)){
       const active=page==='us'||page==='stock'?'us':page==='gurus'||page==='investor'||page==='gold'?'home':page==='a-shares'||page==='a-share'?'a':'hk';
-      const titles={hk:'港股打新',us:'美股投资','a-shares':'A股收息',gurus:'聪明人持仓',gold:'黄金投资',ipo:'港股新股答案','a-share':'A股收息答案',stock:'美股答案',investor:'持仓答案'};
+      const titles={hk:'港股打新',us:'美股投资','a-shares':'A股收息',gurus:'聪明人持仓',gold:'黄金追踪',ipo:'港股新股答案','a-share':'A股收息答案',stock:'美股答案',investor:'持仓答案'};
       return renderMarketLoading(active,titles[page]||'正在加载','正在准备页面内容。');
     }
     if(page==='hk'&&!booting&&!LIVE.hasHK)return renderDataUnavailable('hk');
@@ -2259,7 +2259,7 @@ function homeNav(){
     ['港股打新', '#/hk'],
     ['美股投资', '#/us'],
     ['A股收息', '#/a-shares'],
-    ['黄金投资', '#/gold'],
+    ['黄金追踪', '#/gold'],
     ['聪明人持仓', '#/gurus'],
     ['投资驾驶舱说明', 'cockpit.html'],
   ];
@@ -2338,9 +2338,9 @@ function renderEntry(){
       })}
       ${homePortalCard({
         tone:'us',
-        kicker:'US · 机会',
-        title:'美股机会',
-        features:['七姐妹与热度前三','性价比排名','买入止盈止损'],
+        kicker:'US · 投资',
+        title:'美股投资',
+        features:['七姐妹','热度前三','价格与财务'],
         answer:usToday,
         href:'#/us',
       })}
@@ -2354,9 +2354,9 @@ function renderEntry(){
       })}
       ${homePortalCard({
         tone:'gold',
-        kicker:'GOLD · 配置',
-        title:'黄金投资',
-        features:['现在适不适合买','伦敦金与上海金','价格位置与宏观风险'],
+        kicker:'GOLD · 追踪',
+        title:'黄金追踪',
+        features:['现在怎么做','买点与卖点','为什么'],
         answer:goldToday,
         href:'#/gold',
       })}
@@ -2396,19 +2396,29 @@ function hkScoreLabel(x,score=hkDisplayScore(x)){
 function hkRankLabel(x,rankInfo=hkRankInfo(x)){
   return x.vc==='pending'?'待排名':`第 ${rankInfo.rank}/${rankInfo.total} 名`;
 }
+function hkPlainVerdict(verdict){
+  return ({
+    '值得打':'建议申购',
+    '谨慎打':'暂缓观察',
+    '不建议':'暂不建议',
+    '待核验':'资料不够',
+    '申购已结束':'申购已结束',
+    '已结束':'已结束',
+  })[verdict]||verdict||'先看结论';
+}
 function ipoCard(x,groupLabel,rank,score){
-  const effectiveLabel=x.vc==='pending'?'暂不参与':groupLabel;
+  const effectiveLabel=x.vc==='pending'?'资料不够':groupLabel;
   const historical=x.historicalReview||null;
   const answer=x.vc==='ended'
     ?historical?`${Number.isFinite(historical.greyMarketChange)?`暗盘 ${pct(historical.greyMarketChange)}`:'暗盘未收录'}${Number.isFinite(historical.firstDayChange)?`，首日 ${pct(historical.firstDayChange)}`:''}。`:'申购已结束，进入查看实际表现。'
     :x.vc==='pending'
-      ?'资料尚未齐全，暂不参与。'
+      ?'资料尚未齐全，暂不建议申购。'
       :x.vc==='buy'
-        ?'值得参与，进入查看卖出答案。'
+        ?'建议申购，点进去看一手金额和认购截止日。'
         :x.vc==='caution'
-          ?'可以关注，但只适合控制申购规模。'
-          :'风险或资料完整度不合格，暂不参与。';
-  const chipClass=x.vc==='ended'?'ended':effectiveLabel==='值得打'?'buy':effectiveLabel==='谨慎打'?'caution':'skip';
+          ?'暂缓观察，先看认购热度，不急着重仓。'
+          :'暂不建议申购，风险或资料不够。';
+  const chipClass=x.vc==='ended'?'ended':x.vc==='buy'?'buy':x.vc==='caution'?'caution':'skip';
   return `<a class="compact-card ${x.vc==='ended'?'muted':''}" href="#/ipo/${ipoPublicCode(x)}">
     <div class="compact-top"><span class="compact-rank">${rank}</span><div class="compact-title"><h3>${x.name}<span class="num">${x.code}</span></h3></div><div class="quote-now"><b class="num">${hkScoreLabel(x,score)}</b><span>${x.vc==='ended'?'复盘分':x.vc==='pending'?'资料待核验':'综合分'}</span></div></div>
     <div class="compact-answer"><span class="result-chip ${chipClass}">${effectiveLabel}</span> ${answer}</div>
@@ -2479,9 +2489,9 @@ function levelEntryCard({title,count,copy,href,tone=''}){
 function getHKGroups(){
   const listings=getHKListings();
   return [
-    {id:'buy',label:'值得打',tone:'buy',copy:'有明确参与价值。',items:listings.filter(x=>x.vc==='buy')},
-    {id:'caution',label:'谨慎打',tone:'caution',copy:'可以看，但有明显限制。',items:listings.filter(x=>x.vc==='caution')},
-    {id:'skip',label:'不建议',tone:'skip',copy:'当前不参与。',items:listings.filter(x=>x.vc==='skip'||x.vc==='pending')},
+    {id:'buy',label:'建议申购',tone:'buy',copy:'模型更看好，可关注认购。',items:listings.filter(x=>x.vc==='buy')},
+    {id:'caution',label:'暂缓观察',tone:'caution',copy:'先看认购热度，不急着重仓。',items:listings.filter(x=>x.vc==='caution')},
+    {id:'skip',label:'暂不建议',tone:'skip',copy:'风险更多或资料不够，暂不建议申购。',items:listings.filter(x=>x.vc==='skip'||x.vc==='pending')},
     {id:'ended',label:'已结束',tone:'ended',copy:'只看实际表现。',items:listings.filter(x=>x.vc==='ended')},
   ];
 }
@@ -2500,9 +2510,9 @@ function renderHK(){
 }
 function hkEmptyState(group){
   const messages={
-    buy:'当前暂无“值得打”的新股。宁可错过，也不勉强参与。',
+    buy:'当前暂无“建议申购”的新股。宁可错过，也不勉强参与。',
     caution:'当前暂无需要谨慎观察的新股，可以稍后再来看。',
-    skip:'当前暂无“不建议”标的。',
+    skip:'当前暂无“暂不建议”标的。',
     ended:'当前暂无已结束的新股记录。',
   };
   return `<div class="empty-answer">${messages[group.id]||`当前暂无${group.label}的标的。`}</div>`;
@@ -2744,29 +2754,31 @@ function goldSources(){
 }
 function renderGold(){
   const answer=LIVE.gold.answer;
+  const plan=answer.pricePlan||{};
   const groups=[
-    {title:'现在能买吗',copy:`一句话：${answer.conclusion}`,href:'#/gold/answer'},
-    {title:'价格位置',copy:'同时看国际金价、上海金和研究参考区间。',href:'#/gold/price'},
-    {title:'驱动与风险',copy:'看实际利率、美元、流动性和持仓拥挤度。',href:'#/gold/drivers'},
+    {title:'现在怎么做',copy:`${answer.action}：${answer.conclusion}`,href:'#/gold/answer'},
+    {title:'买点与卖点',copy:`买入观察 ${goldRangeText(plan.internationalWatch)}；卖出观察 ${goldRangeText(plan.internationalUpper)}`,href:'#/gold/price'},
+    {title:'为什么会涨跌',copy:'看实际利率、美元、流动性和持仓拥挤度。',href:'#/gold/drivers'},
   ];
   $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
-  <div class="simple-page-title"><h1>黄金投资：先选问题</h1></div>
+  <div class="simple-page-title"><h1>黄金追踪：先看结论</h1></div>
   <div class="level-menu">${groups.map(group=>levelEntryCard({title:group.title,count:'查看',copy:group.copy,href:group.href,tone:'gold'})).join('')}</div>
   ${marketUpdateLine('黄金')}
-  ${specialDisclaimer('黄金价格受利率、美元、流动性和事件冲击影响，研究区间不构成买卖指令。')}`+footer()+mobileNav('home');
+  ${specialDisclaimer('以上为公开资料研究结论，供参考；不是强制下单指令，决策自负。')}`+footer()+mobileNav('home');
 }
 function renderGoldAnswer(){
   const gold=LIVE.gold;
   const answer=gold.answer;
   const plan=answer.pricePlan||{};
-  $('#app').innerHTML=`${pageNav('#/gold', '返回黄金投资')}${dataStateNotice()}
+  $('#app').innerHTML=`${pageNav('#/gold', '返回黄金追踪')}${dataStateNotice()}
   <section class="decision-hero">
     <div class="eyebrow">望潮 Aurum · 黄金答案</div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:10px"><div><h2>${answer.action}</h2><p>${answer.conclusion}</p></div>${ring(answer.score,72,7,20)}</div>
     <div class="price-map" style="margin-top:18px">
-      <div class="price-cell"><span>国际金关注区</span><b>${goldRangeText(plan.internationalWatch)}</b></div>
-      <div class="price-cell"><span>上海金关注区</span><b>${goldRangeText(plan.domesticWatch)}</b></div>
+      <div class="price-cell"><span>国际金关注区 · 买入观察</span><b>${goldRangeText(plan.internationalWatch)}</b></div>
+      <div class="price-cell"><span>上海金关注区 · 买入观察</span><b>${goldRangeText(plan.domesticWatch)}</b></div>
       <div class="price-cell"><span>风险下沿</span><b>${goldRangeText(plan.internationalRisk)}</b></div>
+      <div class="price-cell"><span>国际金卖出观察</span><b>${goldRangeText(plan.internationalUpper)}</b></div>
     </div>
     <div class="advice" style="margin-top:14px"><b>先做什么：</b>${answer.action==='可分批关注'?'分批，不追涨；每次只处理计划仓位的一部分。':answer.action==='暂时回避'?'先不新增仓位，等待价格与宏观条件改善。':'先观察价格是否进入关注区，再决定是否分批。'}</div>
   </section>
@@ -2780,7 +2792,7 @@ function renderGoldPrice(){
   const domestic=gold.quotes.domestic;
   const plan=gold.answer.pricePlan||{};
   const history=(gold.history?.international||[]).map(item=>item.close).filter(Number.isFinite);
-  $('#app').innerHTML=`${pageNav('#/gold', '返回黄金投资')}${dataStateNotice()}
+  $('#app').innerHTML=`${pageNav('#/gold', '返回黄金追踪')}${dataStateNotice()}
   <div class="simple-page-title"><h1>黄金价格位置</h1><span>双市场</span></div>
   <div class="gold-quote-grid">${goldPriceCard('国际金价',international)}${goldPriceCard('上海金 Au99.99',domestic)}</div>
   <div class="d-sec"><h4>近 180 个交易日</h4><div class="card">${history.length>2?sparkSVG(history,760,150,'#B4872E'):'<div class="empty-answer">趋势数据待更新。</div>'}<div class="stats g3" style="margin-top:12px"><div class="stat"><span>近 20 日</span><b>${fmtPct(international.returns?.day20)}</b></div><div class="stat"><span>近 60 日</span><b>${fmtPct(international.returns?.day60)}</b></div><div class="stat"><span>近 180 日位置</span><b>${Number.isFinite(international.percentile180)?`${international.percentile180}% 分位`:'待更新'}</b></div></div></div></div>
@@ -2789,7 +2801,7 @@ function renderGoldPrice(){
 }
 function renderGoldDrivers(){
   const indicators=LIVE.gold.indicators||[];
-  $('#app').innerHTML=`${pageNav('#/gold', '返回黄金投资')}${dataStateNotice()}
+  $('#app').innerHTML=`${pageNav('#/gold', '返回黄金追踪')}${dataStateNotice()}
   <div class="simple-page-title"><h1>黄金为什么涨跌？</h1><span>基于公开数据</span></div>
   <div class="guide-card"><b>一句话看懂</b><p>实际利率和美元代表机会成本，金融条件代表流动性，持仓与上海金溢价用于提醒拥挤和本地价格风险。</p></div>
   <div class="gold-driver-grid">${indicators.map(goldDriverCard).join('')}</div>
@@ -3234,16 +3246,16 @@ function renderIPO(x){
     ?`${x.publicOversubscription.toFixed(1)} 倍`
     :'认购结果尚未公布';
   const currentConclusion=isEnded
-    ?review?`历史复盘：${review.verdict}`:'申购已结束'
-    :x.verdict==='值得打'?'值得参与':x.verdict==='谨慎打'?'谨慎参与':'暂不参与';
+    ?review?`历史复盘：${hkPlainVerdict(review.verdict)}`:'申购已结束'
+    :hkPlainVerdict(x.verdict);
   const detailText=isEnded
     ?review&&Number.isFinite(review.firstDayChange)
       ?`首日实际 ${pct(review.firstDayChange)}，仅作为历史回顾。`
       :'该项目已结束，只保留已整理资料。'
-    :x.vc==='pending'?'关键信息尚未齐全，先不参与。':x.verdict==='值得打'?'可继续关注申购安排。':'先观察，不急于参与。';
+    :x.vc==='pending'?'关键信息尚未齐全，先不建议申购。':x.verdict==='值得打'?'可继续关注申购安排。':'先观察，不急于申购。';
   detailShell(
     `<div class="d-head"><h1>${x.name}<span class="code num" style="font-size:14px">${x.code}</span></h1>
-    <div class="sub"><span class="chip mini tag">${industryLabel}</span><span class="chip mini acc">${isEnded?'已结束':x.verdict}</span></div></div>`,
+    <div class="sub"><span class="chip mini tag">${industryLabel}</span><span class="chip mini acc">${isEnded?'已结束':hkPlainVerdict(x.verdict)}</span></div></div>`,
     `<div class="decision-hero hk-hero">
       <div class="decision-kicker">望潮 Aurum · 港股打新</div>
       <h2>${x.name} 现在怎么看？</h2>
@@ -3260,7 +3272,7 @@ function renderIPO(x){
     </div>
     ${!isEnded?`<div class="d-sec"><h4>打新预测</h4><div class="card">
       <div class="stats">
-        <div class="stat"><b>${x.verdict||'暂不参与'}</b><span>申购结论</span></div>
+        <div class="stat"><b>${hkPlainVerdict(x.verdict)||'暂不建议'}</b><span>申购结论</span></div>
         <div class="stat"><b>${answers.dark}</b><span>暗盘参考</span></div>
         <div class="stat"><b>${answers.firstDay}</b><span>首日参考</span></div>
         <div class="stat"><b>${answers.week}</b><span>五日卖出参考</span></div>

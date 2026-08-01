@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-08-01T01:44:14.698Z",
-  "durationMs": 22721,
+  "updatedAt": "2026-08-01T03:57:49.239Z",
+  "durationMs": 23732,
   "sources": [
     {
       "id": "yahoo",
@@ -5327,7 +5327,7 @@
   },
   "gold": {
     "status": "live",
-    "updatedAt": "2026-08-01T01:43:53.829Z",
+    "updatedAt": "2026-08-01T03:57:28.025Z",
     "quotes": {
       "international": {
         "symbol": "GC=F",
@@ -5359,9 +5359,9 @@
       },
       "usdCny": {
         "symbol": "USD/CNY",
-        "price": 6.74,
-        "changePercent": -0.15,
-        "asOf": "2026-07-31T21:32:10.000Z"
+        "price": 6.75,
+        "changePercent": -0.07,
+        "asOf": "2026-08-01T03:30:35.000Z"
       }
     },
     "indicators": [
@@ -5409,7 +5409,7 @@
       {
         "id": "domesticPremium",
         "label": "上海金折算溢价",
-        "value": -0.4,
+        "value": -0.5,
         "unit": "%",
         "asOf": "2026-07-31",
         "note": "比较 Au99.99 与国际金价人民币折算值。"
@@ -5445,18 +5445,18 @@
           "currency": "USD/oz"
         },
         "domesticWatch": {
-          "low": 855.1,
-          "high": 881.2,
+          "low": 855.5,
+          "high": 881.7,
           "currency": "CNY/g"
         },
         "domesticUpper": {
-          "low": 912.7,
-          "high": 929.6,
+          "low": 913.2,
+          "high": 930,
           "currency": "CNY/g"
         },
         "domesticRisk": {
-          "low": 852.1,
-          "high": 852.1,
+          "low": 852.5,
+          "high": 852.5,
           "currency": "CNY/g"
         }
       }

@@ -143,8 +143,26 @@ function buildToday(data) {
     headline = `黄金现在：${goldAction}${hasNumber(internationalGold.price) ? `；国际金 ${Number(internationalGold.price).toFixed(0)} 美元/盎司` : ""}`;
   }
 
+  const goldPrice = hasNumber(internationalGold.price)
+    ? Number(internationalGold.price).toFixed(0)
+    : "";
+  const hero = goldPrice
+    ? {
+        label: "国际金价",
+        value: goldPrice,
+        unit: "美元/盎司",
+        note: goldAction,
+      }
+    : {
+        label: "今日重点",
+        value: listing ? (hkBadge || "先看资料") : goldAction,
+        unit: listing ? shortName(listing.name, "港股新股") : "黄金追踪",
+        note: todayHelp("fresh"),
+      };
+
   return {
     headline,
+    hero,
     metrics: [
       {
         label: "黄金动作",
@@ -230,12 +248,14 @@ Page({
     today: {
       headline: "正在整理今天先看的几件事",
       summary: "先看结论，再点进去。",
+      hero: { label: "今日重点", value: "更新中", unit: "", note: "" },
       metrics: [],
       points: [],
     },
     todayTitle: "今日重点",
     todayHelp: "今天先看这几件事",
     todayExpanded: false,
+    showHoldingsPanel: false,
     refreshedAt: "",
     dataAsOf: "",
     source: "",
@@ -293,8 +313,14 @@ Page({
     this.setData({ todayExpanded: next });
     if (next) track("today_expand");
   },
+  toggleHoldingsPanel() {
+    this.setData({ showHoldingsPanel: !this.data.showHoldingsPanel });
+  },
   toggleHoldingForm() {
-    this.setData({ showHoldingForm: !this.data.showHoldingForm });
+    this.setData({
+      showHoldingForm: !this.data.showHoldingForm,
+      showHoldingsPanel: true,
+    });
   },
   changeHoldingMarket(event) {
     this.setData({ marketIndex: Number(event.detail.value) || 0 });

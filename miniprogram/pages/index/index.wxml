@@ -1,33 +1,55 @@
 <view class="page-shell home-shell">
-  <view class="today-card">
-    <view class="today-top">
-      <view class="today-title-wrap">
-        <text class="today-title">{{todayTitle}}</text>
-        <text class="today-help">{{todayHelp}}</text>
-        <text class="today-asof">{{dataAsOf || '正在核对更新时间'}}</text>
+  <view class="today-card hero-panel">
+    <image class="hero-art" src="/assets/home/today-hero.svg" mode="aspectFit" aria-hidden="true"></image>
+    <view class="hero-top">
+      <text class="hero-brand">望潮 Aurum</text>
+      <text class="hero-asof">{{dataAsOf || '正在核对更新时间'}}</text>
+    </view>
+    <text class="today-title">{{todayTitle}}</text>
+    <text class="today-help">{{todayHelp}}</text>
+    <view class="hero-primary">
+      <text class="hero-label">{{today.hero.label}}</text>
+      <view class="hero-value-row">
+        <text class="hero-value">{{today.hero.value}}</text>
+        <text wx:if="{{today.hero.unit}}" class="hero-unit">{{today.hero.unit}}</text>
       </view>
-      <text class="today-time">{{refreshedAt || '更新中'}}</text>
+      <text wx:if="{{today.hero.note}}" class="hero-note">{{today.hero.note}}</text>
     </view>
-    <text class="today-headline">{{today.headline}}</text>
-    <view
-      class="today-toggle"
-      bindtap="toggleTodayDetails"
-      hover-class="tap-active"
-      aria-role="button"
-      aria-label="{{todayExpanded ? '收起今日重点' : '展开今日重点'}}"
-    >
-      <text>{{todayExpanded ? '收起' : '查看 4 项速览'}}</text>
-      <text>{{todayExpanded ? '︿' : '﹀'}}</text>
-    </view>
-  </view>
-
-  <view wx:if="{{todayExpanded}}" class="today-detail-panel">
-    <view class="today-metrics">
-      <view wx:for="{{today.metrics}}" wx:key="label" class="today-metric">
+    <view class="hero-metrics">
+      <view wx:for="{{today.metrics}}" wx:key="label" class="hero-metric">
         <text>{{item.label}}</text>
         <text>{{item.value}}</text>
       </view>
     </view>
+  </view>
+
+  <view class="action-strip">
+    <view
+      class="action-item"
+      bindtap="toggleTodayDetails"
+      hover-class="tap-active"
+      aria-role="button"
+      aria-label="{{todayExpanded ? '收起今日重点' : '查看 4 项速览'}}"
+    >
+      <image src="/assets/home/today.svg" mode="aspectFit" aria-hidden="true"></image>
+      <text>{{todayExpanded ? '收起速览' : '查看 4 项速览'}}</text>
+    </view>
+    <view class="action-divider"></view>
+    <view
+      class="action-item"
+      bindtap="toggleHoldingsPanel"
+      hover-class="tap-active"
+      aria-role="button"
+      aria-label="本机速记"
+    >
+      <image src="/assets/home/watch.svg" mode="aspectFit" aria-hidden="true"></image>
+      <text>本机速记{{holdings.length ? ' · ' + holdings.length : ''}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{todayExpanded}}" class="today-detail-panel">
+    <text class="panel-kicker">四市速览</text>
+    <text class="today-headline">{{today.headline}}</text>
     <view
       wx:for="{{today.points}}"
       wx:key="id"
@@ -47,8 +69,8 @@
     </view>
   </view>
 
-  <text class="section-label">本机速记</text>
-  <view class="holdings-panel">
+  <view wx:if="{{showHoldingsPanel}}" class="holdings-panel">
+    <text class="panel-kicker">本机速记</text>
     <view wx:if="{{holdings.length}}" class="holding-list">
       <view wx:for="{{holdings}}" wx:key="id" class="holding-row">
         <view class="holding-main">
@@ -84,38 +106,43 @@
     </view>
   </view>
 
-  <text class="section-label">核心研究</text>
+  <view class="service-panel">
+    <view class="service-head">
+      <text class="section-label">核心研究</text>
+      <text class="section-sub">点格子进详情</text>
+    </view>
 
-  <view class="entry-grid">
+    <view class="entry-grid">
+      <view
+        wx:for="{{entries}}"
+        wx:key="id"
+        class="grid-card {{item.tone}}"
+        data-id="{{item.id}}"
+        bindtap="openGridEntry"
+        hover-class="tap-active"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="{{item.title}}，{{item.help}}"
+      >
+        <text wx:if="{{item.badge}}" class="entry-badge">{{item.badge}}</text>
+        <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
+        <text class="card-title">{{item.title}}</text>
+      </view>
+    </view>
+
     <view
-      wx:for="{{entries}}"
-      wx:key="id"
-      class="grid-card {{item.tone}}"
-      data-id="{{item.id}}"
-      bindtap="openGridEntry"
+      class="workspace-strip"
+      bindtap="openWorkspace"
       hover-class="tap-active"
-      hover-stay-time="80"
       aria-role="button"
-      aria-label="{{item.title}}，{{item.help}}"
+      aria-label="打开我的研究记录"
     >
-      <text wx:if="{{item.badge}}" class="entry-badge">{{item.badge}}</text>
-      <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
-      <text class="card-title">{{item.title}}</text>
+      <view class="workspace-icon-wrap">
+        <image src="/assets/home/decision.svg" mode="aspectFit" aria-hidden="true"></image>
+      </view>
+      <text class="workspace-title">我的研究记录</text>
+      <text class="arrow">›</text>
     </view>
-  </view>
-
-  <view
-    class="workspace-strip"
-    bindtap="openWorkspace"
-    hover-class="tap-active"
-    aria-role="button"
-    aria-label="打开我的研究记录"
-  >
-    <view class="workspace-icon-wrap">
-      <image src="/assets/home/decision.svg" mode="aspectFit" aria-hidden="true"></image>
-    </view>
-    <text class="workspace-title">我的研究记录</text>
-    <text class="arrow">›</text>
   </view>
 
   <view class="page-footer">

@@ -1,5 +1,7 @@
 const { loadSnapshot } = require("../../data/store");
 const { allItems, groupDefinitions } = require("../../utils/answers");
+const { goHome } = require("../../utils/nav");
+const { track } = require("../../utils/analytics");
 
 const MARKET_META = {
   hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -142,7 +144,6 @@ Page({
             : 0,
         };
       });
-      this.snapshot = snapshot;
       const title = group ? group.title : "资料列表";
       const one = group ? group.one : "一句话看懂，再进详情。";
       this.setData({ title, one, items, insight: buildInsight(this.data.market, group, rawItems), source });
@@ -152,9 +153,10 @@ Page({
   openItem(event) {
     wx.navigateTo({ url: `/pages/detail/index?market=${this.data.market}&id=${encodeURIComponent(event.currentTarget.dataset.id)}` });
   },
-  goBack() { wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/index/index" }) }); },
-  goHome() { wx.reLaunch({ url: "/pages/index/index" }); },
+  goBack() { wx.navigateBack({ fail: () => goHome() }); },
+  goHome() { goHome(); },
   onShareAppMessage() {
+    track("share_tap", { page: "list" });
     return { title: `${this.data.title}｜望潮 Aurum`, path: `/pages/list/index?market=${this.data.market}&group=${this.data.group}` };
   },
 });

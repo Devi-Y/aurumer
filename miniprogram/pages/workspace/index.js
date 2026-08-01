@@ -6,7 +6,9 @@ const {
   saveDecision,
   saveWatchItem,
 } = require("../../services/member");
-const { openPage } = require("../../utils/nav");
+const { openPage, goHome, consumeTabQuery } = require("../../utils/nav");
+const { listHoldings, removeHolding } = require("../../utils/local-holdings");
+const { track } = require("../../utils/analytics");
 
 const MARKET_OPTIONS = [
   { id: "hk", label: "港股" },
@@ -87,13 +89,37 @@ function exportText(state) {
   return lines.join("\n");
 }
 
+function applyPrefill(page, options = {}) {
+  const market = safeDecode(options.market);
+  const marketIndex = Math.max(0, MARKET_OPTIONS.findIndex((item) => item.id === market));
+  const focus = safeDecode(options.focus);
+  const name = safeDecode(options.name);
+  const code = safeDecode(options.code);
+  const fromDetail = Boolean(name || code);
+  const patch = {};
+  if (focus === "decision" || focus === "watch") patch.activeTab = focus === "decision" ? "decision" : "watch";
+  if (marketIndex >= 0 && market) patch.marketIndex = marketIndex;
+  if (fromDetail) {
+    patch.showWatchForm = true;
+    patch.activeTab = "watch";
+    patch.watchForm = {
+      name,
+      code,
+      note: "",
+    };
+  }
+  if (Object.keys(patch).length) page.setData(patch);
+}
+
 Page({
   data: {
     loading: true,
     saving: false,
+    migrating: false,
     activeTab: "watch",
     showWatchForm: false,
     showDecisionForm: false,
+    localHoldingsCount: 0,
     marketOptions: MARKET_OPTIONS,
     marketIndex: 1,
     watchForm: { name: "", code: "", note: "" },
@@ -108,30 +134,20 @@ Page({
     }),
   },
   onLoad(options = {}) {
-    const market = safeDecode(options.market);
-    const marketIndex = Math.max(0, MARKET_OPTIONS.findIndex((item) => item.id === market));
-    const focus = safeDecode(options.focus);
-    const name = safeDecode(options.name);
-    const code = safeDecode(options.code);
-    // 从详情页带入名称/代码时直接展开表单；平时有记录则默认先看列表。
-    const fromDetail = Boolean(name || code);
-    this.setData({
-      activeTab: focus === "decision" ? "decision" : "watch",
-      marketIndex: marketIndex < 0 ? 1 : marketIndex,
-      showWatchForm: fromDetail,
-      showDecisionForm: focus === "decision",
-      watchForm: {
-        name,
-        code,
-        note: "",
-      },
-    });
+    track("workspace_open", { from: "direct" });
+    applyPrefill(this, options);
   },
   onShow() {
+    const queued = consumeTabQuery("/pages/workspace/index");
+    if (queued) applyPrefill(this, queued);
+    this.refreshLocalHint();
     this.refresh();
   },
   onPullDownRefresh() {
     this.refresh(() => wx.stopPullDownRefresh());
+  },
+  refreshLocalHint() {
+    this.setData({ localHoldingsCount: listHoldings().length });
   },
   refresh(done) {
     this.setData({ loading: true });
@@ -139,7 +155,6 @@ Page({
       .then((workspace) => {
         const state = viewWorkspace(workspace);
         const patch = { state };
-        // 空列表时表单必须可见，否则用户找不到录入入口。
         if (!state.watchItems.length) patch.showWatchForm = true;
         if (!state.decisions.length) patch.showDecisionForm = true;
         this.setData(patch);
@@ -202,7 +217,10 @@ Page({
     this.runMutation(
       saveWatchItem({ ...this.data.watchForm, market: market.id }),
       "已加入跟踪清单",
-      () => this.setData({ watchForm: { name: "", code: "", note: "" }, showWatchForm: false }),
+      () => {
+        track("workspace_save", { kind: "watch" });
+        this.setData({ watchForm: { name: "", code: "", note: "" }, showWatchForm: false });
+      },
     );
   },
   submitDecision() {
@@ -211,7 +229,10 @@ Page({
     this.runMutation(
       saveDecision(this.data.decisionForm),
       "决策档案已保存",
-      () => this.setData({ decisionForm: { title: "", note: "" }, showDecisionForm: false }),
+      () => {
+        track("workspace_save", { kind: "decision" });
+        this.setData({ decisionForm: { title: "", note: "" }, showDecisionForm: false });
+      },
     );
   },
   runMutation(task, successTitle, afterSuccess) {
@@ -230,6 +251,82 @@ Page({
         wx.hideLoading();
         this.setData({ saving: false });
       });
+  },
+  migrateLocalHoldings() {
+    if (!this.data.state.writable) return this.explainLocked();
+    if (this.data.migrating || this.data.saving) return;
+    const locals = listHoldings();
+    if (!locals.length) {
+      wx.showToast({ title: "没有本机速记", icon: "none" });
+      return;
+    }
+    const existing = new Set(
+      (this.data.state.watchItems || []).map((item) => `${String(item.code || "").toUpperCase()}|${item.name}`),
+    );
+    const pending = locals.filter((item) => {
+      const key = `${String(item.code || "").toUpperCase()}|${item.name}`;
+      return !existing.has(key);
+    });
+    if (!pending.length) {
+      wx.showModal({
+        title: "已全部在云端",
+        content: "本机速记与云端跟踪清单没有新条目。是否清空本机速记？",
+        confirmText: "清空本机",
+        success: (result) => {
+          if (!result.confirm) return;
+          locals.forEach((item) => removeHolding(item.id));
+          this.refreshLocalHint();
+          wx.showToast({ title: "本机已清空", icon: "none" });
+        },
+      });
+      return;
+    }
+    wx.showModal({
+      title: "迁移本机速记",
+      content: `将把 ${pending.length} 条本机速记写入云端跟踪清单（不同步到其他设备以外的账号）。迁移成功后可选择清空本机。`,
+      confirmText: "开始迁移",
+      success: (result) => {
+        if (!result.confirm) return;
+        this.setData({ migrating: true });
+        wx.showLoading({ title: "正在迁移", mask: true });
+        let chain = Promise.resolve(null);
+        pending.forEach((item) => {
+          chain = chain.then(() => saveWatchItem({
+            name: item.name,
+            code: item.code || "",
+            market: item.market || "other",
+            note: [
+              item.note || "",
+              hasCostQty(item) ? `本机：成本 ${item.cost || "-"} / 数量 ${item.quantity || "-"}` : "",
+            ].filter(Boolean).join("；").slice(0, 500),
+          }));
+        });
+        chain
+          .then((workspace) => {
+            track("migrate_local", { count: pending.length });
+            this.setData({ state: viewWorkspace(workspace), activeTab: "watch" });
+            wx.hideLoading();
+            wx.showModal({
+              title: "迁移完成",
+              content: `已写入 ${pending.length} 条。是否清空本机速记？云端记录会保留。`,
+              confirmText: "清空本机",
+              cancelText: "先留着",
+              success: (choice) => {
+                if (choice.confirm) {
+                  locals.forEach((item) => removeHolding(item.id));
+                }
+                this.refreshLocalHint();
+              },
+            });
+          })
+          .catch((error) => {
+            wx.hideLoading();
+            wx.showModal({ title: "迁移中断", content: error.message || "请稍后重试", showCancel: false });
+            this.refresh();
+          })
+          .finally(() => this.setData({ migrating: false }));
+      },
+    });
   },
   deleteWatch(event) {
     this.confirmDelete("从跟踪清单删除这条记录？", () => removeWatchItem(event.currentTarget.dataset.id));
@@ -272,9 +369,13 @@ Page({
     openPage("/pages/member/index");
   },
   goBack() {
-    wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/index/index" }) });
+    wx.navigateBack({ fail: () => goHome() });
   },
   goHome() {
-    wx.reLaunch({ url: "/pages/index/index" });
+    goHome();
   },
 });
+
+function hasCostQty(item) {
+  return (item.cost != null && item.cost !== "") || (item.quantity != null && item.quantity !== "");
+}

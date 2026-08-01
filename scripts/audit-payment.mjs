@@ -139,7 +139,14 @@ assert(app.includes("wx.cloud.init") && app.includes("runtime.cloudEnv"), "小�
 assert(client.includes("wx.requestPayment"), "会员购买没有使用普通小程序支付");
 assert(!client.includes("wx.requestVirtualPayment"), "客户端仍残留虚拟支付道具路线");
 assert(!backend.includes("prepareVirtualPurchase") && !backend.includes('kind: "virtual"'), "服务端仍允许创建新的虚拟支付订单");
-assert(client.includes('callBackend("preparePurchase"') && !client.includes('callBackend("queryOrder"'), "客户端支付应只下单一次并直接拉起微信收银台，不应阻塞等待查单");
+assert(client.includes('callBackend("preparePurchase"'), "客户端支付应只下单一次并直接拉起微信收银台");
+assert(
+  !/purchase[\s\S]{0,400}callBackend\([\"']queryOrder/.test(client)
+  && client.includes("queryOrder")
+  && memberPage.includes("manualQuery"),
+  "购买链路不应阻塞查单；付款后应提供独立的手动查单入口",
+);
+
 assert(backend.includes('event.action === "queryOrder"'), "服务端缺少支付回调失败后的查单恢复能力");
 assert(memberPage.includes("state.paymentReady") && memberPage.includes("state.purchaseAllowed") && memberPage.includes("支付通道准备中"), "支付未就绪时购买入口没有安全拦截");
 assert(memberPage.includes("purchase(planId") && !memberPage.includes('title: "确认开通望潮会员"'), "会员页没有使用点击购买后直达微信支付的最短流程");

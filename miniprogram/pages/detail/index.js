@@ -1,6 +1,8 @@
+const { openPage, goHome } = require("../../utils/nav");
+const { track } = require("../../utils/analytics");
+const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { loadSnapshot } = require("../../data/store");
 const { findItem, money, INVESTOR_NAMES, formatRange } = require("../../utils/answers");
-const { openPage } = require("../../utils/nav");
 
 const DETAIL_META = {
   hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -131,7 +133,7 @@ function baseView(item) {
     actions: [],
     risk: "数据不足时宁可不给硬答案。",
     sourceNote: "公开资料整理",
-    disclaimer: "本页为基于公开资料的研究结论，供决策参考；不是强制下单指令，投资有风险，决策自负。",
+    disclaimer: RESEARCH_DISCLAIMER,
   };
 }
 
@@ -438,6 +440,7 @@ Page({
   },
   onLoad(options) {
     this.setData({ market: options.market || "hk", id: decodeURIComponent(options.id || "") });
+    track("detail_open", { market: String(options.market || "hk") });
     this.refresh();
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
@@ -450,8 +453,8 @@ Page({
       wx.setNavigationBarTitle({ title: view.title || "资料详情" });
     }, done, { force });
   },
-  goBack() { wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/index/index" }) }); },
-  goHome() { wx.reLaunch({ url: "/pages/index/index" }); },
+  goBack() { wx.navigateBack({ fail: () => goHome() }); },
+  goHome() { goHome(); },
   toggleDetails() {
     this.setData({ detailsExpanded: !this.data.detailsExpanded });
   },
@@ -462,9 +465,11 @@ Page({
       `name=${encodeURIComponent(this.data.view.title || "")}`,
       `code=${encodeURIComponent(this.data.view.code || "")}`,
     ].join("&");
+    track("workspace_open", { from: "detail" });
     openPage(`/pages/workspace/index?${query}`);
   },
   onShareAppMessage() {
+    track("share_tap", { page: "detail" });
     return { title: `${this.data.view.title || "研究资料"}｜望潮 Aurum`, path: `/pages/detail/index?market=${this.data.market}&id=${encodeURIComponent(this.data.id)}` };
   },
 });

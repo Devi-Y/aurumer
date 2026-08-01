@@ -1,5 +1,7 @@
-const { loadMemberState, purchase } = require("../../services/member");
-const { openPage } = require("../../utils/nav");
+const { loadMemberState, purchase, queryOrder } = require("../../services/member");
+const { openPage, goHome } = require("../../utils/nav");
+const { track } = require("../../utils/analytics");
+const { MEMBER_DISCLAIMER } = require("../../utils/disclaimer");
 const legalInfo = require("../../config/legal");
 
 const ANNUAL_PLAN = {
@@ -60,6 +62,8 @@ function viewState(state) {
       createdLabel: formatDate(order.createdAt),
       paidLabel: formatDate(order.paidAt),
       expiresLabel: formatDate(order.entitlementExpiresAt),
+      canQuery: ["prepared", "pending", "creating", "fulfillment_review"].includes(order.status)
+        || (!active && Boolean(order.orderId)),
     })),
   };
 }
@@ -69,9 +73,12 @@ Page({
     loading: true,
     paying: false,
     settling: false,
+    querying: false,
     showOrders: false,
     showNotice: false,
     legalInfo,
+    disclaimer: MEMBER_DISCLAIMER,
+    lastOrderId: "",
     state: viewState({
       paymentReady: false,
       paymentReason: "正在检查会员服务",
@@ -115,6 +122,7 @@ Page({
     const planId = event.currentTarget.dataset.plan;
     const plan = this.data.state.plans.find((item) => item.id === planId);
     if (!plan || !plan.enabled) return;
+    track("pay_click", { plan: String(planId) });
     this.setData({ paying: true });
     purchase(planId, {
       accepted: true,
@@ -122,13 +130,20 @@ Page({
       termsVersion: legalInfo.termsVersion,
       privacyVersion: legalInfo.privacyVersion,
     })
-      .then(() => {
-        this.setData({ paying: false, settling: true });
+      .then((result) => {
+        track("pay_ok");
+        this.setData({
+          paying: false,
+          settling: true,
+          lastOrderId: (result && result.orderId) || "",
+          showOrders: true,
+        });
         wx.showToast({ title: "支付成功", icon: "success" });
         this.refreshAfterPayment(0);
       })
       .catch((error) => {
         if (error.code === "PAYMENT_CANCELLED") {
+          track("pay_cancel");
           wx.showToast({ title: "已取消支付", icon: "none" });
           return;
         }
@@ -154,19 +169,50 @@ Page({
       }
       const delay = PAYMENT_REFRESH_DELAYS[attempt];
       if (delay == null) {
-        this.setData({ settling: false });
-        wx.showToast({ title: "权益正在同步", icon: "none" });
+        this.setData({ settling: false, showOrders: true });
+        wx.showToast({ title: "可点「刷新权益」", icon: "none" });
         return;
       }
       this.paymentRefreshTimer = setTimeout(() => this.refreshAfterPayment(attempt + 1), delay);
     });
   },
+  manualQuery(event) {
+    if (this.data.querying) return;
+    const orderId = String(event.currentTarget.dataset.order || this.data.lastOrderId || "");
+    if (!orderId) {
+      this.refresh();
+      wx.showToast({ title: "正在刷新会员状态", icon: "none" });
+      return;
+    }
+    this.setData({ querying: true });
+    queryOrder(orderId)
+      .then((result) => {
+        if (result && result.fulfilled) {
+          wx.showToast({ title: "会员已开通", icon: "success" });
+        } else {
+          wx.showToast({
+            title: (result && result.statusLabel) || "仍在核对",
+            icon: "none",
+          });
+        }
+        return loadMemberState();
+      })
+      .then((state) => {
+        if (state) this.setData({ state: viewState(state), settling: false });
+      })
+      .catch((error) => {
+        wx.showModal({
+          title: "查单暂不可用",
+          content: error.message || "请稍后重试或联系微信客服",
+          showCancel: false,
+        });
+      })
+      .finally(() => this.setData({ querying: false }));
+  },
   openWorkspace() {
     openPage("/pages/workspace/index");
   },
   openLegal() {
-    // 协议页只用 navigateBack 返回，不会和会员页互相压栈，因此保持普通跳转；
-    // 只在页面栈已满导致跳转失败时兜底，避免点了没反应。
     wx.navigateTo({
       url: "/pages/legal/index",
       fail: () => wx.redirectTo({ url: "/pages/legal/index" }),
@@ -184,12 +230,13 @@ Page({
     this.setData({ showNotice: !this.data.showNotice });
   },
   goBack() {
-    wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/index/index" }) });
+    wx.navigateBack({ fail: () => goHome() });
   },
   goHome() {
-    wx.reLaunch({ url: "/pages/index/index" });
+    goHome();
   },
   onShareAppMessage() {
+    track("share_tap", { page: "member" });
     return { title: "望潮年费会员｜365 天，不自动续费", path: "/pages/member/index" };
   },
 });

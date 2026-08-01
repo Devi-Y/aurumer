@@ -133,11 +133,16 @@ function deleteWorkspace() {
   return workspaceAction("deleteWorkspace", {});
 }
 
+function queryOrder(orderId) {
+  return callBackend("queryOrder", { orderId });
+}
+
 module.exports = {
   deleteWorkspace,
   loadMemberState,
   loadWorkspace,
   purchase,
+  queryOrder,
   removeDecision,
   removeWatchItem,
   saveDecision,

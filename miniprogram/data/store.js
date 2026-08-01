@@ -81,6 +81,16 @@ function isRemoteNewerOrEqual(next, current) {
   return !Number.isNaN(nextTime) && (Number.isNaN(currentTime) || nextTime >= currentTime);
 }
 
+function hasActionSurface(snapshot) {
+  return Boolean(
+    snapshot
+    && snapshot.gold
+    && snapshot.gold.answer
+    && snapshot.gold.answer.pricePlan
+    && snapshot.gold.answer.pricePlan.internationalWatch
+  );
+}
+
 function fetchLatest(force) {
   const now = Date.now();
   if (!force && fetchedAt && now - fetchedAt < REMOTE_TTL_MS) {
@@ -103,6 +113,16 @@ function fetchLatest(force) {
     fetchedAt = Date.now();
     if (!result || !result.ok || !isUsableSnapshot(result.data)) return null;
     const warning = result.warning || "";
+    // 云函数若仍是旧清洗层，会剥掉黄金买卖观察区与港股申购结论。
+    // 此时保留随包/本机动作版快照，避免「能用」被在线回源刷没。
+    if (!hasActionSurface(result.data) && hasActionSurface(memorySnapshot)) {
+      memoryWarning = warning || "云端动作结论待同步";
+      return {
+        snapshot: memorySnapshot,
+        source: memorySource,
+        warning: memoryWarning,
+      };
+    }
     if (isRemoteNewerOrEqual(result.data, memorySnapshot)) {
       memorySnapshot = result.data;
       memorySource = warning ? "缓存回退" : "自动更新";

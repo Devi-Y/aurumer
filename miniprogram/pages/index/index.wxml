@@ -1,7 +1,10 @@
 <view class="page-shell home-shell">
   <view class="today-card">
     <view class="today-top">
-      <text class="today-title">今日重点</text>
+      <view class="today-title-wrap">
+        <text class="today-title">今日重点</text>
+        <text class="today-help">今天先看这几件事</text>
+      </view>
       <text class="today-time">{{refreshedAt || '更新中'}}</text>
     </view>
     <text class="today-headline">{{today.headline}}</text>

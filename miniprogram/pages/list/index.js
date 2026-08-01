@@ -2,10 +2,10 @@ const { loadSnapshot } = require("../../data/store");
 const { allItems, groupDefinitions } = require("../../utils/answers");
 
 const MARKET_META = {
-  hk: { label: "港股新股", icon: "/assets/home/hk.svg", tone: "hk" },
-  us: { label: "美股机会", icon: "/assets/home/us.svg", tone: "us" },
+  hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
+  us: { label: "美股投资", icon: "/assets/home/us.svg", tone: "us" },
   a: { label: "A股收息", icon: "/assets/home/a.svg", tone: "a" },
-  gold: { label: "黄金机会", icon: "/assets/home/gold.svg", tone: "gold" },
+  gold: { label: "黄金追踪", icon: "/assets/home/gold.svg", tone: "gold" },
   guru: { label: "机构持仓", icon: "/assets/home/guru.svg", tone: "guru" },
 };
 
@@ -55,15 +55,46 @@ function barScaleMax(comparable) {
 
 function buildInsight(market, group, items) {
   if (!items.length) {
-    return { label: "本组结论", conclusion: "当前没有符合资料口径的项目。", analysis: "望潮不会使用占位数据凑数量。", metric: "0 项" };
+    return { label: "本组结论", conclusion: "这一组暂时没有标的。", analysis: "望潮不会用假数据凑数。", metric: "0 项" };
   }
   const first = items[0];
-  const prefix = market === "guru" ? "按当前公开口径，" : "这一组先从";
+  if (market === "hk") {
+    return {
+      label: "本组结论",
+      conclusion: `先看 ${first.name}：${first.badge}。${first.one}`,
+      analysis: group?.one || "点进详情核对手金额、认购截止和风险。",
+      metric: `${items.length} 只`,
+    };
+  }
+  if (market === "a") {
+    return {
+      label: "本组结论",
+      conclusion: `股息最高先看 ${first.name}。${first.one}`,
+      analysis: "股息率 = 一年分红 ÷ 股价；还要看公司有没有余钱继续发。",
+      metric: `${items.length} 只`,
+    };
+  }
+  if (market === "gold") {
+    return {
+      label: "本组结论",
+      conclusion: first.one,
+      analysis: group?.one || "这是公开资料研究结论，供你参考，不是强制下单。",
+      metric: `${items.length} 项`,
+    };
+  }
+  if (market === "guru") {
+    return {
+      label: "本组结论",
+      conclusion: `先学 ${first.name}。${first.one}`,
+      analysis: "先学思路，再对照持仓；披露有滞后，不要当实时买卖单。",
+      metric: `${items.length} 位`,
+    };
+  }
   return {
     label: "本组结论",
-    conclusion: `${prefix}${first.name}开始看。${first.one}`,
-    analysis: group?.one || "先核对数据，再阅读完整分析和风险边界。",
-    metric: `${items.length} 项资料`,
+    conclusion: `先看 ${first.name}。${first.one}`,
+    analysis: group?.one || "点进详情看价格位置、涨跌和财务。",
+    metric: `${items.length} 项`,
   };
 }
 
@@ -80,7 +111,8 @@ Page({
   },
   onLoad(options) {
     const market = MARKET_META[options.market] ? options.market : "hk";
-    this.setData({ market, group: options.group || "worth", meta: MARKET_META[market] });
+    const defaultGroup = market === "a" ? "payout" : market === "gold" ? "track" : market === "us" ? "seven" : "worth";
+    this.setData({ market, group: options.group || defaultGroup, meta: MARKET_META[market] });
     this.refresh();
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },

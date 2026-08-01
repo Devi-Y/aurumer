@@ -24,15 +24,28 @@
 
 .today-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 20rpx;
 }
 
+.today-title-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
 .today-title {
+  display: block;
   color: #152019;
   font-size: 32rpx;
   font-weight: 700;
+}
+
+.today-help {
+  display: block;
+  margin-top: 4rpx;
+  color: #7a847e;
+  font-size: 22rpx;
 }
 
 .today-time {

@@ -28,37 +28,61 @@ function hkResearchView(item = {}) {
     item.sponsor || (item.sponsorNames && item.sponsorNames.length),
   ].filter(Boolean).length;
   const state = present >= 6 ? "complete" : present >= 3 ? "review" : "limited";
-  const labels = { complete: "资料较完整", review: "重点核验", limited: "资料不足" };
+  // 完整度只给后端排序用；前端展示以 publicAnswer / 人话结论为准。
+  const labels = { complete: "资料齐备", review: "资料待补", limited: "资料偏少" };
   const notes = {
-    complete: "招股资料相对完整，可继续核对发行、认购与风险信息。",
-    review: "部分关键资料仍需核验，先查看缺失项和风险因素。",
-    limited: "关键招股资料尚不完整，当前只展示已核验事实。",
+    complete: "关键招股字段已齐，可结合研究结论判断是否申购。",
+    review: "部分关键字段仍缺，结论仅供参考，建议先补齐再下决定。",
+    limited: "关键招股字段不足，暂不宜下申购结论。",
   };
   return { state, label: labels[state], score: null, note: notes[state] };
 }
 
+function sanitizePublicAnswer(answer) {
+  if (!answer || typeof answer !== "object") return null;
+  return {
+    verdict: answer.verdict || null,
+    action: answer.action || null,
+    score: hasNumber(answer.score) ? Number(answer.score) : null,
+  };
+}
+
 function sanitizeHKListing(item = {}) {
   const {
-    publicAnswer,
     publishedEstimate,
     strategyAssessment,
     modelEstimate,
     modelValidation,
     ...rest
   } = item;
-  return { ...rest, researchView: hkResearchView(item) };
+  return {
+    ...rest,
+    publicAnswer: sanitizePublicAnswer(item.publicAnswer),
+    researchView: hkResearchView(item),
+  };
 }
 
 function sanitizeHKHistory(item = {}) {
   const {
-    publicAnswer,
     publishedEstimate,
     strategyAssessment,
     modelEstimate,
     modelValidation,
     ...rest
   } = item;
-  return rest;
+  return {
+    ...rest,
+    publicAnswer: sanitizePublicAnswer(item.publicAnswer),
+    historicalReview: item.historicalReview
+      ? {
+          verdict: item.historicalReview.verdict || null,
+          greyMarketChange: item.historicalReview.greyMarketChange,
+          firstDayChange: item.historicalReview.firstDayChange,
+          fiveDayChange: item.historicalReview.fiveDayChange,
+          fiveDayHighChange: item.historicalReview.fiveDayHighChange,
+        }
+      : null,
+  };
 }
 
 function sanitizeUSStock(stock = {}) {
@@ -87,22 +111,17 @@ function aShareResearchView(item = {}, financials = {}) {
   const hasPriceAndYield = hasNumber(item.currentPrice) && hasNumber(item.currentDividendYield);
   const hasCashFlow = hasNumber(financials.operatingCashFlow) && hasNumber(financials.freeCashFlow);
   const state = hasPriceAndYield && hasCashFlow ? "complete" : hasPriceAndYield ? "review" : "limited";
-  const labels = { complete: "资料较完整", review: "现金流待核验", limited: "资料待补充" };
+  const labels = { complete: "收息资料齐", review: "现金流待核", limited: "资料偏少" };
   const notes = {
-    complete: "价格、分红与现金流字段较完整，可继续核对公告口径。",
+    complete: "价格、分红与现金流字段较完整。",
     review: "价格和分红已更新，现金流字段仍需核对最新财报。",
-    limited: "关键公开资料尚不完整，当前只展示已核验字段。",
+    limited: "关键公开资料尚不完整。",
   };
   return { state, label: labels[state], note: notes[state] };
 }
 
 function sanitizeAShareQuote(item = {}, financials = {}) {
   const {
-    currentAdvice,
-    summary,
-    recommendPrice,
-    buyPrice,
-    safeMarginPrice,
     rating,
     buy_zone_low,
     buy_zone_high,
@@ -112,7 +131,15 @@ function sanitizeAShareQuote(item = {}, financials = {}) {
     modelValidation,
     ...rest
   } = item;
-  return { ...rest, researchView: aShareResearchView(item, financials) };
+  return {
+    ...rest,
+    currentAdvice: item.currentAdvice || null,
+    summary: item.summary || null,
+    recommendPrice: item.recommendPrice || null,
+    buyPrice: item.buyPrice || null,
+    safeMarginPrice: item.safeMarginPrice || null,
+    researchView: aShareResearchView(item, financials),
+  };
 }
 
 function sanitizeAShareFundamental(item = {}) {
@@ -128,6 +155,16 @@ function sanitizeAShareFundamental(item = {}) {
   return rest;
 }
 
+function sanitizePriceRange(range) {
+  if (!range || typeof range !== "object") return null;
+  if (!hasNumber(range.low) && !hasNumber(range.high)) return null;
+  return {
+    low: hasNumber(range.low) ? Number(range.low) : null,
+    high: hasNumber(range.high) ? Number(range.high) : null,
+    currency: range.currency || null,
+  };
+}
+
 function sanitizeGold(gold = {}) {
   const {
     internalAssessment,
@@ -137,25 +174,37 @@ function sanitizeGold(gold = {}) {
     ...goldRest
   } = gold;
   const answer = gold.answer || {};
-  const { action, conclusion, pricePlan, score, grade, ...answerRest } = answer;
-  // 公开视图不带操作建议，所以要把结论开头的动作词去掉。这里以引擎实际输出的
-  // action 为准：写死词表会砍出病句——action 是「等待更好价格」时，只匹配到「等待」，
-  // 剩下「更好价格；……」被当成结论发到首页、板块页和详情页。
-  const actionPrefix = String(action || "").trim();
-  let researchConclusion = String(conclusion || "").trim();
-  if (actionPrefix && researchConclusion.startsWith(actionPrefix)) {
-    researchConclusion = researchConclusion.slice(actionPrefix.length);
-  }
-  researchConclusion = researchConclusion
-    .replace(/^(买入|卖出|继续观察|观察|等待)/u, "")
-    .replace(/^[；;，,、\s]+/u, "")
-    .trim();
+  const {
+    strategyAssessment: _answerStrategy,
+    modelEstimate: _answerModel,
+    ...answerRest
+  } = answer;
+  const pricePlan = answer.pricePlan || {};
+  const action = String(answer.action || "").trim();
+  const conclusion = String(answer.conclusion || "").trim();
   return {
     ...goldRest,
     answer: {
       ...answerRest,
-      researchLabel: "资料摘要",
-      researchConclusion: researchConclusion || "价格位置与宏观驱动已更新，请结合风险指标阅读。",
+      score: hasNumber(answer.score) ? Number(answer.score) : null,
+      grade: answer.grade || null,
+      action: action || null,
+      conclusion: conclusion || null,
+      // 保留 research* 字段兼容旧页面；动作版以 action / pricePlan 为准。
+      researchLabel: action || "追踪结论",
+      researchConclusion: conclusion || action || "先看价格位置与买卖观察区。",
+      reasons: Array.isArray(answer.reasons) ? answer.reasons.slice(0, 3) : [],
+      risks: Array.isArray(answer.risks) ? answer.risks.slice(0, 3) : [],
+      macroAvailable: answer.macroAvailable !== false,
+      pricePlan: {
+        status: pricePlan.status || (sanitizePriceRange(pricePlan.internationalWatch) ? "research" : "unavailable"),
+        internationalWatch: sanitizePriceRange(pricePlan.internationalWatch),
+        internationalUpper: sanitizePriceRange(pricePlan.internationalUpper),
+        internationalRisk: sanitizePriceRange(pricePlan.internationalRisk),
+        domesticWatch: sanitizePriceRange(pricePlan.domesticWatch),
+        domesticUpper: sanitizePriceRange(pricePlan.domesticUpper),
+        domesticRisk: sanitizePriceRange(pricePlan.domesticRisk),
+      },
     },
   };
 }

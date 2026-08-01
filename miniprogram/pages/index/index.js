@@ -7,16 +7,16 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/hk.svg",
     title: "港股打新",
-    help: "新股资料与历史复盘",
-    detail: "招股资料",
+    help: "有哪些新股、能不能打",
+    detail: "申购结论",
     tone: "hk",
   },
   {
     id: "us",
     action: "section",
     icon: "/assets/home/us.svg",
-    title: "美股机会",
-    help: "价格、热度与财务",
+    title: "美股投资",
+    help: "七姐妹与热度前三",
     detail: "价格与财报",
     tone: "us",
   },
@@ -25,17 +25,17 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/a.svg",
     title: "A股收息",
-    help: "股息与现金流",
-    detail: "分红与现金流",
+    help: "谁分红高、稳不稳",
+    detail: "股息清单",
     tone: "a",
   },
   {
     id: "gold",
     action: "section",
     icon: "/assets/home/gold.svg",
-    title: "黄金机会",
-    help: "价格位置与驱动",
-    detail: "位置与驱动",
+    title: "黄金追踪",
+    help: "何时买、买多少、何时卖",
+    detail: "买卖观察",
     tone: "gold",
   },
   {
@@ -53,7 +53,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/guru.svg",
     title: "机构持仓",
-    help: "代表机构、公开持仓与方法",
+    help: "学思路、对照持仓",
     detail: "港3 · 美5 · A3",
     tone: "guru",
   },
@@ -92,13 +92,19 @@ function formatOfferWindow(listing) {
 }
 
 function buildToday(data) {
-  const researchOrder = { complete: 0, review: 1, limited: 2, withdrawn: 9 };
   const listings = [...(data.hk?.listings || [])].filter((item) => item.researchView?.state !== "withdrawn");
-  const listing = listings
-    .sort((left, right) =>
-      (researchOrder[left.researchView?.state] ?? 9) -
-      (researchOrder[right.researchView?.state] ?? 9),
-    )[0];
+  const listing = [...listings].sort((left, right) => {
+    const rank = (item) => {
+      const verdict = item.publicAnswer?.verdict;
+      if (verdict === "值得打") return 0;
+      if (verdict === "谨慎打") return 1;
+      if (verdict === "不建议") return 2;
+      if (item.researchView?.state === "complete") return 3;
+      if (item.researchView?.state === "review") return 4;
+      return 5;
+    };
+    return rank(left) - rank(right);
+  })[0];
   const hotStock = [...(data.us?.stocks || [])]
     .sort((left, right) => Number(right.heatScore || 0) - Number(left.heatScore || 0))[0];
   const dividendStock = [...(data.aShare?.quotes || [])]
@@ -106,35 +112,38 @@ function buildToday(data) {
   const gold = data.gold || {};
   const internationalGold = gold.quotes?.international || {};
   const domesticGold = gold.quotes?.domestic || {};
-  const goldConclusion = gold.answer?.researchConclusion || "先核对价格位置与宏观驱动。";
-
+  const goldAction = gold.answer?.action || "继续观察";
+  const hkVerdictMap = { 值得打: "建议申购", 谨慎打: "暂缓观察", 不建议: "暂不建议", 待核验: "资料不够" };
+  const hkBadge = listing
+    ? (hkVerdictMap[listing.publicAnswer?.verdict] || listing.researchView?.label || "先看资料")
+    : "";
   const hkWindow = listing ? formatOfferWindow(listing) : "";
-  const hkNext = listing
-    ? (listing.offerPrice
-      ? `招股价 ${listing.offerPrice}${listing.entryFee ? ` · 一手约 ${listing.entryFee}` : ""}`
-      : (listing.researchView?.label || "先核招股价与认购期"))
-    : "暂无在售新股可核";
+  const hkBits = listing
+    ? [
+      listing.offerPrice ? `招股价 ${listing.offerPrice}` : null,
+      listing.entryFee ? `一手约 ${listing.entryFee} 港元` : null,
+    ].filter(Boolean).join(" · ")
+    : "";
 
-  // 首屏一句话：优先港股在售动作，其次黄金位置——避免整天只剩一句黄金资料。
   let headline;
   if (listing) {
-    headline = `港股：${shortName(listing.name, "新股")} · ${hkNext}${hkWindow ? ` · ${hkWindow}` : ""}`;
+    headline = `港股「${shortName(listing.name, "新股")}」${hkBadge}${hkBits ? `，${hkBits}` : ""}${hkWindow ? `，${hkWindow}` : ""}`;
   } else {
-    headline = /^黄金/.test(goldConclusion) ? goldConclusion : `黄金：${goldConclusion}`;
+    headline = `黄金现在：${goldAction}${hasNumber(internationalGold.price) ? `；国际金 ${Number(internationalGold.price).toFixed(0)} 美元/盎司` : ""}`;
   }
 
   return {
     headline,
     metrics: [
       {
-        label: "黄金位置",
-        value: hasNumber(internationalGold.percentile180) ? `${Number(internationalGold.percentile180)}%` : "待更新",
-        hint: "近半年分位",
+        label: "黄金动作",
+        value: goldAction,
+        hint: hasNumber(internationalGold.percentile180) ? `半年位置 ${Number(internationalGold.percentile180)}%` : "价格追踪",
       },
       {
-        label: "美股热度",
+        label: "美股最热",
         value: hotStock ? hotStock.symbol : "待更新",
-        hint: hotStock ? `${hotStock.heatScore} 分` : "公开热度",
+        hint: hotStock ? `热度 ${hotStock.heatScore}` : "公开热度",
       },
       {
         label: "A股股息",
@@ -148,16 +157,16 @@ function buildToday(data) {
       {
         id: "hk",
         label: "港股",
-        value: listing ? `${shortName(listing.name)} · ${hkNext}` : "暂无可核验在售新股",
-        note: hkWindow || (listing ? (listing.researchView?.label || "点开核验招股字段") : "去历史复盘看已结束样本"),
+        value: listing ? `${shortName(listing.name)} · ${hkBadge}` : "今天没有在售新股",
+        note: listing ? (hkBits || hkWindow || "点开看认购细节") : "去历史复盘看以前打新结果",
       },
       {
         id: "us",
         label: "美股",
         value: hotStock
-          ? `${hotStock.symbol} ${signedPercent(hotStock.changePercent)} · 热度 ${hotStock.heatScore}`
+          ? `${hotStock.symbol} ${signedPercent(hotStock.changePercent)} · 今天最热闹`
           : "市场热度待更新",
-        note: hotStock?.marketState === "CLOSED" ? "常规时段已收盘，未含盘后价" : "点开看价格与财务",
+        note: "下一步：看七姐妹和热度前三",
       },
       {
         id: "a",
@@ -165,17 +174,15 @@ function buildToday(data) {
         value: dividendStock
           ? `${shortName(dividendStock.name)} · 股息 ${Number(dividendStock.currentDividendYield || 0).toFixed(2)}%`
           : "收息资料待更新",
-        note: "下一步：核对自由现金流是否支撑分红",
+        note: "下一步：看股息稳不稳、现金流够不够",
       },
       {
         id: "gold",
         label: "黄金",
-        value: hasNumber(internationalGold.price)
-          ? `国际金 ${Number(internationalGold.price).toFixed(1)} · ${signedPercent(internationalGold.changePercent)}`
-          : "国际金与上海金资料待更新",
+        value: `${goldAction}${hasNumber(internationalGold.price) ? ` · 国际金 ${Number(internationalGold.price).toFixed(0)}` : ""}`,
         note: hasNumber(domesticGold.price)
-          ? `上海金 ${Number(domesticGold.price).toFixed(2)} 元/克 · ${gold.answer?.macroAvailable === false ? "宏观指标暂缺" : "核利率与持仓"}`
-          : (gold.answer?.researchConclusion || "先看价格位置"),
+          ? `上海金 ${Number(domesticGold.price).toFixed(2)} 元/克 · 点开看买点卖点`
+          : "点开看买点、卖点和原因",
       },
     ],
   };
@@ -197,8 +204,8 @@ Page({
   data: {
     entries: CORE_ENTRIES.map((item) => ({ ...item })),
     today: {
-      headline: "正在整理今天最值得先看的资料",
-      summary: "先看结论，再看数据与风险。",
+      headline: "正在整理今天先看的几件事",
+      summary: "先看结论，再点进去。",
       metrics: [],
       points: [],
     },

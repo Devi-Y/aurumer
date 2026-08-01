@@ -1,12 +1,42 @@
 const { loadSnapshot } = require("../../data/store");
-const { allItems, groupDefinitions } = require("../../utils/answers");
+const { allItems, groupDefinitions, formatRange } = require("../../utils/answers");
 
 const META = {
-  hk: { title: "港股新股", one: "发行资料、认购信息与上市后复盘。", tone: "hk", icon: "/assets/home/hk.svg", kicker: "新股资料" },
-  us: { title: "美股机会", one: "价格位置、市场热度与公开财务。", tone: "us", icon: "/assets/home/us.svg", kicker: "全球公司" },
-  a: { title: "A股收息", one: "分红水平、现金流质量与公开价格。", tone: "a", icon: "/assets/home/a.svg", kicker: "现金流研究" },
-  gold: { title: "黄金机会", one: "价格位置、机会成本与宏观驱动。", tone: "gold", icon: "/assets/home/gold.svg", kicker: "第 4 个模块" },
-  guru: { title: "机构持仓", one: "代表机构与投资人的公开业绩、持仓披露与 WHY/HOW。", tone: "guru", icon: "/assets/home/guru.svg", kicker: "最后一个模块" },
+  hk: {
+    title: "港股打新",
+    one: "这一页告诉你：有哪些新股、一手多少钱、建议申购还是暂缓。",
+    tone: "hk",
+    icon: "/assets/home/hk.svg",
+    kicker: "新股申购",
+  },
+  us: {
+    title: "美股投资",
+    one: "这一页只盯两块：七姐妹，和今天热度最高的三只。",
+    tone: "us",
+    icon: "/assets/home/us.svg",
+    kicker: "全球公司",
+  },
+  a: {
+    title: "A股收息",
+    one: "这一页告诉你：谁分红高、股息率多少、钱是不是赚得稳。",
+    tone: "a",
+    icon: "/assets/home/a.svg",
+    kicker: "分红清单",
+  },
+  gold: {
+    title: "黄金追踪",
+    one: "这一页用大白话说：现在怎么做、多少钱买、多少钱卖、为什么。",
+    tone: "gold",
+    icon: "/assets/home/gold.svg",
+    kicker: "买卖观察",
+  },
+  guru: {
+    title: "机构持仓",
+    one: "这一页用来学习机构思路和公开持仓，也可对照自己是否和他们抢同一只。",
+    tone: "guru",
+    icon: "/assets/home/guru.svg",
+    kicker: "学习与对照",
+  },
 };
 
 function hasNumber(value) {
@@ -26,18 +56,19 @@ function shortName(value, fallback = "公开资料") {
 
 function buildOverview(snapshot, market) {
   if (market === "hk") {
-    const listings = snapshot.hk?.listings || [];
-    const history = snapshot.hk?.history || [];
-    const complete = listings.filter((item) => item.researchView?.state === "complete");
-    const lead = complete[0] || listings[0];
+    const items = allItems(snapshot, "hk").filter((item) => item.group !== "ended");
+    const suggest = items.filter((item) => item.group === "worth");
+    const lead = suggest[0] || items[0];
     return {
       metrics: [
-        { label: "当前新股", value: `${listings.length} 只` },
-        { label: "资料较完整", value: `${complete.length} 只` },
-        { label: "历史复盘", value: `${history.length} 只` },
+        { label: "在售新股", value: `${items.filter((item) => item.group !== "cancelled").length} 只` },
+        { label: "建议申购", value: `${suggest.length} 只` },
+        { label: "历史复盘", value: `${(snapshot.hk?.history || []).length} 只` },
       ],
-      conclusion: lead ? `${lead.name}目前为${lead.researchView?.label || "公开资料"}，可继续核对发行与风险信息。` : "当前没有可核验的新股资料。",
-      analysis: "先区分资料是否完整，再查看发行、认购、配售与上市结果；缺失字段会直接标明，不用占位数字凑结论。",
+      conclusion: lead
+        ? `${lead.name}：${lead.badge}。${lead.one}`
+        : "当前没有在售新股可看。",
+      analysis: "先看「建议申购 / 暂缓观察 / 暂不建议」，再点进详情核对一手金额、认购截止日和风险。",
     };
   }
 
@@ -46,42 +77,49 @@ function buildOverview(snapshot, market) {
     const hot = [...stocks].sort((left, right) => Number(right.heatScore || 0) - Number(left.heatScore || 0))[0];
     return {
       metrics: [
-        { label: "公开行情", value: `${stocks.length} 只` },
-        { label: "最高热度", value: hot ? `${hot.heatScore} 分` : "待更新" },
-        { label: "当日涨跌", value: hot ? percent(hot.changePercent) : "待更新" },
+        { label: "七姐妹", value: "7 家" },
+        { label: "热度前三", value: "3 只" },
+        { label: "今日最热", value: hot ? hot.symbol : "待更新" },
       ],
-      conclusion: hot ? `${hot.symbol}当前热度最高；热度只说明关注度，价格位置和财务质量仍需分开看。` : "美股行情资料正在更新。",
-      analysis: "七姐妹用于看核心科技龙头，热度前三用于发现市场焦点；详情页再核对近 60 日位置、增长、利润率与持仓披露。",
+      conclusion: hot
+        ? `今天市场最热闹的是 ${hot.symbol}（热度 ${hot.heatScore}）。热度高只说明大家关注多，不等于一定要买。`
+        : "美股行情资料正在更新。",
+      analysis: "点「七姐妹」看长期核心公司；点「热度前三」看这两天焦点。详情里再看近 60 日贵不贵、增长和利润。",
     };
   }
 
   if (market === "a") {
-    const quotes = snapshot.aShare?.quotes || [];
-    const complete = quotes.filter((item) => item.researchView?.state === "complete");
-    const topYield = [...quotes].sort((left, right) => Number(right.currentDividendYield || 0) - Number(left.currentDividendYield || 0))[0];
+    const items = allItems(snapshot, "a");
+    const top = items[0];
     return {
       metrics: [
-        { label: "收息样本", value: `${quotes.length} 只` },
-        { label: "资料较完整", value: `${complete.length} 只` },
-        { label: "最高股息率", value: topYield && hasNumber(topYield.currentDividendYield) ? `${Number(topYield.currentDividendYield).toFixed(2)}%` : "待更新" },
+        { label: "收息样本", value: `${items.length} 只` },
+        { label: "最高股息", value: top?.badge || "待更新" },
+        { label: "先看谁", value: top ? shortName(top.name) : "待更新" },
       ],
-      conclusion: topYield ? `${shortName(topYield.name)}当前公开股息率居样本前列，但还要核对自由现金流和分红持续性。` : "A股收息资料正在更新。",
-      analysis: "高股息不是单一答案。详情页把股息率、经营现金流、自由现金流、现金利润比和财报日期放在一起核验。",
+      conclusion: top
+        ? `${shortName(top.name)} 当前公开股息率靠前。${top.one}`
+        : "A股收息资料正在更新。",
+      analysis: "股息率高不等于稳。点进详情看现金流能不能撑住分红，以及参考价位。",
     };
   }
 
   if (market === "gold") {
     const gold = snapshot.gold || {};
+    const answer = gold.answer || {};
+    const plan = answer.pricePlan || {};
     const international = gold.quotes?.international || {};
     const domestic = gold.quotes?.domestic || {};
+    const buy = formatRange(plan.internationalWatch) || formatRange(plan.domesticWatch, 1) || "待更新";
+    const sell = formatRange(plan.internationalUpper) || formatRange(plan.domesticUpper, 1) || "待更新";
     return {
       metrics: [
         { label: "国际金", value: hasNumber(international.price) ? Number(international.price).toFixed(1) : "待更新" },
         { label: "上海金", value: hasNumber(domestic.price) ? Number(domestic.price).toFixed(2) : "待更新" },
-        { label: "半年位置", value: hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "待更新" },
+        { label: "现在动作", value: answer.action || "观察中" },
       ],
-      conclusion: gold.answer?.researchConclusion || "先查看价格位置，再核对实际利率、美元和持仓拥挤。",
-      analysis: `国际金当日 ${percent(international.changePercent)}，上海金当日 ${percent(domestic.changePercent)}。两者还受汇率、境内供需与交易时段影响。`,
+      conclusion: `${answer.action || "继续观察"}。买入观察约 ${buy}；卖出观察约 ${sell}。`,
+      analysis: `${(answer.reasons || []).slice(0, 2).join("；") || "先看价格位置"}。风险：${(answer.risks || []).slice(0, 1).join("；") || "波动可能加大"}。`,
     };
   }
 
@@ -93,13 +131,21 @@ function buildOverview(snapshot, market) {
       { label: "美股方向", value: "5 个" },
       { label: "A股方向", value: "3 个" },
     ],
-    conclusion: leader ? `${leader.name}在当前可核验候选池中表观长期年化居前；不同币种、区间与风险不能直接横比。` : "公开持仓资料正在更新。",
-    analysis: "每位名人或机构都给出业绩口径、公开持仓、WHY 与 HOW。重点是学习框架，不按滞后披露直接照抄。",
+    conclusion: leader
+      ? `先学 ${leader.name}：${leader.raw?.profile?.why || leader.one}`
+      : "公开持仓资料正在更新。",
+    analysis: "重点看 WHY（为什么这样选）和 HOW（你可以怎么学），再对照公开持仓；披露有滞后，别当实时跟单，也可用来判断是否和机构抢同一只。",
   };
 }
 
 Page({
-  data: { market: "hk", meta: META.hk, groups: [], overview: { metrics: [], conclusion: "", analysis: "" }, source: "正在读取同步数据" },
+  data: {
+    market: "hk",
+    meta: META.hk,
+    groups: [],
+    overview: { metrics: [], conclusion: "", analysis: "" },
+    source: "正在读取同步数据",
+  },
   onLoad(options) {
     const market = META[options.market] ? options.market : "hk";
     this.setData({ market, meta: META[market] });
@@ -111,33 +157,28 @@ Page({
   },
   refresh(done, force = false) {
     loadSnapshot((snapshot, source) => {
-      const groups = groupDefinitions(snapshot, this.data.market).map((item, index) => ({
-        ...item,
-        indexLabel: String(index + 1).padStart(2, "0"),
-      }));
+      const groups = groupDefinitions(snapshot, this.data.market)
+        .filter((item) => item.count > 0)
+        .map((item, index) => ({
+          ...item,
+          indexLabel: String(index + 1).padStart(2, "0"),
+        }));
       this.setData({ groups, overview: buildOverview(snapshot, this.data.market), source });
     }, done, { force });
   },
   openGroup(event) {
     const group = event.currentTarget.dataset.group;
     const target = this.data.groups.find((item) => item.id === group);
-    // 空分组不进空列表页；直接说明为什么没有内容，避免"点进去再退回来"的白跑。
     if (!target || !target.count) {
-      wx.showToast({
-        title: "这一组当前没有符合资料口径的项目",
-        icon: "none",
-        duration: 2000,
-      });
+      wx.showToast({ title: "这一组当前没有项目", icon: "none" });
       return;
     }
     wx.navigateTo({ url: `/pages/list/index?market=${this.data.market}&group=${group}` });
   },
-  goBack() { wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/index/index" }) }); },
-  goHome() { wx.reLaunch({ url: "/pages/index/index" }); },
-  onShareAppMessage() {
-    return { title: `${this.data.meta.title}｜望潮 Aurum`, path: `/pages/section/index?market=${this.data.market}` };
+  goBack() {
+    wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/index/index" }) });
   },
-  onShareTimeline() {
-    return { title: `${this.data.meta.title}｜望潮 Aurum`, query: `market=${this.data.market}` };
+  goHome() {
+    wx.reLaunch({ url: "/pages/index/index" });
   },
 });

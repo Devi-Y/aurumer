@@ -25,11 +25,8 @@ const forbiddenKeys = new Set([
   "qualityCriteria",
   "backtest",
   "technicalPlan",
-  "publicAnswer",
-  "currentAdvice",
-  "buyPrice",
-  "safeMarginPrice",
-  "recommendPrice",
+  "publishedEstimate",
+  "rating",
   "buy_zone_low",
   "buy_zone_high",
   "buyZoneLow",
@@ -43,9 +40,6 @@ const forbiddenKeys = new Set([
   "qualityEligible",
   "trackingScore",
   "trackingSummary",
-  "pricePlan",
-  "publishedEstimate",
-  "rating",
 ]);
 
 function assert(condition, message) {
@@ -123,7 +117,8 @@ const nonSeven = snapshot.us.stocks
 const expectedHot = nonSeven.slice(0, 3).map((item) => item.symbol);
 const actualHot = miniUsItems.filter((item) => item.group === "hot").map((item) => item.id);
 assert(JSON.stringify(actualHot) === JSON.stringify(expectedHot), `小程序热度前三口径不一致：${actualHot.join(",")}`);
-assert(miniGoldItems.length === 4, `小程序黄金入口应有 4 个答案，实际 ${miniGoldItems.length}`);
+assert(miniGoldItems.length === 2, `小程序黄金入口应有 2 个答案，实际 ${miniGoldItems.length}`);
+assert(miniGoldItems.every((item) => ["track", "plan"].includes(item.group)), "小程序黄金入口应是现在怎么做 / 买点与卖点");
 for (const [group, count] of [["hk", 3], ["us", 5], ["a", 3]]) {
   const profiles = smartMoneyProfiles.filter((item) => item.group === group);
   const items = miniGuruItems.filter((item) => item.group === group);
@@ -139,13 +134,11 @@ for (const [group, count] of [["hk", 3], ["us", 5], ["a", 3]]) {
   }
 }
 for (const item of miniAShareItems) {
-  const state = item.raw.researchView?.state;
-  assert(["complete", "review", "limited"].includes(state), `${item.name} 资料状态不合法`);
-  assert(item.group === state, `${item.name} 资料状态与分组不一致`);
+  assert(item.group === "payout", `${item.name} 应收息清单统一分组`);
+  assert(item.raw.researchView?.state, `${item.name} 缺少后端完整度状态`);
 }
-for (const item of miniHKItems.filter((entry) => entry.raw.researchView?.state === "limited")) {
-  assert(item.score === null, `${item.name} 资料待核验时不应显示 0 分`);
-  assert(!item.rank, `${item.name} 资料待核验时不应生成占位排名`);
+for (const item of miniHKItems.filter((entry) => ["worth", "caution", "avoid"].includes(entry.group))) {
+  assert(["建议申购", "暂缓观察", "暂不建议", "资料不够"].includes(item.badge), `${item.name} 缺少人话申购结论`);
 }
 
 const indexSource = await readFile(path.join(miniRoot, "pages", "index", "index.js"), "utf8");
@@ -235,7 +228,7 @@ for (const page of ["pages/section/index", "pages/list/index"]) {
 assert(indexSource.includes('badge: "¥1288/年"'), "小程序年度会员入口没有显示唯一年费价格");
 const gridDefinition = indexSource.match(/const CORE_ENTRIES = \[([\s\S]*?)\n\];/)?.[1] || "";
 assert((gridDefinition.match(/\n\s+id: /g) || []).length === 6, "小程序首页应只保留 6 个核心入口");
-for (const title of ["港股打新", "美股机会", "A股收息", "黄金机会", "年费会员", "机构持仓"]) {
+for (const title of ["港股打新", "美股投资", "A股收息", "黄金追踪", "年费会员", "机构持仓"]) {
   assert(gridDefinition.includes(`title: "${title}"`), `小程序首页缺少准确入口标题：${title}`);
 }
 const homeEntryIcons = [...gridDefinition.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
@@ -249,7 +242,7 @@ for (const removedId of ['id: "today"', 'id: "watch"', 'id: "decision"']) {
 }
 assert(indexSource.includes("toggleTodayDetails") && indexTemplate.includes("today.points"), "今日重点没有移到首页顶部并提供展开交互");
 assert(indexSource.includes("pages/workspace/index?focus=watch"), "合并后的我的研究记录入口没有接入工作台");
-for (const label of ["资料较完整", "重点核验", "资料不足", "已结束", "七姐妹", "热度前三", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "可核验候选池内", "按表观长期年化从高到低排列"]) {
+for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "七姐妹", "热度前三", "收息清单", "现在怎么做", "买点与卖点", "资料较完整", "重点核验", "资料不足", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "可核验候选池内", "按表观长期年化从高到低排列"]) {
   assert(sectionSource.includes(label), `小程序缺少二级入口：${label}`);
 }
 for (const label of ["近 60 日最低", "近 60 日中位数", "近 60 日最高", "历史样本区间", "自由现金流", "公开持仓", "完整分析", "WHY · 为什么选它", "HOW · 怎么学"]) {
@@ -262,12 +255,15 @@ for (const [template, labels] of [
 ]) {
   for (const label of labels) assert(template.includes(label), `后续页面缺少图片、数据、分析或结论层级：${label}`);
 }
-for (const actionLabel of ["值得打", "谨慎打", "不建议", "买入参考", "止盈参考", "止损参考", "当前动作", "下一步怎么做", "合理买入", "高安全边际", "模型观察值", "模型区间上沿", "模型风险边界", "估值观察位", "保守估值位", "分析师目标价"]) {
-  assert(!`${sectionSource}\n${detailContract}\n${indexSource}`.includes(actionLabel), `小程序公开页面仍含动作型表述：${actionLabel}`);
+for (const actionLabel of ["模型观察值", "模型区间上沿", "模型风险边界", "估值观察位", "保守估值位", "分析师目标价"]) {
+  assert(!`${sectionSource}\n${detailContract}\n${indexSource}`.includes(actionLabel), `小程序公开页面仍含内部模型表述：${actionLabel}`);
 }
-for (const actionField of ["technicalPlan", "targetPrice", "targetUpside", "recommendPrice", "buyPrice", "safeMarginPrice", "buy_zone_low", "buy_zone_high", "pricePlan"]) {
-  assert(!generatedSource.includes(`\"${actionField}\"`), `小程序离线包仍包含动作型价格字段：${actionField}`);
+for (const actionField of ["technicalPlan", "targetPrice", "targetUpside", "buy_zone_low", "buy_zone_high"]) {
+  assert(!generatedSource.includes(`\"${actionField}\"`), `小程序离线包仍包含内部价格字段：${actionField}`);
 }
+assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes("pricePlan"), "云函数清洗层应保留公开动作结论与黄金买卖观察区");
+assert(indexTemplate.includes("今天先看这几件事"), "今日重点缺少小白人话副标");
+assert(sectionSource.includes("meta.one") || (await readFile(path.join(miniRoot, "pages", "section", "index.wxml"), "utf8")).includes("meta.one"), "栏目页缺少「这一页帮你干嘛」");
 for (const label of ["望潮年费会员", "365 天会员", "会员功能", "保存关注", "记录想法", "复制导出", "购买须知"]) {
   assert(`${memberPageSource}\n${memberTemplate}`.includes(label), `小程序会员页缺少关键内容：${label}`);
 }

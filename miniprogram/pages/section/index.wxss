@@ -41,6 +41,14 @@
   font-weight: 650;
 }
 
+.hero-help {
+  display: block;
+  margin-top: 12rpx;
+  color: #5a645e;
+  font-size: 24rpx;
+  line-height: 1.55;
+}
+
 .hero-image-wrap {
   display: flex;
   width: 56rpx;
@@ -119,6 +127,14 @@
   line-height: 1.56;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+}
+
+.insight-analysis {
+  display: block;
+  margin-top: 12rpx;
+  color: #667068;
+  font-size: 24rpx;
+  line-height: 1.55;
 }
 
 .section-heading {

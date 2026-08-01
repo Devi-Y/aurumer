@@ -6,6 +6,7 @@
         <image class="hero-image" src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
       </view>
     </view>
+    <text class="hero-help">{{meta.one}}</text>
     <view class="hero-metrics">
       <view wx:for="{{overview.metrics}}" wx:key="label" class="hero-metric">
         <text>{{item.label}}</text>
@@ -17,6 +18,7 @@
   <view class="insight-panel">
     <text class="insight-label">结论</text>
     <text class="insight-conclusion">{{overview.conclusion}}</text>
+    <text wx:if="{{overview.analysis}}" class="insight-analysis">{{overview.analysis}}</text>
   </view>
 
   <view class="section-heading">
@@ -51,6 +53,6 @@
 
   <view class="page-note">
     <text>{{source}}</text>
-    <text>公开资料整理，仅供研究参考。</text>
+    <text>公开资料研究结论，供参考；不是强制下单指令，决策自负。</text>
   </view>
 </view>

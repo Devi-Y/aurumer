@@ -15,32 +15,6 @@
     "backgroundColor": "#F5F5F5",
     "backgroundTextStyle": "dark"
   },
-  "tabBar": {
-    "color": "#7A827C",
-    "selectedColor": "#0B7A53",
-    "backgroundColor": "#FFFFFF",
-    "borderStyle": "black",
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "assets/tab/home.png",
-        "selectedIconPath": "assets/tab/home-active.png"
-      },
-      {
-        "pagePath": "pages/workspace/index",
-        "text": "记录",
-        "iconPath": "assets/tab/record.png",
-        "selectedIconPath": "assets/tab/record-active.png"
-      },
-      {
-        "pagePath": "pages/member/index",
-        "text": "会员",
-        "iconPath": "assets/tab/member.png",
-        "selectedIconPath": "assets/tab/member-active.png"
-      }
-    ]
-  },
   "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json",
   "style": "v2"

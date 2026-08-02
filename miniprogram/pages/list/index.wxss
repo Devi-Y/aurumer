@@ -33,6 +33,14 @@
   border-color: #e3ebe6;
 }
 
+.list-help {
+  display: block;
+  margin: 14rpx 4rpx 0;
+  color: #5a645e;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
 .summary-copy { min-width: 0; flex: 1; }
 
 .title,
@@ -40,7 +48,7 @@
 
 .title {
   color: #172019;
-  font-size: 34rpx;
+  font-size: 36rpx;
   font-weight: 650;
   line-height: 1.35;
 }
@@ -48,7 +56,7 @@
 .item-count {
   margin-top: 4rpx;
   color: #7f8781;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .summary-image-wrap {
@@ -64,15 +72,42 @@
 
 .summary-image { width: 34rpx; height: 34rpx; }
 
+.group-chips {
+  display: flex;
+  width: 100%;
+  margin-top: 12rpx;
+  white-space: nowrap;
+}
+
+.group-chip {
+  display: inline-flex;
+  min-height: 64rpx;
+  margin-right: 12rpx;
+  padding: 0 22rpx;
+  align-items: center;
+  border: 1rpx solid #dce4df;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #3a433d;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.group-chip.is-active {
+  border-color: #0b7a53;
+  background: #eef8f2;
+  color: #0b7a53;
+}
+
 .list-insight {
   margin-top: 12rpx;
-  padding: 18rpx 24rpx 20rpx;
+  padding: 20rpx 24rpx 22rpx;
 }
 
 .insight-label {
   display: block;
   color: #6a756e;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -81,12 +116,52 @@
   overflow: hidden;
   margin-top: 8rpx;
   color: #2a322c;
-  font-size: 27rpx;
-  font-weight: 500;
-  line-height: 1.55;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.4;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
 }
+
+.list-chart {
+  margin-top: 16rpx;
+  padding-top: 14rpx;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.chart-row + .chart-row { margin-top: 12rpx; }
+
+.chart-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  color: #3a433d;
+  font-size: 24rpx;
+}
+
+.chart-copy text:last-child {
+  flex: none;
+  color: #0b7a53;
+  font-weight: 650;
+}
+
+.chart-track {
+  overflow: hidden;
+  height: 12rpx;
+  margin-top: 8rpx;
+  border-radius: 999rpx;
+  background: #eef2ef;
+}
+
+.chart-value {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #0b7a53;
+}
+
+.chart-value.up { background: #0b7a53; }
+.chart-value.down { background: #c4473a; }
 
 .section-heading {
   display: flex;
@@ -219,6 +294,26 @@
 }
 
 .tap-active { background: #eef8f2; }
+
+.link-rail {
+  display: flex;
+  margin-top: 16rpx;
+  gap: 12rpx;
+}
+
+.link-chip {
+  display: flex;
+  min-height: 72rpx;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid #dce4df;
+  border-radius: 14rpx;
+  background: #ffffff;
+  color: #2f4338;
+  font-size: 26rpx;
+  font-weight: 600;
+}
 
 .empty {
   display: flex;

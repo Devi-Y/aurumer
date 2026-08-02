@@ -10,6 +10,8 @@
 .member-status-card,
 .plan-card,
 .benefit-panel,
+.ask-panel,
+.addon-panel,
 .order-card,
 .notice-card,
 .settle-card {
@@ -157,6 +159,84 @@
   font-weight: 850;
 }
 .workspace-cta { width: 100%; min-height: 84rpx; padding: 15rpx 22rpx; border-top: 1rpx solid #edf0ee; }
+
+.addon-panel { margin-top: 0; }
+.addon-row {
+  display: flex;
+  min-height: 108rpx;
+  padding: 22rpx 24rpx;
+  align-items: center;
+  gap: 16rpx;
+}
+.addon-row + .addon-row { border-top: 1rpx solid #edf0ee; }
+.addon-copy { min-width: 0; flex: 1; }
+.addon-title {
+  display: block;
+  color: #1b211d;
+  font-size: 30rpx;
+  font-weight: 680;
+}
+.addon-desc {
+  display: block;
+  margin-top: 6rpx;
+  color: #6d766f;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+.addon-tags {
+  display: flex;
+  margin-top: 10rpx;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+.addon-tag {
+  padding: 4rpx 10rpx;
+  border-radius: 8rpx;
+  background: #eef8f2;
+  color: #0b7a53;
+  font-size: 20rpx;
+  font-weight: 620;
+}
+.addon-arrow {
+  flex: none;
+  color: #a6ada9;
+  font-size: 38rpx;
+  font-weight: 300;
+}
+.tap-active { background: #f3f8f5; }
+
+.ask-panel { padding: 22rpx 24rpx 8rpx; }
+.ask-note {
+  display: block;
+  margin-bottom: 16rpx;
+  color: #6d766f;
+  font-size: 24rpx;
+  line-height: 1.55;
+}
+.ask-block {
+  padding: 16rpx 0;
+}
+.ask-block + .ask-block { border-top: 1rpx solid #edf0ee; }
+.ask-market {
+  display: block;
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+.ask-tags {
+  display: flex;
+  margin-top: 10rpx;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+.ask-tag {
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f3f8f5;
+  color: #2a5f45;
+  font-size: 24rpx;
+  font-weight: 620;
+}
 
 .orders-toggle,
 .notice-toggle { min-height: 86rpx; padding: 16rpx 22rpx; color: #222723; }

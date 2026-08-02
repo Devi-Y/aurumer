@@ -1,7 +1,8 @@
 const { loadSnapshot } = require("../../data/store");
-const { allItems, groupDefinitions } = require("../../utils/answers");
+const { allItems, groupDefinitions, shortCompanyName } = require("../../utils/answers");
 const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
+const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 
 const MARKET_META = {
   hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -20,18 +21,50 @@ function performanceNumber(value) {
 }
 
 function comparisonMetric(item, market) {
-  if (market === "us" && hasNumber(item.raw?.heatScore)) {
-    return { value: Number(item.raw.heatScore), label: `热度 ${Number(item.raw.heatScore)} 分` };
+  if (market === "us") {
+    if (item.group === "hot" && hasNumber(item.raw?.heatScore)) {
+      return { value: Number(item.raw.heatScore), label: `热度 ${Number(item.raw.heatScore)}` };
+    }
+    if (hasNumber(item.raw?.changePercent)) {
+      const value = Number(item.raw.changePercent);
+      return {
+        value: Math.abs(value),
+        label: `今日 ${value >= 0 ? "+" : ""}${value.toFixed(1)}%`,
+        tone: value < 0 ? "down" : "up",
+      };
+    }
   }
   if (market === "a" && hasNumber(item.raw?.currentDividendYield)) {
     const value = Number(item.raw.currentDividendYield);
-    return { value, label: `股息率 ${value.toFixed(2)}%` };
+    return { value, label: `股息 ${value.toFixed(2)}%` };
+  }
+  if (market === "gold") {
+    const gold = item.raw || {};
+    const answer = gold.answer || {};
+    const international = gold.quotes?.international || {};
+    if (item.id === "track") {
+      if (hasNumber(answer.score)) {
+        return { value: Number(answer.score), label: `观察分 ${Number(answer.score)}` };
+      }
+      if (hasNumber(international.percentile180)) {
+        return { value: Number(international.percentile180), label: `半年位置 ${Number(international.percentile180)}%` };
+      }
+    }
+    if (item.id === "plan") {
+      const plan = answer.pricePlan || {};
+      const buy = Number(plan.internationalWatch?.low || plan.internationalWatch?.high || 0);
+      const sell = Number(plan.internationalUpper?.low || plan.internationalUpper?.high || 0);
+      if (sell > 0) return { value: sell, label: `卖出观察 ${sell}` };
+      if (buy > 0) return { value: buy, label: `买入观察 ${buy}` };
+      if (hasNumber(international.price)) {
+        return { value: Number(international.price), label: `国际金 ${Number(international.price).toFixed(0)}` };
+      }
+    }
   }
   if (market === "guru") {
     const value = performanceNumber(item.raw?.profile?.performanceValue);
-    return value > 0 ? { value, label: `表观长期年化 ${item.raw.profile.performanceValue}` } : null;
+    return value > 0 ? { value, label: `表观年化 ${item.raw.profile.performanceValue}` } : null;
   }
-  // 港股历史新股按真实涨跌幅比较，条长取绝对值、颜色区分涨跌，负数不会被画成"分数低"。
   if (market === "hk" && hasNumber(item.outcomeValue)) {
     const value = Number(item.outcomeValue);
     return { value: Math.abs(value), label: item.scoreText, tone: value < 0 ? "down" : "up" };
@@ -42,9 +75,6 @@ function comparisonMetric(item, market) {
   return null;
 }
 
-// 直接用最大值做标尺时，单个极端值会把其余所有条压到最小宽度：港股历史组里
-// 一只 +162% 的新股就让另外 11 只全部贴底，对比条失去意义。这里改用 75 分位
-// 作为标尺，超出的条画满即可。
 function barScaleMax(comparable) {
   const values = comparable
     .map((item) => Number(item?.value || 0))
@@ -55,61 +85,17 @@ function barScaleMax(comparable) {
   return Math.max(percentile, values[values.length - 1] / 3, 1);
 }
 
-function buildInsight(market, group, items) {
-  if (!items.length) {
-    return { label: "本组结论", conclusion: "这一组暂时没有标的。", analysis: "望潮不会用假数据凑数。", metric: "0 项" };
-  }
-  const first = items[0];
-  if (market === "hk") {
-    return {
-      label: "本组结论",
-      conclusion: `先看 ${first.name}：${first.badge}。${first.one}`,
-      analysis: group?.one || "点进详情核对手金额、认购截止和风险。",
-      metric: `${items.length} 只`,
-    };
-  }
-  if (market === "a") {
-    return {
-      label: "本组结论",
-      conclusion: `股息最高先看 ${first.name}。${first.one}`,
-      analysis: "股息率 = 一年分红 ÷ 股价；还要看公司有没有余钱继续发。",
-      metric: `${items.length} 只`,
-    };
-  }
-  if (market === "gold") {
-    return {
-      label: "本组结论",
-      conclusion: first.one,
-      analysis: group?.one || "这是公开资料研究结论，供你参考，不是强制下单。",
-      metric: `${items.length} 项`,
-    };
-  }
-  if (market === "guru") {
-    return {
-      label: "本组结论",
-      conclusion: `先学 ${first.name}。${first.one}`,
-      analysis: "先学思路，再对照持仓；披露有滞后，不要当实时买卖单。",
-      metric: `${items.length} 位`,
-    };
-  }
-  return {
-    label: "本组结论",
-    conclusion: `先看 ${first.name}。${first.one}`,
-    analysis: group?.one || "点进详情看价格位置、涨跌和财务。",
-    metric: `${items.length} 项`,
-  };
-}
-
 Page({
   data: {
     market: "hk",
     group: "worth",
     meta: MARKET_META.hk,
     title: "资料列表",
-    one: "一句话看懂，再进详情。",
-    insight: { label: "本组结论", conclusion: "正在整理", analysis: "", metric: "" },
+    groups: [],
     items: [],
     source: "正在读取同步数据",
+    disclaimer: RESEARCH_DISCLAIMER,
+    groupHelp: "",
   },
   onLoad(options) {
     const market = MARKET_META[options.market] ? options.market : "hk";
@@ -120,8 +106,10 @@ Page({
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
   refresh(done, force = false) {
     loadSnapshot((snapshot, source) => {
-      const group = groupDefinitions(snapshot, this.data.market).find((item) => item.id === this.data.group);
-      const rawItems = allItems(snapshot, this.data.market).filter((item) => item.group === this.data.group);
+      const definitions = groupDefinitions(snapshot, this.data.market).filter((item) => item.count > 0);
+      const group = definitions.find((item) => item.id === this.data.group) || definitions[0];
+      const activeGroup = group ? group.id : this.data.group;
+      const rawItems = allItems(snapshot, this.data.market).filter((item) => item.group === activeGroup);
       const comparable = rawItems.map((item) => comparisonMetric(item, this.data.market));
       const maxValue = barScaleMax(comparable);
       const items = rawItems.map((item, index) => {
@@ -129,6 +117,7 @@ Page({
         return {
           id: item.id,
           name: item.name,
+          shortName: shortCompanyName(item.name, item.code || "标的", 8),
           code: item.code,
           badge: item.badge,
           position: index + 1,
@@ -144,10 +133,15 @@ Page({
             : 0,
         };
       });
-      const title = group ? group.title : "资料列表";
-      const one = group ? group.one : "一句话看懂，再进详情。";
-      this.setData({ title, one, items, insight: buildInsight(this.data.market, group, rawItems), source });
-      wx.setNavigationBarTitle({ title });
+      this.setData({
+        group: activeGroup,
+        groups: definitions,
+        title: group ? group.title : "建议明细",
+        groupHelp: group ? group.one : "",
+        items,
+        source,
+      });
+      wx.setNavigationBarTitle({ title: group ? group.title : "建议明细" });
     }, done, { force });
   },
   openItem(event) {

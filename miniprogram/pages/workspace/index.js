@@ -9,6 +9,9 @@ const {
 const { openPage, goHome, consumeTabQuery } = require("../../utils/nav");
 const { listHoldings, removeHolding } = require("../../utils/local-holdings");
 const { track } = require("../../utils/analytics");
+const { loadSnapshot } = require("../../data/store");
+const { allItems, shortCompanyName } = require("../../utils/answers");
+const { WORKSPACE_DISCLAIMER } = require("../../utils/disclaimer");
 
 const MARKET_OPTIONS = [
   { id: "hk", label: "港股" },
@@ -17,6 +20,60 @@ const MARKET_OPTIONS = [
   { id: "gold", label: "黄金" },
   { id: "other", label: "其他" },
 ];
+
+function normalizeCode(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\.HK$/i, "")
+    .replace(/\.(SH|SZ)$/i, "");
+}
+
+function buildWatchPreview(watchItems, snapshot) {
+  if (!snapshot || !Array.isArray(watchItems) || !watchItems.length) return [];
+  const catalogs = {
+    hk: allItems(snapshot, "hk"),
+    us: allItems(snapshot, "us"),
+    a: allItems(snapshot, "a"),
+    gold: allItems(snapshot, "gold"),
+  };
+  return watchItems.slice(0, 8).map((item) => {
+    const market = item.market || "other";
+    const list = catalogs[market] || [];
+    const code = normalizeCode(item.code);
+    const name = String(item.name || "").trim();
+    const matched = list.find((entry) => {
+      if (code && normalizeCode(entry.code) === code) return true;
+      if (code && normalizeCode(entry.id) === code) return true;
+      if (name && entry.name && entry.name.includes(name)) return true;
+      if (name && entry.name && name.includes(shortCompanyName(entry.name, "", 6))) return true;
+      return false;
+    });
+    const raw = matched?.raw || {};
+    let metric = matched?.badge || matched?.one || "已保存";
+    let deadline = "";
+    if (market === "us" && raw.price != null) {
+      metric = `$${Number(raw.price).toFixed(2)}${Number.isFinite(Number(raw.changePercent)) ? ` · ${Number(raw.changePercent) >= 0 ? "+" : ""}${Number(raw.changePercent).toFixed(1)}%` : ""}`;
+    } else if (market === "a" && raw.currentPrice != null) {
+      metric = `¥${Number(raw.currentPrice).toFixed(2)}${Number.isFinite(Number(raw.currentDividendYield)) ? ` · 息 ${Number(raw.currentDividendYield).toFixed(1)}%` : ""}`;
+    } else if (market === "hk") {
+      if (raw.offerDeadline) deadline = `截止 ${raw.offerDeadline}`;
+      if (raw.entryFee != null) metric = `一手 ${Math.round(Number(raw.entryFee))} 港元`;
+      else if (matched?.badge) metric = matched.badge;
+    } else if (market === "gold") {
+      const price = raw.quotes?.international?.price;
+      if (price != null) metric = `${Math.round(Number(price))} USD/oz`;
+    }
+    return {
+      id: item.id,
+      title: shortCompanyName(item.name || matched?.name || "关注标的", "关注", 8),
+      marketLabel: item.marketLabel || MARKET_OPTIONS.find((entry) => entry.id === market)?.label || "其他",
+      metric,
+      deadline,
+      matched: Boolean(matched),
+    };
+  });
+}
 
 function safeDecode(value) {
   try {
@@ -93,11 +150,20 @@ function applyPrefill(page, options = {}) {
   const market = safeDecode(options.market);
   const marketIndex = Math.max(0, MARKET_OPTIONS.findIndex((item) => item.id === market));
   const focus = safeDecode(options.focus);
+  const addon = safeDecode(options.addon);
   const name = safeDecode(options.name);
   const code = safeDecode(options.code);
   const fromDetail = Boolean(name || code);
   const patch = {};
   if (focus === "decision" || focus === "watch") patch.activeTab = focus === "decision" ? "decision" : "watch";
+  if (addon === "calendar" || addon === "ipo-check") patch.addonHint = "打新备忘：关注后可在备注里写截止日，自行查看；系统不推送提醒。";
+  else if (addon === "ipo-review") patch.addonHint = "用「想法」记下这次申购判断，上市后再对照结果。";
+  else if (addon === "gold-alert") patch.addonHint = "黄金观察：可关注「国际金价」，对照公开买卖观察区；不做到价推送。";
+  else if (addon === "dividend") patch.addonHint = "收息常问：关注后可对照股息率与现金流公开资料。";
+  else if (addon === "preview") patch.addonHint = "会员速览：关注标的对照最新公开数据。";
+  else if (addon === "export") patch.addonHint = "可在页面底部一键复制导出全部记录。";
+  else if (addon === "review") patch.addonHint = "切换到「想法」记录复盘。";
+  else if (addon === "sync") patch.addonHint = "关注与想法已云端同步，换机登录同一微信即可继续。";
   if (marketIndex >= 0 && market) patch.marketIndex = marketIndex;
   if (fromDetail) {
     patch.showWatchForm = true;
@@ -124,6 +190,9 @@ Page({
     marketIndex: 1,
     watchForm: { name: "", code: "", note: "" },
     decisionForm: { title: "", note: "" },
+    watchPreview: [],
+    addonHint: "",
+    disclaimer: WORKSPACE_DISCLAIMER,
     state: viewWorkspace({
       backendReady: false,
       active: false,
@@ -158,6 +227,7 @@ Page({
         if (!state.watchItems.length) patch.showWatchForm = true;
         if (!state.decisions.length) patch.showDecisionForm = true;
         this.setData(patch);
+        this.refreshPreview(state);
       })
       .catch((error) => {
         wx.showModal({ title: "工作台暂不可用", content: error.message || "请稍后重试", showCancel: false });
@@ -166,6 +236,15 @@ Page({
         this.setData({ loading: false });
         if (done) done();
       });
+  },
+  refreshPreview(state = this.data.state) {
+    if (!state || !state.active || !state.watchItems.length) {
+      this.setData({ watchPreview: [] });
+      return;
+    }
+    loadSnapshot((snapshot) => {
+      this.setData({ watchPreview: buildWatchPreview(state.watchItems, snapshot) });
+    });
   },
   switchTab(event) {
     const tab = event.currentTarget.dataset.tab;

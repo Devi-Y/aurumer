@@ -13,6 +13,27 @@
     <button bindtap="openMember">查看会员</button>
   </view>
 
+  <view wx:if="{{addonHint}}" class="addon-hint">
+    <text>{{addonHint}}</text>
+  </view>
+
+  <view wx:if="{{state.active && watchPreview.length}}" class="preview-panel">
+    <view class="preview-head">
+      <text>关注速览</text>
+      <text>{{watchPreview.length}} 项</text>
+    </view>
+    <view wx:for="{{watchPreview}}" wx:key="id" class="preview-row">
+      <view class="preview-main">
+        <text class="preview-market">{{item.marketLabel}}</text>
+        <text class="preview-title">{{item.title}}</text>
+      </view>
+      <view class="preview-side">
+        <text class="preview-metric">{{item.metric}}</text>
+        <text wx:if="{{item.deadline}}" class="preview-deadline">{{item.deadline}}</text>
+      </view>
+    </view>
+  </view>
+
   <view wx:if="{{localHoldingsCount && state.writable}}" class="migrate-card">
     <view class="migrate-copy">
       <text>本机速记 {{localHoldingsCount}} 条</text>
@@ -108,5 +129,10 @@
   </view>
 
   <text class="privacy-note">记录仅当前微信用户可见，到期后仍可查看、导出和删除。</text>
-  <text class="disclaimer">个人记录工具，不构成投资建议。</text>
+  <text class="disclaimer">{{disclaimer}}</text>
+
+  <view class="page-nav">
+    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
+    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
+  </view>
 </view>

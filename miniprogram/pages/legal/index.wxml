@@ -52,4 +52,9 @@
     <button class="member-action" bindtap="openMember"><text>返回会员页</text><text>›</text></button>
   </view>
   <text class="footer-note">如有疑问，请在购买前联系微信客服。</text>
+
+  <view class="page-nav">
+    <view class="page-nav-button" bindtap="openMember" hover-class="tap-active" aria-role="button" aria-label="返回会员页">‹ 会员页</view>
+    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
+  </view>
 </view>

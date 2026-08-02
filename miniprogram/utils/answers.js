@@ -48,12 +48,53 @@ function formatRange(range, digits = 1) {
   const low = Number(range.low);
   const high = Number(range.high);
   const unit = range.currency || "";
+  if (!Number.isFinite(low) && !Number.isFinite(high)) return null;
   if (Number.isFinite(low) && Number.isFinite(high) && low !== high) {
     return `${low.toFixed(digits)}–${high.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
   }
-  if (Number.isFinite(low)) return `${low.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
-  if (Number.isFinite(high)) return `${high.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
-  return null;
+  const value = Number.isFinite(low) ? low : high;
+  return `${value.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
+}
+
+/** 长公司名压成简称，方便老人/小白一眼看懂。 */
+function shortCompanyName(value, fallback = "—", max = 8) {
+  let name = String(value || "")
+    .replace(/股份有限公司$/u, "")
+    .replace(/有限责任公司$/u, "")
+    .replace(/有限公司$/u, "")
+    .replace(/集团公司$/u, "")
+    .replace(/集团$/u, "")
+    .replace(/控股$/u, "")
+    .replace(/科技$/u, "")
+    .replace(/智能$/u, "")
+    .replace(/（[^）]*）/gu, "")
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+  if (!name) name = String(value || fallback || "—").replace(/\s+/g, "").trim() || fallback;
+  // 首页四格等窄位：直接截短，不用省略号（避免「拿森智能…」难读）
+  return name.length > max ? name.slice(0, max) : name;
+}
+
+/** 保荐人/承销商等机构名缩短。 */
+function shortOrgName(value, max = 8) {
+  let name = String(value || "")
+    .replace(/股份有限公司$/u, "")
+    .replace(/有限责任公司$/u, "")
+    .replace(/有限公司$/u, "")
+    .replace(/资本$/u, "")
+    .replace(/证券$/u, "")
+    .replace(/（[^）]*）/gu, "")
+    .replace(/\([^)]*\)/g, "")
+    .trim();
+  if (!name) return String(value || "暂缺");
+  return name.length > max ? `${name.slice(0, max)}…` : name;
+}
+
+function shortOrgList(values, fallback = "暂缺", maxItems = 2) {
+  if (!Array.isArray(values) || !values.length) return fallback;
+  return values.slice(0, maxItems).map((item) => shortOrgName(item)).join("、")
+    + (values.length > maxItems ? ` 等${values.length}家` : "");
 }
 
 function hkOutcome(item) {
@@ -111,10 +152,9 @@ function hkItems(snapshot) {
     const extractionNote = hkExtractionNote(item);
     const action = hkActionFromItem(item);
     const offerBits = [
-      item.offerPrice ? `招股价 ${item.offerPrice}` : null,
-      item.entryFee ? `一手约 ${item.entryFee} 港元` : null,
-      item.offerDeadline ? `认购到 ${item.offerDeadline}` : (item.offerEnd ? `认购到 ${item.offerEnd}` : null),
-      item.listingDate ? `计划上市 ${item.listingDate}` : null,
+      item.offerPrice ? `招股 ${item.offerPrice}` : null,
+      item.entryFee ? `一手 ${Math.round(Number(item.entryFee))}` : null,
+      item.offerDeadline || item.offerEnd || null,
     ].filter(Boolean);
     // 已出配发结果的仍可能留在 listings；按「已结束」展示，不混进暂不建议。
     const group = action.group === "ended" || item.allotmentUrl
@@ -131,7 +171,7 @@ function hkItems(snapshot) {
       scoreText: action.badge,
       extractionNote,
       one: extractionNote
-        || `${action.badge}：${action.action}${offerBits.length ? `｜${offerBits.join(" · ")}` : ""}`,
+        || [action.badge, ...offerBits].filter(Boolean).join(" · "),
       raw: item,
     };
   });
@@ -149,9 +189,10 @@ function hkItems(snapshot) {
       outcomeValue: outcome.headline ? outcome.headline.value : null,
       scoreText: outcome.headline ? outcome.headline.label : "上市表现待核验",
       rankText: outcome.summary || "上市表现待核验",
-      one: outcome.summary
-        ? `${outcome.summary}。当时结论：${verdict || "仅复盘结果"}。`
-        : "发行已结束，可看暗盘和上市后实际表现。",
+      one: [
+        outcome.headline ? outcome.headline.label : null,
+        verdict || null,
+      ].filter(Boolean).join(" · ") || "发行已结束",
       raw: item,
     };
   });
@@ -161,18 +202,6 @@ function hkItems(snapshot) {
     .sort((left, right) => right.outcomeValue - left.outcomeValue);
   ranked.forEach((item, index) => { item.rank = index + 1; });
   return items;
-}
-
-function stockObservation(stock) {
-  const values = (stock.history || []).map(Number).filter(Number.isFinite).sort((left, right) => left - right);
-  const price = Number(stock.price);
-  if (!values.length || !Number.isFinite(price)) return "历史价格样本不足，先看已核验的最新价。";
-  const atOrBelow = values.filter((value) => value <= price).length;
-  const percentile = Math.round((atOrBelow / values.length) * 100);
-  const place = percentile <= 35 ? "偏低（相对近两个月更便宜一点）"
-    : percentile >= 70 ? "偏高（相对近两个月更贵一点）"
-      : "居中";
-  return `现价约 ${money(price)}，在近 ${values.length} 个交易日里属于${place}。`;
 }
 
 function usItems(snapshot) {
@@ -192,7 +221,11 @@ function usItems(snapshot) {
     rank: null,
     scoreText: group === "hot" ? `热度 ${number(stock.heatScore)} 分` : "七姐妹",
     rankText: badge,
-    one: `${stockObservation(stock)} 今日 ${signedPercent(stock.changePercent) || "涨跌待更新"}。`,
+    one: [
+      signedPercent(stock.changePercent) || "涨跌待更新",
+      group === "hot" && Number.isFinite(number(stock.heatScore)) ? `热度 ${number(stock.heatScore)}` : null,
+      Number.isFinite(Number(stock.price)) ? money(stock.price) : null,
+    ].filter(Boolean).join(" · "),
     raw: stock,
   });
   const bySymbol = new Map(stocks.map((item) => [item.symbol, item]));
@@ -230,7 +263,7 @@ function smartMoneyItems(snapshot) {
       rank: profile.order,
       scoreText: profile.performanceValue,
       rankText: `第 ${profile.order}/${counts[profile.group]} 名`,
-      one: `WHY：${profile.why} HOW：${profile.how}`,
+      one: `原因：${profile.why} 学法：${profile.how}`,
       raw: {
         ...live,
         profile,
@@ -257,8 +290,6 @@ function goldItems(snapshot) {
   const riskIntl = formatRange(plan.internationalRisk);
   const buyCny = formatRange(plan.domesticWatch, 1);
   const sellCny = formatRange(plan.domesticUpper, 1);
-  const why = (answer.reasons || []).slice(0, 2).join("；") || "先看价格位置与宏观驱动。";
-  const risk = (answer.risks || []).slice(0, 2).join("；") || "利率、美元与流动性变化会带来回撤。";
   const action = answer.action || answer.researchLabel || "继续观察";
   const rows = [
     [
@@ -266,7 +297,11 @@ function goldItems(snapshot) {
       "track",
       "现在怎么做",
       action,
-      `${action}。${why} 风险：${risk}`,
+      [
+        action,
+        Number.isFinite(Number(international?.percentile180)) ? `半年位 ${Number(international.percentile180)}%` : null,
+        Number.isFinite(Number(international?.price)) ? `国际金 ${Number(international.price).toFixed(0)}` : null,
+      ].filter(Boolean).join(" · "),
     ],
     [
       "plan",
@@ -274,12 +309,12 @@ function goldItems(snapshot) {
       "买点与卖点",
       "价格观察",
       [
-        buyIntl ? `国际金买入观察 ${buyIntl}` : null,
-        sellIntl ? `卖出/止盈观察 ${sellIntl}` : null,
-        riskIntl ? `风险下沿 ${riskIntl}` : null,
-        buyCny ? `上海金买入观察 ${buyCny}` : null,
-        sellCny ? `上海金卖出观察 ${sellCny}` : null,
-      ].filter(Boolean).join("｜") || quoteLine,
+        buyIntl ? `买 ${buyIntl}` : null,
+        sellIntl ? `卖 ${sellIntl}` : null,
+        riskIntl ? `风险 ${riskIntl}` : null,
+        buyCny ? `沪金买 ${buyCny}` : null,
+        sellCny ? `沪金卖 ${sellCny}` : null,
+      ].filter(Boolean).join(" · ") || quoteLine,
     ],
   ];
   return rows.map(([id, group, name, badge, one]) => ({
@@ -307,7 +342,6 @@ function aShareItems(snapshot) {
       ? `股息率 ${Number(item.currentDividendYield).toFixed(2)}%`
       : "股息率待更新";
     const advice = item.currentAdvice || research.label || "先看分红";
-    const summary = item.summary || research.note || "先核对流是否撑得住分红。";
     const buy = item.buyPrice || item.recommendPrice || null;
     return {
       id: String(item.code).replace(/\.(SH|SZ)$/i, ""),
@@ -320,7 +354,11 @@ function aShareItems(snapshot) {
       rank: null,
       scoreText: advice,
       rankText: buy ? `参考 ${buy}` : "公开收息样本",
-      one: `${advice}：${summary}${buy ? `｜参考价 ${buy}` : ""}`,
+      one: [
+        yieldText,
+        advice,
+        buy ? `参考 ${buy}` : null,
+      ].filter(Boolean).join(" · "),
       raw: { ...item, financials: fundamentals.get(item.code) || {} },
     };
   });
@@ -340,7 +378,7 @@ function groupDefinitions(snapshot, market) {
   let definitions;
   if (market === "hk") {
     definitions = [
-      ["worth", "建议申购", "模型更看好，可关注认购；仍要自己核对一手金额与风险。"],
+      ["worth", "建议申购", "公开资料更偏可关注认购；仍要自己核对一手金额与风险。"],
       ["caution", "暂缓观察", "先看认购热度和补齐资料，不急着重仓。"],
       ["avoid", "暂不建议", "风险信号更多，或资料不够，暂不建议申购。"],
       ["cancelled", "发行已取消", "发行人已公告不进行本次发售，无法申购。"],
@@ -352,7 +390,7 @@ function groupDefinitions(snapshot, market) {
     ];
   } else if (market === "us") {
     definitions = [
-      ["seven", "七姐妹", "长期盯住的七家科技巨头。"],
+      ["seven", "七姐妹", "长期盯住的七家大型科技公司。"],
       ["hot", "热度前三", "这两天大家聊得最多的三只（不含七姐妹）。"],
     ];
   } else if (market === "a") {
@@ -374,9 +412,9 @@ function groupDefinitions(snapshot, market) {
     ];
   } else {
     definitions = [
-      ["hk", "港股 · 3 个", "可核验候选池内，按表观长期年化从高到低排列。"],
-      ["us", "美股 · 5 个", "可核验候选池内，按表观长期年化从高到低排列。"],
-      ["a", "A股 · 3 个", "可核验候选池内，按表观长期年化从高到低排列。"],
+      ["hk", "港股 · 3 个", "可核验候选池内，按公开长期年化从高到低排列。"],
+      ["us", "美股 · 5 个", "可核验候选池内，按公开长期年化从高到低排列。"],
+      ["a", "A股 · 3 个", "可核验候选池内，按公开长期年化从高到低排列。"],
     ];
   }
   return definitions.map(([id, title, one]) => ({ id, title, one, count: items.filter((item) => item.group === id).length }));
@@ -393,5 +431,8 @@ module.exports = {
   groupDefinitions,
   money,
   formatRange,
+  shortCompanyName,
+  shortOrgName,
+  shortOrgList,
   HK_VERDICT_MAP,
 };

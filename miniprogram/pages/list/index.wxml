@@ -2,22 +2,13 @@
   <view class="list-summary {{meta.tone}}">
     <view class="summary-copy">
       <text class="title">{{title}}</text>
-      <text class="item-count">{{items.length}} 项</text>
+      <text class="item-count">{{items.length}}</text>
     </view>
     <view class="summary-image-wrap">
       <image class="summary-image" src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
     </view>
   </view>
-
-  <view class="list-insight">
-    <text class="insight-label">先看结论</text>
-    <text class="insight-conclusion">{{insight.conclusion}}</text>
-  </view>
-
-  <view class="section-heading">
-    <text>全部</text>
-    <text>{{items.length}} 项</text>
-  </view>
+  <text wx:if="{{groupHelp}}" class="list-help">{{groupHelp}}</text>
 
   <view wx:if="{{items.length}}" class="item-panel">
     <view
@@ -28,21 +19,20 @@
       bindtap="openItem"
       hover-class="tap-active"
       aria-role="button"
-      aria-label="{{item.name}}，{{item.one}}"
+      aria-label="{{item.shortName}}，{{item.badge}}"
     >
       <text class="item-number">{{item.positionLabel}}</text>
       <view class="item-main">
         <view class="item-top">
           <view class="item-identity">
-            <text class="item-name">{{item.name}}</text>
+            <text class="item-name">{{item.shortName}}</text>
             <text wx:if="{{item.code}}" class="item-code">{{item.code}}</text>
           </view>
           <text class="badge">{{item.badge}}</text>
         </view>
-        <text class="answer">{{item.one}}</text>
         <view wx:if="{{item.showBar}}" class="data-bar-block">
-          <view class="data-bar-copy"><text>{{item.barLabel}}</text></view>
           <view class="data-bar-track"><view class="data-bar-value {{item.barTone}}" style="width: {{item.barWidth}}%;"></view></view>
+          <view class="data-bar-copy"><text>{{item.barLabel}}</text></view>
         </view>
       </view>
       <text class="arrow">›</text>
@@ -51,17 +41,15 @@
 
   <view wx:else class="empty">
     <image src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
-    <text class="empty-title">暂无可展示资料</text>
-    <text>下拉刷新再试</text>
+    <text class="empty-title">暂无资料</text>
+  </view>
+
+  <view class="page-note">
+    <text>{{disclaimer}}</text>
   </view>
 
   <view class="page-nav">
     <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
     <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
-  </view>
-
-  <view class="page-note">
-    <text>{{source}}</text>
-    <text>公开资料整理，仅供研究参考。</text>
   </view>
 </view>

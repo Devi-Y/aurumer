@@ -15,15 +15,12 @@
     </view>
   </view>
 
-  <view class="insight-panel">
-    <text class="insight-label">结论</text>
-    <text class="insight-conclusion">{{overview.conclusion}}</text>
-    <text wx:if="{{overview.analysis}}" class="insight-analysis">{{overview.analysis}}</text>
-  </view>
-
-  <view class="section-heading">
-    <text>继续看</text>
-    <text>{{groups.length}} 项</text>
+  <view class="insight-panel" wx:if="{{overview.target || overview.grade}}">
+    <view class="insight-line">
+      <text class="insight-label">结论</text>
+      <text class="insight-target">{{overview.target || '—'}}</text>
+      <text class="insight-grade">{{overview.grade || '—'}}</text>
+    </view>
   </view>
 
   <view class="group-panel">
@@ -36,23 +33,25 @@
       hover-class="{{item.count ? 'tap-active' : ''}}"
       aria-role="button"
       aria-disabled="{{item.count ? 'false' : 'true'}}"
-      aria-label="{{item.title}}，{{item.count ? '共 ' + item.count + ' 项' : '当前没有符合条件的项目，暂不可进入'}}"
+      aria-label="{{item.title}}，{{item.one}}，{{item.count ? item.count + ' 项' : '暂无'}}"
     >
       <text class="group-index">{{item.indexLabel}}</text>
-      <text class="group-title">{{item.title}}</text>
+      <view class="group-copy">
+        <text class="group-title">{{item.title}}</text>
+        <text class="group-help">{{item.one}}</text>
+      </view>
       <text class="group-count">{{item.count}}</text>
       <text wx:if="{{item.count}}" class="arrow">›</text>
-      <text wx:else class="group-empty-hint">暂无</text>
+      <text wx:else class="group-empty-hint">—</text>
     </view>
+  </view>
+
+  <view class="page-note">
+    <text>{{disclaimer}}</text>
   </view>
 
   <view class="page-nav">
     <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
     <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
-  </view>
-
-  <view class="page-note">
-    <text>{{source}}</text>
-    <text>公开资料研究观察，供参考；不是强制下单指令，决策自负。</text>
   </view>
 </view>

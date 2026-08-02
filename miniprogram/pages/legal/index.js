@@ -103,4 +103,7 @@ Page({
   openMember() {
     wx.navigateBack({ fail: () => wx.reLaunch({ url: "/pages/member/index" }) });
   },
+  goHome() {
+    wx.reLaunch({ url: "/pages/index/index" });
+  },
 });

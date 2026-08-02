@@ -37,7 +37,7 @@
 
 .hero-title {
   color: #172019;
-  font-size: 34rpx;
+  font-size: 36rpx;
   font-weight: 650;
 }
 
@@ -45,7 +45,7 @@
   display: block;
   margin-top: 12rpx;
   color: #5a645e;
-  font-size: 24rpx;
+  font-size: 26rpx;
   line-height: 1.55;
 }
 
@@ -89,7 +89,7 @@
   overflow: hidden;
   max-width: 100%;
   color: #7e8781;
-  font-size: 22rpx;
+  font-size: 24rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -99,7 +99,7 @@
   max-width: 100%;
   margin-top: 5rpx;
   color: #1c3929;
-  font-size: 27rpx;
+  font-size: 30rpx;
   font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -107,34 +107,42 @@
 
 .insight-panel {
   margin-top: 14rpx;
-  padding: 22rpx 24rpx 24rpx;
+  padding: 22rpx 24rpx;
+}
+
+.insight-line {
+  display: flex;
+  min-height: 72rpx;
+  align-items: center;
+  gap: 14rpx;
 }
 
 .insight-label {
-  display: block;
+  flex: none;
   color: #6a756e;
-  font-size: 22rpx;
+  font-size: 26rpx;
   font-weight: 600;
 }
 
-.insight-conclusion {
-  display: -webkit-box;
+.insight-target {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
-  margin-top: 9rpx;
-  color: #2a322c;
-  font-size: 28rpx;
-  font-weight: 500;
-  line-height: 1.56;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  color: #1b211d;
+  font-size: 30rpx;
+  font-weight: 560;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.insight-analysis {
-  display: block;
-  margin-top: 12rpx;
-  color: #667068;
-  font-size: 24rpx;
-  line-height: 1.55;
+.insight-grade {
+  flex: none;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: #e8f6ef;
+  color: #0b7a53;
+  font-size: 28rpx;
+  font-weight: 700;
 }
 
 .section-heading {
@@ -146,19 +154,19 @@
 
 .section-heading text:first-child {
   color: #3a433d;
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 650;
 }
 
 .section-heading text:last-child {
   color: #8a918c;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .group-row {
   display: flex;
-  min-height: 96rpx;
-  padding: 15rpx 18rpx 15rpx 20rpx;
+  min-height: 108rpx;
+  padding: 16rpx 18rpx 16rpx 20rpx;
   align-items: center;
   gap: 15rpx;
 }
@@ -171,7 +179,7 @@
 .group-empty-hint {
   flex: none;
   color: #9aa19c;
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: 600;
 }
 
@@ -185,22 +193,34 @@
   border-radius: 14rpx;
   background: #f0f5f2;
   color: #0b7a53;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 650;
 }
 
-.group-title {
+.group-copy {
   min-width: 0;
   flex: 1;
+}
+
+.group-title {
+  display: block;
   color: #1b211d;
-  font-size: 28rpx;
-  font-weight: 600;
+  font-size: 30rpx;
+  font-weight: 650;
+}
+
+.group-help {
+  display: block;
+  margin-top: 6rpx;
+  color: #6a746e;
+  font-size: 24rpx;
+  line-height: 1.45;
 }
 
 .group-count {
   flex: none;
   color: #7f8781;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .arrow {
@@ -220,7 +240,7 @@
   align-items: center;
   gap: 7rpx;
   color: #8a918c;
-  font-size: 22rpx;
+  font-size: 24rpx;
   line-height: 1.5;
   text-align: center;
 }
@@ -229,7 +249,7 @@
   .section-shell { padding-right: 14rpx; padding-left: 14rpx; }
   .hero-title { font-size: 37rpx; }
   .hero-metric { padding-right: 6rpx; padding-left: 6rpx; }
-  .hero-metric text:last-child { font-size: 25rpx; }
+  .hero-metric text:last-child { font-size: 28rpx; }
 }
 
 @media (min-width: 700px) {

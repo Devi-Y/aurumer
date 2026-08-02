@@ -10,12 +10,88 @@
 .form-panel,
 .record-panel,
 .empty-card,
-.management-panel {
+.management-panel,
+.preview-panel,
+.addon-hint {
   box-sizing: border-box;
   width: 100%;
   overflow: hidden;
   border-radius: 24rpx;
   background: #ffffff;
+}
+
+.addon-hint {
+  margin-top: 16rpx;
+  padding: 18rpx 22rpx;
+  color: #0b7a53;
+  font-size: 26rpx;
+  line-height: 1.5;
+  background: #eef8f2;
+}
+
+.preview-panel {
+  margin-top: 16rpx;
+}
+
+.preview-head {
+  display: flex;
+  min-height: 78rpx;
+  padding: 0 22rpx;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1rpx solid #edf0ee;
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 680;
+}
+
+.preview-head text:last-child {
+  color: #7a847e;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.preview-row {
+  display: flex;
+  min-height: 96rpx;
+  padding: 18rpx 22rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.preview-row + .preview-row { border-top: 1rpx solid #edf0ee; }
+
+.preview-main { min-width: 0; flex: 1; }
+.preview-market {
+  display: block;
+  color: #0b7a53;
+  font-size: 22rpx;
+  font-weight: 650;
+}
+.preview-title {
+  display: block;
+  margin-top: 4rpx;
+  overflow: hidden;
+  color: #171b18;
+  font-size: 30rpx;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-side { flex: none; text-align: right; }
+.preview-metric {
+  display: block;
+  color: #244f3b;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+.preview-deadline {
+  display: block;
+  margin-top: 4rpx;
+  color: #c45c26;
+  font-size: 22rpx;
+  font-weight: 620;
 }
 
 .workspace-status-card {

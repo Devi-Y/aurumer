@@ -1,125 +1,51 @@
 <view class="page-shell home-shell">
-  <view class="today-card">
-    <view class="today-top">
-      <view class="today-title-wrap">
-        <text class="today-title">{{todayTitle}}</text>
-        <text class="today-help">{{todayHelp}}</text>
-        <text class="today-asof">{{dataAsOf || '正在核对更新时间'}}</text>
-      </view>
-      <text class="today-time">{{refreshedAt || '更新中'}}</text>
-    </view>
-    <text class="today-headline">{{today.headline}}</text>
-    <view
-      class="today-toggle"
-      bindtap="toggleTodayDetails"
-      hover-class="tap-active"
-      aria-role="button"
-      aria-label="{{todayExpanded ? '收起今日重点' : '展开今日重点'}}"
-    >
-      <text>{{todayExpanded ? '收起' : '查看 4 项速览'}}</text>
-      <text>{{todayExpanded ? '︿' : '﹀'}}</text>
-    </view>
-  </view>
-
-  <view wx:if="{{todayExpanded}}" class="today-detail-panel">
-    <view class="today-metrics">
-      <view wx:for="{{today.metrics}}" wx:key="label" class="today-metric">
-        <text>{{item.label}}</text>
-        <text>{{item.value}}</text>
-      </view>
-    </view>
-    <view
-      wx:for="{{today.points}}"
-      wx:key="id"
-      class="today-point"
-      data-market="{{item.id}}"
-      bindtap="openTodayPoint"
-      hover-class="tap-active"
-      aria-role="button"
-      aria-label="{{item.label}}，{{item.value}}"
-    >
-      <text class="point-label">{{item.label}}</text>
-      <view class="point-copy">
-        <text>{{item.value}}</text>
-        <text wx:if="{{item.note}}">{{item.note}}</text>
-      </view>
-      <text class="arrow">›</text>
-    </view>
-  </view>
-
-  <text class="section-label">本机速记</text>
-  <view class="holdings-panel">
-    <view wx:if="{{holdings.length}}" class="holding-list">
-      <view wx:for="{{holdings}}" wx:key="id" class="holding-row">
-        <view class="holding-main">
-          <text class="holding-name">{{item.name}}</text>
-          <text class="holding-meta">{{item.marketLabel}} · {{item.meta}}</text>
-        </view>
-        <text class="holding-delete" data-id="{{item.id}}" bindtap="deleteHolding" aria-role="button">删除</text>
-      </view>
-    </view>
-    <view wx:else class="holding-empty">
-      <text>只存在本机，不会同步云端</text>
-      <text>开通会员后可在「我的记录」一键迁移到跨设备清单。</text>
-    </view>
-    <view
-      wx:if="{{!showHoldingForm}}"
-      class="holding-add"
-      bindtap="toggleHoldingForm"
-      hover-class="tap-active"
-      aria-role="button"
-    >添加速记</view>
-    <view wx:else class="holding-form">
-      <picker mode="selector" range="{{marketOptions}}" range-key="label" value="{{marketIndex}}" bindchange="changeHoldingMarket">
-        <view class="holding-picker"><text>市场</text><text>{{marketOptions[marketIndex].label}} ›</text></view>
-      </picker>
-      <input class="holding-input" placeholder="名称，如 拿森智能" value="{{holdingForm.name}}" bindinput="inputHoldingName" />
-      <input class="holding-input" placeholder="代码（选填）" value="{{holdingForm.code}}" bindinput="inputHoldingCode" />
-      <input class="holding-input" type="digit" placeholder="成本（选填）" value="{{holdingForm.cost}}" bindinput="inputHoldingCost" />
-      <input class="holding-input" type="digit" placeholder="数量股/克（选填）" value="{{holdingForm.quantity}}" bindinput="inputHoldingQuantity" />
-      <view class="holding-form-actions">
-        <view class="holding-cancel" bindtap="toggleHoldingForm" hover-class="tap-active" aria-role="button">取消</view>
-        <view class="holding-save" bindtap="saveHolding" hover-class="tap-active" aria-role="button">保存到本机</view>
+  <view class="home-hero">
+    <text class="hero-title">今日重点</text>
+    <text class="hero-help">{{todayHelp}}</text>
+    <view class="hero-matrix">
+      <view
+        wx:for="{{today.points}}"
+        wx:key="id"
+        class="hero-cell"
+        data-market="{{item.id}}"
+        data-target="{{item.targetId}}"
+        bindtap="openTodayTarget"
+        hover-class="hero-tap"
+        aria-role="button"
+        aria-label="{{item.ariaTarget}}"
+      >
+        <text class="hero-label">{{item.label}}</text>
+        <text class="hero-value">{{item.value}}</text>
       </view>
     </view>
   </view>
 
-  <text class="section-label">核心研究</text>
-
-  <view class="entry-grid">
-    <view
-      wx:for="{{entries}}"
-      wx:key="id"
-      class="grid-card {{item.tone}}"
-      data-id="{{item.id}}"
-      bindtap="openGridEntry"
-      hover-class="tap-active"
-      hover-stay-time="80"
-      aria-role="button"
-      aria-label="{{item.title}}，{{item.help}}"
-    >
-      <text wx:if="{{item.badge}}" class="entry-badge">{{item.badge}}</text>
-      <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
-      <text class="card-title">{{item.title}}</text>
+  <view class="home-panel">
+    <view class="panel-head">
+      <text class="panel-title">核心研究</text>
+      <text class="panel-meta">{{dataAsOf || '同步中'}}</text>
     </view>
-  </view>
-
-  <view
-    class="workspace-strip"
-    bindtap="openWorkspace"
-    hover-class="tap-active"
-    aria-role="button"
-    aria-label="打开我的研究记录"
-  >
-    <view class="workspace-icon-wrap">
-      <image src="/assets/home/decision.svg" mode="aspectFit" aria-hidden="true"></image>
+    <view class="entry-grid">
+      <view
+        wx:for="{{entries}}"
+        wx:key="id"
+        class="grid-card {{item.tone}}"
+        data-id="{{item.id}}"
+        bindtap="openGridEntry"
+        hover-class="tap-active"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="{{item.title}}，{{item.help}}"
+      >
+        <text wx:if="{{item.badge}}" class="entry-badge">{{item.badge}}</text>
+        <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
+        <text class="card-title">{{item.title}}</text>
+        <text class="card-help">{{item.help}}</text>
+      </view>
     </view>
-    <text class="workspace-title">我的研究记录</text>
-    <text class="arrow">›</text>
   </view>
 
   <view class="page-footer">
-    <text class="{{freshnessKind == 'fresh' ? '' : 'is-stale'}}">{{source || '正在同步最新数据'}}</text>
-    <text>{{footerDisclaimer}}</text>
+    <text class="footer-note">{{footerDisclaimer}}</text>
   </view>
 </view>

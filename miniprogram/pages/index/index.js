@@ -1,16 +1,8 @@
 const { loadSnapshot } = require("../../data/store");
-const { listHoldings, upsertHolding, removeHolding } = require("../../utils/local-holdings");
-const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const { track } = require("../../utils/analytics");
-const { openTab } = require("../../utils/nav");
-
-const MARKET_OPTIONS = [
-  { id: "hk", label: "港股" },
-  { id: "us", label: "美股" },
-  { id: "a", label: "A股" },
-  { id: "gold", label: "黄金" },
-  { id: "other", label: "其他" },
-];
+const { openPage } = require("../../utils/nav");
+const { shortCompanyName } = require("../../utils/answers");
+const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 
 const CORE_ENTRIES = [
   {
@@ -70,36 +62,8 @@ const CORE_ENTRIES = [
   },
 ];
 
-const MARKET_LABELS = {
-  hk: "港股",
-  us: "美股",
-  a: "A股",
-  gold: "黄金",
-  other: "其他",
-};
-
 function hasNumber(value) {
   return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
-}
-
-function shortName(value, fallback) {
-  const name = String(value || fallback || "待更新");
-  return name.length > 10 ? `${name.slice(0, 10)}…` : name;
-}
-
-function signedPercent(value) {
-  if (!hasNumber(value)) return "涨跌待更新";
-  const number = Number(value);
-  return `${number >= 0 ? "+" : ""}${number.toFixed(2)}%`;
-}
-
-function formatOfferWindow(listing) {
-  const start = listing.offerStart || listing.offerPeriodStart;
-  const end = listing.offerDeadline || listing.offerEnd || listing.offerPeriodEnd;
-  if (start && end) return `认购 ${start} 至 ${end}`;
-  if (end) return `认购截止 ${end}`;
-  if (listing.listingDate) return `上市日 ${listing.listingDate}`;
-  return "";
 }
 
 function buildToday(data) {
@@ -122,157 +86,90 @@ function buildToday(data) {
     .sort((left, right) => Number(right.currentDividendYield || 0) - Number(left.currentDividendYield || 0))[0];
   const gold = data.gold || {};
   const internationalGold = gold.quotes?.international || {};
-  const domesticGold = gold.quotes?.domestic || {};
-  const goldAction = gold.answer?.action || "继续观察";
-  const hkVerdictMap = { 值得打: "建议申购", 谨慎打: "暂缓观察", 不建议: "暂不建议", 待核验: "资料不够" };
-  const hkBadge = listing
-    ? (hkVerdictMap[listing.publicAnswer?.verdict] || listing.researchView?.label || "先看资料")
-    : "";
-  const hkWindow = listing ? formatOfferWindow(listing) : "";
-  const hkBits = listing
-    ? [
-      listing.offerPrice ? `招股价 ${listing.offerPrice}` : null,
-      listing.entryFee ? `一手约 ${listing.entryFee} 港元` : null,
-    ].filter(Boolean).join(" · ")
-    : "";
 
-  let headline;
-  if (listing) {
-    headline = `港股「${shortName(listing.name, "新股")}」${hkBadge}${hkBits ? `，${hkBits}` : ""}${hkWindow ? `，${hkWindow}` : ""}`;
-  } else {
-    headline = `黄金现在：${goldAction}${hasNumber(internationalGold.price) ? `；国际金 ${Number(internationalGold.price).toFixed(0)} 美元/盎司` : ""}`;
-  }
+  const hkId = listing
+    ? String(listing.rawCode || listing.code || listing.id || "").replace(/\.HK$/i, "")
+    : "";
+  const hkName = listing
+    ? shortCompanyName(listing.shortName || listing.name, "新股", 4)
+    : "暂无";
+  const usId = hotStock ? String(hotStock.symbol || "") : "";
+  const aId = dividendStock
+    ? String(dividendStock.code || "").replace(/\.(SH|SZ)$/i, "")
+    : "";
+  const aName = dividendStock
+    ? shortCompanyName(dividendStock.name, "收息", 4)
+    : "待更新";
+  const goldPrice = hasNumber(internationalGold.price)
+    ? Math.round(Number(internationalGold.price))
+    : null;
 
   return {
-    headline,
-    metrics: [
-      {
-        label: "黄金动作",
-        value: goldAction,
-        hint: hasNumber(internationalGold.percentile180) ? `半年位置 ${Number(internationalGold.percentile180)}%` : "价格追踪",
-      },
-      {
-        label: "美股最热",
-        value: hotStock ? hotStock.symbol : "待更新",
-        hint: hotStock ? `热度 ${hotStock.heatScore}` : "公开热度",
-      },
-      {
-        label: "A股股息",
-        value: dividendStock && hasNumber(dividendStock.currentDividendYield)
-          ? `${Number(dividendStock.currentDividendYield).toFixed(2)}%`
-          : "待更新",
-        hint: dividendStock ? shortName(dividendStock.name, "公开资料") : "公开资料",
-      },
-    ],
     points: [
       {
         id: "hk",
         label: "港股",
-        value: listing ? `${shortName(listing.name)} · ${hkBadge}` : "今天没有在售新股",
-        note: listing ? (hkBits || hkWindow || "点开看认购细节") : "去历史复盘看以前打新结果",
+        value: hkName,
+        targetId: hkId,
+        hasTarget: Boolean(hkId),
+        ariaTarget: hkId ? `港股 ${hkName}` : "港股暂无",
       },
       {
         id: "us",
         label: "美股",
-        value: hotStock
-          ? `${hotStock.symbol} ${signedPercent(hotStock.changePercent)} · 今天最热闹`
-          : "市场热度待更新",
-        note: "下一步：看七姐妹和热度前三",
+        value: usId || "—",
+        targetId: usId,
+        hasTarget: Boolean(usId),
+        ariaTarget: usId ? `美股 ${usId}` : "美股暂无",
       },
       {
         id: "a",
         label: "A股",
-        value: dividendStock
-          ? `${shortName(dividendStock.name)} · 股息 ${Number(dividendStock.currentDividendYield || 0).toFixed(2)}%`
-          : "收息资料待更新",
-        note: "下一步：看股息稳不稳、现金流够不够",
+        value: aName,
+        targetId: aId,
+        hasTarget: Boolean(aId),
+        ariaTarget: aId ? `A股 ${aName}` : "A股暂无",
       },
       {
         id: "gold",
         label: "黄金",
-        value: `${goldAction}${hasNumber(internationalGold.price) ? ` · 国际金 ${Number(internationalGold.price).toFixed(0)}` : ""}`,
-        note: hasNumber(domesticGold.price)
-          ? `上海金 ${Number(domesticGold.price).toFixed(2)} 元/克 · 点开看买点卖点`
-          : "点开看买点、卖点和原因",
+        value: goldPrice != null ? String(goldPrice) : "—",
+        targetId: "track",
+        hasTarget: true,
+        ariaTarget: goldPrice != null ? `黄金国际金价 ${goldPrice} 美元` : "黄金追踪",
       },
     ],
   };
 }
 
-function viewHoldings(items) {
-  return (items || []).map((item) => ({
-    ...item,
-    marketLabel: MARKET_LABELS[item.market] || "其他",
-    meta: [
-      item.code || null,
-      hasNumber(item.cost) ? `成本 ${item.cost}` : null,
-      hasNumber(item.quantity) ? `${item.quantity} 股/克` : null,
-    ].filter(Boolean).join(" · ") || "本机速记",
-  }));
-}
-
-function todayTitle(kind) {
-  if (kind === "stale" || kind === "offline") return "上一份可用重点";
-  if (kind === "cached" || kind === "aging") return "上一份可用重点";
-  return "今日重点";
-}
-
-function todayHelp(kind) {
-  if (kind === "fresh") return "今天先看这几件事";
-  if (kind === "offline") return "当前为随包备用数据";
-  if (kind === "cached") return "上游暂不可用，显示缓存";
-  return "数据非实时，先看结论再下钻";
-}
+const TODAY_HELP_FRESH = "今天先看这几件事";
 
 Page({
   data: {
     entries: CORE_ENTRIES.map((item) => ({ ...item })),
-    today: {
-      headline: "正在整理今天先看的几件事",
-      summary: "先看结论，再点进去。",
-      metrics: [],
-      points: [],
-    },
-    todayTitle: "今日重点",
-    todayHelp: "今天先看这几件事",
-    todayExpanded: false,
-    refreshedAt: "",
+    today: { points: [] },
     dataAsOf: "",
-    source: "",
     freshnessKind: "offline",
+    todayHelp: TODAY_HELP_FRESH,
     footerDisclaimer: FOOTER_DISCLAIMER,
-    holdings: [],
-    showHoldingForm: false,
-    marketOptions: MARKET_OPTIONS,
-    marketIndex: 0,
-    holdingForm: { name: "", code: "", cost: "", quantity: "" },
   },
   onLoad() {
     track("home_open");
-    this.refreshHoldings();
     this.refreshAnswers();
-  },
-  onShow() {
-    this.refreshHoldings();
   },
   onPullDownRefresh() {
     this.refreshAnswers(() => wx.stopPullDownRefresh(), true);
-  },
-  refreshHoldings() {
-    this.setData({ holdings: viewHoldings(listHoldings()) });
   },
   refreshAnswers(done, force = false) {
     loadSnapshot(
       (data, source, meta = {}) => {
         const kind = meta.kind || "aging";
+        const asOf = this.formatAsOf(data.updatedAt, kind);
         this.setData({
           today: buildToday(data),
-          refreshedAt: this.formatTime(new Date(data.updatedAt)),
-          dataAsOf: this.formatAsOf(data.updatedAt),
-          source,
+          dataAsOf: asOf,
           freshnessKind: kind,
-          todayTitle: todayTitle(kind),
-          todayHelp: todayHelp(kind),
+          todayHelp: TODAY_HELP_FRESH,
         });
       },
       done,
@@ -281,66 +178,37 @@ Page({
   },
   formatTime(date) {
     const pad = (value) => String(value).padStart(2, "0");
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
     return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   },
-  formatAsOf(value) {
+  formatAsOf(value, kind = "aging") {
     const date = new Date(value);
-    if (!value || Number.isNaN(date.getTime())) return "更新时间待核验";
-    return `数据截至 ${this.formatTime(date)}`;
+    if (!value || Number.isNaN(date.getTime())) return "数据截至待核验";
+    const stamp = this.formatTime(date);
+    if (kind === "stale") return `数据截至 ${stamp} · 已偏旧`;
+    return `数据截至 ${stamp}`;
   },
-  toggleTodayDetails() {
-    const next = !this.data.todayExpanded;
-    this.setData({ todayExpanded: next });
-    if (next) track("today_expand");
+  openTodayCategory(event) {
+    const market = event.currentTarget.dataset.market;
+    if (!market) return;
+    track("section_open", { market: String(market), from: "today_category" });
+    wx.navigateTo({ url: `/pages/section/index?market=${market}` });
   },
-  toggleHoldingForm() {
-    this.setData({ showHoldingForm: !this.data.showHoldingForm });
-  },
-  changeHoldingMarket(event) {
-    this.setData({ marketIndex: Number(event.detail.value) || 0 });
-  },
-  inputHoldingName(event) {
-    this.setData({ "holdingForm.name": event.detail.value });
-  },
-  inputHoldingCode(event) {
-    this.setData({ "holdingForm.code": event.detail.value });
-  },
-  inputHoldingCost(event) {
-    this.setData({ "holdingForm.cost": event.detail.value });
-  },
-  inputHoldingQuantity(event) {
-    this.setData({ "holdingForm.quantity": event.detail.value });
-  },
-  saveHolding() {
-    try {
-      const market = MARKET_OPTIONS[this.data.marketIndex] || MARKET_OPTIONS[0];
-      upsertHolding({
-        ...this.data.holdingForm,
-        market: market.id,
-      });
-      this.setData({
-        holdingForm: { name: "", code: "", cost: "", quantity: "" },
-        marketIndex: 0,
-        showHoldingForm: false,
-        holdings: viewHoldings(listHoldings()),
-      });
-      wx.showToast({ title: "已加入本机速记", icon: "success" });
-    } catch (error) {
-      wx.showToast({ title: error.message || "未能保存", icon: "none" });
+  openTodayTarget(event) {
+    const market = event.currentTarget.dataset.market;
+    const targetId = String(event.currentTarget.dataset.target || "");
+    if (!market) return;
+    if (!targetId) {
+      this.openTodayCategory({ currentTarget: { dataset: { market } } });
+      return;
     }
-  },
-  deleteHolding(event) {
-    const id = event.currentTarget.dataset.id;
-    if (!id) return;
-    removeHolding(id);
-    this.setData({ holdings: viewHoldings(listHoldings()) });
+    track("detail_open", { market: String(market), from: "today_target" });
+    wx.navigateTo({
+      url: `/pages/detail/index?market=${encodeURIComponent(market)}&id=${encodeURIComponent(targetId)}`,
+    });
   },
   openTodayPoint(event) {
-    const market = event.currentTarget.dataset.market;
-    if (market) {
-      track("section_open", { market: String(market), from: "today" });
-      wx.navigateTo({ url: `/pages/section/index?market=${market}` });
-    }
+    this.openTodayCategory(event);
   },
   openGridEntry(event) {
     const id = event.currentTarget.dataset.id;
@@ -351,11 +219,7 @@ Page({
       wx.navigateTo({ url: `/pages/section/index?market=${entry.id}` });
       return;
     }
-    if (entry.action === "member") openTab("/pages/member/index");
-  },
-  openWorkspace() {
-    track("workspace_open", { from: "home" });
-    openTab("/pages/workspace/index?focus=watch");
+    if (entry.action === "member") openPage("/pages/member/index");
   },
   onShareAppMessage() {
     track("share_tap", { page: "home" });

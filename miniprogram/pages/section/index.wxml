@@ -7,7 +7,7 @@
       </view>
     </view>
     <text class="hero-help">{{meta.one}}</text>
-    <view class="hero-metrics">
+    <view class="hero-metrics {{overview.metrics.length === 2 ? 'is-two' : ''}}">
       <view wx:for="{{overview.metrics}}" wx:key="label" class="hero-metric">
         <text>{{item.label}}</text>
         <text>{{item.value}}</text>

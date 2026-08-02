@@ -20,6 +20,10 @@
   background: #ffffff;
 }
 
+.section-hero .hero-help {
+  margin-bottom: 4rpx;
+}
+
 .section-hero.us,
 .section-hero.a,
 .section-hero.gold,
@@ -68,8 +72,13 @@
 .hero-metrics {
   display: flex;
   margin-top: 18rpx;
-  padding-top: 16rpx;
-  border-top: 1rpx solid #edf0ee;
+  padding: 16rpx 8rpx;
+  border-radius: 18rpx;
+  background: #f3faf5;
+}
+
+.hero-metrics.is-two .hero-metric {
+  width: 50%;
 }
 
 .hero-metric {
@@ -83,12 +92,12 @@
   text-align: center;
 }
 
-.hero-metric + .hero-metric { border-left: 1rpx solid #edf0ee; }
+.hero-metric + .hero-metric { border-left: 1rpx solid #dceee3; }
 
 .hero-metric text:first-child {
   overflow: hidden;
   max-width: 100%;
-  color: #7e8781;
+  color: #6a7a70;
   font-size: 22rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -97,9 +106,9 @@
 .hero-metric text:last-child {
   overflow: hidden;
   max-width: 100%;
-  margin-top: 5rpx;
-  color: #1c3929;
-  font-size: 27rpx;
+  margin-top: 6rpx;
+  color: #0b7a53;
+  font-size: 30rpx;
   font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -112,9 +121,9 @@
 
 .insight-label {
   display: block;
-  color: #6a756e;
+  color: #0b7a53;
   font-size: 22rpx;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .insight-conclusion {

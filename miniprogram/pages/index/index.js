@@ -102,6 +102,14 @@ function formatOfferWindow(listing) {
   return "";
 }
 
+function listingId(listing) {
+  return String(listing?.rawCode || listing?.code || listing?.id || "").replace(/\.HK$/i, "");
+}
+
+function aShareId(quote) {
+  return String(quote?.code || quote?.id || "").replace(/\.(SH|SZ)$/i, "");
+}
+
 function buildToday(data) {
   const listings = [...(data.hk?.listings || [])].filter((item) => item.researchView?.state !== "withdrawn");
   const listing = [...listings].sort((left, right) => {
@@ -139,6 +147,8 @@ function buildToday(data) {
   let headline;
   if (listing) {
     headline = `港股「${shortName(listing.name, "新股")}」${hkBadge}${hkBits ? `，${hkBits}` : ""}${hkWindow ? `，${hkWindow}` : ""}`;
+  } else if (dividendStock) {
+    headline = `价格与收息：A股「${shortName(dividendStock.name)}」股息 ${Number(dividendStock.currentDividendYield || 0).toFixed(2)}%；黄金${goldAction}。`;
   } else {
     headline = `黄金现在：${goldAction}${hasNumber(internationalGold.price) ? `；国际金 ${Number(internationalGold.price).toFixed(0)} 美元/盎司` : ""}`;
   }
@@ -160,60 +170,65 @@ function buildToday(data) {
         note: todayHelp("fresh"),
       };
 
+  const points = [
+    {
+      id: "hk",
+      market: "hk",
+      targetId: listing ? listingId(listing) : "",
+      label: "港股",
+      value: listing ? shortName(listing.name) : "暂无在售",
+      note: listing ? (hkBadge || "点开看认购") : "去历史收录复盘",
+      interactive: Boolean(listing),
+    },
+    {
+      id: "us",
+      market: "us",
+      targetId: hotStock ? String(hotStock.symbol) : "",
+      label: "美股",
+      value: hotStock ? hotStock.symbol : "待更新",
+      note: hotStock
+        ? `热度 ${hotStock.heatScore}${signedPercent(hotStock.changePercent) ? ` · ${signedPercent(hotStock.changePercent)}` : ""}`
+        : "公开热度待更新",
+      interactive: Boolean(hotStock),
+    },
+    {
+      id: "a",
+      market: "a",
+      targetId: dividendStock ? aShareId(dividendStock) : "",
+      label: "A股",
+      value: dividendStock && hasNumber(dividendStock.currentDividendYield)
+        ? `${Number(dividendStock.currentDividendYield).toFixed(2)}%`
+        : (dividendStock ? shortName(dividendStock.name) : "待更新"),
+      note: dividendStock ? shortName(dividendStock.name) : "收息资料待更新",
+      interactive: Boolean(dividendStock),
+    },
+    {
+      id: "gold",
+      market: "gold",
+      targetId: "track",
+      label: "黄金",
+      value: hasNumber(internationalGold.percentile180)
+        ? `${Number(internationalGold.percentile180)}%`
+        : goldAction,
+      note: hasNumber(internationalGold.percentile180)
+        ? `半年位置 · ${goldAction}`
+        : (hasNumber(domesticGold.price) ? `上海金 ${Number(domesticGold.price).toFixed(2)}` : "点开看买卖点"),
+      interactive: true,
+    },
+  ];
+
   return {
     headline,
     hero,
-    metrics: [
-      {
-        label: "黄金动作",
-        value: goldAction,
-        hint: hasNumber(internationalGold.percentile180) ? `半年位置 ${Number(internationalGold.percentile180)}%` : "价格追踪",
-      },
-      {
-        label: "美股最热",
-        value: hotStock ? hotStock.symbol : "待更新",
-        hint: hotStock ? `热度 ${hotStock.heatScore}` : "公开热度",
-      },
-      {
-        label: "A股股息",
-        value: dividendStock && hasNumber(dividendStock.currentDividendYield)
-          ? `${Number(dividendStock.currentDividendYield).toFixed(2)}%`
-          : "待更新",
-        hint: dividendStock ? shortName(dividendStock.name, "公开资料") : "公开资料",
-      },
-    ],
-    points: [
-      {
-        id: "hk",
-        label: "港股",
-        value: listing ? `${shortName(listing.name)} · ${hkBadge}` : "今天没有在售新股",
-        note: listing ? (hkBits || hkWindow || "点开看认购细节") : "去历史复盘看以前打新结果",
-      },
-      {
-        id: "us",
-        label: "美股",
-        value: hotStock
-          ? `${hotStock.symbol} ${signedPercent(hotStock.changePercent)} · 今天最热闹`
-          : "市场热度待更新",
-        note: "下一步：看七姐妹和热度前三",
-      },
-      {
-        id: "a",
-        label: "A股",
-        value: dividendStock
-          ? `${shortName(dividendStock.name)} · 股息 ${Number(dividendStock.currentDividendYield || 0).toFixed(2)}%`
-          : "收息资料待更新",
-        note: "下一步：看股息稳不稳、现金流够不够",
-      },
-      {
-        id: "gold",
-        label: "黄金",
-        value: `${goldAction}${hasNumber(internationalGold.price) ? ` · 国际金 ${Number(internationalGold.price).toFixed(0)}` : ""}`,
-        note: hasNumber(domesticGold.price)
-          ? `上海金 ${Number(domesticGold.price).toFixed(2)} 元/克 · 点开看买点卖点`
-          : "点开看买点、卖点和原因",
-      },
-    ],
+    metrics: points.map((item) => ({
+      label: item.label,
+      value: item.value,
+      hint: item.note,
+      market: item.market,
+      targetId: item.targetId,
+      interactive: item.interactive,
+    })),
+    points,
   };
 }
 
@@ -362,11 +377,17 @@ Page({
     this.setData({ holdings: viewHoldings(listHoldings()) });
   },
   openTodayPoint(event) {
-    const market = event.currentTarget.dataset.market;
-    if (market) {
+    const { market, id, interactive } = event.currentTarget.dataset;
+    if (!market) return;
+    if (interactive === false || interactive === "false" || !id) {
       track("section_open", { market: String(market), from: "today" });
       wx.navigateTo({ url: `/pages/section/index?market=${market}` });
+      return;
     }
+    track("detail_open", { market: String(market), from: "today" });
+    wx.navigateTo({
+      url: `/pages/detail/index?market=${market}&id=${encodeURIComponent(id)}`,
+    });
   },
   openGridEntry(event) {
     const id = event.currentTarget.dataset.id;

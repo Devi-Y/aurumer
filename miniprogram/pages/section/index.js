@@ -5,8 +5,8 @@ const { track } = require("../../utils/analytics");
 
 const META = {
   hk: {
-    title: "港股打新",
-    one: "这一页告诉你：有哪些新股、一手多少钱、建议申购还是暂缓。",
+    title: "港股新股",
+    one: "这一页告诉你：有哪些新股、一手多少钱、值不值得关注。",
     tone: "hk",
     icon: "/assets/home/hk.svg",
     kicker: "新股申购",
@@ -20,7 +20,7 @@ const META = {
   },
   a: {
     title: "A股收息",
-    one: "这一页告诉你：谁分红高、股息率多少、钱是不是赚得稳。",
+    one: "这一页告诉你：谁分红高、股息率多少、该关注还是等待。",
     tone: "a",
     icon: "/assets/home/a.svg",
     kicker: "分红清单",
@@ -41,6 +41,14 @@ const META = {
   },
 };
 
+const PRIMARY_GROUPS = {
+  hk: ["watch", "ended"],
+  us: ["seven", "hot"],
+  a: ["watch", "wait", "avoid"],
+  gold: ["track", "plan"],
+  guru: ["hk", "us", "a"],
+};
+
 function hasNumber(value) {
   return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
 }
@@ -58,19 +66,21 @@ function shortName(value, fallback = "公开资料") {
 
 function buildOverview(snapshot, market) {
   if (market === "hk") {
-    const items = allItems(snapshot, "hk").filter((item) => item.group !== "ended");
-    const suggest = items.filter((item) => item.group === "worth");
-    const lead = suggest[0] || items[0];
+    const items = allItems(snapshot, "hk");
+    const current = items.filter((item) => item.group === "watch");
+    const historyCount = items.filter((item) => item.group === "ended").length;
+    const lead = current.find((item) => item.badge === "建议申购") || current[0];
     return {
       metrics: [
-        { label: "在售新股", value: `${items.filter((item) => item.group !== "cancelled").length} 只` },
-        { label: "建议申购", value: `${suggest.length} 只` },
-        { label: "历史复盘", value: `${(snapshot.hk?.history || []).length} 只` },
+        { label: "当前新股", value: `${current.length} 只` },
+        { label: "历史收录", value: `${historyCount} 只` },
       ],
       conclusion: lead
         ? `${lead.name}：${lead.badge}。${lead.one}`
-        : "当前没有在售新股可看。",
-      analysis: "先看「建议申购 / 暂缓观察 / 暂不建议」，再点进详情核对一手金额、认购截止日和风险。",
+        : historyCount
+          ? "当前没有在售新股，可看历史收录学习打新结果。"
+          : "当前没有在售新股可看。",
+      analysis: "先看「值得关注」里的申购结论，再点进详情核对一手金额、认购截止日和风险；已结束只做复盘。",
     };
   }
 
@@ -92,17 +102,23 @@ function buildOverview(snapshot, market) {
 
   if (market === "a") {
     const items = allItems(snapshot, "a");
-    const top = items[0];
+    const top = [...items].sort((left, right) => {
+      const leftYield = Number(left.raw?.currentDividendYield || 0);
+      const rightYield = Number(right.raw?.currentDividendYield || 0);
+      return rightYield - leftYield;
+    })[0];
+    const topYield = hasNumber(top?.raw?.currentDividendYield)
+      ? `${Number(top.raw.currentDividendYield).toFixed(2)}%`
+      : (top?.badge || "待更新");
     return {
       metrics: [
         { label: "收息样本", value: `${items.length} 只` },
-        { label: "最高股息", value: top?.badge || "待更新" },
-        { label: "先看谁", value: top ? shortName(top.name) : "待更新" },
+        { label: "最高股息率", value: topYield },
       ],
       conclusion: top
-        ? `${shortName(top.name)} 当前公开股息率靠前。${top.one}`
+        ? `${shortName(top.name)}当前公开股息率居样本前列，但还要核对自由现金流和分红持续性。`
         : "A股收息资料正在更新。",
-      analysis: "股息率高不等于稳。点进详情看现金流能不能撑住分红，以及参考价位。",
+      analysis: "按「值得关注 / 建议等待 / 应该回避」分流；股息率高不等于稳，点进详情看现金流能不能撑住分红。",
     };
   }
 
@@ -160,8 +176,9 @@ Page({
   },
   refresh(done, force = false) {
     loadSnapshot((snapshot, source) => {
+      const primary = PRIMARY_GROUPS[this.data.market] || [];
       const groups = groupDefinitions(snapshot, this.data.market)
-        .filter((item) => item.count > 0)
+        .filter((item) => (primary.length ? primary.includes(item.id) : item.count > 0))
         .map((item, index) => ({
           ...item,
           indexLabel: String(index + 1).padStart(2, "0"),

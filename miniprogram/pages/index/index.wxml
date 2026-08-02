@@ -15,10 +15,22 @@
       </view>
       <text wx:if="{{today.hero.note}}" class="hero-note">{{today.hero.note}}</text>
     </view>
-    <view class="hero-metrics">
-      <view wx:for="{{today.metrics}}" wx:key="label" class="hero-metric">
+    <view class="hero-metrics focus-metrics">
+      <view
+        wx:for="{{today.metrics}}"
+        wx:key="label"
+        class="hero-metric focus-metric"
+        data-market="{{item.market}}"
+        data-id="{{item.targetId}}"
+        data-interactive="{{item.interactive}}"
+        bindtap="openTodayPoint"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="{{item.label}}重点，{{item.value}}，{{item.hint}}"
+      >
         <text>{{item.label}}</text>
         <text>{{item.value}}</text>
+        <text class="focus-hint">{{item.hint}}</text>
       </view>
     </view>
   </view>
@@ -54,7 +66,9 @@
       wx:for="{{today.points}}"
       wx:key="id"
       class="today-point"
-      data-market="{{item.id}}"
+      data-market="{{item.market}}"
+      data-id="{{item.targetId}}"
+      data-interactive="{{item.interactive}}"
       bindtap="openTodayPoint"
       hover-class="tap-active"
       aria-role="button"

@@ -84,6 +84,9 @@ function hkExtractionNote(item) {
 }
 
 function hkActionFromItem(item) {
+  if (item.withdrawn || item.researchView?.state === "withdrawn") {
+    return { group: "cancelled", badge: "发行已取消", tone: "ended", action: "这次发行取消了，不用再申购。", score: null };
+  }
   const answer = item.publicAnswer || {};
   const mapped = HK_VERDICT_MAP[answer.verdict];
   if (mapped) {
@@ -92,9 +95,6 @@ function hkActionFromItem(item) {
       action: answer.action || mapped.badge,
       score: Number.isFinite(Number(answer.score)) ? Number(answer.score) : null,
     };
-  }
-  if (item.withdrawn || item.researchView?.state === "withdrawn") {
-    return { group: "cancelled", badge: "发行已取消", tone: "ended", action: "这次发行取消了，不用再申购。", score: null };
   }
   const state = item.researchView?.state;
   if (state === "complete") {
@@ -116,10 +116,13 @@ function hkItems(snapshot) {
       item.offerDeadline ? `认购到 ${item.offerDeadline}` : (item.offerEnd ? `认购到 ${item.offerEnd}` : null),
       item.listingDate ? `计划上市 ${item.listingDate}` : null,
     ].filter(Boolean);
-    // 已出配发结果的仍可能留在 listings；按「已结束」展示，不混进暂不建议。
-    const group = action.group === "ended" || item.allotmentUrl
+    // 栏目只保留「值得关注 / 已结束」；内部 badge 仍保留建议申购等人话结论。
+    const rawGroup = action.group === "ended" || item.allotmentUrl
       ? "ended"
-      : action.group;
+      : action.group === "cancelled"
+        ? "ended"
+        : "watch";
+    const group = rawGroup;
     return {
       id: String(item.rawCode || item.code || item.id).replace(/\.HK$/i, ""),
       market: "hk",
@@ -296,23 +299,33 @@ function goldItems(snapshot) {
   }));
 }
 
+function aShareGroup(advice, research = {}) {
+  const text = `${advice || ""} ${research.label || ""}`;
+  if (/回避|卖出|不建议|暂不/.test(text)) return "avoid";
+  if (/买入|值得关注|可关注|建议关注/.test(text)) return "watch";
+  if (/等待|观望|暂缓/.test(text)) return "wait";
+  if (research.state === "limited") return "avoid";
+  if (research.state === "review") return "wait";
+  return "wait";
+}
+
 function aShareItems(snapshot) {
   const fundamentals = new Map((snapshot.aShare && snapshot.aShare.fundamentals ? snapshot.aShare.fundamentals : []).map((item) => [item.code, item]));
   const quotes = [...(snapshot.aShare && snapshot.aShare.quotes ? snapshot.aShare.quotes : [])]
     .sort((left, right) => number(right.currentDividendYield) - number(left.currentDividendYield));
   return quotes.map((item) => {
     const research = item.researchView || {};
-    // 前端只开一个「收息清单」；完整度留给后端排序权重，不展示给用户。
     const yieldText = Number.isFinite(Number(item.currentDividendYield))
       ? `股息率 ${Number(item.currentDividendYield).toFixed(2)}%`
       : "股息率待更新";
     const advice = item.currentAdvice || research.label || "先看分红";
     const summary = item.summary || research.note || "先核对流是否撑得住分红。";
     const buy = item.buyPrice || item.recommendPrice || null;
+    const group = aShareGroup(advice, research);
     return {
       id: String(item.code).replace(/\.(SH|SZ)$/i, ""),
       market: "a",
-      group: "payout",
+      group,
       name: item.name,
       code: item.code,
       badge: yieldText,
@@ -340,12 +353,13 @@ function groupDefinitions(snapshot, market) {
   let definitions;
   if (market === "hk") {
     definitions = [
-      ["worth", "建议申购", "模型更看好，可关注认购；仍要自己核对一手金额与风险。"],
-      ["caution", "暂缓观察", "先看认购热度和补齐资料，不急着重仓。"],
-      ["avoid", "暂不建议", "风险信号更多，或资料不够，暂不建议申购。"],
-      ["cancelled", "发行已取消", "发行人已公告不进行本次发售，无法申购。"],
+      ["watch", "值得关注", "当前在售或资料可看的新股；点进去看申购结论与一手金额。"],
       ["ended", "已结束", "只复盘实际暗盘和上市表现，用来学习。"],
-      // 旧完整度字面保留给审计兼容，count 为 0。
+      // 旧分组字面保留给审计兼容，count 为 0。
+      ["worth", "建议申购", "已并入值得关注；badge 仍保留建议申购结论。"],
+      ["caution", "暂缓观察", "已并入值得关注。"],
+      ["avoid", "暂不建议", "已并入值得关注。"],
+      ["cancelled", "发行已取消", "已并入已结束。"],
       ["legacy-complete", "资料较完整", "已改名为建议申购等动作结论。"],
       ["legacy-review", "重点核验", "已改名为暂缓观察。"],
       ["legacy-limited", "资料不足", "已改名为暂不建议 / 资料不够。"],
@@ -357,8 +371,11 @@ function groupDefinitions(snapshot, market) {
     ];
   } else if (market === "a") {
     definitions = [
-      ["payout", "收息清单", "按公开股息率从高到低排列；点进去看详细介绍。"],
-      // 保留旧组名字符串供审计/兼容路由，count 恒为 0，前端会显示暂无。
+      ["watch", "值得关注", "公开资料更偏可跟踪的收息标的；仍要自己核对流与价格。"],
+      ["wait", "建议等待", "股息不差，但价格或周期位置还不舒服，先等。"],
+      ["avoid", "应该回避", "资料不足、风险偏高，或暂不适合作为收息仓。"],
+      // 保留旧组名字符串供审计/兼容路由，count 恒为 0。
+      ["payout", "收息清单", "已拆成值得关注 / 建议等待 / 应该回避。"],
       ["complete", "资料较完整", "后端完整度分组，已并入收息清单。"],
       ["review", "现金流待核验", "后端完整度分组，已并入收息清单。"],
       ["limited", "资料待补充", "后端完整度分组，已并入收息清单。"],

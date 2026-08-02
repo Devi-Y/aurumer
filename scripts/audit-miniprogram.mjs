@@ -134,10 +134,10 @@ for (const [group, count] of [["hk", 3], ["us", 5], ["a", 3]]) {
   }
 }
 for (const item of miniAShareItems) {
-  assert(item.group === "payout", `${item.name} 应收息清单统一分组`);
+  assert(["watch", "wait", "avoid"].includes(item.group), `${item.name} 应收息动作分组（值得关注/建议等待/应该回避）`);
   assert(item.raw.researchView?.state, `${item.name} 缺少后端完整度状态`);
 }
-for (const item of miniHKItems.filter((entry) => ["worth", "caution", "avoid"].includes(entry.group))) {
+for (const item of miniHKItems.filter((entry) => entry.group === "watch")) {
   assert(["建议申购", "暂缓观察", "暂不建议", "资料不够"].includes(item.badge), `${item.name} 缺少人话申购结论`);
 }
 

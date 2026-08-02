@@ -4,7 +4,7 @@ const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 
 const MARKET_META = {
-  hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
+  hk: { label: "港股新股", icon: "/assets/home/hk.svg", tone: "hk" },
   us: { label: "美股投资", icon: "/assets/home/us.svg", tone: "us" },
   a: { label: "A股收息", icon: "/assets/home/a.svg", tone: "a" },
   gold: { label: "黄金追踪", icon: "/assets/home/gold.svg", tone: "gold" },
@@ -113,7 +113,7 @@ Page({
   },
   onLoad(options) {
     const market = MARKET_META[options.market] ? options.market : "hk";
-    const defaultGroup = market === "a" ? "payout" : market === "gold" ? "track" : market === "us" ? "seven" : "worth";
+    const defaultGroup = market === "a" ? "watch" : market === "gold" ? "track" : market === "us" ? "seven" : market === "hk" ? "watch" : "worth";
     this.setData({ market, group: options.group || defaultGroup, meta: MARKET_META[market] });
     this.refresh();
   },

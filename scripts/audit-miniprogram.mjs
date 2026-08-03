@@ -390,7 +390,7 @@ assert(
 assert(detailSource.includes("detailsExpanded: false") && detailTemplate.includes('wx:if="{{detailsExpanded}}"'), "详情页没有使用先结论、后展开的渐进式呈现");
 assert(detailSource.includes("kind: \"columns\"") && detailSource.includes("kind: \"solid\"") && detailSource.includes("kind: \"meter\""), "详情页缺少价格轨迹、竖柱对比或位置仪表图");
 assert(!pageStylesByPath.get("pages/detail/index").includes("solid-cap") && !pageStylesByPath.get("pages/detail/index").includes("solid-side") && !pageStylesByPath.get("pages/detail/index").includes("column-pillar"), "详情图表不应再使用立体柱体样式");
-assert(detailSource.includes("base.charts.slice(0, 6)") || detailSource.includes(".slice(0, 6)"), "详情页应展示更完整的多图数据");
+assert(detailSource.includes("base.charts.slice(0, 8)") || detailSource.includes(".slice(0, 8)") || detailSource.includes(".slice(0, 6)"), "详情页应展示更完整的多图数据");
 assert(workspaceSource.includes('activeTab: "watch"') && workspaceTemplate.includes('data-tab="watch"') && workspaceTemplate.includes('data-tab="decision"'), "记录页没有把关注与想法拆成简单双标签交互");
 assert(!detailSource.includes("openDeep"), "小程序详情仍保留外链分析入口");
 assert(!detailContract.includes("继续看完整分析"), "小程序详情仍会引导用户离开原生页面");

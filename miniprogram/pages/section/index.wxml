@@ -8,7 +8,20 @@
     </view>
     <text class="hero-help">{{meta.one}}</text>
     <view class="hero-metrics">
-      <view wx:for="{{overview.metrics}}" wx:key="label" class="hero-metric">
+      <view
+        wx:for="{{overview.metrics}}"
+        wx:key="label"
+        class="hero-metric {{item.enabled ? 'is-active' : 'is-disabled'}}"
+        data-action="{{item.action}}"
+        data-group="{{item.group}}"
+        data-id="{{item.id}}"
+        data-enabled="{{item.enabled}}"
+        bindtap="openMetric"
+        hover-class="{{item.enabled ? 'metric-tap' : ''}}"
+        aria-role="button"
+        aria-disabled="{{item.enabled ? 'false' : 'true'}}"
+        aria-label="{{item.label}}，{{item.value}}"
+      >
         <text>{{item.label}}</text>
         <text>{{item.value}}</text>
       </view>
@@ -18,8 +31,20 @@
   <view class="insight-panel" wx:if="{{overview.target || overview.grade}}">
     <view class="insight-line">
       <text class="insight-label">结论</text>
-      <text class="insight-target">{{overview.target || '—'}}</text>
-      <text class="insight-grade">{{overview.grade || '—'}}</text>
+      <text
+        class="insight-target {{overview.canOpenTarget ? 'is-link' : ''}}"
+        bindtap="openInsightTarget"
+        hover-class="{{overview.canOpenTarget ? 'insight-tap' : ''}}"
+        aria-role="button"
+        aria-label="打开标的 {{overview.target}}"
+      >{{overview.target || '—'}}</text>
+      <text
+        class="insight-grade {{overview.canOpenGrade ? 'is-link' : ''}}"
+        bindtap="openInsightGrade"
+        hover-class="{{overview.canOpenGrade ? 'insight-tap' : ''}}"
+        aria-role="button"
+        aria-label="打开 {{overview.grade}}"
+      >{{overview.grade || '—'}}</text>
     </view>
   </view>
 

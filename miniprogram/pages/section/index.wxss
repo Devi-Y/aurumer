@@ -80,13 +80,22 @@
   display: flex;
   width: 33.333333%;
   min-width: 0;
-  padding: 0 10rpx;
+  padding: 8rpx 10rpx;
   flex-direction: column;
   align-items: center;
+  border-radius: 14rpx;
   text-align: center;
 }
 
 .hero-metric + .hero-metric { border-left: 1rpx solid #edf0ee; }
+
+.hero-metric.is-disabled {
+  opacity: 0.55;
+}
+
+.metric-tap {
+  background: #eef8f2;
+}
 
 .hero-metric text:first-child {
   overflow: hidden;
@@ -133,19 +142,31 @@
   overflow: hidden;
   color: #1b211d;
   font-size: 30rpx;
-  font-weight: 560;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.insight-target.is-link {
+  color: #0b7a53;
+}
+
 .insight-grade {
   flex: none;
+  max-width: 42%;
   padding: 8rpx 16rpx;
+  overflow: hidden;
   border-radius: 999rpx;
   background: #e8f6ef;
   color: #0b7a53;
   font-size: 28rpx;
   font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.insight-tap {
+  opacity: 0.72;
 }
 
 .section-heading {

@@ -7,21 +7,27 @@
           <text class="title">{{view.title}}</text>
           <text class="code">{{view.code}}</text>
         </view>
-        <view class="detail-image-wrap">
+        <view class="summary-score" wx:if="{{view.researchScore != null}}">
+          <text class="summary-score-value">{{view.researchScore}}</text>
+          <text class="summary-score-label">{{view.researchScoreLabel || '评分'}}</text>
+        </view>
+        <view wx:else class="detail-image-wrap">
           <image class="detail-image" src="{{view.icon}}" mode="aspectFit" aria-hidden="true"></image>
         </view>
       </view>
+
       <view class="conclusion-card">
         <text class="conclusion-label">结论</text>
         <text class="conclusion-grade">{{view.badge || view.quickAnswer}}</text>
       </view>
       <text wx:if="{{view.pageHelp}}" class="page-help">{{view.pageHelp}}</text>
+      <text wx:if="{{view.researchScoreBasis}}" class="score-basis">{{view.researchScoreBasis}}</text>
     </view>
 
-    <view wx:if="{{view.metrics.length}}" class="metric-panel">
-      <view wx:for="{{view.metrics}}" wx:key="*this" class="metric">
-        <text>{{item[0]}}</text>
-        <text>{{item[1]}}</text>
+    <view wx:if="{{view.highlights.length}}" class="highlight-panel">
+      <view wx:for="{{view.highlights}}" wx:key="label" class="highlight-cell">
+        <text class="highlight-label">{{item.label}}</text>
+        <text class="highlight-value">{{item.value}}</text>
       </view>
     </view>
 
@@ -111,7 +117,18 @@
       </view>
     </block>
 
+    <view wx:if="{{view.metrics.length}}" class="metric-panel">
+      <text class="block-title">{{view.metricsTitle || '关键数据'}}</text>
+      <view class="metric-grid">
+        <view wx:for="{{view.metrics}}" wx:key="*this" class="metric">
+          <text>{{item[0]}}</text>
+          <text>{{item[1]}}</text>
+        </view>
+      </view>
+    </view>
+
     <view wx:if="{{view.facts.length}}" class="section-card">
+      <text class="block-title">{{view.factsTitle || '详细资料'}}</text>
       <view wx:for="{{view.facts}}" wx:key="*this" class="fact-row">
         <text>{{item[0]}}</text>
         <text>{{item[1]}}</text>
@@ -119,19 +136,21 @@
     </view>
 
     <view wx:if="{{view.holdings.length}}" class="section-card">
+      <text class="block-title">机构持仓对照</text>
       <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
         <text>{{item.name}}</text>
         <text>{{item.value}}</text>
       </view>
     </view>
 
-    <button wx:if="{{view.analysis.length}}" class="details-toggle" bindtap="toggleDetails">
-      <text>{{detailsExpanded ? '收起分析' : '完整分析'}}</text>
-      <text>{{detailsExpanded ? '︿' : '﹀'}}</text>
-    </button>
-
-    <view wx:if="{{detailsExpanded}}" class="expanded-content">
-      <view wx:if="{{view.analysis.length}}" class="section-card analysis-card">
+    <view wx:if="{{view.analysis.length}}" class="section-card analysis-card">
+      <view class="analysis-head">
+        <text class="block-title">{{view.analysisTitle || '研究要点'}}</text>
+        <view class="details-toggle-inline" bindtap="toggleDetails" hover-class="tap-active">
+          <text>{{detailsExpanded ? '收起分析' : '完整分析'}}</text>
+        </view>
+      </view>
+      <view wx:if="{{detailsExpanded}}">
         <view wx:for="{{view.analysis}}" wx:key="title" class="analysis-block">
           <text class="analysis-index">{{item.indexLabel}}</text>
           <view class="analysis-copy">
@@ -147,9 +166,14 @@
       <text class="risk-body">{{view.risk}}</text>
     </view>
 
+    <view wx:if="{{view.sourceNote}}" class="source-note">
+      <text>来源 {{view.sourceNote}}</text>
+    </view>
+
     <button class="member-cta" bindtap="openWorkspace" aria-label="保存到我的记录">
       <view class="cta-copy">
         <text>保存到我的记录</text>
+        <text class="cta-sub">方便以后对照复盘</text>
       </view>
       <text class="cta-arrow">›</text>
     </button>
@@ -157,9 +181,16 @@
     <text class="disclaimer">{{view.disclaimer}}</text>
   </view>
 
+  <view wx:elif="{{loading}}" class="empty">
+    <image src="/assets/home/today.svg" mode="aspectFit" aria-hidden="true"></image>
+    <text class="empty-title">正在加载资料</text>
+    <text class="empty-sub">请稍候</text>
+  </view>
+
   <view wx:else class="empty">
     <image src="/assets/home/today.svg" mode="aspectFit" aria-hidden="true"></image>
-    <text>资料暂不可用</text>
+    <text class="empty-title">{{loadError || '资料暂不可用'}}</text>
+    <text class="empty-sub">可下拉刷新，或返回列表重试</text>
   </view>
 
   <view class="page-nav">

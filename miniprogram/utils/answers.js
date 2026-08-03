@@ -421,7 +421,28 @@ function groupDefinitions(snapshot, market) {
 }
 
 function findItem(snapshot, market, id) {
-  return allItems(snapshot, market).find((item) => String(item.id).toUpperCase() === String(id).toUpperCase());
+  const needle = String(id || "").trim().toUpperCase();
+  if (!needle) return null;
+  const items = allItems(snapshot, market);
+  const normalize = (value) => String(value || "")
+    .toUpperCase()
+    .replace(/\.(HK|SH|SZ|US)$/i, "")
+    .replace(/^(HK|US|A)-/, "");
+  const want = normalize(needle);
+  const exact = items.find((item) => String(item.id).toUpperCase() === needle || normalize(item.id) === want);
+  if (exact) return exact;
+  return items.find((item) => {
+    const candidates = [
+      item.id,
+      item.code,
+      item.raw?.rawCode,
+      item.raw?.code,
+      item.raw?.symbol,
+      item.raw?.stockCode,
+      item.raw?.id,
+    ].filter(Boolean).map(normalize);
+    return candidates.includes(want);
+  }) || null;
 }
 
 module.exports = {

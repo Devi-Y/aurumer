@@ -54,14 +54,37 @@ function buildOverview(snapshot, market) {
     const suggest = items.filter((item) => item.group === "worth");
     const lead = suggest[0] || live[0];
     const scored = scoreForItem(lead);
+    const leadId = lead ? String(lead.id || "") : "";
     return {
       metrics: [
-        { label: "在售", value: `${live.length}` },
-        { label: "建议申购", value: `${suggest.length}` },
-        { label: "研究分", value: scored.score != null ? `${scored.score}` : "—" },
+        {
+          label: "在售",
+          value: `${live.length}`,
+          action: "group",
+          group: suggest.length ? "worth" : (live[0]?.group || "worth"),
+          enabled: live.length > 0,
+        },
+        {
+          label: "建议申购",
+          value: `${suggest.length}`,
+          action: "group",
+          group: "worth",
+          enabled: suggest.length > 0,
+        },
+        {
+          label: "研究分",
+          value: scored.score != null ? `${scored.score}` : "—",
+          action: "detail",
+          id: leadId,
+          enabled: Boolean(leadId),
+        },
       ],
       target: lead ? shortCompanyName(lead.name, "新股", 6) : "暂无在售",
+      targetId: leadId,
       grade: lead ? (lead.badge || "待定") : "—",
+      gradeGroup: lead?.group || "worth",
+      canOpenTarget: Boolean(leadId),
+      canOpenGrade: Boolean(lead?.group),
     };
   }
 
@@ -69,35 +92,89 @@ function buildOverview(snapshot, market) {
     const items = allItems(snapshot, "us");
     const hot = items.filter((item) => item.group === "hot");
     const seven = items.filter((item) => item.group === "seven");
-    const lead = [...hot, ...seven].sort(
-      (left, right) => Number(right.raw?.heatScore || 0) - Number(left.raw?.heatScore || 0),
-    )[0];
+    const ranked = [...items]
+      .map((item) => ({ item, score: scoreForItem(item).score }))
+      .filter((entry) => entry.score != null)
+      .sort((left, right) => right.score - left.score);
+    const lead = ranked[0]?.item || seven[0] || hot[0];
     const scored = scoreForItem(lead);
+    const leadId = lead ? String(lead.id || lead.code || "") : "";
     return {
       metrics: [
-        { label: "七姐妹", value: `${seven.length}` },
-        { label: "热度前三", value: `${hot.length}` },
-        { label: "综合分", value: scored.score != null ? `${scored.score}` : "—" },
+        {
+          label: "七姐妹",
+          value: `${seven.length}`,
+          action: "group",
+          group: "seven",
+          enabled: seven.length > 0,
+        },
+        {
+          label: "热度前三",
+          value: `${hot.length}`,
+          action: "group",
+          group: "hot",
+          enabled: hot.length > 0,
+        },
+        {
+          label: "综合分",
+          value: scored.score != null ? `${scored.score}` : "—",
+          action: "detail",
+          id: leadId,
+          enabled: Boolean(leadId),
+        },
       ],
       target: lead ? (lead.code || shortCompanyName(lead.name, "美股", 6)) : "待更新",
+      targetId: leadId,
       grade: lead
         ? (lead.group === "hot" ? `热度 ${lead.raw?.heatScore ?? "—"}` : "七姐妹")
         : "—",
+      gradeGroup: lead?.group || "seven",
+      canOpenTarget: Boolean(leadId),
+      canOpenGrade: Boolean(lead?.group),
     };
   }
 
   if (market === "a") {
     const items = allItems(snapshot, "a");
-    const top = items[0];
+    const ranked = [...items]
+      .map((item) => ({ item, score: scoreForItem(item).score }))
+      .filter((entry) => entry.score != null)
+      .sort((left, right) => right.score - left.score);
+    const top = ranked[0]?.item || items[0];
     const scored = scoreForItem(top);
+    const topId = top ? String(top.id || "") : "";
     return {
       metrics: [
-        { label: "收息样本", value: `${items.length}` },
-        { label: "最高股息", value: top && hasNumber(top.raw?.currentDividendYield) ? `${Number(top.raw.currentDividendYield).toFixed(1)}%` : "—" },
-        { label: "收息分", value: scored.score != null ? `${scored.score}` : "—" },
+        {
+          label: "收息样本",
+          value: `${items.length}`,
+          action: "group",
+          group: "payout",
+          enabled: items.length > 0,
+        },
+        {
+          label: "最高股息",
+          value: top && hasNumber(top.raw?.currentDividendYield)
+            ? `${Number(top.raw.currentDividendYield).toFixed(1)}%`
+            : "—",
+          action: "detail",
+          id: topId,
+          enabled: Boolean(topId),
+        },
+        {
+          label: "收息分",
+          value: scored.score != null ? `${scored.score}` : "—",
+          action: "detail",
+          id: topId,
+          enabled: Boolean(topId),
+        },
       ],
       target: top ? shortCompanyName(top.name, "收息", 6) : "待更新",
+      targetId: topId,
       grade: top ? (top.scoreText || top.badge || "先看分红") : "—",
+      gradeGroup: "payout",
+      canOpenTarget: Boolean(topId),
+      canOpenGrade: items.length > 0,
     };
   }
 
@@ -105,29 +182,55 @@ function buildOverview(snapshot, market) {
     const gold = snapshot.gold || {};
     const answer = gold.answer || {};
     const international = gold.quotes?.international || {};
-    const domestic = gold.quotes?.domestic || {};
     const scored = scoreForItem({ market: "gold", raw: gold });
     return {
       metrics: [
-        { label: "国际金", value: hasNumber(international.price) ? Number(international.price).toFixed(0) : "—" },
-        { label: "观察分", value: scored.score != null ? `${scored.score}` : "—" },
-        { label: "半年位", value: hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "—" },
+        {
+          label: "国际金",
+          value: hasNumber(international.price) ? Number(international.price).toFixed(0) : "—",
+          action: "detail",
+          id: "track",
+          enabled: true,
+        },
+        {
+          label: "观察分",
+          value: scored.score != null ? `${scored.score}` : "—",
+          action: "detail",
+          id: "track",
+          enabled: true,
+        },
+        {
+          label: "半年位",
+          value: hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "—",
+          action: "detail",
+          id: "plan",
+          enabled: true,
+        },
       ],
       target: hasNumber(international.price) ? `国际金 ${Number(international.price).toFixed(0)}` : "黄金",
+      targetId: "track",
       grade: answer.action || "继续观察",
+      gradeGroup: "track",
+      canOpenTarget: true,
+      canOpenGrade: true,
     };
   }
 
   const profiles = allItems(snapshot, "guru");
   const leader = profiles[0];
+  const leaderId = leader ? String(leader.id || "") : "";
   return {
     metrics: [
-      { label: "港股", value: "3" },
-      { label: "美股", value: "5" },
-      { label: "A股", value: "3" },
+      { label: "港股", value: "3", action: "group", group: "hk", enabled: true },
+      { label: "美股", value: "5", action: "group", group: "us", enabled: true },
+      { label: "A股", value: "3", action: "group", group: "a", enabled: true },
     ],
     target: leader ? shortCompanyName(leader.name, "机构", 6) : "待更新",
+    targetId: leaderId,
     grade: leader ? (leader.scoreText || leader.badge || "学习样本") : "—",
+    gradeGroup: leader?.group || "hk",
+    canOpenTarget: Boolean(leaderId),
+    canOpenGrade: Boolean(leader?.group),
   };
 }
 
@@ -136,7 +239,15 @@ Page({
     market: "hk",
     meta: META.hk,
     groups: [],
-    overview: { metrics: [], target: "", grade: "" },
+    overview: {
+      metrics: [],
+      target: "",
+      targetId: "",
+      grade: "",
+      gradeGroup: "",
+      canOpenTarget: false,
+      canOpenGrade: false,
+    },
     source: "正在读取同步数据",
     disclaimer: RESEARCH_DISCLAIMER,
   },
@@ -161,14 +272,58 @@ Page({
       this.setData({ groups, overview: buildOverview(snapshot, this.data.market), source });
     }, done, { force });
   },
-  openGroup(event) {
-    const group = event.currentTarget.dataset.group;
-    const target = this.data.groups.find((item) => item.id === group);
-    if (!target || !target.count) {
+  openMetric(event) {
+    const { action, group, id, enabled } = event.currentTarget.dataset;
+    if (String(enabled) === "false" || enabled === false) {
+      wx.showToast({ title: "这一项暂时没有内容", icon: "none" });
+      return;
+    }
+    if (action === "detail" && id) {
+      this.openDetail(id, "section_metric");
+      return;
+    }
+    if (action === "group" && group) {
+      this.openGroupById(group, "section_metric");
+    }
+  },
+  openInsightTarget() {
+    const { targetId, canOpenTarget } = this.data.overview;
+    if (!canOpenTarget || !targetId) {
+      wx.showToast({ title: "暂无标的可打开", icon: "none" });
+      return;
+    }
+    this.openDetail(targetId, "section_insight_target");
+  },
+  openInsightGrade() {
+    const { gradeGroup, targetId, canOpenGrade, canOpenTarget } = this.data.overview;
+    if (canOpenTarget && targetId && (this.data.market === "gold" || this.data.market === "a")) {
+      this.openDetail(targetId, "section_insight_grade");
+      return;
+    }
+    if (canOpenGrade && gradeGroup) {
+      this.openGroupById(gradeGroup, "section_insight_grade");
+      return;
+    }
+    wx.showToast({ title: "暂无分组可打开", icon: "none" });
+  },
+  openDetail(id, from = "section") {
+    track("detail_open", { market: this.data.market, from });
+    wx.navigateTo({
+      url: `/pages/detail/index?market=${encodeURIComponent(this.data.market)}&id=${encodeURIComponent(id)}`,
+    });
+  },
+  openGroupById(group, from = "section_group") {
+    const live = this.data.groups.find((item) => item.id === group);
+    if (live && !live.count) {
       wx.showToast({ title: "这一组当前没有项目", icon: "none" });
       return;
     }
+    track("list_open", { market: this.data.market, group: String(group), from });
     wx.navigateTo({ url: `/pages/list/index?market=${this.data.market}&group=${group}` });
+  },
+  openGroup(event) {
+    const group = event.currentTarget.dataset.group;
+    this.openGroupById(group, "section_group");
   },
   goBack() {
     wx.navigateBack({ fail: () => goHome() });

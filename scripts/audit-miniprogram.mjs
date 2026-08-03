@@ -281,7 +281,7 @@ assert(
   "今日重点应支持点击跳转标的详情，无标的时回退品类",
 );
 assert(!indexSource.includes("pages/workspace/index"), "首页不应再挂研究记录入口");
-for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "七姐妹", "热度前三", "收息清单", "现在怎么做", "买点与卖点", "资料较完整", "重点核验", "资料不足", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "可核验候选池内", "按公开长期年化从高到低排列"]) {
+for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "七姐妹", "热度前三", "收息清单", "现在怎么做", "买点与卖点", "资料较完整", "重点核验", "资料不足", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "可核验候选池内", "按公开长期年化从高到低"]) {
   assert(sectionSource.includes(label), `小程序缺少二级入口：${label}`);
 }
 for (const label of ["近 60 日最低", "近 60 日中位数", "近 60 日最高", "历史样本区间", "自由现金流", "公开持仓", "完整分析", "为什么看它", "怎么学"]) {
@@ -302,14 +302,16 @@ for (const actionField of ["technicalPlan", "targetPrice", "targetUpside", "buy_
 }
 assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes("pricePlan"), "云函数清洗层应保留公开动作结论与黄金买卖观察区");
 assert(
-  indexSource.includes("今天先看这几件事")
+  indexSource.includes("今天重点关注标的")
   && indexTemplate.includes("今日重点")
+  && indexTemplate.includes("openTodayCategory")
+  && indexTemplate.includes("openTodayTarget")
   && (indexSource.includes("数据截至") || indexTemplate.includes("dataAsOf")),
   "今日重点缺少固定标题或自动更新的数据截至时间",
 );
 
 assert(sectionSource.includes('one: "') || (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes("one:"), "栏目页缺少品类研究摘要文案配置");
-for (const label of ["望潮年费会员", "365 天会员", "会员功能", "保存关注", "记录想法", "复制导出", "购买须知", "增值服务", "大家常问", "值不值得打", "金价多少钱", "打新资料速览", "申购截止备忘", "国际金价观察"]) {
+for (const label of ["望潮年费会员", "365 天会员", "会员功能", "保存关注", "记录想法", "复制导出", "购买须知", "增值服务", "大家常问", "值不值得打", "金价多少钱", "打新出价观察", "申购截止备忘", "国际金价观察"]) {
   assert(`${memberPageSource}\n${memberTemplate}`.includes(label), `小程序会员页缺少关键内容：${label}`);
 }
 assert(memberPageSource.includes("不做系统推送提醒") || memberPageSource.includes("不做到价推送"), "会员增值能力应标明不做虚假提醒推送");

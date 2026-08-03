@@ -8,6 +8,7 @@
     "routes": "node scripts/write-route-adapters.mjs",
     "sync:mini": "node scripts/sync-miniprogram-data.mjs",
     "sync:latest": "node scripts/sync-latest-public.mjs && npm run sync:mini",
+    "build:evidence": "node scripts/build-strategy-evidence.mjs",
     "check:public": "node scripts/audit-public-data.mjs",
     "check:pages": "node scripts/audit-public-routes.mjs",
     "check:ui": "node scripts/audit-ui-contract.mjs",

@@ -1,8 +1,9 @@
 const { loadSnapshot } = require("../../data/store");
 const { track } = require("../../utils/analytics");
 const { openPage } = require("../../utils/nav");
-const { shortCompanyName } = require("../../utils/answers");
+const { shortCompanyName, allItems } = require("../../utils/answers");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
+const { scoreForItem } = require("../../utils/strategy-score");
 
 const CORE_ENTRIES = [
   {
@@ -10,7 +11,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/hk.svg",
     title: "港股打新",
-    help: "有哪些新股、能不能打",
+    help: "值不值得打·中签",
     detail: "申购结论",
     tone: "hk",
   },
@@ -19,7 +20,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/us.svg",
     title: "美股投资",
-    help: "七姐妹与热度前三",
+    help: "高潜力对照样本",
     detail: "价格与财报",
     tone: "us",
   },
@@ -28,7 +29,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/a.svg",
     title: "A股收息",
-    help: "谁分红高、稳不稳",
+    help: "高股息稳现金流",
     detail: "股息清单",
     tone: "a",
   },
@@ -37,7 +38,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/gold.svg",
     title: "黄金追踪",
-    help: "何时买、买多少、何时卖",
+    help: "买卖观察提收益",
     detail: "买卖观察",
     tone: "gold",
   },
@@ -46,7 +47,7 @@ const CORE_ENTRIES = [
     action: "member",
     icon: "/assets/home/member.svg",
     title: "年费会员",
-    help: "365天会员与记录工具",
+    help: "暗盘·首周出价观察",
     detail: "365天 · ¥1288",
     badge: "¥1288/年",
     tone: "member",
@@ -56,7 +57,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/guru.svg",
     title: "机构持仓",
-    help: "学思路、对照持仓",
+    help: "学思路对照仓",
     detail: "港3 · 美5 · A3",
     tone: "guru",
   },
@@ -66,43 +67,48 @@ function hasNumber(value) {
   return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
 }
 
+function bestByScore(items) {
+  return [...items]
+    .map((item) => ({ item, scored: scoreForItem(item) }))
+    .filter((entry) => entry.scored.score != null)
+    .sort((left, right) => Number(right.scored.score) - Number(left.scored.score))[0]?.item
+    || items[0]
+    || null;
+}
+
 function buildToday(data) {
-  const listings = [...(data.hk?.listings || [])].filter((item) => item.researchView?.state !== "withdrawn");
-  const listing = [...listings].sort((left, right) => {
-    const rank = (item) => {
-      const verdict = item.publicAnswer?.verdict;
-      if (verdict === "值得打") return 0;
-      if (verdict === "谨慎打") return 1;
-      if (verdict === "不建议") return 2;
-      if (item.researchView?.state === "complete") return 3;
-      if (item.researchView?.state === "review") return 4;
-      return 5;
-    };
-    return rank(left) - rank(right);
-  })[0];
-  const hotStock = [...(data.us?.stocks || [])]
-    .sort((left, right) => Number(right.heatScore || 0) - Number(left.heatScore || 0))[0];
-  const dividendStock = [...(data.aShare?.quotes || [])]
-    .sort((left, right) => Number(right.currentDividendYield || 0) - Number(left.currentDividendYield || 0))[0];
+  // 今日重点按「研究分/综合分」优先，偏向更高预期研究收益的公开标的，不是追热度。
+  const hkLive = allItems(data, "hk").filter((item) => (
+    item.group !== "ended" && item.group !== "cancelled"
+  ));
+  const hkPrefer = hkLive.filter((item) => item.group === "worth");
+  const hkLead = bestByScore(hkPrefer.length ? hkPrefer : hkLive);
+
+  const usItems = allItems(data, "us");
+  const usLead = bestByScore(usItems);
+
+  const aItems = allItems(data, "a");
+  const aLead = bestByScore(aItems);
+
   const gold = data.gold || {};
   const internationalGold = gold.quotes?.international || {};
-
-  const hkId = listing
-    ? String(listing.rawCode || listing.code || listing.id || "").replace(/\.HK$/i, "")
-    : "";
-  const hkName = listing
-    ? shortCompanyName(listing.shortName || listing.name, "新股", 4)
-    : "暂无";
-  const usId = hotStock ? String(hotStock.symbol || "") : "";
-  const aId = dividendStock
-    ? String(dividendStock.code || "").replace(/\.(SH|SZ)$/i, "")
-    : "";
-  const aName = dividendStock
-    ? shortCompanyName(dividendStock.name, "收息", 4)
-    : "待更新";
   const goldPrice = hasNumber(internationalGold.price)
     ? Math.round(Number(internationalGold.price))
     : null;
+
+  const hkId = hkLead
+    ? String(hkLead.id || hkLead.code || "").replace(/\.HK$/i, "")
+    : "";
+  const hkName = hkLead
+    ? shortCompanyName(hkLead.name, "新股", 4)
+    : "暂无";
+  const usId = usLead ? String(usLead.code || usLead.id || "") : "";
+  const aId = aLead
+    ? String(aLead.id || aLead.code || "").replace(/\.(SH|SZ)$/i, "")
+    : "";
+  const aName = aLead
+    ? shortCompanyName(aLead.name, "收息", 4)
+    : "待更新";
 
   return {
     points: [
@@ -112,7 +118,8 @@ function buildToday(data) {
         value: hkName,
         targetId: hkId,
         hasTarget: Boolean(hkId),
-        ariaTarget: hkId ? `港股 ${hkName}` : "港股暂无",
+        ariaCategory: "打开港股打新栏目",
+        ariaTarget: hkId ? `打开港股标的 ${hkName}` : "港股暂无标的",
       },
       {
         id: "us",
@@ -120,7 +127,8 @@ function buildToday(data) {
         value: usId || "—",
         targetId: usId,
         hasTarget: Boolean(usId),
-        ariaTarget: usId ? `美股 ${usId}` : "美股暂无",
+        ariaCategory: "打开美股投资栏目",
+        ariaTarget: usId ? `打开美股标的 ${usId}` : "美股暂无标的",
       },
       {
         id: "a",
@@ -128,7 +136,8 @@ function buildToday(data) {
         value: aName,
         targetId: aId,
         hasTarget: Boolean(aId),
-        ariaTarget: aId ? `A股 ${aName}` : "A股暂无",
+        ariaCategory: "打开A股收息栏目",
+        ariaTarget: aId ? `打开A股标的 ${aName}` : "A股暂无标的",
       },
       {
         id: "gold",
@@ -136,13 +145,14 @@ function buildToday(data) {
         value: goldPrice != null ? String(goldPrice) : "—",
         targetId: "track",
         hasTarget: true,
-        ariaTarget: goldPrice != null ? `黄金国际金价 ${goldPrice} 美元` : "黄金追踪",
+        ariaCategory: "打开黄金追踪栏目",
+        ariaTarget: goldPrice != null ? `打开黄金观察 ${goldPrice}` : "打开黄金追踪",
       },
     ],
   };
 }
 
-const TODAY_HELP_FRESH = "今天先看这几件事";
+const TODAY_HELP_FRESH = "今天重点关注标的";
 
 Page({
   data: {
@@ -206,9 +216,6 @@ Page({
     wx.navigateTo({
       url: `/pages/detail/index?market=${encodeURIComponent(market)}&id=${encodeURIComponent(targetId)}`,
     });
-  },
-  openTodayPoint(event) {
-    this.openTodayCategory(event);
   },
   openGridEntry(event) {
     const id = event.currentTarget.dataset.id;

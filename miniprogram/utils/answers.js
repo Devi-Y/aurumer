@@ -378,11 +378,11 @@ function groupDefinitions(snapshot, market) {
   let definitions;
   if (market === "hk") {
     definitions = [
-      ["worth", "建议申购", "公开资料更偏可关注认购；仍要自己核对一手金额与风险。"],
-      ["caution", "暂缓观察", "先看认购热度和补齐资料，不急着重仓。"],
-      ["avoid", "暂不建议", "风险信号更多，或资料不够，暂不建议申购。"],
-      ["cancelled", "发行已取消", "发行人已公告不进行本次发售，无法申购。"],
-      ["ended", "已结束", "只复盘实际暗盘和上市表现，用来学习。"],
+      ["worth", "建议申购", "可关注，先核一手与风险"],
+      ["caution", "暂缓观察", "先看热度，暂不重仓"],
+      ["avoid", "暂不建议", "风险偏多，暂不申购"],
+      ["cancelled", "发行已取消", "已取消，无法申购"],
+      ["ended", "已结束", "只复盘上市表现"],
       // 旧完整度字面保留给审计兼容，count 为 0。
       ["legacy-complete", "资料较完整", "已改名为建议申购等动作结论。"],
       ["legacy-review", "重点核验", "已改名为暂缓观察。"],
@@ -390,12 +390,12 @@ function groupDefinitions(snapshot, market) {
     ];
   } else if (market === "us") {
     definitions = [
-      ["seven", "七姐妹", "长期盯住的七家大型科技公司。"],
-      ["hot", "热度前三", "这两天大家聊得最多的三只（不含七姐妹）。"],
+      ["seven", "七姐妹", "长期关注的七家科技巨头"],
+      ["hot", "热度前三", "近期热度最高的三只"],
     ];
   } else if (market === "a") {
     definitions = [
-      ["payout", "收息清单", "按公开股息率从高到低排列；点进去看详细介绍。"],
+      ["payout", "收息清单", "按股息率从高到低"],
       // 保留旧组名字符串供审计/兼容路由，count 恒为 0，前端会显示暂无。
       ["complete", "资料较完整", "后端完整度分组，已并入收息清单。"],
       ["review", "现金流待核验", "后端完整度分组，已并入收息清单。"],
@@ -403,8 +403,8 @@ function groupDefinitions(snapshot, market) {
     ];
   } else if (market === "gold") {
     definitions = [
-      ["track", "现在怎么做", "一句话告诉你现在偏买、观望还是回避，以及为什么。"],
-      ["plan", "买点与卖点", "国际金 / 上海金的买入观察区、卖出观察区和风险下沿。"],
+      ["track", "现在怎么做", "偏买、观望或回避"],
+      ["plan", "买点与卖点", "买入/卖出观察区"],
       // 旧四入口字面保留给审计兼容，count 为 0。
       ["answer", "资料结论", "已并入「现在怎么做」。"],
       ["price", "价格位置", "已并入「买点与卖点」。"],
@@ -412,9 +412,9 @@ function groupDefinitions(snapshot, market) {
     ];
   } else {
     definitions = [
-      ["hk", "港股 · 3 个", "可核验候选池内，按公开长期年化从高到低排列。"],
-      ["us", "美股 · 5 个", "可核验候选池内，按公开长期年化从高到低排列。"],
-      ["a", "A股 · 3 个", "可核验候选池内，按公开长期年化从高到低排列。"],
+      ["hk", "港股 · 3 个", "可核验候选池内，按公开长期年化从高到低"],
+      ["us", "美股 · 5 个", "可核验候选池内，按公开长期年化从高到低"],
+      ["a", "A股 · 3 个", "可核验候选池内，按公开长期年化从高到低"],
     ];
   }
   return definitions.map(([id, title, one]) => ({ id, title, one, count: items.filter((item) => item.group === id).length }));

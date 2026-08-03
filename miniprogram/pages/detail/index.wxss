@@ -135,10 +135,103 @@
 .page-help {
   display: block;
   margin-top: 16rpx;
+  overflow: hidden;
   color: #4d5650;
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 560;
-  line-height: 1.55;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exit-plan {
+  margin-top: 16rpx;
+  padding: 20rpx 22rpx;
+  border: 1rpx solid #e3ebe6;
+  border-radius: 20rpx;
+  background: #f7fbf8;
+}
+
+.exit-plan.is-locked {
+  background: #f4f6f5;
+  border-color: #e7ece9;
+}
+
+.exit-plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.exit-plan-title {
+  color: #172019;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.exit-plan-tag {
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  background: #e8f6ef;
+  color: #0b7a53;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.exit-plan-rows {
+  margin-top: 12rpx;
+}
+
+.exit-plan-row {
+  display: flex;
+  min-height: 64rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.exit-plan-row + .exit-plan-row {
+  border-top: 1rpx solid #e7ece9;
+}
+
+.exit-plan-row text:first-child {
+  color: #6a746e;
+  font-size: 24rpx;
+}
+
+.exit-plan-row text:last-child {
+  color: #171b18;
+  font-size: 30rpx;
+  font-weight: 740;
+}
+
+.exit-plan-row text.is-blur {
+  color: #9aa39d;
+  font-size: 26rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+}
+
+.exit-plan-basis,
+.exit-plan-disclaimer {
+  display: block;
+  margin-top: 10rpx;
+  color: #7a847e;
+  font-size: 20rpx;
+  line-height: 1.4;
+}
+
+.exit-plan-cta {
+  margin-top: 14rpx;
+  padding: 16rpx 0 2rpx;
+  color: #0b7a53;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.tap-active {
+  opacity: 0.72;
 }
 
 .score-row {

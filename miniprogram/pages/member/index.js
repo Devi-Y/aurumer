@@ -17,10 +17,10 @@ const ANNUAL_PLAN = {
 const MEMBER_ADDONS = [
   {
     id: "ipo-check",
-    title: "打新资料速览",
-    desc: "把关注新股记进清单，方便核对一手金额与保荐人",
+    title: "打新出价观察",
+    desc: "会员可看暗盘观察出价、上市首周观察出价；免费仍看是否申购与中签",
     focus: "watch",
-    tags: ["值不值得打", "一手金额", "保荐人"],
+    tags: ["值不值得打", "暗盘出价", "首周出价"],
   },
   {
     id: "calendar",
@@ -308,7 +308,7 @@ Page({
     if (!this.data.state.active) {
       wx.showModal({
         title: "开通后可用",
-        content: `${addon.title}属于年费会员研究工具。开通后可在「我的记录」使用。公开页资料仍可免费看。`,
+        content: `${addon.title}属于年费会员能力。开通后可查看暗盘/首周出价观察，并在「我的记录」使用工具。公开页仍可免费看是否申购与中签。`,
         confirmText: "知道了",
         showCancel: false,
       });

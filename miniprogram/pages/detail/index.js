@@ -3,6 +3,10 @@ const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER, RISK_LABEL } = require("../../utils/disclaimer");
 const { loadSnapshot } = require("../../data/store");
 const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList } = require("../../utils/answers");
+const { scoreForItem } = require("../../utils/strategy-score");
+const { buildHkExitPlan } = require("../../utils/hk-exit-plan");
+const { loadMemberState } = require("../../services/member");
+const strategyEvidence = require("../../data/strategy-evidence");
 
 const DETAIL_META = {
   hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -303,24 +307,23 @@ function buildHKView(base, item) {
 
   base.badge = item.badge || answer.verdict || base.badge;
   base.answer = item.badge || answer.action || item.one;
+  // 免费：是否值得申购 + 中签率；暗盘/首周出价在会员区。
   base.metrics = ended
     ? [
-        ["暗盘表现", formatPercent(review.greyMarketChange)],
-        ["首日表现", formatPercent(review.firstDayChange)],
-        ["五日表现", formatPercent(review.fiveDayChange)],
-        ["五日最高", formatPercent(review.fiveDayHighChange)],
+        ["是否申购", item.badge || answer.verdict || "已结束"],
+        ["一手中签", hasNumber(raw.oneLotRate) ? `${Number(raw.oneLotRate).toFixed(1)}%` : "待核验"],
         ["招股价", offerPrice],
-        ["一手股数", lotSize || "待解析"],
+        ["暗盘涨跌", formatPercent(review.greyMarketChange)],
+        ["首日涨跌", formatPercent(review.firstDayChange)],
+        ["五日涨跌", formatPercent(review.fiveDayChange)],
       ]
     : [
-        ["建议等级", item.badge || "先看结论"],
-        ["招股价", offerPrice],
-        ["一手入场", hasNumber(raw.entryFee) ? `${Number(raw.entryFee).toFixed(0)} 港元` : "待解析"],
-        ["一手股数", lotSize || "待解析"],
-        ["认购截止", raw.offerDeadline || raw.offerEnd || "待公布"],
-        ["上市日期", raw.listingDate || "待公布"],
-        ["公开认购", hasNumber(raw.publicOversubscription) ? `${Number(raw.publicOversubscription).toFixed(2)} 倍` : "待公布"],
+        ["是否申购", item.badge || "先看结论"],
         ["一手中签", hasNumber(raw.oneLotRate) ? `${Number(raw.oneLotRate).toFixed(1)}%` : "待公布"],
+        ["一手入场", hasNumber(raw.entryFee) ? `${Number(raw.entryFee).toFixed(0)} 港元` : "待解析"],
+        ["招股价", offerPrice],
+        ["认购截止", raw.offerDeadline || raw.offerEnd || "待公布"],
+        ["公开认购", hasNumber(raw.publicOversubscription) ? `${Number(raw.publicOversubscription).toFixed(2)} 倍` : "待公布"],
       ];
 
   if (ended) {
@@ -333,7 +336,7 @@ function buildHKView(base, item) {
         { label: "五日最高", value: review.fiveDayHighChange, valueText: formatPercent(review.fiveDayHighChange) },
       ], "上市涨跌对比", { hint: "暗盘=上市前夜交易；都是涨跌百分比，只用于复盘。" }),
     );
-    base.pageHelp = "已结束新股只看结果学习，不能倒推当时一定该打。";
+    base.pageHelp = "免费看结论与中签；出价观察见会员区。";
   } else {
     const rateBars = [
       hasNumber(raw.oneLotRate)
@@ -359,7 +362,7 @@ function buildHKView(base, item) {
       offerBandVisual(raw, offerPrice),
       structureTiles,
     );
-    base.pageHelp = "先看结论与一手金额，再核认购截止日；建议≠保证赚钱。";
+    base.pageHelp = "免费：值不值得打+中签；出价观察需会员。";
   }
 
   base.facts = [
@@ -385,12 +388,12 @@ function buildHKView(base, item) {
   ];
   base.analysis = ended
     ? [
-        { title: "结果", body: `暗盘 ${formatPercent(review.greyMarketChange)} · 首日 ${formatPercent(review.firstDayChange)} · 五日 ${formatPercent(review.fiveDayChange)}` },
-        { title: "用途", body: "只用于复盘，不作为当前申购依据。" },
+        { title: "结果", body: `暗盘 ${formatPercent(review.greyMarketChange)} · 首日 ${formatPercent(review.firstDayChange)}` },
+        { title: "用途", body: "只复盘学习，不作当前申购依据。" },
       ]
     : [
-        { title: "结论", body: answer.action || item.badge || "公开资料不足，暂不判断。" },
-        { title: "风险", body: "新股可能破发或中签率极低，盈亏自负。" },
+        { title: item.badge || "结论", body: "可关注则核一手与截止日；建议≠保证。" },
+        { title: "风险", body: "可能破发或中签极低，盈亏自负。" },
       ];
   base.actions = [];
   base.risk = ended
@@ -462,7 +465,7 @@ function buildUSView(base, item, snapshot) {
     revenueVisual || incomeVisual,
   );
 
-  base.pageHelp = "先看价格位置，再看盈利与现金；热度只说明关注多。";
+  base.pageHelp = "先看价格与盈利，热度只说明关注多。";
   base.facts = [
     ["代码", raw.symbol || item.code || "待核验"],
     ["交易所", raw.exchange || "待核验"],
@@ -510,7 +513,7 @@ function buildAShareView(base, item) {
     ["昨收", money(raw.previousClose, "¥")],
     ["自由现金流", formatLarge(financials.freeCashFlow)],
   ];
-  base.pageHelp = "股息率 = 一年分红 ÷ 股价；可持续股息看现金能不能撑住。";
+  base.pageHelp = "股息=分红÷股价；可持续看现金能不能撑。";
 
   setCharts(
     base,
@@ -627,7 +630,7 @@ function buildGuruView(base, item) {
   ];
   base.actions = [];
   base.risk = "历史业绩不代表未来；公开持仓有滞后，不是实时仓位。";
-  base.pageHelp = "学思路，不照抄；持仓披露往往落后真实买卖。";
+  base.pageHelp = "学思路不照抄；披露往往落后真实买卖。";
   base.sourceNote = `${raw.source || profile.sourceName || "公开报告"} · ${raw.filingDate || profile.report || "披露日期待核验"}`;
 }
 
@@ -664,7 +667,7 @@ function buildGoldView(base, item) {
     ["20日涨跌", formatPercent(returns.day20)],
     ["60日涨跌", formatPercent(returns.day60)],
   ];
-  base.pageHelp = "观察区不是买卖指令；半年位置越低越靠近近半年低价。";
+  base.pageHelp = "观察区不是买卖指令；位置越低越近半年低价。";
 
   const intlHistory = (gold.history?.international || []).map((entry) => entry.close);
   const domesticHistory = (gold.history?.domestic || []).map((entry) => entry.close);
@@ -716,7 +719,7 @@ function buildGoldView(base, item) {
     ...(gold.indicators || []).slice(0, 6).map((entry) => [entry.label, `${entry.value}${entry.unit || ""}`]),
   ];
   base.analysis = [
-    { title: "动作", body: action },
+    { title: "动作", body: action.length > 22 ? `${action.slice(0, 22)}…` : action },
     { title: "买卖区", body: `买 ${buyIntl || buyCny || "暂缺"} · 卖 ${sellIntl || sellCny || "暂缺"}` },
   ];
   base.actions = [];
@@ -731,7 +734,27 @@ function detailView(item, snapshot) {
   else if (item.market === "a") buildAShareView(base, item);
   else if (item.market === "gold") buildGoldView(base, item);
   else buildGuruView(base, item);
-  base.analysis = base.analysis.map((entry, index) => ({
+
+  const scored = scoreForItem(item);
+  if (scored.score != null) {
+    const metrics = Array.isArray(base.metrics) ? base.metrics.slice() : [];
+    const hasScore = metrics.some((row) => (
+      row[0] === scored.label
+      || row[0] === "研究分"
+      || row[0] === "综合分"
+      || row[0] === "收息分"
+      || row[0] === "观察分"
+    ));
+    if (!hasScore) metrics.unshift([scored.label, `${scored.score}`]);
+    base.metrics = metrics;
+    base.researchScore = scored.score;
+    base.researchScoreLabel = scored.label;
+    base.researchScoreBasis = scored.basis;
+  }
+
+  base.evidenceHint = "";
+
+  base.analysis = (base.analysis || []).map((entry, index) => ({
     ...entry,
     indexLabel: String(index + 1).padStart(2, "0"),
   }));
@@ -753,7 +776,7 @@ function detailView(item, snapshot) {
   base.visual = base.charts[0] || null;
   base.group = item.group;
   base.market = item.market;
-  // 四级用简称；全称放在公司资料里。
+  // 标题用简称；全称放在公司资料里。
   base.title = shortCompanyName(item.name || base.title, base.title, 10);
   base.fullName = item.name || base.title;
   if (item.market !== "guru") base.rank = "";
@@ -767,6 +790,7 @@ Page({
     id: "",
     ready: false,
     detailsExpanded: false,
+    memberActive: false,
     view: {},
     source: "正在读取同步数据",
   },
@@ -777,18 +801,48 @@ Page({
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
   refresh(done, force = false) {
-    loadSnapshot((snapshot, source) => {
-      const item = findItem(snapshot, this.data.market, this.data.id);
-      if (!item) return;
-      const view = detailView(item, snapshot);
-      this.setData({ ready: true, view, group: item.group || "", source });
-      wx.setNavigationBarTitle({ title: view.title || "资料详情" });
-    }, done, { force });
+    const finish = (memberActive) => {
+      loadSnapshot((snapshot, source) => {
+        const item = findItem(snapshot, this.data.market, this.data.id);
+        if (!item) {
+          if (typeof done === "function") done();
+          return;
+        }
+        const view = detailView(item, snapshot);
+        if (item.market === "hk") {
+          view.exitPlan = buildHkExitPlan(item, {
+            memberActive,
+            evidence: strategyEvidence,
+          });
+        } else {
+          view.exitPlan = null;
+        }
+        this.setData({
+          ready: true,
+          view,
+          group: item.group || "",
+          source,
+          memberActive: Boolean(memberActive),
+        });
+        wx.setNavigationBarTitle({ title: view.title || "资料详情" });
+      }, done, { force });
+    };
+    if (this.data.market === "hk") {
+      loadMemberState()
+        .then((state) => finish(Boolean(state?.entitlement?.active)))
+        .catch(() => finish(false));
+      return;
+    }
+    finish(false);
   },
   goBack() { wx.navigateBack({ fail: () => goHome() }); },
   goHome() { goHome(); },
   toggleDetails() {
     this.setData({ detailsExpanded: !this.data.detailsExpanded });
+  },
+  openMember() {
+    track("member_open", { from: "hk_exit_plan" });
+    openPage("/pages/member/index");
   },
   openWorkspace() {
     const market = ["hk", "us", "a", "gold"].includes(this.data.market) ? this.data.market : "other";

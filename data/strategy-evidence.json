@@ -1,0 +1,64 @@
+{
+  "updatedAt": "2026-08-03T01:57:01.650Z",
+  "disclaimer": "公开历史统计仅供研究参考，不构成买卖指令，也不承诺未来收益。各市场可回测年限不同，已在分项注明。",
+  "markets": {
+    "us": {
+      "label": "美股宽基（标普500）长期年化",
+      "source": "datasets/s-and-p-500（Shiller 公开整理）",
+      "note": "用于佐证「长期持有优质公司/指数」与深跌后观察；个股路径会显著偏离指数。",
+      "startYear": 1871,
+      "endYear": 2026,
+      "sampleYears": 155,
+      "points": 156,
+      "annualWinRate": 65.8,
+      "averageAnnualReturn": 6.44,
+      "cagr": 4.87,
+      "centuryCagr": 6.31,
+      "bestYear": 46.2,
+      "worstYear": -45.6,
+      "afterDeepDropNextYearAvg": 9.96,
+      "deepDropSamples": 17
+    },
+    "gold": {
+      "label": "国际金价长期年化",
+      "source": "datasets/gold-prices（LBMA/公开月度整理）",
+      "note": "用于佐证黄金作为长期资产的波动与深跌后回升样本；买卖观察区不是自动交易信号。",
+      "startYear": 1833,
+      "endYear": 2026,
+      "sampleYears": 193,
+      "points": 194,
+      "annualWinRate": 36.3,
+      "averageAnnualReturn": 3.72,
+      "cagr": 2.84,
+      "centuryCagr": 5.52,
+      "bestYear": 118.9,
+      "worstYear": -27.5,
+      "afterDeepDropNextYearAvg": 4.4,
+      "deepDropSamples": 6
+    },
+    "hk": {
+      "label": "港股打新事件样本",
+      "source": "虾投港股 IPO 历史聚合",
+      "note": "打新是事件研究，不是百年组合回测；用来看「建议申购」样本的历史首日/暗盘分布。",
+      "startYear": null,
+      "endYear": null,
+      "sampleYears": null,
+      "points": 97,
+      "firstDayWinRate": 78.4,
+      "averageFirstDay": 56.3,
+      "averageGreyMarket": 59.03,
+      "recentCount": 12
+    },
+    "a": {
+      "label": "A股收息公开样本",
+      "source": "腾讯行情 / 东方财富公开财务（当前快照）",
+      "note": "沪深市场约自 1990/1991，无法做到 100 年价格回测。以下为当前候选池股息与可持续股息结构，用于佐证「高股息+现金流」筛选，不是百年组合收益承诺。",
+      "marketStartYear": 1990,
+      "maxPossibleYears": 36,
+      "points": 12,
+      "averageDividendYield": 4.85,
+      "averageSustainableYield": 4.28,
+      "highYieldCount": 9
+    }
+  }
+}

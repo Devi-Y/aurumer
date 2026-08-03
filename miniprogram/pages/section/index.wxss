@@ -44,9 +44,12 @@
 .hero-help {
   display: block;
   margin-top: 12rpx;
+  overflow: hidden;
   color: #5a645e;
-  font-size: 26rpx;
-  line-height: 1.55;
+  font-size: 24rpx;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hero-image-wrap {
@@ -211,10 +214,13 @@
 
 .group-help {
   display: block;
-  margin-top: 6rpx;
+  margin-top: 4rpx;
+  overflow: hidden;
   color: #6a746e;
-  font-size: 24rpx;
-  line-height: 1.45;
+  font-size: 22rpx;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .group-count {

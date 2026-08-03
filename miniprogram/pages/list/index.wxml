@@ -28,7 +28,10 @@
             <text class="item-name">{{item.shortName}}</text>
             <text wx:if="{{item.code}}" class="item-code">{{item.code}}</text>
           </view>
-          <text class="badge">{{item.badge}}</text>
+          <view class="item-tags">
+            <text wx:if="{{item.researchScoreLabel}}" class="score-chip">{{item.researchScoreLabel}}</text>
+            <text class="badge">{{item.badge}}</text>
+          </view>
         </view>
         <view wx:if="{{item.showBar}}" class="data-bar-block">
           <view class="data-bar-track"><view class="data-bar-value {{item.barTone}}" style="width: {{item.barWidth}}%;"></view></view>

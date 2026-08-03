@@ -3,39 +3,40 @@ const { allItems, groupDefinitions, shortCompanyName } = require("../../utils/an
 const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
+const { scoreForItem } = require("../../utils/strategy-score");
 
 const META = {
   hk: {
     title: "港股打新",
-    one: "新股 · 一手价 · 申不申购",
+    one: "值不值得打、中签率",
     tone: "hk",
     icon: "/assets/home/hk.svg",
     kicker: "新股申购",
   },
   us: {
     title: "美股投资",
-    one: "七姐妹 + 热度前三",
+    one: "高潜力对照样本",
     tone: "us",
     icon: "/assets/home/us.svg",
     kicker: "全球公司",
   },
   a: {
     title: "A股收息",
-    one: "谁分红高 · 股息多少",
+    one: "高股息稳现金流",
     tone: "a",
     icon: "/assets/home/a.svg",
     kicker: "分红清单",
   },
   gold: {
     title: "黄金追踪",
-    one: "现在怎么做 · 买点卖点",
+    one: "买卖观察提收益",
     tone: "gold",
     icon: "/assets/home/gold.svg",
     kicker: "买卖观察",
   },
   guru: {
     title: "机构持仓",
-    one: "学思路 · 对照公开持仓",
+    one: "学思路、对照持仓",
     tone: "guru",
     icon: "/assets/home/guru.svg",
     kicker: "学习与对照",
@@ -52,11 +53,12 @@ function buildOverview(snapshot, market) {
     const live = items.filter((item) => item.group !== "cancelled");
     const suggest = items.filter((item) => item.group === "worth");
     const lead = suggest[0] || live[0];
+    const scored = scoreForItem(lead);
     return {
       metrics: [
         { label: "在售", value: `${live.length}` },
         { label: "建议申购", value: `${suggest.length}` },
-        { label: "历史收录", value: `${(snapshot.hk?.history || []).length}` },
+        { label: "研究分", value: scored.score != null ? `${scored.score}` : "—" },
       ],
       target: lead ? shortCompanyName(lead.name, "新股", 6) : "暂无在售",
       grade: lead ? (lead.badge || "待定") : "—",
@@ -70,11 +72,12 @@ function buildOverview(snapshot, market) {
     const lead = [...hot, ...seven].sort(
       (left, right) => Number(right.raw?.heatScore || 0) - Number(left.raw?.heatScore || 0),
     )[0];
+    const scored = scoreForItem(lead);
     return {
       metrics: [
         { label: "七姐妹", value: `${seven.length}` },
         { label: "热度前三", value: `${hot.length}` },
-        { label: "最热", value: lead ? lead.code : "—" },
+        { label: "综合分", value: scored.score != null ? `${scored.score}` : "—" },
       ],
       target: lead ? (lead.code || shortCompanyName(lead.name, "美股", 6)) : "待更新",
       grade: lead
@@ -86,11 +89,12 @@ function buildOverview(snapshot, market) {
   if (market === "a") {
     const items = allItems(snapshot, "a");
     const top = items[0];
+    const scored = scoreForItem(top);
     return {
       metrics: [
         { label: "收息样本", value: `${items.length}` },
         { label: "最高股息", value: top && hasNumber(top.raw?.currentDividendYield) ? `${Number(top.raw.currentDividendYield).toFixed(1)}%` : "—" },
-        { label: "先看", value: top ? shortCompanyName(top.name, "—", 4) : "—" },
+        { label: "收息分", value: scored.score != null ? `${scored.score}` : "—" },
       ],
       target: top ? shortCompanyName(top.name, "收息", 6) : "待更新",
       grade: top ? (top.scoreText || top.badge || "先看分红") : "—",
@@ -102,10 +106,11 @@ function buildOverview(snapshot, market) {
     const answer = gold.answer || {};
     const international = gold.quotes?.international || {};
     const domestic = gold.quotes?.domestic || {};
+    const scored = scoreForItem({ market: "gold", raw: gold });
     return {
       metrics: [
         { label: "国际金", value: hasNumber(international.price) ? Number(international.price).toFixed(0) : "—" },
-        { label: "上海金", value: hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "—" },
+        { label: "观察分", value: scored.score != null ? `${scored.score}` : "—" },
         { label: "半年位", value: hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "—" },
       ],
       target: hasNumber(international.price) ? `国际金 ${Number(international.price).toFixed(0)}` : "黄金",

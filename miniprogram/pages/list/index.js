@@ -3,6 +3,7 @@ const { allItems, groupDefinitions, shortCompanyName } = require("../../utils/an
 const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
+const { scoreForItem } = require("../../utils/strategy-score");
 
 const MARKET_META = {
   hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -114,6 +115,7 @@ Page({
       const maxValue = barScaleMax(comparable);
       const items = rawItems.map((item, index) => {
         const visual = comparable[index];
+        const scored = scoreForItem(item);
         return {
           id: item.id,
           name: item.name,
@@ -123,6 +125,8 @@ Page({
           position: index + 1,
           positionLabel: String(index + 1).padStart(2, "0"),
           scoreText: item.scoreText || (item.score > 0 ? `${item.score} 分` : "资料待核验"),
+          researchScore: scored.score,
+          researchScoreLabel: scored.score != null ? `${scored.label} ${scored.score}` : "",
           rankText: item.rankText || (item.rank ? `第 ${item.rank} 名` : "暂不排名"),
           one: item.one,
           showBar: Boolean(visual && maxValue > 0),

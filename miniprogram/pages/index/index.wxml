@@ -1,21 +1,32 @@
 <view class="page-shell home-shell">
   <view class="home-hero">
-    <text class="hero-title">今日重点</text>
-    <text class="hero-help">{{todayHelp}}</text>
+    <view class="hero-top">
+      <text class="hero-title">今日重点</text>
+      <text class="hero-help">{{todayHelp}}</text>
+    </view>
     <view class="hero-matrix">
       <view
         wx:for="{{today.points}}"
         wx:key="id"
         class="hero-cell"
-        data-market="{{item.id}}"
-        data-target="{{item.targetId}}"
-        bindtap="openTodayTarget"
-        hover-class="hero-tap"
-        aria-role="button"
-        aria-label="{{item.ariaTarget}}"
       >
-        <text class="hero-label">{{item.label}}</text>
-        <text class="hero-value">{{item.value}}</text>
+        <text
+          class="hero-label"
+          data-market="{{item.id}}"
+          bindtap="openTodayCategory"
+          hover-class="hero-tap"
+          aria-role="button"
+          aria-label="{{item.ariaCategory}}"
+        >{{item.label}}</text>
+        <text
+          class="hero-value"
+          data-market="{{item.id}}"
+          data-target="{{item.targetId}}"
+          bindtap="openTodayTarget"
+          hover-class="hero-tap"
+          aria-role="button"
+          aria-label="{{item.ariaTarget}}"
+        >{{item.value}}</text>
       </view>
     </view>
   </view>

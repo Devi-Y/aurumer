@@ -1,6 +1,6 @@
 # 会员跟踪 P0：变化中心 · 决策快照 · 节点待办
 
-> 基于已有「逻辑哨兵」增量完善。开发版：**0.2.36**（0.2.35 已上传；本轮补齐摘要标题与快照快捷选项后续传）。
+> 基于已有「逻辑哨兵」增量完善。开发版：**0.2.37**（含运维多端同步；功能面同 0.2.36）。
 
 ## 需求完成核对
 
@@ -26,10 +26,10 @@
 | 端 | 状态 |
 | --- | --- |
 | 本地 / 小程序随包 | `updatedAt=2026-08-03T15:16:45.561Z`，A股 20 |
-| GitHub `main` | 已推送；raw 为 20 只 |
-| 云函数 | `aurum-member` / `aurum-data` 已 CLI 部署 |
-| 微信开发版 | 0.2.35 已上传；0.2.36 为摘要/芯片补齐后续传 |
-| GitHub Pages | Actions `pages-build-deployment` 已成功；CDN 可能短暂滞后 |
+| GitHub `main` | 已推送（含 `d5c510b` 运维对齐） |
+| 云函数 | revision=`cache-first-sentinel-member-tracking-p0`；超时 20s；health/getSnapshot 与 Pages 同戳 |
+| 微信开发版 | **0.2.37** 已 CLI 上传（369.7 KB） |
+| GitHub Pages | `updatedAt` 与本地一致；`npm run audit:release` 通过 |
 
 ## 数据结构 / 云函数 / 页面
 

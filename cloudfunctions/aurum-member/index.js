@@ -891,6 +891,19 @@ function isEventRemindTimer(event) {
   return name === "member-event-remind" || name.includes("event-remind");
 }
 
+/** 云开发同函数通常只保留一个 timer；事件提醒挂在 15 分钟对账触发器的 09:00（上海）窗口。 */
+function shouldPiggybackEventRemind(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Shanghai",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  }).formatToParts(now);
+  const hour = Number((parts.find((part) => part.type === "hour") || {}).value);
+  const minute = Number((parts.find((part) => part.type === "minute") || {}).value);
+  return hour === 9 && minute < 15;
+}
+
 async function removeEventMark(openid, event) {
   const id = validRecordId(event.itemId, "event");
   return updateWorkspace(openid, (workspace) => {
@@ -1528,7 +1541,11 @@ exports.main = async (event = {}) => {
     if (callbackRequest) return await handleCloudPayCallback(event);
     if (isGlobalReconcileTimer(event)) {
       if (context.OPENID) return fail("TIMER_FORBIDDEN", "客户端不能触发全局订单复核");
-      return ok(await reconcileGlobalOrders());
+      const summary = await reconcileGlobalOrders();
+      if (!shouldPiggybackEventRemind()) return ok(summary);
+      const inbox = await scanAllWorkspacesInbox();
+      const push = await sendEventReminders();
+      return ok({ ...summary, remind: { inbox, push } });
     }
     if (isFreeTestGrantTimer(event)) {
       if (context.OPENID) return fail("FREE_TEST_FORBIDDEN", "客户端不能触发免费测试授权");

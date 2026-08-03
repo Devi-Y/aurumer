@@ -204,4 +204,4 @@ npm run preupload   # sync:latest → audit → 随包新鲜度检查（默认 3
 
 开发版上传不等于微信审核，审核通过也不等于正式发布。
 
-> 注：`aurum-data` 读路径已改为「缓存优先、回源后台化」，并暴露 `SOURCE_REVISION` / `health`。仓库 `config.json` 写超时 10 秒，但微信 CLI **不一定**写入线上超时；**仍须在云开发控制台把函数超时改为 10 秒并验证冷启动**。发布前运行 `npm run audit:release`（含 Pages / 本地 / 小程序 `updatedAt` 与金额单位核对）。
+> 注：`aurum-data` 读路径已改为「缓存优先、回源后台化」，并暴露 `SOURCE_REVISION` / `health`。仓库与线上超时均已对齐为 **20 秒**（`config.json` + `tcb config`）；`warm` 全量回源偶发仍会顶满 20 秒，读路径以数据库/内存缓存为准。`aurum-member` 线上仅保留 `member-order-reconcile`（每 15 分钟）；事件提醒在上海时间 09:00 窗口内挂载执行（云开发同函数通常只能挂一个 timer）。订阅消息需另行配置 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`，未配置时仅站内提醒。发布前运行 `npm run audit:release`。

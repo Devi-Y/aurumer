@@ -5,7 +5,7 @@ const { sanitizeSnapshot } = require("./sanitize");
 const { writeFactVersions } = require("./fact-versions");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-08-03-member-tracking-p0-sync";
+const SOURCE_REVISION = "2026-08-03-cache-first-sentinel-member-tracking-p0";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 /** 10 分钟内视为新鲜；超过则后台回源，前台仍先读缓存。 */
 const CACHE_TTL_MS = 10 * 60 * 1000;

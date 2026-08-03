@@ -41,6 +41,11 @@
 ## 仍需平台人工
 
 1. 真机验收三场景（快照 / 变化 / 待办）
-2. 订阅消息模板 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`（可选）
-3. 控制台确认 `aurum-data` 超时 10 秒与定时触发器
-4. Pages CDN 刷新后云端回源即可吃到 20 只 A 股
+2. 订阅消息模板 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`（可选；未配置时仅站内提醒）
+
+## 运维已落地（2026-08-03）
+
+- `aurum-data` 超时 **20 秒**；`data-snapshot-warm` 每 30 分钟；`SOURCE_REVISION` 含 `cache-first` / `sentinel`
+- 云端 `getSnapshot`：A 股 **20**、`updatedAt=2026-08-03T15:16:45.561Z`（与 Pages / 随包一致）
+- `aurum-member` 线上 timer：`member-order-reconcile`（15 分钟）；事件提醒在上海 09:00 窗口挂载（同函数通常只能挂一个 timer；仓库 `config.json` 仍保留两份声明供审计）
+- `npm run audit:release` 已通过

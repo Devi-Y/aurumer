@@ -165,6 +165,7 @@ const memberService = await readFile(path.join(miniRoot, "services", "member.js"
 const sitemap = JSON.parse(await readFile(path.join(miniRoot, "sitemap.json"), "utf8"));
 const liveDataFunction = await readFile(path.join(root, "cloudfunctions", "aurum-data", "index.js"), "utf8");
 const liveDataSanitizer = await readFile(path.join(root, "cloudfunctions", "aurum-data", "sanitize.js"), "utf8");
+const hkExitPlan = await readFile(path.join(miniRoot, "utils", "hk-exit-plan.js"), "utf8");
 const detailContract = `${detailSource}\n${detailTemplate}`;
 assert(indexSource.includes("pages/section/index"), "小程序首页仍未进入原生二级页");
 assert(appConfig.pages.includes("pages/member/index"), "小程序仍应保留会员页路由");
@@ -311,15 +312,19 @@ assert(
 );
 
 assert(sectionSource.includes('one: "') || (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes("one:"), "栏目页缺少品类研究摘要文案配置");
-for (const label of ["望潮年费会员", "365 天会员", "会员功能", "保存关注", "记录想法", "复制导出", "购买须知", "增值服务", "大家常问", "值不值得打", "金价多少钱", "打新出价观察", "申购截止备忘", "国际金价观察"]) {
+for (const label of ["望潮年费会员", "365 天会员", "会员功能", "保存关注", "记录想法", "复制导出", "购买须知", "会员说明", "买后得到什么", "每天怎么用", "为什么免费版替代不了", "不含买卖建议"]) {
   assert(`${memberPageSource}\n${memberTemplate}`.includes(label), `小程序会员页缺少关键内容：${label}`);
 }
-assert(memberPageSource.includes("不做系统推送提醒") || memberPageSource.includes("不做到价推送"), "会员增值能力应标明不做虚假提醒推送");
+assert(!`${memberPageSource}\n${memberTemplate}`.includes("暗盘/首周出价") && !`${memberPageSource}\n${memberTemplate}`.includes("打新出价观察"), "会员页不应再把精确出价当作付费卖点");
 assert(indexTemplate.includes("todayHelp") && indexTemplate.includes("card-help"), "首页应露出今日帮助与入口说明");
 assert((pageTemplatesByPath.get("pages/section/index") || "").includes("meta.one") && (pageTemplatesByPath.get("pages/section/index") || "").includes("group-help"), "栏目页应露出本页用途与分组说明");
 assert((pageTemplatesByPath.get("pages/list/index") || "").includes("groupHelp"), "列表页应露出当前分组说明");
 assert(!detailSource.includes('label: "半年分位"') || !detailSource.includes("收益与位置"), "黄金图表不应把涨跌百分比与分位混在同一柱图");
-assert(!detailSource.includes("规模与现金") || detailSource.includes("现金实力"), "美股现金图不应再与市值混量纲");
+assert(detailSource.includes("期间现金流") && detailSource.includes("现金存量"), "美股现金图应按流量/存量分开展示");
+assert(!indexSource.includes("高潜力") && !indexSource.includes("提收益") && !indexSource.includes("首周出价观察"), "首页不应再使用承诺式收益/出价文案");
+assert(!sectionSource.includes("高潜力") && !sectionSource.includes("提收益"), "栏目页不应再使用承诺式收益文案");
+assert(detailSource.includes("parseOfferPrice") === false || !detailSource.includes("首周观察出价"), "详情不应再展示假精确首周出价");
+assert(hkExitPlan.includes("历史样本") && !hkExitPlan.includes("toFixed(2) 港元"), "港股退出计划应改为样本对照，不应输出精确港元出价");
 for (const label of ["会员协议与隐私", "会员商品与价格", "保存期限与删除", "用户权利与退出", "复制全部文字", "微信平台隐私指引"]) {
   assert(`${legalPage}\n${legalTemplate}`.includes(label), `小程序协议页缺少关键内容：${label}`);
 }

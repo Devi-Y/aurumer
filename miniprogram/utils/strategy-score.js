@@ -1,6 +1,6 @@
 /**
- * 四品类公开「研究评分」：偏向更高预期研究收益的透明公式。
- * 只使用已同步公开字段，不是内部模型荐股分，也不承诺收益。
+ * 四品类公开「研究观察分」：用公开字段做资料排序，不是已验证收益策略。
+ * 不承诺收益，不作为买卖指令。
  */
 function hasNumber(value) {
   return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
@@ -13,21 +13,18 @@ function clamp(value, low = 0, high = 100) {
 function hkScore(item) {
   const raw = item?.raw || {};
   const answer = raw.publicAnswer || {};
-  // 打新收益优先：研究分高 + 建议申购档，尽量避开资料不够。
+  // 港股只采用公开招股研究分，避免前端再叠一套加减分。
   if (hasNumber(answer.score)) {
-    let score = clamp(Number(answer.score));
-    if (item?.badge === "建议申购") score = clamp(score + 6);
-    if (item?.badge === "暂不建议" || item?.badge === "资料不够") score = clamp(score - 12);
     return {
-      score,
+      score: clamp(Number(answer.score)),
       label: "研究分",
-      basis: "公开招股研究分（偏向建议申购档）",
+      basis: "公开招股研究分（单一口径）",
     };
   }
-  if (item?.badge === "建议申购") return { score: 82, label: "研究分", basis: "结论档位映射" };
-  if (item?.badge === "暂缓观察") return { score: 55, label: "研究分", basis: "结论档位映射" };
+  if (item?.badge === "建议申购") return { score: 82, label: "研究分", basis: "结论档位映射（无公开分时）" };
+  if (item?.badge === "暂缓观察") return { score: 55, label: "研究分", basis: "结论档位映射（无公开分时）" };
   if (item?.badge === "暂不建议" || item?.badge === "资料不够") {
-    return { score: 28, label: "研究分", basis: "结论档位映射" };
+    return { score: 28, label: "研究分", basis: "结论档位映射（无公开分时）" };
   }
   return { score: null, label: "研究分", basis: "资料不足" };
 }
@@ -42,7 +39,7 @@ function usScore(item) {
   const growth = hasNumber(fund.revenueGrowth) ? Number(fund.revenueGrowth) : null;
   const weekly = hasNumber(raw.weeklyChange) ? Number(raw.weeklyChange) : null;
 
-  // 收益导向：盈利质量 50 + 估值克制 30 + 热度 15 + 近周动能 5
+  // 资料排序：盈利质量 50 + 估值 30 + 热度 15 + 近周变动 5（经验权重，非回测策略）
   let weight = 0;
   let total = 0;
   const quality = [];
@@ -66,11 +63,11 @@ function usScore(item) {
     total += clamp(50 + weekly * 2) * 0.05;
     weight += 0.05;
   }
-  if (!weight) return { score: null, label: "综合分", basis: "公开行情/财务不足" };
+  if (!weight) return { score: null, label: "研究观察分", basis: "公开行情/财务不足" };
   return {
     score: clamp(total / weight),
-    label: "综合分",
-    basis: "盈利质量+估值克制为主（公开字段）",
+    label: "研究观察分",
+    basis: "公开字段资料排序，不是收益预测",
   };
 }
 
@@ -85,7 +82,6 @@ function aScore(item) {
   const conversion = hasNumber(financials.cashConversion) ? Number(financials.cashConversion) : null;
   const change = hasNumber(raw.changePercent) ? Number(raw.changePercent) : null;
 
-  // 收息收益：可持续股息权重大于瞬时高股息，避免追不可持续分红。
   let total = 0;
   let weight = 0;
   if (yieldSustain != null) {
@@ -104,15 +100,14 @@ function aScore(item) {
     total += Math.min(100, Math.max(20, conversion * 40)) * 0.1;
     weight += 0.1;
   }
-  // 轻微惩罚当日大跌（可能含风险事件），不追涨杀跌。
   if (change != null && change <= -5 && weight) {
     total = Math.max(0, total - 4 * weight);
   }
-  if (!weight) return { score: null, label: "收息分", basis: "公开股息/现金流不足" };
+  if (!weight) return { score: null, label: "收息观察分", basis: "公开股息/现金流不足" };
   return {
     score: clamp(total / weight),
-    label: "收息分",
-    basis: "可持续股息+当前股息+现金流（公开字段）",
+    label: "收息观察分",
+    basis: "公开股息与现金流资料排序，不是收益预测",
   };
 }
 
@@ -124,7 +119,6 @@ function goldScore(item) {
   const percentile = hasNumber(international.percentile180)
     ? Number(international.percentile180)
     : null;
-  // 位置偏低更利于观察买入收益空间；过高则降分。
   if (score != null && percentile != null) {
     if (percentile <= 35) score += 8;
     else if (percentile >= 80) score -= 8;
@@ -136,17 +130,17 @@ function goldScore(item) {
   return {
     score,
     label: "观察分",
-    basis: "金价观察分+半年位置（公开字段）",
+    basis: "公开金价观察分与半年位置，不是买卖指令",
   };
 }
 
 function scoreForItem(item) {
-  if (!item) return { score: null, label: "评分", basis: "无标的" };
+  if (!item) return { score: null, label: "观察分", basis: "无标的" };
   if (item.market === "hk") return hkScore(item);
   if (item.market === "us") return usScore(item);
   if (item.market === "a") return aScore(item);
   if (item.market === "gold") return goldScore(item);
-  return { score: null, label: "评分", basis: "本页不打分" };
+  return { score: null, label: "观察分", basis: "本页不打分" };
 }
 
 module.exports = {

@@ -31,27 +31,18 @@
       </view>
     </view>
 
-    <view wx:if="{{view.exitPlan && view.exitPlan.show}}" class="exit-plan {{view.exitPlan.locked ? 'is-locked' : ''}}">
+    <view wx:if="{{view.exitPlan && view.exitPlan.show}}" class="exit-plan">
       <view class="exit-plan-head">
         <text class="exit-plan-title">{{view.exitPlan.title}}</text>
-        <text wx:if="{{view.exitPlan.locked}}" class="exit-plan-tag">会员</text>
       </view>
       <view class="exit-plan-rows">
         <view wx:for="{{view.exitPlan.rows}}" wx:key="label" class="exit-plan-row">
           <text>{{item.label}}</text>
-          <text class="{{item.locked ? 'is-blur' : ''}}">{{item.value}}</text>
+          <text>{{item.value}}</text>
         </view>
       </view>
       <text class="exit-plan-basis">{{view.exitPlan.basis}}</text>
       <text class="exit-plan-disclaimer">{{view.exitPlan.disclaimer}}</text>
-      <view
-        wx:if="{{view.exitPlan.locked}}"
-        class="exit-plan-cta"
-        bindtap="openMember"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-label="开通会员查看出价观察"
-      >开通查看暗盘/首周出价观察 ›</view>
     </view>
 
     <block wx:if="{{view.charts.length}}">

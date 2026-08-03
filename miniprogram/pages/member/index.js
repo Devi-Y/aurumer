@@ -3,7 +3,6 @@ const { openPage, goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { MEMBER_DISCLAIMER } = require("../../utils/disclaimer");
 const legalInfo = require("../../config/legal");
-const demandKeywordsConfig = require("../../config/demand-keywords");
 
 const ANNUAL_PLAN = {
   id: "research-365d",
@@ -14,81 +13,25 @@ const ANNUAL_PLAN = {
   priceUnit: "/ 年",
 };
 
-const MEMBER_ADDONS = [
+/** 会员只回答三问：买后得到什么、每天怎么用、为什么免费版替代不了。 */
+const MEMBER_FAQ = [
   {
-    id: "ipo-check",
-    title: "打新出价观察",
-    desc: "会员可看暗盘观察出价、上市首周观察出价；免费仍看是否申购与中签",
-    focus: "watch",
-    tags: ["值不值得打", "暗盘出价", "首周出价"],
+    id: "get",
+    title: "买后得到什么",
+    body: "跨设备关注清单、自己填写的研究记录/复盘，以及一键复制导出。不含买卖建议、收益预测或精确出价。",
   },
   {
-    id: "calendar",
-    title: "申购截止备忘",
-    desc: "把截止日记在关注备注里，自行查看；不做系统推送提醒",
-    focus: "watch",
-    tags: ["申购截止", "认购窗口"],
+    id: "daily",
+    title: "每天怎么用",
+    body: "把盯的标的放进关注，行情或资料变化时自行对照；用记录写下当时判断，方便以后复盘。",
   },
   {
-    id: "ipo-review",
-    title: "打新结果复盘",
-    desc: "用想法记录暗盘与首日结果，方便以后对照",
-    focus: "decision",
-    tags: ["暗盘", "首日表现", "复盘"],
-  },
-  {
-    id: "gold-alert",
-    title: "国际金价观察",
-    desc: "保存金价观察笔记与买卖观察区对照；不做到价推送",
-    focus: "watch",
-    tags: ["金价多少钱", "买点卖点", "积存金对照"],
-  },
-  {
-    id: "dividend",
-    title: "收息标的对照",
-    desc: "把收息标的放进关注清单，对照股息与现金流",
-    focus: "watch",
-    tags: ["股息率", "分红稳不稳", "现金流"],
-  },
-  {
-    id: "preview",
-    title: "关注标的一页看",
-    desc: "会员记录里集中查看自己盯的标的",
-    focus: "watch",
-    tags: ["持仓对照", "结论更新"],
-  },
-  {
-    id: "review",
-    title: "复盘想法档案",
-    desc: "记下当时为什么买、后来对不对得上",
-    focus: "decision",
-    tags: ["投资复盘", "决策记录"],
-  },
-  {
-    id: "sync",
-    title: "跨设备同步",
-    desc: "关注与想法保存在云端，换手机还能看",
-    focus: "watch",
-    tags: ["云端同步"],
-  },
-  {
-    id: "export",
-    title: "一键备份导出",
-    desc: "复制导出自己的清单和想法",
-    focus: "watch",
-    tags: ["导出备份"],
-  },
-  {
-    id: "support",
-    title: "会员客服通道",
-    desc: "付款权益与退款可通过微信客服咨询",
-    focus: "support",
-    tags: ["订单权益", "退款"],
+    id: "why",
+    title: "为什么免费版替代不了",
+    body: "免费版可看公开研究资料；会员把关注、记录和导出保存在云端，换手机仍可继续用，到期后仍可只读与导出。",
   },
 ];
 
-/** 小红书同品类高频提问词（研究工具向，不做荐股承诺）。 */
-const DEMAND_KEYWORDS = demandKeywordsConfig.markets;
 const PAYMENT_REFRESH_DELAYS = [800, 1600, 2600, 4000, 6000];
 
 function formatDate(value) {
@@ -155,8 +98,7 @@ Page({
     legalInfo,
     disclaimer: MEMBER_DISCLAIMER,
     lastOrderId: "",
-    addons: MEMBER_ADDONS,
-    demandKeywords: DEMAND_KEYWORDS,
+    faq: MEMBER_FAQ,
     state: viewState({
       paymentReady: false,
       paymentReason: "正在检查会员服务",
@@ -289,32 +231,6 @@ Page({
   },
   openWorkspace() {
     openPage("/pages/workspace/index");
-  },
-  openAddon(event) {
-    const id = event.currentTarget.dataset.id;
-    const addon = MEMBER_ADDONS.find((item) => item.id === id);
-    if (!addon) return;
-    track("member_addon_tap", { addon: String(id) });
-    if (addon.focus === "support") {
-      wx.showModal({
-        title: "会员客服",
-        content: "请点击下方「购买须知」里的「联系微信客服」，说明订单或权益问题。",
-        showCancel: false,
-        confirmText: "知道了",
-        success: () => this.setData({ showNotice: true }),
-      });
-      return;
-    }
-    if (!this.data.state.active) {
-      wx.showModal({
-        title: "开通后可用",
-        content: `${addon.title}属于年费会员能力。开通后可查看暗盘/首周出价观察，并在「我的记录」使用工具。公开页仍可免费看是否申购与中签。`,
-        confirmText: "知道了",
-        showCancel: false,
-      });
-      return;
-    }
-    openPage(`/pages/workspace/index?focus=${encodeURIComponent(addon.focus)}&addon=${encodeURIComponent(id)}`);
   },
   openLegal() {
     wx.navigateTo({

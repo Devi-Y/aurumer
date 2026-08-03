@@ -90,6 +90,20 @@ function sanitizeUSStock(stock = {}) {
   return rest;
 }
 
+/**
+ * Nasdaq / 公开财报金额常以「千美元」入库。统一转为基础美元，并标注 amountUnit，
+ * 展示层不得再按数量级猜测乘数。
+ */
+function scaleUsdThousands(value) {
+  if (!hasNumber(value)) return null;
+  return Number(value) * 1000;
+}
+
+function scaleHistoryThousands(values) {
+  if (!Array.isArray(values)) return values || [];
+  return values.map((value) => (hasNumber(value) ? Number(value) * 1000 : value));
+}
+
 function sanitizeUSFundamental(item = {}) {
   const {
     targetPrice,
@@ -104,7 +118,23 @@ function sanitizeUSFundamental(item = {}) {
     modelValidation,
     ...rest
   } = item;
-  return rest;
+  if (item.amountUnit === "USD") {
+    return { ...rest, amountUnit: "USD", currency: item.currency || "USD" };
+  }
+  return {
+    ...rest,
+    operatingCashFlow: scaleUsdThousands(item.operatingCashFlow),
+    capitalExpenditures: scaleUsdThousands(item.capitalExpenditures),
+    cashAndEquivalents: scaleUsdThousands(item.cashAndEquivalents),
+    shortTermInvestments: scaleUsdThousands(item.shortTermInvestments),
+    liquidAssets: scaleUsdThousands(item.liquidAssets),
+    netIncome: scaleUsdThousands(item.netIncome),
+    revenueHistory: scaleHistoryThousands(item.revenueHistory),
+    netIncomeHistory: scaleHistoryThousands(item.netIncomeHistory),
+    amountUnit: "USD",
+    currency: "USD",
+    unitMultiplier: 1,
+  };
 }
 
 function aShareResearchView(item = {}, financials = {}) {
@@ -129,15 +159,16 @@ function sanitizeAShareQuote(item = {}, financials = {}) {
     strategyAssessment,
     modelEstimate,
     modelValidation,
+    currentAdvice,
+    recommendPrice,
+    buyPrice,
+    safeMarginPrice,
+    summary,
     ...rest
   } = item;
+  // 买入/推荐/安全边际价来自静态 HTML，不是公告驱动自动化；公开链路一律剥离。
   return {
     ...rest,
-    currentAdvice: item.currentAdvice || null,
-    summary: item.summary || null,
-    recommendPrice: item.recommendPrice || null,
-    buyPrice: item.buyPrice || null,
-    safeMarginPrice: item.safeMarginPrice || null,
     researchView: aShareResearchView(item, financials),
   };
 }

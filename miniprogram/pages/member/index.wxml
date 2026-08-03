@@ -43,36 +43,11 @@
     </button>
   </view>
 
-  <text class="block-title">大家常问</text>
-  <view class="ask-panel">
-    <view wx:for="{{demandKeywords}}" wx:key="market" class="ask-block">
-      <text class="ask-market">{{item.market}}</text>
-      <view class="ask-tags">
-        <text wx:for="{{item.asks}}" wx:for-item="ask" wx:key="*this" class="ask-tag">{{ask}}</text>
-      </view>
-    </view>
-  </view>
-
-  <text class="block-title">增值服务</text>
-  <view class="addon-panel">
-    <view
-      wx:for="{{addons}}"
-      wx:key="id"
-      class="addon-row"
-      data-id="{{item.id}}"
-      bindtap="openAddon"
-      hover-class="tap-active"
-      aria-role="button"
-      aria-label="{{item.title}}，{{item.desc}}"
-    >
-      <view class="addon-copy">
-        <text class="addon-title">{{item.title}}</text>
-        <text class="addon-desc">{{item.desc}}</text>
-        <view wx:if="{{item.tags.length}}" class="addon-tags">
-          <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="addon-tag">{{tag}}</text>
-        </view>
-      </view>
-      <text class="addon-arrow">›</text>
+  <text class="block-title">会员说明</text>
+  <view class="faq-panel">
+    <view wx:for="{{faq}}" wx:key="id" class="faq-row">
+      <text class="faq-title">{{item.title}}</text>
+      <text class="faq-body">{{item.body}}</text>
     </view>
   </view>
 

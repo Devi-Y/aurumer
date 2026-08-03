@@ -5,7 +5,6 @@ const { loadSnapshot } = require("../../data/store");
 const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList } = require("../../utils/answers");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildHkExitPlan } = require("../../utils/hk-exit-plan");
-const { loadMemberState } = require("../../services/member");
 const strategyEvidence = require("../../data/strategy-evidence");
 
 const DETAIL_META = {
@@ -482,7 +481,7 @@ function buildHKView(base, item) {
       qualityTiles,
       scoreMeter(answer.score, "研究分", item.badge || answer.verdict),
     );
-    base.pageHelp = "免费看结论与中签；出价观察见会员区。";
+    base.pageHelp = "免费看申购结论与中签；历史样本只作对照，不作精确出价。";
   } else {
     setCharts(
       base,
@@ -496,7 +495,7 @@ function buildHKView(base, item) {
       structureTiles,
       qualityTiles,
     );
-    base.pageHelp = "免费：值不值得打+中签；出价观察需会员。";
+    base.pageHelp = "免费看是否申购与中签；样本对照不是本股预测价。";
   }
 
   base.facts = compactFacts([
@@ -544,9 +543,10 @@ function buildUSView(base, item, snapshot) {
   const fund = raw.fund || {};
   const range = historyStats(raw.history);
   const holders = investorHoldings(snapshot, raw.symbol);
-  const cashValue = hasNumber(fund.liquidAssets)
-    ? Number(fund.liquidAssets) * (Number(fund.liquidAssets) < 1e7 ? 1000 : 1)
-    : null;
+  // 金额须在 sanitize 阶段转为基础美元（amountUnit=USD）；此处不再猜乘数。
+  const cashValue = hasNumber(fund.liquidAssets) ? Number(fund.liquidAssets) : null;
+  const ocfValue = hasNumber(fund.operatingCashFlow) ? Number(fund.operatingCashFlow) : null;
+  const moneyUnitNote = fund.amountUnit === "USD" ? "美元" : "公开财报金额";
 
   base.metrics = [
     ["当前价格", money(raw.price)],
@@ -570,17 +570,27 @@ function buildUSView(base, item, snapshot) {
     { label: "热度", value: hasNumber(raw.heatScore) ? `${Number(raw.heatScore)}` : "—" },
   ];
 
-  const fundBars = solidVisual([
-    hasNumber(fund.revenueGrowth) ? { label: "营收增长", value: fund.revenueGrowth, valueText: formatPercent(fund.revenueGrowth) } : null,
+  const marginBars = solidVisual([
     hasNumber(fund.grossMargin) ? { label: "毛利率", value: fund.grossMargin, valueText: formatPercent(fund.grossMargin) } : null,
     hasNumber(fund.profitMargin) ? { label: "利润率", value: fund.profitMargin, valueText: formatPercent(fund.profitMargin) } : null,
     hasNumber(fund.roe) ? { label: "股东回报", value: fund.roe, valueText: formatPercent(fund.roe) } : null,
-  ].filter(Boolean), "盈利能力", { hint: "都是百分比，柱越高越好看（公开财报）。" });
+  ].filter(Boolean), "利润率对照", { hint: "同为百分比口径，便于对照毛利/净利/股东回报；不是收益预测。" });
 
-  const cashBars = solidVisual([
-    hasNumber(fund.operatingCashFlow) ? { label: "经营现金流", value: fund.operatingCashFlow, valueText: formatLarge(Number(fund.operatingCashFlow) * (Number(fund.operatingCashFlow) < 1e8 ? 1000 : 1)) } : null,
-    cashValue != null ? { label: "现金等价物", value: cashValue, valueText: formatLarge(cashValue) } : null,
-  ].filter(Boolean), "现金实力", { hint: "只比「手里有多少现金类资产」，单位统一。" });
+  const growthTiles = metricTilesVisual([
+    ["营收增长", formatPercent(fund.revenueGrowth)],
+    ["净利润", hasNumber(fund.netIncome) ? formatLarge(fund.netIncome) : null],
+  ].filter((row) => row[1] && !isSparseValue(row[1])), "成长与盈利额", "增长是百分比；净利润是金额，分开展示。");
+
+  const flowTiles = metricTilesVisual([
+    ["经营现金流", ocfValue != null ? formatLarge(ocfValue) : null],
+    ["资本开支", hasNumber(fund.capitalExpenditures) ? formatLarge(Math.abs(Number(fund.capitalExpenditures))) : null],
+  ].filter((row) => row[1]), "期间现金流", `期间流量（${moneyUnitNote}），不与现金存量混排。`);
+
+  const stockTiles = metricTilesVisual([
+    ["现金及等价物", hasNumber(fund.cashAndEquivalents) ? formatLarge(fund.cashAndEquivalents) : null],
+    ["现金+短投", cashValue != null ? formatLarge(cashValue) : null],
+    ["短期投资", hasNumber(fund.shortTermInvestments) ? formatLarge(fund.shortTermInvestments) : null],
+  ].filter((row) => row[1]), "现金存量", `时点存量（${moneyUnitNote}），不是当期流量。`);
 
   const sizeTiles = metricTilesVisual([
     ["市值", hasNumber(fund.marketCap) ? formatLarge(fund.marketCap) : "暂缺"],
@@ -591,43 +601,30 @@ function buildUSView(base, item, snapshot) {
 
   const revenueHistory = Array.isArray(fund.revenueHistory) ? fund.revenueHistory.filter(hasNumber).map(Number) : [];
   const revenueVisual = revenueHistory.length >= 2
-    ? priceVisual(revenueHistory.slice().reverse(), "营收趋势", (value) => formatLarge(value), "近几期公开营收，柱越高营收越大。")
-    : null;
-  const incomeHistory = Array.isArray(fund.netIncomeHistory) ? fund.netIncomeHistory.filter(hasNumber).map(Number) : [];
-  const incomeVisual = incomeHistory.length >= 2
-    ? solidVisual(incomeHistory.slice().reverse().map((value, index) => ({
-      label: `期${index + 1}`,
-      value,
-      valueText: formatLarge(value),
-    })), "净利润", { hint: "近几期公开净利润，单位统一。" })
+    ? priceVisual(revenueHistory.slice().reverse(), "营收趋势", (value) => formatLarge(value), "近几期公开营收金额。")
     : null;
 
   const scoredUS = scoreForItem(item);
-  const cashTiles = metricTilesVisual([
-    ["经营现金流", hasNumber(fund.operatingCashFlow) ? formatLarge(Number(fund.operatingCashFlow) * (Number(fund.operatingCashFlow) < 1e8 ? 1000 : 1)) : null],
-    ["现金等价物", cashValue != null ? formatLarge(cashValue) : null],
-    ["短期投资", hasNumber(fund.shortTermInvestments) ? formatLarge(fund.shortTermInvestments) : null],
-    ["资本开支", hasNumber(fund.capitalExpenditures) ? formatLarge(Math.abs(Number(fund.capitalExpenditures))) : null],
-  ].filter((row) => row[1]), "现金与开支", "单位已统一换算，便于对照。");
-
   setCharts(
     base,
-    scoreMeter(scoredUS.score, "综合分", item.badge),
+    scoreMeter(scoredUS.score, "研究观察分", item.badge),
     priceVisual(raw.history, "近60日价格", (value) => `$${Number(value).toFixed(2)}`),
     meterVisual(raw.history, raw.price, "价格位置", money),
-    fundBars,
-    cashBars,
+    marginBars,
+    growthTiles,
+    flowTiles,
+    stockTiles,
     sizeTiles,
-    cashTiles,
-    revenueVisual || incomeVisual,
+    revenueVisual,
   );
 
-  base.pageHelp = "先看价格与盈利，热度只说明关注多。";
+  base.pageHelp = "先看价格与公开财报；观察分是资料排序，不是收益预测。";
   base.facts = compactFacts([
     ["代码", raw.symbol || item.code],
     ["交易所", raw.exchange],
     ["行情状态", raw.marketState],
     ["数据截至", raw.asOf || fund.period],
+    ["金额单位", fund.amountUnit === "USD" ? "美元（已规范化）" : null],
     ["近 60 日中位数", range ? money(range.median) : null],
     ["样本交易日", range ? `${range.count}个` : null],
     ["成交量比", hasNumber(raw.volumeRatio) ? `${Number(raw.volumeRatio).toFixed(2)}倍` : null],
@@ -636,8 +633,9 @@ function buildUSView(base, item, snapshot) {
     ["利润率", hasNumber(fund.profitMargin) ? formatPercent(fund.profitMargin) : null],
     ["股东回报", hasNumber(fund.roe) ? formatPercent(fund.roe) : null],
     ["净利润", hasNumber(fund.netIncome) ? formatLarge(fund.netIncome) : null],
-    ["经营现金流", hasNumber(fund.operatingCashFlow) ? formatLarge(Number(fund.operatingCashFlow) * (Number(fund.operatingCashFlow) < 1e8 ? 1000 : 1)) : null],
-    ["现金及等价物", cashValue != null ? formatLarge(cashValue) : null],
+    ["经营现金流", ocfValue != null ? formatLarge(ocfValue) : null],
+    ["现金及等价物", hasNumber(fund.cashAndEquivalents) ? formatLarge(fund.cashAndEquivalents) : null],
+    ["现金+短投", cashValue != null ? formatLarge(cashValue) : null],
     ["短期投资", hasNumber(fund.shortTermInvestments) ? formatLarge(fund.shortTermInvestments) : null],
     ["市盈率", hasNumber(fund.pe) ? `${Number(fund.pe).toFixed(1)}倍` : null],
     ["市值", hasNumber(fund.marketCap) ? formatLarge(fund.marketCap) : null],
@@ -657,8 +655,7 @@ function buildAShareView(base, item) {
   const raw = item.raw || {};
   const financials = raw.financials || {};
   const annualDividend = hasNumber(raw.annualDividendPer100k) ? Number(raw.annualDividendPer100k) : null;
-  const advice = raw.currentAdvice || item.scoreText || "先看分红";
-  const buyHint = raw.buyPrice || raw.recommendPrice || null;
+  const advice = raw.researchView?.label || item.scoreText || "先看分红";
 
   base.badge = hasNumber(raw.currentDividendYield) ? `股息 ${Number(raw.currentDividendYield).toFixed(2)}%` : base.badge;
   base.answer = item.one;
@@ -668,7 +665,7 @@ function buildAShareView(base, item) {
     ["当前股息", hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(2)}%` : "暂缺"],
     ["可持续股息", hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(2)}%` : "暂缺"],
     ["10万估算年息", hasNumber(annualDividend) ? `${Math.round(annualDividend)}元` : "暂缺"],
-    ["研究看法", advice],
+    ["资料状态", advice],
     ["昨收", money(raw.previousClose, "¥")],
     ["自由现金流", formatLarge(financials.freeCashFlow)],
     ["经营现金流", formatLarge(financials.operatingCashFlow)],
@@ -682,19 +679,17 @@ function buildAShareView(base, item) {
     { label: "可持续", value: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(2)}%` : "—" },
     { label: "年息估", value: hasNumber(annualDividend) ? `${Math.round(annualDividend)}` : "—" },
   ];
-  base.pageHelp = "股息=分红÷股价；可持续看现金能不能撑。";
+  base.pageHelp = "股息=分红÷股价；可持续看现金能不能撑。动作价属人工字段，已不展示。";
 
   const scoredA = scoreForItem(item);
   const priceBand = solidVisual([
-    hasNumber(raw.safeMarginPrice) ? { label: "安全边际", value: Number(raw.safeMarginPrice), valueText: money(raw.safeMarginPrice, "¥") } : null,
-    hasNumber(buyHint) ? { label: "参考价", value: Number(buyHint), valueText: money(buyHint, "¥") } : null,
     hasNumber(raw.currentPrice) ? { label: "现价", value: Number(raw.currentPrice), valueText: money(raw.currentPrice, "¥") } : null,
     hasNumber(raw.previousClose) ? { label: "昨收", value: Number(raw.previousClose), valueText: money(raw.previousClose, "¥") } : null,
-  ].filter(Boolean), "价格对照", { hint: "单位：人民币。仅公开价位对照，不是下单指令。" });
+  ].filter(Boolean), "价格对照", { hint: "单位：人民币。仅公开行情对照。" });
 
   setCharts(
     base,
-    scoreMeter(scoredA.score, "收息分", advice),
+    scoreMeter(scoredA.score, "收息观察分", advice),
     solidVisual([
       { label: "当前股息", value: raw.currentDividendYield, valueText: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(2)}%` : "暂缺" },
       { label: "可持续股息", value: raw.sustainableDividendYield, valueText: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(2)}%` : "暂缺" },
@@ -703,7 +698,7 @@ function buildAShareView(base, item) {
       ? metricTilesVisual([
           ["10万估算年息", `${Math.round(annualDividend)}元`],
           ["当前价格", money(raw.currentPrice, "¥")],
-          ["研究看法", advice],
+          ["资料状态", advice],
           ["昨收", money(raw.previousClose, "¥")],
         ], "收息估算", "按当前股息粗算，不等于保证能拿到。")
       : null,
@@ -711,15 +706,17 @@ function buildAShareView(base, item) {
     solidVisual([
       hasNumber(financials.operatingCashFlow) ? { label: "经营现金流", value: financials.operatingCashFlow, valueText: formatLarge(financials.operatingCashFlow) } : null,
       hasNumber(financials.freeCashFlow) ? { label: "自由现金流", value: financials.freeCashFlow, valueText: formatLarge(financials.freeCashFlow) } : null,
+    ].filter(Boolean), "期间现金流", { hint: "期间流量对照；与利润分开展示。" }),
+    solidVisual([
       hasNumber(financials.revenue) ? { label: "营收", value: financials.revenue, valueText: formatLarge(financials.revenue) } : null,
       hasNumber(financials.netProfit) ? { label: "净利润", value: financials.netProfit, valueText: formatLarge(financials.netProfit) } : null,
-    ].filter(Boolean), "现金流与盈利", { hint: "金额对比，单位统一；现金比利润更能支撑分红。" }),
+    ].filter(Boolean), "盈利规模", { hint: "金额口径，不是百分比。" }),
     solidVisual([
       hasNumber(financials.revenueGrowth) ? { label: "营收增长", value: financials.revenueGrowth, valueText: formatPercent(financials.revenueGrowth) } : null,
       hasNumber(financials.netProfitGrowth) ? { label: "净利增长", value: financials.netProfitGrowth, valueText: formatPercent(financials.netProfitGrowth) } : null,
       hasNumber(financials.roe) ? { label: "股东回报", value: financials.roe, valueText: formatPercent(financials.roe) } : null,
       hasNumber(financials.freeCashFlowMargin) ? { label: "自由现金流率", value: financials.freeCashFlowMargin, valueText: formatPercent(financials.freeCashFlowMargin) } : null,
-    ].filter(Boolean), "成长质量", { hint: "都是百分比，柱越高通常越好。" }),
+    ].filter(Boolean), "成长质量", { hint: "同为百分比口径。" }),
     hasNumber(financials.cashConversion)
       ? metricTilesVisual([
           ["现金利润比", `${Number(financials.cashConversion).toFixed(2)}倍`],
@@ -749,16 +746,14 @@ function buildAShareView(base, item) {
     ["净利润", hasNumber(financials.netProfit) ? formatLarge(financials.netProfit) : null],
     ["净利润增长", hasNumber(financials.netProfitGrowth) ? formatPercent(financials.netProfitGrowth) : null],
     ["股东回报", hasNumber(financials.roe) ? formatPercent(financials.roe) : null],
-    ["参考价", buyHint],
-    ["安全边际价", hasNumber(raw.safeMarginPrice) ? money(raw.safeMarginPrice, "¥") : null],
     ["资料来源", raw.priceSource || raw.source],
   ]);
   base.analysis = [
-    { title: "结论", body: advice },
+    { title: "资料", body: advice },
     { title: "现金流", body: `经营 ${formatLarge(financials.operatingCashFlow)} · 自由 ${formatLarge(financials.freeCashFlow)}` },
   ];
   base.actions = [];
-  base.risk = "过往分红不代表未来；现金流转弱时分红可能被砍。";
+  base.risk = "过往分红不代表未来；现金流转弱时分红可能被砍。静态买入/推荐价已不展示。";
   base.sourceNote = `${raw.priceSource || raw.source || "公开行情"} · ${financials.source || "公开财务资料"}`;
 }
 
@@ -809,8 +804,8 @@ function buildGuruView(base, item) {
     { title: "怎么学", body: profile.how || "学框架，不照抄持仓。" },
   ];
   base.actions = [];
-  base.risk = "历史业绩不代表未来；公开持仓有滞后，不是实时仓位。";
-  base.pageHelp = "学思路不照抄；披露往往落后真实买卖。";
+  base.risk = "历史业绩不代表未来；公开持仓有滞后（SEC 13F 季度末，最高可能约 45 天），不是实时仓位。";
+  base.pageHelp = "学思路不照抄；公开持仓为季度末披露，可能滞后约 45 天。";
   base.sourceNote = `${raw.source || profile.sourceName || "公开报告"} · ${raw.filingDate || profile.report || "披露日期待核验"}`;
 }
 
@@ -944,8 +939,10 @@ function detailView(item, snapshot) {
     const hasScore = metrics.some((row) => (
       row[0] === scored.label
       || row[0] === "研究分"
+      || row[0] === "研究观察分"
       || row[0] === "综合分"
       || row[0] === "收息分"
+      || row[0] === "收息观察分"
       || row[0] === "观察分"
     ));
     if (!hasScore) metrics.unshift([scored.label, `${scored.score}`]);
@@ -1006,12 +1003,10 @@ Page({
     loading: true,
     loadError: "",
     detailsExpanded: false,
-    memberActive: false,
     view: {},
     source: "正在读取同步数据",
   },
   onLoad(options) {
-    this._memberExitRequested = false;
     this._detailItem = null;
     this.setData({
       market: options.market || "hk",
@@ -1043,10 +1038,7 @@ Page({
         }
         const view = detailView(item, snapshot);
         if (item.market === "hk") {
-          view.exitPlan = buildHkExitPlan(item, {
-            memberActive: Boolean(this.data.memberActive),
-            evidence: strategyEvidence,
-          });
+          view.exitPlan = buildHkExitPlan(item, { evidence: strategyEvidence });
         } else {
           view.exitPlan = null;
         }
@@ -1060,10 +1052,6 @@ Page({
           source,
         });
         wx.setNavigationBarTitle({ title: view.title || "资料详情" });
-        if (item.market === "hk" && !this._memberExitRequested) {
-          this._memberExitRequested = true;
-          this.refreshMemberExitPlan();
-        }
       } catch (error) {
         console.error("[望潮] detail render failed", error);
         this.setData({
@@ -1084,31 +1072,13 @@ Page({
       if (typeof done === "function") done();
     }, { force });
   },
-  refreshMemberExitPlan() {
-    const item = this._detailItem;
-    if (!item || item.market !== "hk") return;
-    const apply = (memberActive) => {
-      const exitPlan = buildHkExitPlan(item, {
-        memberActive: Boolean(memberActive),
-        evidence: strategyEvidence,
-      });
-      this.setData({
-        memberActive: Boolean(memberActive),
-        "view.exitPlan": exitPlan,
-      });
-    };
-    Promise.resolve()
-      .then(() => loadMemberState())
-      .then((state) => apply(Boolean(state && state.entitlement && state.entitlement.active)))
-      .catch(() => apply(false));
-  },
   goBack() { wx.navigateBack({ fail: () => goHome() }); },
   goHome() { goHome(); },
   toggleDetails() {
     this.setData({ detailsExpanded: !this.data.detailsExpanded });
   },
   openMember() {
-    track("member_open", { from: "hk_exit_plan" });
+    track("member_open", { from: "detail" });
     openPage("/pages/member/index");
   },
   openWorkspace() {

@@ -160,6 +160,30 @@
 }
 .workspace-cta { width: 100%; min-height: 84rpx; padding: 15rpx 22rpx; border-top: 1rpx solid #edf0ee; }
 
+.faq-panel {
+  margin-top: 0;
+  padding: 8rpx 0 12rpx;
+  background: #fff;
+  border-radius: 24rpx;
+}
+.faq-row {
+  padding: 22rpx 24rpx;
+}
+.faq-row + .faq-row { border-top: 1rpx solid #edf0ee; }
+.faq-title {
+  display: block;
+  color: #1b211d;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+.faq-body {
+  display: block;
+  margin-top: 8rpx;
+  color: #5c655f;
+  font-size: 26rpx;
+  line-height: 1.55;
+}
+
 .addon-panel { margin-top: 0; }
 .addon-row {
   display: flex;

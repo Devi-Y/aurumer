@@ -3,17 +3,24 @@
 const https = require("node:https");
 const { sanitizeSnapshot } = require("./sanitize");
 
+/** 部署后可用 health 核对：必须与 Git 该文件一致。 */
+const SOURCE_REVISION = "2026-08-03-p0-cache-first";
+
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
+/** 10 分钟内视为新鲜；超过则后台回源，前台仍先读缓存。 */
 const CACHE_TTL_MS = 10 * 60 * 1000;
-// 函数超时 10 秒：回源留足时间，失败后再读数据库缓存。
-const FUNCTION_TIMEOUT_MS = 10 * 1000;
-const DATABASE_FALLBACK_BUDGET_MS = 1500;
-const REQUEST_TIMEOUT_MS = FUNCTION_TIMEOUT_MS - DATABASE_FALLBACK_BUDGET_MS;
+/** 可读的陈旧缓存上限；超过则不再当作可用交付。 */
+const SERVE_STALE_MAX_MS = 36 * 60 * 60 * 1000;
+/**
+ * 平台默认超时常为 3 秒，CLI 不一定写入 config.json 的 10 秒。
+ * 前台读路径必须在该预算内结束；回源放后台。
+ */
+const PLATFORM_SAFE_MS = 2500;
+const WARM_REQUEST_TIMEOUT_MS = 8000;
 const MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
 
 const CACHE_COLLECTION = "data_snapshot_cache";
 const CACHE_DOC_ID = "live-snapshot";
-const PERSISTED_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const WARM_TRIGGER_NAME = "data-snapshot-warm";
 
 let cachedResult = null;
@@ -34,6 +41,12 @@ function getDatabase() {
   return database;
 }
 
+function ageMs(storedAt) {
+  const stamp = Number(storedAt || 0);
+  if (!Number.isFinite(stamp) || stamp <= 0) return Number.POSITIVE_INFINITY;
+  return Math.max(0, Date.now() - stamp);
+}
+
 async function readPersistedSnapshot() {
   const db = getDatabase();
   if (!db) return null;
@@ -41,8 +54,7 @@ async function readPersistedSnapshot() {
     const result = await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).get();
     const record = result && result.data;
     if (!record || !record.payload) return null;
-    const age = Date.now() - Number(record.storedAt || 0);
-    if (!Number.isFinite(age) || age > PERSISTED_MAX_AGE_MS) return null;
+    if (ageMs(record.storedAt) > SERVE_STALE_MAX_MS) return null;
     return { ...record.payload, storedAt: record.storedAt };
   } catch (error) {
     return null;
@@ -52,7 +64,7 @@ async function readPersistedSnapshot() {
 async function writePersistedSnapshot(payload) {
   const db = getDatabase();
   if (!db) return;
-  const record = { payload, storedAt: Date.now(), updatedAt: payload.updatedAt };
+  const record = { payload, storedAt: Date.now(), updatedAt: payload.updatedAt, revision: SOURCE_REVISION };
   try {
     await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).set({ data: record });
   } catch (error) {
@@ -82,7 +94,7 @@ async function ensureCollection(error) {
   }
 }
 
-function readJson(url, redirectsLeft = 2) {
+function readJson(url, timeoutMs, redirectsLeft = 2) {
   return new Promise((resolve, reject) => {
     const request = https.get(url, {
       headers: {
@@ -90,11 +102,11 @@ function readJson(url, redirectsLeft = 2) {
         "cache-control": "no-cache",
         "user-agent": "Aurum-WeChat-MiniProgram/1.0",
       },
-      timeout: REQUEST_TIMEOUT_MS,
+      timeout: timeoutMs,
     }, (response) => {
       if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location && redirectsLeft > 0) {
         response.resume();
-        resolve(readJson(new URL(response.headers.location, url).toString(), redirectsLeft - 1));
+        resolve(readJson(new URL(response.headers.location, url).toString(), timeoutMs, redirectsLeft - 1));
         return;
       }
       if (response.statusCode !== 200) {
@@ -125,9 +137,9 @@ function readJson(url, redirectsLeft = 2) {
   });
 }
 
-async function refreshSnapshot() {
+async function refreshSnapshot(timeoutMs = WARM_REQUEST_TIMEOUT_MS) {
   const separator = SOURCE_URL.includes("?") ? "&" : "?";
-  const raw = await readJson(`${SOURCE_URL}${separator}mini=${Date.now()}`);
+  const raw = await readJson(`${SOURCE_URL}${separator}mini=${Date.now()}`, timeoutMs);
   const data = sanitizeSnapshot(raw);
   const fetchedAt = new Date().toISOString();
   cachedResult = {
@@ -136,22 +148,33 @@ async function refreshSnapshot() {
     source: "望潮最新公开数据",
     updatedAt: data.updatedAt,
     fetchedAt,
+    revision: SOURCE_REVISION,
   };
   cachedAt = Date.now();
   await writePersistedSnapshot(cachedResult);
   return cachedResult;
 }
 
-function getSnapshot(force) {
-  if (!force && cachedResult && Date.now() - cachedAt < CACHE_TTL_MS) {
-    return Promise.resolve({ ...cachedResult, cache: "memory" });
-  }
-  if (!pendingRefresh) {
-    pendingRefresh = refreshSnapshot().finally(() => {
+function scheduleBackgroundRefresh() {
+  if (pendingRefresh) return pendingRefresh;
+  pendingRefresh = refreshSnapshot(WARM_REQUEST_TIMEOUT_MS)
+    .catch((error) => {
+      console.warn("后台回源失败", error && error.message);
+      return null;
+    })
+    .finally(() => {
       pendingRefresh = null;
     });
-  }
   return pendingRefresh;
+}
+
+function withCacheMeta(result, cache, extra = {}) {
+  return {
+    ...result,
+    cache,
+    revision: SOURCE_REVISION,
+    ...extra,
+  };
 }
 
 function isWarmTimer(event) {
@@ -165,64 +188,93 @@ function isWarmTimer(event) {
 exports.main = async (event = {}) => {
   const action = event.action || (isWarmTimer(event) ? "warm" : "getSnapshot");
 
+  if (action === "health") {
+    const persisted = await readPersistedSnapshot();
+    return {
+      ok: true,
+      revision: SOURCE_REVISION,
+      memoryUpdatedAt: cachedResult && cachedResult.updatedAt || null,
+      databaseUpdatedAt: persisted && persisted.updatedAt || null,
+      cache: cachedResult ? "memory" : (persisted ? "database" : "empty"),
+      platformSafeMs: PLATFORM_SAFE_MS,
+    };
+  }
+
   if (action === "warm") {
     try {
-      const result = await getSnapshot(true);
-      return { ok: true, warmed: true, updatedAt: result.updatedAt, cache: "refreshed" };
+      const result = await refreshSnapshot(WARM_REQUEST_TIMEOUT_MS);
+      return withCacheMeta({
+        ok: true,
+        warmed: true,
+        updatedAt: result.updatedAt,
+      }, "refreshed");
     } catch (error) {
       console.error("aurum-data warm failed", error && error.message);
       const persisted = await readPersistedSnapshot();
       if (persisted) {
         cachedResult = persisted;
         cachedAt = Number(persisted.storedAt || Date.now());
-        return {
+        return withCacheMeta({
           ok: true,
           warmed: false,
           warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
           updatedAt: persisted.updatedAt,
-          cache: "stale-database",
-        };
+        }, "stale-database");
       }
-      return { ok: false, error: "DATA_TEMPORARILY_UNAVAILABLE" };
+      return { ok: false, error: "DATA_TEMPORARILY_UNAVAILABLE", revision: SOURCE_REVISION };
     }
   }
 
   if (action !== "getSnapshot") {
-    return { ok: false, error: "UNSUPPORTED_ACTION" };
+    return { ok: false, error: "UNSUPPORTED_ACTION", revision: SOURCE_REVISION };
   }
 
-  // 普通读请求：内存 → 10 分钟内 DB 缓存 → 再回源；失败再兜底更旧的 DB。
+  // 前台：内存 → 数据库缓存立刻返回；过期则后台回源，不阻塞。
   if (!event.force) {
-    if (cachedResult && Date.now() - cachedAt < CACHE_TTL_MS) {
-      return { ...cachedResult, cache: "memory" };
+    if (cachedResult && ageMs(cachedAt) < CACHE_TTL_MS) {
+      return withCacheMeta(cachedResult, "memory");
     }
+    if (cachedResult && ageMs(cachedAt) < SERVE_STALE_MAX_MS) {
+      scheduleBackgroundRefresh();
+      return withCacheMeta(cachedResult, "stale-memory", {
+        warning: ageMs(cachedAt) > CACHE_TTL_MS ? "CACHE_REFRESHING" : undefined,
+      });
+    }
+
     const persisted = await readPersistedSnapshot();
-    if (persisted && Date.now() - Number(persisted.storedAt || 0) < CACHE_TTL_MS) {
+    if (persisted) {
       cachedResult = persisted;
       cachedAt = Number(persisted.storedAt || Date.now());
-      return { ...persisted, cache: "database" };
+      if (ageMs(cachedAt) >= CACHE_TTL_MS) scheduleBackgroundRefresh();
+      return withCacheMeta(persisted, ageMs(cachedAt) < CACHE_TTL_MS ? "database" : "stale-database", {
+        warning: ageMs(cachedAt) >= CACHE_TTL_MS ? "CACHE_REFRESHING" : undefined,
+      });
     }
   }
 
+  // 无缓存或强制刷新：短超时回源；仍失败再兜底。
   try {
-    return await getSnapshot(Boolean(event.force));
+    const result = await refreshSnapshot(event.force ? WARM_REQUEST_TIMEOUT_MS : Math.min(PLATFORM_SAFE_MS, 2000));
+    return withCacheMeta(result, "refreshed");
   } catch (error) {
     console.error("aurum-data refresh failed", error && error.message);
     if (cachedResult) {
-      return {
+      return withCacheMeta({
         ...cachedResult,
-        cache: "stale-memory",
         warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
-      };
+      }, "stale-memory");
     }
     const persisted = await readPersistedSnapshot();
     if (persisted) {
-      return {
+      cachedResult = persisted;
+      cachedAt = Number(persisted.storedAt || Date.now());
+      return withCacheMeta({
         ...persisted,
-        cache: "stale-database",
         warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
-      };
+      }, "stale-database");
     }
-    return { ok: false, error: "DATA_TEMPORARILY_UNAVAILABLE" };
+    return { ok: false, error: "DATA_TEMPORARILY_UNAVAILABLE", revision: SOURCE_REVISION };
   }
 };
+
+module.exports.SOURCE_REVISION = SOURCE_REVISION;

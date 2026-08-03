@@ -20,8 +20,8 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/us.svg",
     title: "美股投资",
-    help: "高潜力对照样本",
-    detail: "价格与财报",
+    help: "价格与财报对照",
+    detail: "公开资料",
     tone: "us",
   },
   {
@@ -29,7 +29,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/a.svg",
     title: "A股收息",
-    help: "高股息稳现金流",
+    help: "股息与现金流",
     detail: "股息清单",
     tone: "a",
   },
@@ -38,8 +38,8 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/gold.svg",
     title: "黄金追踪",
-    help: "买卖观察提收益",
-    detail: "买卖观察",
+    help: "价格位置观察",
+    detail: "买卖观察区",
     tone: "gold",
   },
   {
@@ -47,7 +47,7 @@ const CORE_ENTRIES = [
     action: "member",
     icon: "/assets/home/member.svg",
     title: "年费会员",
-    help: "暗盘·首周出价观察",
+    help: "关注·记录·导出",
     detail: "365天 · ¥1288",
     badge: "¥1288/年",
     tone: "member",
@@ -77,7 +77,7 @@ function bestByScore(items) {
 }
 
 function buildToday(data) {
-  // 今日重点按「研究分/综合分」优先，偏向更高预期研究收益的公开标的，不是追热度。
+  // 今日重点按研究观察分排序，仅作资料对照，不是收益预测。
   const hkLive = allItems(data, "hk").filter((item) => (
     item.group !== "ended" && item.group !== "cancelled"
   ));

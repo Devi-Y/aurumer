@@ -4,7 +4,7 @@
   "functions": [
     {
       "name": "aurum-data",
-      "timeout": 10,
+      "timeout": 20,
       "runtime": "Nodejs16.13",
       "handler": "index.main",
       "memorySize": 256,

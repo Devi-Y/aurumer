@@ -32,7 +32,7 @@
 
   <view wx:if="{{activeTab == 'today'}}" class="tab-content">
     <view class="brief-card {{state.todayBrief.allClear ? 'is-clear' : ''}}">
-      <text class="brief-title">我的变化</text>
+      <text class="brief-title">今日变化摘要</text>
       <text class="brief-line">{{changeCenter.summary.headline || state.todayBrief.headline}}</text>
       <text wx:for="{{state.todayBrief.lines}}" wx:key="*this" class="brief-line">{{item}}</text>
       <text wx:if="{{changeCenter.summary.unreadCount}}" class="brief-line">未读变化 {{changeCenter.summary.unreadCount}}{{changeCenter.summary.latestAt ? ' · 最近 ' + changeCenter.summary.latestAt : ''}}</text>

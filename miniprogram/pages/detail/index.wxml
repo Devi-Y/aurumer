@@ -192,20 +192,40 @@
         <button class="snapshot-close" bindtap="closeSnapshotSheet">关闭</button>
       </view>
       <text class="snapshot-sub">系统将自动保存当时价格、结论、风险与数据截止时间。公开答案仍免费；正式保存用于个人跟踪与复盘。</text>
-      <view wx:if="{{snapshotPreview}}" class="snapshot-preview">
+      <view class="snapshot-preview" wx:if="{{snapshotPreview}}">
         <text>{{snapshotPreview.priceLabel || '价格待核'}} · {{snapshotPreview.oneLiner || '结论待核'}}</text>
         <text wx:if="{{snapshotPreview.researchScore != null}}">{{snapshotPreview.researchScoreLabel}} {{snapshotPreview.researchScore}}</text>
         <text wx:if="{{snapshotPreview.metricLabel}}">{{snapshotPreview.metricLabel}}</text>
         <text wx:if="{{snapshotPreview.risk}}">风险：{{snapshotPreview.risk}}</text>
         <text>数据截止：{{snapshotPreview.asOf || snapshotPreview.snapshotUpdatedAt || '待核'}}</text>
       </view>
-      <picker mode="selector" range="{{reasonOptions}}" range-key="label" value="{{reasonIndex}}" bindchange="changeReason">
-        <view class="snapshot-picker"><text>为什么关注</text><text>{{reasonOptions[reasonIndex].label}} ›</text></view>
-      </picker>
-      <picker mode="selector" range="{{reviewConditionOptions}}" range-key="label" value="{{reviewConditionIndex}}" bindchange="changeReviewCondition">
-        <view class="snapshot-picker"><text>何时重新评估</text><text>{{reviewConditionOptions[reviewConditionIndex].label}} ›</text></view>
-      </picker>
-      <view class="snapshot-input"><text>下次查看</text><input value="{{snapshotReviewAt}}" maxlength="20" placeholder="YYYY-MM-DD" bindinput="inputSnapshotReviewAt" /></view>
+      <text class="snapshot-field-label">为什么关注</text>
+      <view class="chip-row">
+        <button
+          wx:for="{{reasonOptions}}"
+          wx:key="id"
+          class="chip {{reasonIndex === index ? 'chip-active' : ''}}"
+          data-index="{{index}}"
+          bindtap="selectReasonChip"
+        >{{item.label}}</button>
+      </view>
+      <text class="snapshot-field-label">何时重新评估</text>
+      <view class="chip-row">
+        <button
+          wx:for="{{reviewConditionOptions}}"
+          wx:key="id"
+          class="chip {{reviewConditionIndex === index ? 'chip-active' : ''}}"
+          data-index="{{index}}"
+          bindtap="selectReviewChip"
+        >{{item.label}}</button>
+      </view>
+      <text class="snapshot-field-label">下次查看</text>
+      <view class="chip-row">
+        <button class="chip {{reviewAtPreset === 7 ? 'chip-active' : ''}}" data-days="7" bindtap="selectReviewAtPreset">7天后</button>
+        <button class="chip {{reviewAtPreset === 14 ? 'chip-active' : ''}}" data-days="14" bindtap="selectReviewAtPreset">14天后</button>
+        <button class="chip {{reviewAtPreset === 30 ? 'chip-active' : ''}}" data-days="30" bindtap="selectReviewAtPreset">30天后</button>
+      </view>
+      <view class="snapshot-input"><text>日期</text><input value="{{snapshotReviewAt}}" maxlength="20" placeholder="YYYY-MM-DD" bindinput="inputSnapshotReviewAt" /></view>
       <view class="snapshot-note">
         <text>个人备注（选填）</text>
         <textarea maxlength="300" auto-height placeholder="可不填；系统快照仍会保存" value="{{snapshotNote}}" bindinput="inputSnapshotNote"></textarea>

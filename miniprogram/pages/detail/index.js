@@ -1108,6 +1108,7 @@ Page({
     reviewConditionOptions: REVIEW_CONDITION_OPTIONS,
     reasonIndex: 0,
     reviewConditionIndex: 0,
+    reviewAtPreset: 14,
     snapshotNote: "",
     snapshotReviewAt: "",
     memberActive: false,
@@ -1270,11 +1271,26 @@ Page({
       snapshotNote: "",
       reasonIndex: 0,
       reviewConditionIndex: 0,
+      reviewAtPreset: 14,
+      snapshotNote: "",
       snapshotReviewAt: addDaysLabel(todayLabelLocal(), 14),
     });
   },
   closeSnapshotSheet() {
     this.setData({ snapshotSheetOpen: false });
+  },
+  selectReasonChip(event) {
+    this.setData({ reasonIndex: Number(event.currentTarget.dataset.index) || 0 });
+  },
+  selectReviewChip(event) {
+    this.setData({ reviewConditionIndex: Number(event.currentTarget.dataset.index) || 0 });
+  },
+  selectReviewAtPreset(event) {
+    const days = Number(event.currentTarget.dataset.days) || 14;
+    this.setData({
+      reviewAtPreset: days,
+      snapshotReviewAt: addDaysLabel(todayLabelLocal(), days),
+    });
   },
   changeReason(event) {
     this.setData({ reasonIndex: Number(event.detail.value) || 0 });
@@ -1286,7 +1302,7 @@ Page({
     this.setData({ snapshotNote: event.detail.value });
   },
   inputSnapshotReviewAt(event) {
-    this.setData({ snapshotReviewAt: event.detail.value });
+    this.setData({ snapshotReviewAt: event.detail.value, reviewAtPreset: 0 });
   },
   confirmSnapshotSave() {
     if (this.data.snapshotSaving) return;

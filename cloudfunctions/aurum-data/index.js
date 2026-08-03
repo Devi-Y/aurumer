@@ -5,19 +5,18 @@ const { sanitizeSnapshot } = require("./sanitize");
 const { writeFactVersions } = require("./fact-versions");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-08-03-cache-first-sentinel-p0";
-
+const SOURCE_REVISION = "2026-08-03-member-tracking-p0-sync";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 /** 10 分钟内视为新鲜；超过则后台回源，前台仍先读缓存。 */
 const CACHE_TTL_MS = 10 * 60 * 1000;
 /** 可读的陈旧缓存上限；超过则不再当作可用交付。 */
 const SERVE_STALE_MAX_MS = 36 * 60 * 60 * 1000;
 /**
- * 平台默认超时常为 3 秒，CLI 不一定写入 config.json 的 10 秒。
+ * 平台默认超时常为 3 秒，CLI 不一定写入 config.json 的超时。
  * 前台读路径必须在该预算内结束；回源放后台。
  */
 const PLATFORM_SAFE_MS = 2500;
-const WARM_REQUEST_TIMEOUT_MS = 8000;
+const WARM_REQUEST_TIMEOUT_MS = 15000;
 const MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
 
 const CACHE_COLLECTION = "data_snapshot_cache";

@@ -340,8 +340,9 @@ assert(
   && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("关注")
   && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("复盘")
   && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("逻辑哨兵")
-  && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("站内收件箱"),
-  "工作台应包含今日/关注/复盘三 Tab 与收件箱",
+  && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("站内收件箱")
+  && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("今日变化摘要"),
+  "工作台应包含今日/关注/复盘三 Tab、收件箱与今日变化摘要",
 );
 assert(await access(path.join(miniRoot, "utils", "fact-snapshot.js")).then(() => true).catch(() => false), "工作台应接入变化对照能力");
 assert(!`${memberPageSource}\n${memberTemplate}`.includes("暗盘/首周出价") && !`${memberPageSource}\n${memberTemplate}`.includes("打新出价观察"), "会员页不应再把精确出价当作付费卖点");
@@ -368,7 +369,7 @@ assert(
   "营业执照主体全称没有正确写入公开协议配置",
 );
 assert(legalPage.includes("draft: !legalInfo.operatorReady") && legalTemplate.includes('wx:if="{{draft}}"'), "运营主体未完成时的草案保护逻辑被移除");
-for (const label of ["逻辑哨兵", "今日", "关注", "复盘", "站内收件箱", "我的变化", "待办与节点", "为什么", "失效条件", "复制导出全部记录", "删除全部记录", "记录仅当前微信用户可见"]) {
+for (const label of ["逻辑哨兵", "今日", "关注", "复盘", "站内收件箱", "今日变化摘要", "待办与节点", "为什么", "失效条件", "复制导出全部记录", "删除全部记录", "记录仅当前微信用户可见"]) {
   assert(workspaceTemplate.includes(label), `小程序研究工作台缺少关键内容：${label}`);
 }
 for (const action of ["workspace", "refreshSentinel", "saveWatchItem", "removeWatchItem", "saveDecision", "removeDecision", "ackWatchBaselines", "saveEventMark", "removeEventMark", "updateReviewTask", "saveIpoRecord", "saveDividendLot", "saveSettings", "deleteWorkspace"]) {

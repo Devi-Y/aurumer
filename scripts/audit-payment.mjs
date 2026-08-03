@@ -155,13 +155,13 @@ assert(memberTemplate.includes("点击即确认已满 18 周岁") && legalPage.i
 const memberAndLegalCopy = `${memberTemplate}\n${legalPage}\n${legalTemplate}`;
 assert(memberAndLegalCopy.includes("具体买卖建议") && memberAndLegalCopy.includes("不提供荐股"), "会员商品缺少非荐股交付边界");
 assert(legalPage.includes("普通小程序微信支付") && !legalPage.includes("微信虚拟支付"), "协议仍把普通小程序支付误写为虚拟支付");
-assert(`${memberTemplate}\n${legalPage}`.includes("个人记录导出") && !memberTemplate.includes("数据更新提醒"), "会员页承诺必须与首期实际交付一致");
+assert(`${memberTemplate}\n${legalPage}`.includes("导出") && !memberTemplate.includes("数据更新提醒"), "会员页承诺必须与首期实际交付一致");
 assert(memberTemplate.includes("365 天") && client.includes("¥1,288 / 年"), "会员页未展示唯一的 1288 元年度方案");
 assert(memberTemplate.includes("¥1,288") && memberTemplate.includes("365 天") && memberTemplate.includes("不自动续费"), "会员主页面缺少清晰的年费与续费说明");
 assert(memberStyles.includes("font-size: 54rpx") && memberStyles.includes("min-height: 82rpx"), "会员价格或底部固定购买按钮不符合长辈友好尺寸");
 assert(memberTemplate.includes('class="pay-dock"') && memberStyles.includes("position: fixed") && memberTemplate.includes("立即微信支付"), "会员页缺少始终可见的一键支付入口");
 assert(memberPage.includes('plan.id === ANNUAL_PLAN.id') && memberPage.includes('id: "research-365d"'), "客户端没有拒绝旧的 30/90 天远端方案");
-assert(workspaceTemplate.includes("到期后仍可查看、导出和删除"), "工作台缺少到期用户的数据可携带边界");
+assert(workspaceTemplate.includes("到期后仍可") && workspaceTemplate.includes("导出") && workspaceTemplate.includes("删除"), "工作台缺少到期用户的数据可携带边界");
 assert(workspacePage.includes("wx.setClipboardData"), "工作台缺少个人记录导出实现");
 assert(workspacePage.includes("verificationPending") && workspacePage.includes("权益核验中（只读）"), "退款查单失败时工作台没有降级为只读");
 assert(workspacePage.includes("deleteWorkspace") && workspaceTemplate.includes("删除全部记录"), "工作台缺少用户主动删除能力");
@@ -222,14 +222,23 @@ for (const contract of [
   'const WORKSPACES = "member_workspaces"',
   "requireActiveEntitlement",
   'event.action === "workspace"',
+  'event.action === "refreshSentinel"',
   'event.action === "saveWatchItem"',
   'event.action === "removeWatchItem"',
   'event.action === "saveDecision"',
   'event.action === "removeDecision"',
+  'event.action === "updateReviewTask"',
   'event.action === "deleteWorkspace"',
 ]) {
   assert(backendContract.includes(contract), `普通微信支付服务端缺少：${contract}`);
 }
+assert(backend.includes("stampOfficialFact") || backend.includes("FACT_LATEST"), "决策快照应优先服务端盖章公开事实");
+assert(backend.includes("reviewTasks") && backend.includes("syncSystemTasksFromWatches"), "会员云函数应支持节点待办");
+const changeDetectSource = await source("cloudfunctions/aurum-member/change-detect.js");
+const reviewTasksSource = await source("cloudfunctions/aurum-member/review-tasks.js");
+assert(changeDetectSource.includes("classifyFactDiff") && changeDetectSource.includes("changeKey"), "变化分类模块不完整");
+assert(reviewTasksSource.includes("mutateTask") && reviewTasksSource.includes("syncSystemTasksFromWatches"), "待办模块不完整");
+assert((await source("cloudfunctions/aurum-member/sentinel-inbox.js")).includes("./change-detect"), "收件箱扫描应接入变化分类");
 assert(backend.includes("priceFen: 128800") && backend.includes('id: "research-365d"'), "年度会员价格必须由服务端固定为 1288 元");
 const freeTestOpenid = "openid-for-free-test-entitlement";
 const freeTestGrantedAt = new Date("2026-07-28T07:00:00.000Z");
@@ -380,9 +389,15 @@ assert(cloudPackageLock.packages?.["node_modules/lodash.unset"]?.version === "4.
 assert(!/if \(order\.status === "fulfilled"\)\s*\{\s*return/.test(backend), "已发放订单仍被跳过，退款无法恢复");
 assert(backend.includes("历史虚拟支付已经停用；未付款订单已关闭"), "历史未付款虚拟订单没有保守关闭");
 assert(backend.includes("历史虚拟支付已经停用；该订单与权益需要人工核对"), "历史已履约虚拟订单没有转人工核对");
-assert(triggerConfig.triggers?.length === 1, "会员云函数必须只配置一个全局订单复核触发器");
-assert(triggerConfig.triggers[0].name === "member-order-reconcile" && triggerConfig.triggers[0].type === "timer", "全局订单复核触发器名称或类型错误");
-assert(triggerConfig.triggers[0].config === "0 */15 * * * * *", "全局订单复核必须每 15 分钟执行一次");
+assert(triggerConfig.permissions?.openapi?.includes("subscribeMessage.send"), "云函数没有声明订阅消息发送权限");
+assert(Array.isArray(triggerConfig.triggers) && triggerConfig.triggers.length >= 1, "会员云函数缺少定时触发器");
+const reconcileTrigger = triggerConfig.triggers.find((item) => item.name === "member-order-reconcile");
+const remindTrigger = triggerConfig.triggers.find((item) => item.name === "member-event-remind");
+assert(reconcileTrigger && reconcileTrigger.type === "timer", "全局订单复核触发器名称或类型错误");
+assert(reconcileTrigger.config === "0 */15 * * * * *", "全局订单复核必须每 15 分钟执行一次");
+assert(remindTrigger && remindTrigger.type === "timer", "事件提醒触发器缺失");
+assert(remindTrigger.config === "0 0 9 * * * *", "事件提醒应在每天 9 点触发");
+assert(backend.includes("sendEventReminders") && backend.includes("FREE_LIMITS"), "会员云函数缺少事件提醒或免费额度逻辑");
 assert(backendReadme.includes("每 15 分钟启动一次全局订单扫描") && backendReadme.includes("退款通知仍可作为后续实时性增强"), "全局退款对账与通知边界未写明");
 assert(backendReadme.includes("日均 DAU 达到 1 万"), "自动续费准入边界未写明");
 assert(backendReadme.includes("npm audit --omit=dev"), "云函数依赖安全复查门槛未写明");

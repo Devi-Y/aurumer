@@ -4,7 +4,7 @@ const PREVIEW_PLANS = [
   {
     id: "research-365d",
     name: "望潮年度研究会员",
-    term: "365 天使用跨设备清单、决策档案与个人记录导出",
+    term: "365 天：个人投资逻辑哨兵——事实变化提醒、失效条件核对、周复盘与台账保全",
     priceLabel: "¥1,288 / 年",
     recommended: true,
   },
@@ -47,7 +47,17 @@ function previewWorkspace() {
     expiresAt: null,
     watchItems: [],
     decisions: [],
-    limits: { watchItems: 50, decisions: 100 },
+    eventMarks: [],
+    ipoRecords: [],
+    dividendLots: [],
+    settings: { taxRatePct: 10, hkdCny: 0.92, usdCny: 7.2 },
+    freeLimits: { watchItems: 5, decisions: 5 },
+    freeRemaining: { watchItems: 5, decisions: 5 },
+    memberFeatures: false,
+    subscribe: { enabled: false, eventTemplateId: "", hint: "", channelLabel: "小程序内提醒" },
+    reviewTasks: [],
+    homeSummary: { changeCount: 0, taskCount: 0, unreadCount: 0, allClear: false },
+    limits: { watchItems: 80, decisions: 300, eventMarks: 80, ipoRecords: 40, dividendLots: 80 },
   };
 }
 
@@ -106,6 +116,14 @@ function loadWorkspace() {
   }));
 }
 
+function refreshSentinel() {
+  if (!runtime.cloudEnv || !wx.cloud) return Promise.resolve(previewWorkspace());
+  return callBackend("refreshSentinel").then((workspace) => ({
+    ...workspace,
+    backendReady: true,
+  }));
+}
+
 function workspaceAction(action, data) {
   return callBackend(action, data).then((workspace) => ({
     ...workspace,
@@ -129,6 +147,46 @@ function removeDecision(itemId) {
   return workspaceAction("removeDecision", { itemId });
 }
 
+function ackWatchBaselines(itemIds, facts) {
+  return workspaceAction("ackWatchBaselines", { itemIds, facts });
+}
+
+function saveEventMark(data) {
+  return workspaceAction("saveEventMark", data);
+}
+
+function removeEventMark(itemId) {
+  return workspaceAction("removeEventMark", { itemId });
+}
+
+function markInboxRead(data = {}) {
+  return workspaceAction("markInboxRead", data);
+}
+
+function updateReviewTask(data) {
+  return workspaceAction("updateReviewTask", data);
+}
+
+function saveIpoRecord(data) {
+  return workspaceAction("saveIpoRecord", data);
+}
+
+function removeIpoRecord(itemId) {
+  return workspaceAction("removeIpoRecord", { itemId });
+}
+
+function saveDividendLot(data) {
+  return workspaceAction("saveDividendLot", data);
+}
+
+function removeDividendLot(itemId) {
+  return workspaceAction("removeDividendLot", { itemId });
+}
+
+function saveSettings(data) {
+  return workspaceAction("saveSettings", data);
+}
+
 function deleteWorkspace() {
   return workspaceAction("deleteWorkspace", {});
 }
@@ -138,13 +196,24 @@ function queryOrder(orderId) {
 }
 
 module.exports = {
+  ackWatchBaselines,
   deleteWorkspace,
   loadMemberState,
   loadWorkspace,
+  markInboxRead,
   purchase,
   queryOrder,
+  refreshSentinel,
   removeDecision,
+  removeDividendLot,
+  removeEventMark,
+  removeIpoRecord,
   removeWatchItem,
   saveDecision,
+  saveDividendLot,
+  saveEventMark,
+  saveIpoRecord,
+  saveSettings,
   saveWatchItem,
+  updateReviewTask,
 };

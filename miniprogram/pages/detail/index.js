@@ -2,10 +2,27 @@ const { openPage, goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER, RISK_LABEL } = require("../../utils/disclaimer");
 const { loadSnapshot } = require("../../data/store");
+const { freshnessBanner } = require("../../utils/freshness-ui");
 const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList } = require("../../utils/answers");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildHkExitPlan } = require("../../utils/hk-exit-plan");
 const strategyEvidence = require("../../data/strategy-evidence");
+const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
+const {
+  REASON_OPTIONS,
+  REVIEW_CONDITION_OPTIONS,
+  addDaysLabel,
+  todayLabelLocal,
+} = require("../../utils/change-center");
+const { loadWorkspace, saveDecision, saveWatchItem } = require("../../services/member");
+
+function normalizeMatchCode(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\.HK$/i, "")
+    .replace(/\.(SH|SZ)$/i, "");
+}
 
 const DETAIL_META = {
   hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -88,12 +105,52 @@ function setCharts(base, ...charts) {
 }
 
 function joinNames(values, fallback = "暂缺") {
-  return shortOrgList(values, fallback, 2);
+  if (Array.isArray(values) && values.length) return shortOrgList(values, "", 2);
+  const text = String(fallback || "").trim();
+  if (!text || text === "暂缺") return "";
+  const parts = text.split(/[、,，/]/).map((part) => part.trim()).filter(Boolean);
+  return shortOrgList(parts.length ? parts : [text], "", 2);
+}
+
+function announceKindLabel(kind, reason) {
+  if (reason && String(reason).trim()) return String(reason).trim().slice(0, 10);
+  const map = {
+    pricing: "定价公告",
+    prospectus: "招股书",
+    allotment: "配发结果",
+    listing: "上市安排",
+    withdrawn: "取消发行",
+    update: "进展更新",
+  };
+  const key = String(kind || "").trim().toLowerCase();
+  return map[key] || (key ? "公告已解析" : "");
+}
+
+function researchNoteShort(view = {}) {
+  const state = String(view.state || "");
+  if (state === "complete") return "字段已齐";
+  if (state === "limited") return "字段不足";
+  if (state === "withdrawn") return "发行取消";
+  if (state === "review") return "待再核验";
+  const note = String(view.note || "").trim();
+  return note ? note.slice(0, 10) : "";
+}
+
+function compactRangeText(range, digits = 0) {
+  if (!range) return null;
+  const low = Number(range.low);
+  const high = Number(range.high);
+  if (Number.isFinite(low) && Number.isFinite(high) && low !== high) {
+    return `${low.toFixed(digits)}–${high.toFixed(digits)}`;
+  }
+  const value = Number.isFinite(low) ? low : high;
+  return Number.isFinite(value) ? value.toFixed(digits) : null;
 }
 
 function withChartMeta(chart, hint) {
   if (!chart) return null;
-  return hint ? { ...chart, hint } : chart;
+  // 图表教学文案默认关闭，避免详情页信息过载；仅保留标题与数字。
+  return chart;
 }
 
 function priceVisual(history, title, formatter = (value) => Number(value).toFixed(2), hint) {
@@ -202,13 +259,13 @@ function scoreMeter(score, title, badge, hint) {
     title,
     percent: value,
     lowLabel: "0",
-    midLabel: `${value} 分`,
+    midLabel: "",
     highLabel: "100",
     stats: [
       { label: "研究分", value: `${value}` },
       ...(badge ? [{ label: "建议", value: String(badge) }] : []),
     ],
-  }, hint || "分越高，公开资料越偏「可关注」；不是保证赚钱。");
+  }, "");
 }
 
 function meterVisual(history, currentPrice, title, formatter = money, hint) {
@@ -265,8 +322,8 @@ function offerBandVisual(raw, offerPriceText) {
   if (low != null && high != null && low === high) {
     return metricTilesVisual([
       ["招股价", offerPriceText || `${low} 港元`],
-      ["定价方式", "固定招股价（无高低价区间）"],
-    ], "招股价说明", "这次没有高低价区间，就是这一个价。");
+      ["定价方式", "固定招股价"],
+    ], "招股价说明");
   }
   if (low != null && high != null && low !== high) {
     return solidVisual([
@@ -446,9 +503,9 @@ function buildHKView(base, item) {
   const statusTiles = metricTilesVisual([
     ["发行状态", raw.researchView?.label || item.badge || null],
     ["研究结论", item.badge || answer.verdict || null],
-    ["公告结论", announce.reason || announce.kind || null],
-    ["资料说明", raw.researchView?.note ? String(raw.researchView.note).slice(0, 18) : null],
-  ].filter((row) => row[1]), "状态一览", "只展示已确认的公开状态，不补造未披露数字。");
+    ["公告类型", announceKindLabel(announce.kind, announce.reason) || null],
+    ["资料说明", researchNoteShort(raw.researchView) || null],
+  ].filter((row) => row[1]), "状态一览");
 
   const allotBars = solidVisual([
     hasNumber(raw.oneLotRate)
@@ -457,10 +514,7 @@ function buildHKView(base, item) {
     hasNumber(raw.cornerstonePercent)
       ? { label: "基石占比", value: Number(raw.cornerstonePercent), valueText: `${Number(raw.cornerstonePercent).toFixed(1)}%` }
       : null,
-    hasNumber(raw.publicOversubscription)
-      ? { label: "公开认购", value: Math.min(100, Number(raw.publicOversubscription)), valueText: `${Number(raw.publicOversubscription).toFixed(1)}倍` }
-      : null,
-  ].filter(Boolean), "认购与中签", { hint: "中签、基石为百分比；公开认购为倍数（柱仅示相对高低）。" });
+  ].filter(Boolean), "中签与基石");
 
   const listingBars = solidVisual([
     { label: "暗盘", value: review.greyMarketChange, valueText: formatPercent(review.greyMarketChange) },
@@ -481,7 +535,7 @@ function buildHKView(base, item) {
       qualityTiles,
       scoreMeter(answer.score, "研究分", item.badge || answer.verdict),
     );
-    base.pageHelp = "免费看申购结论与中签；历史样本只作对照，不作精确出价。";
+    base.pageHelp = "";
   } else {
     setCharts(
       base,
@@ -490,12 +544,17 @@ function buildHKView(base, item) {
       scheduleTiles,
       capitalTiles,
       allotBars,
+      hasNumber(raw.publicOversubscription)
+        ? metricTilesVisual([
+          ["公开认购", `${Number(raw.publicOversubscription).toFixed(1)} 倍`],
+        ].filter((row) => row[1]), "认购热度")
+        : null,
       offerBandVisual(raw, offerPrice),
       hkCohortVisual(strategyEvidence),
       structureTiles,
       qualityTiles,
     );
-    base.pageHelp = "免费看是否申购与中签；样本对照不是本股预测价。";
+    base.pageHelp = "";
   }
 
   base.facts = compactFacts([
@@ -618,7 +677,7 @@ function buildUSView(base, item, snapshot) {
     revenueVisual,
   );
 
-  base.pageHelp = "先看价格与公开财报；观察分是资料排序，不是收益预测。";
+  base.pageHelp = "";
   base.facts = compactFacts([
     ["代码", raw.symbol || item.code],
     ["交易所", raw.exchange],
@@ -656,73 +715,66 @@ function buildAShareView(base, item) {
   const financials = raw.financials || {};
   const annualDividend = hasNumber(raw.annualDividendPer100k) ? Number(raw.annualDividendPer100k) : null;
   const advice = raw.researchView?.label || item.scoreText || "先看分红";
+  const scoredPreview = scoreForItem(item).score;
 
-  base.badge = hasNumber(raw.currentDividendYield) ? `股息 ${Number(raw.currentDividendYield).toFixed(2)}%` : base.badge;
+  base.badge = item.badge || (hasNumber(raw.currentDividendYield) ? `股息 ${Number(raw.currentDividendYield).toFixed(1)}%` : base.badge);
   base.answer = item.one;
   base.metrics = [
+    ["收息分级", item.badge || "—"],
+    ["收息观察分", scoredPreview != null ? `${scoredPreview}` : "暂缺"],
+    ["当前股息", hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺"],
+    ["可持续股息", hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺"],
+    ["自由现金流", formatLarge(financials.freeCashFlow)],
+    ["现金利润比", hasNumber(financials.cashConversion) ? `${Number(financials.cashConversion).toFixed(2)}` : "暂缺"],
+    ["股东回报", formatPercent(financials.roe)],
     ["当前价格", money(raw.currentPrice, "¥")],
     ["今日涨跌", formatPercent(raw.changePercent)],
-    ["当前股息", hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(2)}%` : "暂缺"],
-    ["可持续股息", hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(2)}%` : "暂缺"],
-    ["10万估算年息", hasNumber(annualDividend) ? `${Math.round(annualDividend)}元` : "暂缺"],
-    ["资料状态", advice],
-    ["昨收", money(raw.previousClose, "¥")],
-    ["自由现金流", formatLarge(financials.freeCashFlow)],
+    ["10万年息估", hasNumber(annualDividend) ? `${Math.round(annualDividend)}元` : "暂缺"],
     ["经营现金流", formatLarge(financials.operatingCashFlow)],
-    ["股东回报", formatPercent(financials.roe)],
-    ["营收增长", formatPercent(financials.revenueGrowth)],
-    ["现金利润比", hasNumber(financials.cashConversion) ? `${Number(financials.cashConversion).toFixed(2)}` : "暂缺"],
+    ["资料状态", advice],
   ];
   base.highlights = [
-    { label: "现价", value: money(raw.currentPrice, "¥") },
-    { label: "股息", value: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(2)}%` : "—" },
-    { label: "可持续", value: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(2)}%` : "—" },
-    { label: "年息估", value: hasNumber(annualDividend) ? `${Math.round(annualDividend)}` : "—" },
+    { label: "分级", value: item.badge || "—" },
+    { label: "观察分", value: scoredPreview != null ? `${scoredPreview}` : "—" },
+    { label: "股息", value: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "—" },
+    { label: "可持续", value: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "—" },
   ];
-  base.pageHelp = "股息=分红÷股价；可持续看现金能不能撑。动作价属人工字段，已不展示。";
+  base.pageHelp = "";
 
-  const scoredA = scoreForItem(item);
+  const scoredA = { score: scoredPreview };
   const priceBand = solidVisual([
     hasNumber(raw.currentPrice) ? { label: "现价", value: Number(raw.currentPrice), valueText: money(raw.currentPrice, "¥") } : null,
     hasNumber(raw.previousClose) ? { label: "昨收", value: Number(raw.previousClose), valueText: money(raw.previousClose, "¥") } : null,
-  ].filter(Boolean), "价格对照", { hint: "单位：人民币。仅公开行情对照。" });
+  ].filter(Boolean), "价格对照");
 
   setCharts(
     base,
-    scoreMeter(scoredA.score, "收息观察分", advice),
+    scoreMeter(scoredA.score, "收息观察分", item.badge || advice),
     solidVisual([
-      { label: "当前股息", value: raw.currentDividendYield, valueText: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(2)}%` : "暂缺" },
-      { label: "可持续股息", value: raw.sustainableDividendYield, valueText: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(2)}%` : "暂缺" },
-    ].filter((row) => hasNumber(row.value)), "股息率对比", { hint: "两个都是百分比。可持续更看重现金能不能持续分红。" }),
+      { label: "当前股息", value: raw.currentDividendYield, valueText: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺" },
+      { label: "可持续股息", value: raw.sustainableDividendYield, valueText: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺" },
+    ].filter((row) => hasNumber(row.value)), "股息率对比"),
+    metricTilesVisual([
+      ["自由现金流", formatLarge(financials.freeCashFlow)],
+      ["现金利润比", hasNumber(financials.cashConversion) ? `${Number(financials.cashConversion).toFixed(2)}` : null],
+      ["股东回报", formatPercent(financials.roe)],
+      ["经营现金流", formatLarge(financials.operatingCashFlow)],
+    ].filter((row) => row[1] && row[1] !== "暂缺"), "现金与质量"),
     hasNumber(annualDividend)
       ? metricTilesVisual([
-          ["10万估算年息", `${Math.round(annualDividend)}元`],
-          ["当前价格", money(raw.currentPrice, "¥")],
-          ["资料状态", advice],
-          ["昨收", money(raw.previousClose, "¥")],
-        ], "收息估算", "按当前股息粗算，不等于保证能拿到。")
+          ["10万年息估", `${Math.round(annualDividend)}元`],
+          ["现价", money(raw.currentPrice, "¥")],
+        ], "收息估算")
       : null,
     priceBand,
     solidVisual([
       hasNumber(financials.operatingCashFlow) ? { label: "经营现金流", value: financials.operatingCashFlow, valueText: formatLarge(financials.operatingCashFlow) } : null,
       hasNumber(financials.freeCashFlow) ? { label: "自由现金流", value: financials.freeCashFlow, valueText: formatLarge(financials.freeCashFlow) } : null,
-    ].filter(Boolean), "期间现金流", { hint: "期间流量对照；与利润分开展示。" }),
-    solidVisual([
-      hasNumber(financials.revenue) ? { label: "营收", value: financials.revenue, valueText: formatLarge(financials.revenue) } : null,
-      hasNumber(financials.netProfit) ? { label: "净利润", value: financials.netProfit, valueText: formatLarge(financials.netProfit) } : null,
-    ].filter(Boolean), "盈利规模", { hint: "金额口径，不是百分比。" }),
+    ].filter(Boolean), "期间现金流"),
     solidVisual([
       hasNumber(financials.revenueGrowth) ? { label: "营收增长", value: financials.revenueGrowth, valueText: formatPercent(financials.revenueGrowth) } : null,
-      hasNumber(financials.netProfitGrowth) ? { label: "净利增长", value: financials.netProfitGrowth, valueText: formatPercent(financials.netProfitGrowth) } : null,
       hasNumber(financials.roe) ? { label: "股东回报", value: financials.roe, valueText: formatPercent(financials.roe) } : null,
-      hasNumber(financials.freeCashFlowMargin) ? { label: "自由现金流率", value: financials.freeCashFlowMargin, valueText: formatPercent(financials.freeCashFlowMargin) } : null,
-    ].filter(Boolean), "成长质量", { hint: "同为百分比口径。" }),
-    hasNumber(financials.cashConversion)
-      ? metricTilesVisual([
-          ["现金利润比", `${Number(financials.cashConversion).toFixed(2)}倍`],
-          ["含义", "利润兑现成现金的能力"],
-        ], "现金转化", "大于1通常说明利润兑现更好。")
-      : null,
+    ].filter(Boolean), "成长质量"),
   );
 
   base.facts = compactFacts([
@@ -762,51 +814,94 @@ function buildGuruView(base, item) {
   const profile = raw.profile || {};
   const groupCounts = { hk: 3, us: 5, a: 3 };
   const holdings = raw.holdings || [];
+  const sold = raw.sold || [];
+  const filingDate = raw.filingDate || "";
+  const filingTime = Date.parse(filingDate);
+  const lagDays = Number.isNaN(filingTime)
+    ? null
+    : Math.max(0, Math.round((Date.now() - filingTime) / (24 * 60 * 60 * 1000)));
+  const perfNum = Number(String(profile.performanceValue || "").match(/\d+(?:\.\d+)?/)?.[0] || 0);
+  const changed = holdings.filter((row) => row.changeLabel && !/待核|不变|持平/u.test(String(row.changeLabel)));
 
   base.title = profile.name || base.title;
   base.code = profile.org || base.code;
-  base.badge = profile.marketLabel || base.badge;
-  base.score = profile.performanceValue || "业绩待核验";
+  base.badge = profile.performanceValue || profile.marketLabel || base.badge;
+  base.score = profile.performanceValue || "业绩待核";
   base.rank = profile.order ? `第 ${profile.order}/${groupCounts[profile.group]}` : "";
-  base.answer = profile.why || item.one;
+  base.answer = profile.marketLabel || item.badge;
   base.metrics = [
-    ["公开业绩", profile.performanceValue || "待核验"],
-    ["业绩区间", profile.performanceDetail || "待核验"],
-    ["持仓报告", raw.reportDate || profile.report || "待核验"],
-    ["披露日期", raw.filingDate || "待核验"],
-    ["持仓只数", `${holdings.length} 只`],
-    ["市场", profile.marketLabel || "待核验"],
+    ["表观年化", profile.performanceValue || "待核"],
+    ["市场", profile.marketLabel || "待核"],
+    ["持仓", `${holdings.length}`],
+    ["退出", `${sold.length}`],
+    ["披露滞后", lagDays == null ? "待核" : `${lagDays}天`],
+    ["报告期", raw.reportDate || profile.report || "待核"],
   ];
-  base.holdings = holdings.slice(0, 10).map((holding) => ({
+  base.highlights = [
+    { label: "年化", value: profile.performanceValue || "—" },
+    { label: "排名", value: profile.order ? `${profile.order}/${groupCounts[profile.group]}` : "—" },
+    { label: "持仓", value: `${holdings.length}` },
+    { label: "滞后", value: lagDays == null ? "—" : `${lagDays}天` },
+  ];
+  base.holdings = holdings.slice(0, 8).map((holding) => ({
     name: holding.ticker,
-    value: `${shortCompanyName(holding.name || holding.ticker, holding.ticker, 6)} · ${formatNumber(holding.weight, "%")} · ${holding.changeLabel || "变化待核验"}`,
+    value: `${formatNumber(holding.weight, "%")} · ${holding.changeLabel || "变化待核"}`,
   }));
-  setCharts(base,
+
+  const changeBars = solidVisual(
+    changed.slice(0, 6).map((holding) => ({
+      label: holding.ticker,
+      value: Number(holding.weight) || 1,
+      valueText: String(holding.changeLabel || "").slice(0, 8),
+    })),
+    "仓位变化",
+  );
+
+  setCharts(
+    base,
+    perfNum > 0
+      ? scoreMeter(Math.min(100, Math.round(perfNum * 3)), "表观业绩刻度", profile.performanceValue)
+      : null,
+    metricTilesVisual([
+      ["持仓只数", `${holdings.length}`],
+      ["退出只数", `${sold.length}`],
+      ["披露滞后", lagDays == null ? null : `${lagDays}天`],
+      ["有变化标注", `${changed.length}`],
+    ].filter((row) => row[1]), "本期摘要"),
     solidVisual(holdings.slice(0, 8).map((holding) => ({
       label: holding.ticker,
       value: holding.weight,
       valueText: formatNumber(holding.weight, "%"),
-    })), "持仓权重", { hint: "公开报告里的仓位占比；披露往往有滞后。" }),
+    })), "持仓权重"),
+    changeBars,
+    lagDays != null
+      ? meterVisual(
+        [0, Math.min(180, lagDays), 180],
+        Math.min(180, lagDays),
+        "披露滞后位置",
+        (value) => `${Math.round(value)}天`,
+      )
+      : null,
   );
-  base.facts = [
-    ["机构", profile.name || item.name || "待核验"],
-    ["市场", profile.marketLabel || "待核验"],
-    ["公开业绩", profile.performanceValue || "待核验"],
-    ["业绩区间", profile.performanceDetail || "待核验"],
-    ["持仓报告", raw.reportDate || profile.report || "待核验"],
-    ["披露日期", raw.filingDate || "待核验"],
-    ["持仓只数", `${holdings.length} 只`],
-    ["业绩口径", profile.performanceBasis || "不同区间与币种不可直接横比"],
+
+  base.facts = compactFacts([
+    ["机构", profile.name || item.name],
+    ["市场", profile.marketLabel],
+    ["表观年化", profile.performanceValue],
+    ["业绩区间", profile.performanceDetail],
+    ["持仓报告", raw.reportDate || profile.report],
+    ["披露日期", filingDate],
+    ["披露滞后", lagDays == null ? null : `${lagDays}天`],
     ["资料来源", raw.source || "SEC 13F"],
-  ];
+  ], 12);
   base.analysis = [
-    { title: "为什么看它", body: profile.why || "公开业绩和持仓具备研究价值。" },
-    { title: "怎么学", body: profile.how || "学框架，不照抄持仓。" },
+    { title: "为什么看它", body: String(profile.why || "公开业绩与持仓可对照学习。").slice(0, 36) },
+    { title: "怎么学", body: String(profile.how || "学框架，不照抄持仓。").slice(0, 28) },
   ];
   base.actions = [];
-  base.risk = "历史业绩不代表未来；公开持仓有滞后（SEC 13F 季度末，最高可能约 45 天），不是实时仓位。";
-  base.pageHelp = "学思路不照抄；公开持仓为季度末披露，可能滞后约 45 天。";
-  base.sourceNote = `${raw.source || profile.sourceName || "公开报告"} · ${raw.filingDate || profile.report || "披露日期待核验"}`;
+  base.risk = "公开持仓有滞后，只能学习对照，不能当跟仓信号。";
+  base.pageHelp = "";
+  base.sourceNote = `${raw.source || profile.sourceName || "公开报告"} · ${filingDate || profile.report || "披露待核"}`;
 }
 
 function buildGoldView(base, item) {
@@ -821,12 +916,12 @@ function buildGoldView(base, item) {
   const internationalRange = historyStats((gold.history?.international || []).map((entry) => entry.close));
   const domesticRange = historyStats((gold.history?.domestic || []).map((entry) => entry.close));
   const rangeText = (range, currency) => range ? `${Number(range.low).toFixed(1)}–${Number(range.high).toFixed(1)} ${currency}` : "待核验";
-  const buyIntl = formatRange(plan.internationalWatch);
-  const sellIntl = formatRange(plan.internationalUpper);
-  const riskIntl = formatRange(plan.internationalRisk);
-  const buyCny = formatRange(plan.domesticWatch, 1);
-  const sellCny = formatRange(plan.domesticUpper, 1);
-  const riskCny = formatRange(plan.domesticRisk, 1);
+  const buyIntl = compactRangeText(plan.internationalWatch, 0);
+  const sellIntl = compactRangeText(plan.internationalUpper, 0);
+  const riskIntl = compactRangeText(plan.internationalRisk, 0);
+  const buyCny = compactRangeText(plan.domesticWatch, 1);
+  const sellCny = compactRangeText(plan.domesticUpper, 1);
+  const riskCny = compactRangeText(plan.domesticRisk, 1);
   const action = answer.action || answer.researchLabel || "继续观察";
 
   base.title = gold.view === "plan" ? "买点与卖点" : "现在怎么做";
@@ -851,7 +946,7 @@ function buildGoldView(base, item) {
     { label: "20日", value: formatPercent(returns.day20) },
     { label: "动作", value: String(action).slice(0, 6) },
   ];
-  base.pageHelp = "观察区不是买卖指令；位置越低越近半年低价。";
+  base.pageHelp = "";
 
   const intlHistory = (gold.history?.international || []).map((entry) => entry.close);
   const domesticHistory = (gold.history?.domestic || []).map((entry) => entry.close);
@@ -862,36 +957,35 @@ function buildGoldView(base, item) {
       hasNumber(entry.value) ? `${Number(entry.value)}${entry.unit || ""}` : null,
     ]),
     "宏观指标",
-    "利率、美元、仓位等公开宏观对照。",
   );
 
   setCharts(
     base,
     scoreMeter(scoredGold.score, "观察分", action),
-    priceVisual(intlHistory, "国际金轨迹", (value) => Number(value).toFixed(0), "美元金价历史；柱越高金价越高。"),
-    meterVisual(intlHistory, international.price, "国际金位置", (value) => Number(value).toFixed(0), "相对这段历史高低：右=偏高，左=偏低。"),
+    priceVisual(intlHistory, "国际金轨迹", (value) => Number(value).toFixed(0)),
+    meterVisual(intlHistory, international.price, "国际金位置", (value) => Number(value).toFixed(0)),
     domesticHistory.length >= 2
-      ? priceVisual(domesticHistory, "上海金轨迹", (value) => Number(value).toFixed(1), "人民币金价历史样本。")
+      ? priceVisual(domesticHistory, "上海金轨迹", (value) => Number(value).toFixed(1))
       : null,
     solidVisual([
       hasNumber(returns.day20) ? { label: "20日", value: returns.day20, valueText: formatPercent(returns.day20) } : null,
       hasNumber(returns.day60) ? { label: "60日", value: returns.day60, valueText: formatPercent(returns.day60) } : null,
       hasNumber(returns.day180) ? { label: "180日", value: returns.day180, valueText: formatPercent(returns.day180) } : null,
-    ].filter(Boolean), "区间涨跌", { hint: "都是涨跌百分比，方便比这段时间涨了还是跌了。" }),
+    ].filter(Boolean), "区间涨跌"),
     hasNumber(international.percentile180)
       ? metricTilesVisual([
           ["半年位置", `${Number(international.percentile180)}%`],
-          ["白话", Number(international.percentile180) <= 35 ? "偏近半年低位" : (Number(international.percentile180) >= 65 ? "偏近半年高位" : "处在中间区间")],
-        ], "半年高低位置", "0%接近半年最低，100%接近半年最高。")
+          ["位置解读", Number(international.percentile180) <= 35 ? "偏近低位" : (Number(international.percentile180) >= 65 ? "偏近高位" : "中间区间")],
+        ], "半年高低位置")
       : null,
     metricTilesVisual([
-      ["国际金买入观察", buyIntl],
-      ["国际金卖出观察", sellIntl],
-      ["上海金买入观察", buyCny],
-      ["上海金卖出观察", sellCny],
-      ["国际金风险下沿", riskIntl],
-      ["上海金风险下沿", riskCny],
-    ].filter((row) => row[1]), "买卖观察区", "观察区供参考，不是自动下单指令。"),
+      ["国际金买入", buyIntl],
+      ["国际金卖出", sellIntl],
+      ["上海金买入", buyCny],
+      ["上海金卖出", sellCny],
+      ["国际金风险", riskIntl],
+      ["上海金风险", riskCny],
+    ].filter((row) => row[1]), "买卖观察区"),
     indicatorTiles,
   );
 
@@ -949,7 +1043,7 @@ function detailView(item, snapshot) {
     base.metrics = metrics;
     base.researchScore = scored.score;
     base.researchScoreLabel = scored.label;
-    base.researchScoreBasis = scored.basis;
+    base.researchScoreBasis = "";
   }
 
   base.evidenceHint = "";
@@ -1005,26 +1099,69 @@ Page({
     detailsExpanded: false,
     view: {},
     source: "正在读取同步数据",
+    freshness: freshnessBanner("正在读取同步数据", "fresh"),
+    snapshotSheetOpen: false,
+    snapshotSaving: false,
+    snapshotSaved: false,
+    snapshotPreview: null,
+    reasonOptions: REASON_OPTIONS,
+    reviewConditionOptions: REVIEW_CONDITION_OPTIONS,
+    reasonIndex: 0,
+    reviewConditionIndex: 0,
+    snapshotNote: "",
+    snapshotReviewAt: "",
+    memberActive: false,
+    writable: false,
   },
   onLoad(options) {
     this._detailItem = null;
+    this._latestSnapshot = null;
     this.setData({
       market: options.market || "hk",
       id: decodeURIComponent(options.id || ""),
       loading: true,
       ready: false,
       loadError: "",
+      snapshotReviewAt: addDaysLabel(todayLabelLocal(), 14),
     });
     track("detail_open", { market: String(options.market || "hk") });
     this.refresh();
   },
+  onShow() {
+    this.refreshMemberLink();
+  },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
+  refreshMemberLink() {
+    loadWorkspace()
+      .then((workspace) => {
+        const code = normalizeMatchCode(this.data.view.code || this.data.id);
+        const name = String(this.data.view.title || "");
+        const savedWatch = (workspace.watchItems || []).some((item) => {
+          const itemCode = normalizeMatchCode(item.code);
+          return (code && itemCode === code)
+            || (name && item.name && item.name === name);
+        });
+        const savedDecision = (workspace.decisions || []).some((item) => {
+          const itemCode = normalizeMatchCode(item.code);
+          return (code && itemCode === code)
+            || (name && item.title && item.title.includes(name.slice(0, 8)));
+        });
+        this.setData({
+          memberActive: Boolean(workspace.active),
+          writable: Boolean(workspace.writable),
+          snapshotSaved: savedWatch || savedDecision,
+        });
+      })
+      .catch(() => {});
+  },
   refresh(done, force = false) {
     // 先渲染快照，会员态异步补齐，避免云函数卡住时一直「资料暂不可用」。
     this.setData({ loading: true, loadError: "" });
     let rendered = false;
-    loadSnapshot((snapshot, source) => {
+    loadSnapshot((snapshot, source, meta = {}) => {
       rendered = true;
+      this._latestSnapshot = snapshot;
+      const freshness = freshnessBanner(source, meta.kind);
       try {
         const item = findItem(snapshot, this.data.market, this.data.id);
         if (!item) {
@@ -1033,6 +1170,7 @@ Page({
             loading: false,
             loadError: "未找到该标的，请返回列表重试",
             source,
+            freshness,
           });
           return;
         }
@@ -1050,8 +1188,10 @@ Page({
           view,
           group: item.group || "",
           source,
+          freshness,
         });
         wx.setNavigationBarTitle({ title: view.title || "资料详情" });
+        this.refreshMemberLink();
       } catch (error) {
         console.error("[望潮] detail render failed", error);
         this.setData({
@@ -1059,6 +1199,7 @@ Page({
           loading: false,
           loadError: "资料渲染失败，请下拉重试",
           source,
+          freshness,
         });
       }
     }, () => {
@@ -1082,14 +1223,159 @@ Page({
     openPage("/pages/member/index");
   },
   openWorkspace() {
+    this.openSnapshotSheet();
+  },
+  openWorkspaceAction(event) {
+    const addon = event.currentTarget.dataset.addon || "track";
+    if (addon === "track" || addon === "evidence" || addon === "snapshot") {
+      this.openSnapshotSheet();
+      return;
+    }
     const market = ["hk", "us", "a", "gold"].includes(this.data.market) ? this.data.market : "other";
+    const focus = addon === "remind" || addon === "calendar" ? "calendar" : "watch";
     const query = [
       `market=${encodeURIComponent(market)}`,
       `name=${encodeURIComponent(this.data.view.title || "")}`,
       `code=${encodeURIComponent(this.data.view.code || "")}`,
+      `addon=${encodeURIComponent(addon)}`,
+      `focus=${encodeURIComponent(focus)}`,
     ].join("&");
-    track("workspace_open", { from: "detail" });
+    track("workspace_open", { from: "detail", addon });
     openPage(`/pages/workspace/index?${query}`);
+  },
+  openSnapshotSheet() {
+    if (this.data.snapshotSaved) {
+      track("snapshot_open", { market: this.data.market });
+      const market = ["hk", "us", "a", "gold"].includes(this.data.market) ? this.data.market : "other";
+      openPage(`/pages/workspace/index?market=${encodeURIComponent(market)}&name=${encodeURIComponent(this.data.view.title || "")}&code=${encodeURIComponent(this.data.view.code || "")}&focus=review&addon=evidence`);
+      return;
+    }
+    const probe = {
+      market: ["hk", "us", "a", "gold"].includes(this.data.market) ? this.data.market : "other",
+      code: this.data.view.code || this.data.id || "",
+      name: this.data.view.title || "",
+    };
+    const fact = captureFact(probe, this._latestSnapshot);
+    const preview = {
+      ...fact,
+      researchScore: this.data.view.researchScore,
+      researchScoreLabel: this.data.view.researchScoreLabel || "研究观察分",
+      risk: fact.risk || this.data.view.risk || "",
+      analysis: (this.data.view.quickAnswer || this.data.view.answer || "").slice(0, 120),
+    };
+    track("snapshot_preview", { market: probe.market });
+    this.setData({
+      snapshotSheetOpen: true,
+      snapshotPreview: preview,
+      snapshotNote: "",
+      reasonIndex: 0,
+      reviewConditionIndex: 0,
+      snapshotReviewAt: addDaysLabel(todayLabelLocal(), 14),
+    });
+  },
+  closeSnapshotSheet() {
+    this.setData({ snapshotSheetOpen: false });
+  },
+  changeReason(event) {
+    this.setData({ reasonIndex: Number(event.detail.value) || 0 });
+  },
+  changeReviewCondition(event) {
+    this.setData({ reviewConditionIndex: Number(event.detail.value) || 0 });
+  },
+  inputSnapshotNote(event) {
+    this.setData({ snapshotNote: event.detail.value });
+  },
+  inputSnapshotReviewAt(event) {
+    this.setData({ snapshotReviewAt: event.detail.value });
+  },
+  confirmSnapshotSave() {
+    if (this.data.snapshotSaving) return;
+    const reason = REASON_OPTIONS[this.data.reasonIndex] || REASON_OPTIONS[0];
+    const condition = REVIEW_CONDITION_OPTIONS[this.data.reviewConditionIndex] || REVIEW_CONDITION_OPTIONS[0];
+    const market = ["hk", "us", "a", "gold"].includes(this.data.market) ? this.data.market : "other";
+    const name = this.data.view.title || "";
+    const code = this.data.view.code || this.data.id || "";
+    const preview = this.data.snapshotPreview || {};
+    const payloadBase = {
+      market,
+      name,
+      code,
+      note: this.data.snapshotNote || "",
+      thesis: reason.label,
+      invalidation: condition.label,
+      reasonId: reason.id,
+      reasonLabel: reason.label,
+      reviewConditionId: condition.id,
+      reviewConditionLabel: condition.label,
+      nextReviewAt: this.data.snapshotReviewAt || "",
+      pageSource: "detail",
+      baselineFact: preview,
+    };
+
+    // 非会员也可预览；正式保存时若额度不足再进入会员说明。
+    this.setData({ snapshotSaving: true });
+    wx.showLoading({ title: "正在保存", mask: true });
+    const evidence = captureDecisionEvidence({
+      title: `决策快照 · ${name}`,
+      market,
+      name,
+      code,
+    }, this._latestSnapshot);
+
+    saveWatchItem(payloadBase)
+      .then((workspace) => saveDecision({
+        title: `决策快照 · ${name}`,
+        note: this.data.snapshotNote || "",
+        market,
+        name,
+        code,
+        invalidation: condition.label,
+        nextReviewAt: this.data.snapshotReviewAt || "",
+        reasonId: reason.id,
+        reasonLabel: reason.label,
+        reviewConditionId: condition.id,
+        reviewConditionLabel: condition.label,
+        pageSource: "detail",
+        evidence,
+      }).catch((error) => {
+        // 关注基线已写入时，想法额度用尽不阻断主流程。
+        if (error && (error.code === "FREE_LIMIT" || error.code === "WORKSPACE_LIMIT")) {
+          return workspace;
+        }
+        throw error;
+      }))
+      .then(() => {
+        track("snapshot_create", { market, free: !this.data.memberActive });
+        this.setData({
+          snapshotSheetOpen: false,
+          snapshotSaved: true,
+        });
+        wx.showToast({ title: "决策快照已保存", icon: "success" });
+      })
+      .catch((error) => {
+        if (error && (error.code === "ENTITLEMENT_REQUIRED" || error.code === "FREE_LIMIT" || /会员|免费/.test(error.message || ""))) {
+          track("member_purchase_from_snapshot", { market });
+          this.setData({ snapshotSheetOpen: false });
+          wx.showModal({
+            title: "保存需要会员或免费额度",
+            content: (error.message || "公开答案仍免费。会员用于持续跟踪、决策快照与节点提醒。") + "\n\n刚才只是预览，尚未保存成功。",
+            confirmText: "查看会员",
+            success: (result) => {
+              if (result.confirm) openPage("/pages/member/index");
+            },
+          });
+          return;
+        }
+        wx.showModal({
+          title: "未能保存",
+          content: error.message || "请稍后重试",
+          showCancel: false,
+        });
+      })
+      .finally(() => {
+        wx.hideLoading();
+        this.setData({ snapshotSaving: false });
+      });
   },
   onShareAppMessage() {
     track("share_tap", { page: "detail" });

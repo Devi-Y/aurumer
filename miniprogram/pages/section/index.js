@@ -1,4 +1,5 @@
 const { loadSnapshot } = require("../../data/store");
+const { freshnessBanner } = require("../../utils/freshness-ui");
 const { allItems, groupDefinitions, shortCompanyName } = require("../../utils/answers");
 const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
@@ -8,14 +9,14 @@ const { scoreForItem } = require("../../utils/strategy-score");
 const META = {
   hk: {
     title: "港股打新",
-    one: "值不值得打、中签率",
+    one: "申购结论与中签",
     tone: "hk",
     icon: "/assets/home/hk.svg",
     kicker: "新股申购",
   },
   us: {
     title: "美股投资",
-    one: "价格与财报对照",
+    one: "价格与财报",
     tone: "us",
     icon: "/assets/home/us.svg",
     kicker: "全球公司",
@@ -29,14 +30,14 @@ const META = {
   },
   gold: {
     title: "黄金追踪",
-    one: "价格位置观察",
+    one: "价格位置",
     tone: "gold",
     icon: "/assets/home/gold.svg",
     kicker: "买卖观察",
   },
   guru: {
     title: "机构持仓",
-    one: "学思路、对照持仓",
+    one: "对照公开持仓",
     tone: "guru",
     icon: "/assets/home/guru.svg",
     kicker: "学习与对照",
@@ -143,23 +144,22 @@ function buildOverview(snapshot, market) {
     const top = ranked[0]?.item || items[0];
     const scored = scoreForItem(top);
     const topId = top ? String(top.id || "") : "";
+    const primeCount = items.filter((item) => item.group === "prime").length;
     return {
       metrics: [
         {
           label: "收息样本",
           value: `${items.length}`,
           action: "group",
-          group: "payout",
+          group: "prime",
           enabled: items.length > 0,
         },
         {
-          label: "最高股息",
-          value: top && hasNumber(top.raw?.currentDividendYield)
-            ? `${Number(top.raw.currentDividendYield).toFixed(1)}%`
-            : "—",
-          action: "detail",
-          id: topId,
-          enabled: Boolean(topId),
+          label: "优等收息",
+          value: `${primeCount}`,
+          action: "group",
+          group: "prime",
+          enabled: primeCount > 0,
         },
         {
           label: "收息分",
@@ -169,12 +169,12 @@ function buildOverview(snapshot, market) {
           enabled: Boolean(topId),
         },
       ],
-      target: top ? shortCompanyName(top.name, "收息", 6) : "待更新",
+      target: top ? shortCompanyName(top.name, top.code || "—", 6) : "—",
+      grade: top ? (top.badge || "—") : "—",
       targetId: topId,
-      grade: top ? (top.scoreText || top.badge || "先看分红") : "—",
-      gradeGroup: "payout",
+      gradeGroup: top?.group || "prime",
       canOpenTarget: Boolean(topId),
-      canOpenGrade: items.length > 0,
+      canOpenGrade: Boolean(top?.group),
     };
   }
 
@@ -219,15 +219,19 @@ function buildOverview(snapshot, market) {
   const profiles = allItems(snapshot, "guru");
   const leader = profiles[0];
   const leaderId = leader ? String(leader.id || "") : "";
+  const hkCount = profiles.filter((item) => item.group === "hk").length;
+  const usCount = profiles.filter((item) => item.group === "us").length;
+  const aCount = profiles.filter((item) => item.group === "a").length;
+  const topPerf = leader?.badge || leader?.raw?.profile?.performanceValue || "—";
   return {
     metrics: [
-      { label: "港股", value: "3", action: "group", group: "hk", enabled: true },
-      { label: "美股", value: "5", action: "group", group: "us", enabled: true },
-      { label: "A股", value: "3", action: "group", group: "a", enabled: true },
+      { label: "港股", value: `${hkCount}`, action: "group", group: "hk", enabled: hkCount > 0 },
+      { label: "美股", value: `${usCount}`, action: "group", group: "us", enabled: usCount > 0 },
+      { label: "A股", value: `${aCount}`, action: "group", group: "a", enabled: aCount > 0 },
     ],
     target: leader ? shortCompanyName(leader.name, "机构", 6) : "待更新",
     targetId: leaderId,
-    grade: leader ? (leader.scoreText || leader.badge || "学习样本") : "—",
+    grade: topPerf,
     gradeGroup: leader?.group || "hk",
     canOpenTarget: Boolean(leaderId),
     canOpenGrade: Boolean(leader?.group),
@@ -249,6 +253,7 @@ Page({
       canOpenGrade: false,
     },
     source: "正在读取同步数据",
+    freshness: freshnessBanner("正在读取同步数据", "fresh"),
     disclaimer: RESEARCH_DISCLAIMER,
   },
   onLoad(options) {
@@ -262,14 +267,19 @@ Page({
     this.refresh(() => wx.stopPullDownRefresh(), true);
   },
   refresh(done, force = false) {
-    loadSnapshot((snapshot, source) => {
+    loadSnapshot((snapshot, source, meta = {}) => {
       const groups = groupDefinitions(snapshot, this.data.market)
         .filter((item) => item.count > 0)
         .map((item, index) => ({
           ...item,
           indexLabel: String(index + 1).padStart(2, "0"),
         }));
-      this.setData({ groups, overview: buildOverview(snapshot, this.data.market), source });
+      this.setData({
+        groups,
+        overview: buildOverview(snapshot, this.data.market),
+        source,
+        freshness: freshnessBanner(source, meta.kind),
+      });
     }, done, { force });
   },
   openMetric(event) {

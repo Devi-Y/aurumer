@@ -10,6 +10,15 @@
       "memorySize": 256,
       "installDependency": true,
       "ignore": ["node_modules/**", ".git/**", "*.md"]
+    },
+    {
+      "name": "aurum-member",
+      "timeout": 15,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "memorySize": 256,
+      "installDependency": true,
+      "ignore": ["node_modules/**", ".git/**", "*.md"]
     }
   ]
 }

@@ -1,4 +1,5 @@
 const { loadSnapshot } = require("../../data/store");
+const { freshnessBanner } = require("../../utils/freshness-ui");
 const { allItems, groupDefinitions, shortCompanyName } = require("../../utils/answers");
 const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
@@ -64,7 +65,20 @@ function comparisonMetric(item, market) {
   }
   if (market === "guru") {
     const value = performanceNumber(item.raw?.profile?.performanceValue);
-    return value > 0 ? { value, label: `表观年化 ${item.raw.profile.performanceValue}` } : null;
+    if (value > 0) {
+      const holdings = Array.isArray(item.raw?.holdings) ? item.raw.holdings.length : 0;
+      return {
+        value,
+        label: holdings > 0
+          ? `表观年化 ${item.raw.profile.performanceValue} · ${holdings}只`
+          : `表观年化 ${item.raw.profile.performanceValue}`,
+      };
+    }
+    const weight = Number(item.raw?.holdings?.[0]?.weight);
+    if (Number.isFinite(weight) && weight > 0) {
+      return { value: weight, label: `头号仓 ${weight.toFixed(1)}%` };
+    }
+    return null;
   }
   if (market === "hk" && hasNumber(item.outcomeValue)) {
     const value = Number(item.outcomeValue);
@@ -95,6 +109,7 @@ Page({
     groups: [],
     items: [],
     source: "正在读取同步数据",
+    freshness: freshnessBanner("正在读取同步数据", "fresh"),
     disclaimer: RESEARCH_DISCLAIMER,
     groupHelp: "",
   },
@@ -106,7 +121,7 @@ Page({
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
   refresh(done, force = false) {
-    loadSnapshot((snapshot, source) => {
+    loadSnapshot((snapshot, source, meta = {}) => {
       const definitions = groupDefinitions(snapshot, this.data.market).filter((item) => item.count > 0);
       const group = definitions.find((item) => item.id === this.data.group) || definitions[0];
       const activeGroup = group ? group.id : this.data.group;
@@ -129,6 +144,7 @@ Page({
           researchScoreLabel: scored.score != null ? `${scored.label} ${scored.score}` : "",
           rankText: item.rankText || (item.rank ? `第 ${item.rank} 名` : "暂不排名"),
           one: item.one,
+          showOne: this.data.market === "guru" && Boolean(item.one),
           showBar: Boolean(visual && maxValue > 0),
           barLabel: visual?.label || "",
           barTone: visual?.tone || "",
@@ -144,6 +160,7 @@ Page({
         groupHelp: group ? group.one : "",
         items,
         source,
+        freshness: freshnessBanner(source, meta.kind),
       });
       wx.setNavigationBarTitle({ title: group ? group.title : "建议明细" });
     }, done, { force });

@@ -2,10 +2,17 @@
   <view class="workspace-status-card">
     <view class="workspace-hero-copy">
       <text class="status-value {{state.active ? 'active' : ''}}">{{state.statusTitle}}</text>
-      <text class="title">我的记录</text>
+      <text class="title">逻辑哨兵</text>
       <text class="status-detail">{{state.statusDetail}}</text>
+      <text wx:if="{{state.expireLabel}}" class="expire-label">{{state.expireLabel}}</text>
+      <text wx:if="{{state.freeLabel}}" class="expire-label">{{state.freeLabel}}</text>
     </view>
     <view class="workspace-hero-image-wrap"><image src="/assets/home/decision.svg" mode="aspectFit" aria-hidden="true"></image></view>
+  </view>
+
+  <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
+    <text class="freshness-label">{{freshness.label}}</text>
+    <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
   <view wx:if="{{!state.writable}}" class="locked-card">
@@ -17,42 +24,206 @@
     <text>{{addonHint}}</text>
   </view>
 
-  <view wx:if="{{state.active && watchPreview.length}}" class="preview-panel">
-    <view class="preview-head">
-      <text>关注速览</text>
-      <text>{{watchPreview.length}} 项</text>
-    </view>
-    <view wx:for="{{watchPreview}}" wx:key="id" class="preview-row">
-      <view class="preview-main">
-        <text class="preview-market">{{item.marketLabel}}</text>
-        <text class="preview-title">{{item.title}}</text>
-      </view>
-      <view class="preview-side">
-        <text class="preview-metric">{{item.metric}}</text>
-        <text wx:if="{{item.deadline}}" class="preview-deadline">{{item.deadline}}</text>
-      </view>
-    </view>
-  </view>
-
-  <view wx:if="{{localHoldingsCount && state.writable}}" class="migrate-card">
-    <view class="migrate-copy">
-      <text>本机速记 {{localHoldingsCount}} 条</text>
-      <text>可一键写入云端跟踪清单，方便换机继续看。</text>
-    </view>
-    <button class="migrate-button" bindtap="migrateLocalHoldings" loading="{{migrating}}" disabled="{{migrating || saving}}">迁移到云端</button>
-  </view>
-
-  <view class="tab-bar">
+  <view class="tab-bar tab-bar-wide">
+    <button class="tab {{activeTab == 'today' ? 'active' : ''}}" data-tab="today" bindtap="switchTab">今日{{state.todayBrief.unreadCount ? ' ' + state.todayBrief.unreadCount : ''}}</button>
     <button class="tab {{activeTab == 'watch' ? 'active' : ''}}" data-tab="watch" bindtap="switchTab">关注 {{state.watchItems.length}}</button>
-    <button class="tab {{activeTab == 'decision' ? 'active' : ''}}" data-tab="decision" bindtap="switchTab">想法 {{state.decisions.length}}</button>
+    <button class="tab {{activeTab == 'review' ? 'active' : ''}}" data-tab="review" bindtap="switchTab">复盘</button>
+  </view>
+
+  <view wx:if="{{activeTab == 'today'}}" class="tab-content">
+    <view class="brief-card {{state.todayBrief.allClear ? 'is-clear' : ''}}">
+      <text class="brief-title">我的变化</text>
+      <text class="brief-line">{{changeCenter.summary.headline || state.todayBrief.headline}}</text>
+      <text wx:for="{{state.todayBrief.lines}}" wx:key="*this" class="brief-line">{{item}}</text>
+      <text wx:if="{{changeCenter.summary.unreadCount}}" class="brief-line">未读变化 {{changeCenter.summary.unreadCount}}{{changeCenter.summary.latestAt ? ' · 最近 ' + changeCenter.summary.latestAt : ''}}</text>
+      <button wx:if="{{state.todayBrief.unreadCount}}" class="mini-action" bindtap="markAllInboxRead" disabled="{{saving}}">全部标为已读</button>
+    </view>
+
+    <view wx:if="{{changeCenter.needReassess.length}}" class="record-panel">
+      <view class="panel-tools"><text>需要重新评估</text><text>{{changeCenter.needReassess.length}}</text></view>
+      <view wx:for="{{changeCenter.needReassess}}" wx:key="id" class="record-row is-changed" data-id="{{item.id}}" bindtap="openChangeItem">
+        <view class="record-top"><text class="record-tag">{{item.importanceLabel || '需要重新评估'}}</text><text class="record-date">{{item.marketLabel}}</text></view>
+        <text class="record-title">{{item.name}}<text wx:if="{{item.code}}"> · {{item.code}}</text></text>
+        <text class="record-note">{{item.summary}}</text>
+        <view wx:if="{{item.diff && item.diff.fields.length}}" class="diff-list">
+          <text wx:for="{{item.diff.fields}}" wx:for-item="field" wx:key="key" class="diff-item">{{field.label}}：{{field.before}} → {{field.after}}</text>
+        </view>
+        <text wx:if="{{item.outcome}}" class="evidence-line">{{item.outcome.label}} · {{item.outcome.hint}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{changeCenter.important.length}}" class="record-panel">
+      <view class="panel-tools"><text>重要变化</text><text>{{changeCenter.important.length}}</text></view>
+      <view wx:for="{{changeCenter.important}}" wx:key="id" class="record-row is-changed" data-id="{{item.id}}" bindtap="openChangeItem">
+        <view class="record-top"><text class="record-tag">{{item.importanceLabel || '值得关注'}}</text><text class="record-date">{{item.marketLabel}}</text></view>
+        <text class="record-title">{{item.name}}<text wx:if="{{item.code}}"> · {{item.code}}</text></text>
+        <text class="record-note">{{item.summary}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{changeCenter.calm.length}}" class="record-panel">
+      <view class="panel-tools"><text>暂无重要变化</text><text>{{changeCenter.calm.length}}</text></view>
+      <view wx:for="{{changeCenter.calm}}" wx:key="id" class="record-row">
+        <view class="record-top"><text class="record-tag">{{item.marketLabel}}</text><text class="record-date">信息更新</text></view>
+        <text class="record-title">{{item.name}}<text wx:if="{{item.code}}"> · {{item.code}}</text></text>
+        <text class="record-note">{{item.summary || '相对基线暂无实质变化'}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{state.inbox.length}}" class="record-panel">
+      <view class="panel-tools"><text>站内收件箱</text><text>{{state.todayBrief.unreadCount}} 未读</text></view>
+      <view wx:for="{{state.inbox}}" wx:key="id" class="record-row {{item.unread ? 'is-changed' : ''}}">
+        <view class="record-top"><text class="record-tag">{{item.importance || item.kind}}</text><text class="record-date">{{item.dateLabel}}</text></view>
+        <text class="record-title">{{item.title}}</text>
+        <text class="record-note">{{item.body}}</text>
+        <text wx:if="{{item.toFact}}" class="evidence-line">现值 {{item.toFact.priceLabel}} {{item.toFact.oneLiner}} · 来源 {{item.toFact.source}}</text>
+        <button wx:if="{{item.unread}}" class="mini-action" data-id="{{item.id}}" bindtap="markOneInboxRead">标为已读</button>
+      </view>
+    </view>
+
+    <view class="record-panel">
+      <view class="panel-tools"><text>待办与节点</text><text>{{taskBoard.openCount}} 项</text></view>
+      <view wx:if="{{taskBoard.overdue.length}}">
+        <text class="section-divider">已过期</text>
+        <view wx:for="{{taskBoard.overdue}}" wx:key="taskId" class="record-row is-changed">
+          <view class="record-top"><text class="record-tag">{{item.channelLabel}}</text><text class="record-date">{{item.dueAt}}</text></view>
+          <text class="record-title">{{item.title}}</text>
+          <text class="record-note">{{item.description}}</text>
+          <view class="task-actions">
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="completeTask">完成</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskDay">延后一天</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskWeek">延后一周</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="deleteTask">删除</button>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{taskBoard.today.length}}">
+        <text class="section-divider">今日到期</text>
+        <view wx:for="{{taskBoard.today}}" wx:key="taskId" class="record-row is-changed">
+          <view class="record-top"><text class="record-tag">{{item.channelLabel}}</text><text class="record-date">{{item.dueAt}}</text></view>
+          <text class="record-title">{{item.title}}</text>
+          <text class="record-note">{{item.description}}</text>
+          <view class="task-actions">
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="completeTask">完成</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskDay">延后一天</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskWeek">延后一周</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="deleteTask">删除</button>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{taskBoard.week.length}}">
+        <text class="section-divider">未来 7 天</text>
+        <view wx:for="{{taskBoard.week}}" wx:key="taskId" class="record-row">
+          <view class="record-top"><text class="record-tag">{{item.channelLabel}}</text><text class="record-date">{{item.dueAt}}</text></view>
+          <text class="record-title">{{item.title}}</text>
+          <text class="record-note">{{item.description}}</text>
+          <view class="task-actions">
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="completeTask">完成</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskDay">延后一天</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskWeek">延后一周</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="deleteTask">删除</button>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{taskBoard.month.length}}">
+        <text class="section-divider">未来 30 天</text>
+        <view wx:for="{{taskBoard.month}}" wx:key="taskId" class="record-row">
+          <view class="record-top"><text class="record-tag">{{item.channelLabel}}</text><text class="record-date">{{item.dueAt}}</text></view>
+          <text class="record-title">{{item.title}}</text>
+          <text class="record-note">{{item.description}}</text>
+          <view class="task-actions">
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="completeTask">完成</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskWeek">延后一周</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="deleteTask">删除</button>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{taskBoard.done.length}}">
+        <text class="section-divider">已完成</text>
+        <view wx:for="{{taskBoard.done}}" wx:key="taskId" class="record-row">
+          <view class="record-top"><text class="record-tag">已完成</text><text class="record-date">{{item.dueAt}}</text></view>
+          <text class="record-title">{{item.title}}</text>
+        </view>
+      </view>
+      <view wx:if="{{!taskBoard.openCount && !taskBoard.done.length}}" class="empty-card">
+        <text>暂无待办</text>
+        <text>保存关注并设定复核日，或标记招股/上市等公开节点后会出现在这里。</text>
+      </view>
+    </view>
+
+    <view wx:if="{{changeFeed.length}}" class="record-panel">
+      <view class="panel-tools">
+        <text>全部关注对象</text>
+        <button wx:if="{{state.memberFeatures}}" class="mini-action" bindtap="ackAllChanges" disabled="{{saving}}">确认并更新基线</button>
+      </view>
+      <view wx:for="{{changeFeed}}" wx:key="id" class="record-row {{item.changed ? 'is-changed' : ''}}">
+        <view class="record-top">
+          <text class="record-tag">{{item.marketLabel}} · {{item.groupLabel}}</text>
+          <text class="record-date">{{item.changed ? '有变化' : '无实质变化'}}</text>
+        </view>
+        <text class="record-title">{{item.name}}<text wx:if="{{item.code}}"> · {{item.code}}</text></text>
+        <text class="record-note">{{item.summary}}</text>
+        <view wx:if="{{item.diff && item.diff.fields.length}}" class="diff-list">
+          <text wx:for="{{item.diff.fields}}" wx:for-item="field" wx:key="key" class="diff-item">{{field.label}}：{{field.before}} → {{field.after}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{calendarUpcoming.length}}" class="record-panel">
+      <view class="panel-tools"><text>即将到来的事件</text></view>
+      <view wx:for="{{calendarUpcoming}}" wx:key="id" class="record-row">
+        <view class="record-top">
+          <text class="record-tag">{{item.marketLabel}}</text>
+          <text class="record-date">{{item.dateLabel}} · {{item.offsetLabel}}</text>
+        </view>
+        <text class="record-title">{{item.title}}</text>
+        <text class="record-note">{{item.detail}}</text>
+        <text class="source-line">来源 {{item.source}}</text>
+        <button class="mini-action" data-id="{{item.id}}" bindtap="markEvent">提醒我</button>
+      </view>
+    </view>
+    <view wx:if="{{!state.inbox.length && !changeFeed.length && !calendarUpcoming.length && !taskBoard.openCount}}" class="empty-card">
+      <text>今日暂无待办</text>
+      <text>保存关注与原始理由后，哨兵会在事实变化时写入简报。</text>
+    </view>
   </view>
 
   <view wx:if="{{activeTab == 'watch'}}" class="tab-content">
+    <view wx:if="{{watchPreview.length}}" class="preview-panel">
+      <view class="preview-head">
+        <text>关注速览</text>
+        <text>{{watchPreview.length}} 项</text>
+      </view>
+      <view wx:for="{{watchPreview}}" wx:key="id" class="preview-row">
+        <view class="preview-main">
+          <text class="preview-market">{{item.marketLabel}}</text>
+          <text class="preview-title">{{item.title}}</text>
+        </view>
+        <view class="preview-side">
+          <text class="preview-metric">{{item.metric}}</text>
+          <text wx:if="{{item.deadline}}" class="preview-deadline">{{item.deadline}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{localHoldingsCount && state.writable}}" class="migrate-card">
+      <view class="migrate-copy">
+        <text>本机速记 {{localHoldingsCount}} 条</text>
+        <text>可一键写入云端跟踪清单，方便换机继续看。</text>
+      </view>
+      <button class="migrate-button" bindtap="migrateLocalHoldings" loading="{{migrating}}" disabled="{{migrating || saving}}">迁移到云端</button>
+    </view>
+
     <view wx:if="{{state.watchItems.length}}" class="record-panel">
       <view wx:for="{{state.watchItems}}" wx:key="id" class="record-row">
-        <view class="record-top"><text class="record-tag">{{item.marketLabel}}</text><text class="record-date">{{item.dateLabel}}</text></view>
+        <view class="record-top"><text class="record-tag">{{item.marketLabel}} · {{item.groupLabel}}</text><text class="record-date">{{item.dateLabel}}</text></view>
         <text class="record-title">{{item.name}}<text wx:if="{{item.code}}"> · {{item.code}}</text></text>
         <text wx:if="{{item.note}}" class="record-note">{{item.note}}</text>
+        <text wx:if="{{item.thesis}}" class="evidence-line">为什么：{{item.thesis}}</text>
+        <text wx:if="{{item.invalidation}}" class="evidence-line">失效条件：{{item.invalidation}}</text>
+        <text wx:if="{{item.riskNote}}" class="evidence-line">风险：{{item.riskNote}}</text>
+        <text wx:if="{{item.nextReviewAt}}" class="evidence-line">下次复核：{{item.nextReviewAt}}</text>
+        <text wx:if="{{item.hasBaseline}}" class="evidence-line">已保存对照基线</text>
         <button class="delete-button" data-id="{{item.id}}" bindtap="deleteWatch">删除</button>
       </view>
     </view>
@@ -77,26 +248,48 @@
       <picker mode="selector" range="{{marketOptions}}" range-key="label" value="{{marketIndex}}" bindchange="changeMarket">
         <view class="picker-field"><text>市场</text><text>{{marketOptions[marketIndex].label}} ›</text></view>
       </picker>
+      <picker wx:if="{{state.memberFeatures}}" mode="selector" range="{{groupOptions}}" range-key="label" value="{{groupIndex}}" bindchange="changeGroup">
+        <view class="picker-field"><text>分组</text><text>{{groupOptions[groupIndex].label}} ›</text></view>
+      </picker>
+      <picker wx:if="{{state.memberFeatures}}" mode="selector" range="{{thresholdOptions}}" range-key="label" value="{{thresholdIndex}}" bindchange="changeThreshold">
+        <view class="picker-field"><text>价格阈值</text><text>{{thresholdOptions[thresholdIndex].label}} ›</text></view>
+      </picker>
+      <view wx:if="{{state.memberFeatures && thresholdIndex > 0}}" class="input-row"><text>阈值</text><input class="text-field" maxlength="20" placeholder="价格数字" value="{{watchForm.thresholdPrice}}" bindinput="inputWatchThreshold" /></view>
       <view class="input-row"><text>名称</text><input class="text-field" maxlength="60" placeholder="要关注什么" value="{{watchForm.name}}" bindinput="inputWatchName" /></view>
       <view class="input-row"><text>代码</text><input class="text-field" maxlength="30" placeholder="选填" value="{{watchForm.code}}" bindinput="inputWatchCode" /></view>
       <view class="textarea-row">
-        <text>备注</text>
-        <textarea class="text-area" maxlength="500" auto-height placeholder="一句话记下原因（选填）" value="{{watchForm.note}}" bindinput="inputWatchNote"></textarea>
+        <text>为什么</text>
+        <textarea class="text-area" maxlength="300" auto-height placeholder="为什么关注（原始理由）" value="{{watchForm.thesis}}" bindinput="inputWatchThesis"></textarea>
       </view>
-      <button class="primary-button" bindtap="submitWatch" disabled="{{saving}}">{{state.writable ? '保存关注' : '会员开通后可保存'}}</button>
+      <view class="textarea-row">
+        <text>失效条件</text>
+        <textarea class="text-area" maxlength="200" auto-height placeholder="什么情况意味着原判断失效" value="{{watchForm.invalidation}}" bindinput="inputWatchInvalidation"></textarea>
+      </view>
+      <view class="textarea-row">
+        <text>风险</text>
+        <textarea class="text-area" maxlength="200" auto-height placeholder="主要风险（选填）" value="{{watchForm.riskNote}}" bindinput="inputWatchRisk"></textarea>
+      </view>
+      <view class="input-row"><text>复核日</text><input class="text-field" maxlength="20" placeholder="YYYY-MM-DD" value="{{watchForm.nextReviewAt}}" bindinput="inputWatchReviewAt" /></view>
+      <view class="textarea-row">
+        <text>备注</text>
+        <textarea class="text-area" maxlength="500" auto-height placeholder="其他备注（选填）" value="{{watchForm.note}}" bindinput="inputWatchNote"></textarea>
+      </view>
+      <button class="primary-button" bindtap="submitWatch" disabled="{{saving}}">{{state.writable ? '保存关注并建立基线' : (state.freeRemaining.watchItems ? '保存关注' : '免费额度已满，开通会员')}}</button>
     </view>
-  </view>
 
-  <view wx:if="{{activeTab == 'decision'}}" class="tab-content">
+    <view class="section-divider"><text>想法留证</text></view>
     <view wx:if="{{state.decisions.length}}" class="record-panel">
       <view wx:for="{{state.decisions}}" wx:key="id" class="record-row decision-card">
         <view class="record-top"><text class="record-tag">想法</text><text class="record-date">{{item.dateLabel}}</text></view>
         <text class="record-title">{{item.title}}</text>
         <text class="record-note">{{item.note}}</text>
+        <text wx:if="{{item.invalidation}}" class="evidence-line">失效条件：{{item.invalidation}}</text>
+        <text wx:if="{{item.nextReviewAt}}" class="evidence-line">下次复核：{{item.nextReviewAt}}</text>
+        <text wx:if="{{item.evidenceLabel}}" class="evidence-line">当时证据：{{item.evidenceLabel}}</text>
         <button class="delete-button" data-id="{{item.id}}" bindtap="deleteDecision">删除</button>
       </view>
     </view>
-    <view wx:else class="empty-card"><text>还没有想法</text><text>先记一句，未来再复盘。</text></view>
+    <view wx:else class="empty-card"><text>还没有想法</text><text>先记一句，并自动留下当时公开事实。</text></view>
 
     <view
       wx:if="{{state.decisions.length && !showDecisionForm}}"
@@ -114,22 +307,136 @@
         <text>写下想法</text>
         <text>︿</text>
       </view>
+      <picker mode="selector" range="{{marketOptions}}" range-key="label" value="{{marketIndex}}" bindchange="changeMarket">
+        <view class="picker-field"><text>对照市场</text><text>{{marketOptions[marketIndex].label}} ›</text></view>
+      </picker>
       <view class="input-row"><text>标题</text><input class="text-field" maxlength="80" placeholder="这次想记什么" value="{{decisionForm.title}}" bindinput="inputDecisionTitle" /></view>
       <view class="textarea-row decision-row">
         <text>内容</text>
-        <textarea class="text-area decision-area" maxlength="1200" auto-height placeholder="写下依据，方便以后复盘" value="{{decisionForm.note}}" bindinput="inputDecisionNote"></textarea>
+        <textarea class="text-area decision-area" maxlength="1200" auto-height placeholder="写下依据、预期" value="{{decisionForm.note}}" bindinput="inputDecisionNote"></textarea>
       </view>
-      <button class="primary-button" bindtap="submitDecision" disabled="{{saving}}">{{state.writable ? '保存想法' : '会员开通后可保存'}}</button>
+      <view class="textarea-row">
+        <text>失效条件</text>
+        <textarea class="text-area" maxlength="200" auto-height placeholder="什么情况会让这个判断作废（选填）" value="{{decisionForm.invalidation}}" bindinput="inputDecisionInvalidation"></textarea>
+      </view>
+      <view class="input-row"><text>复核日</text><input class="text-field" maxlength="20" placeholder="YYYY-MM-DD" value="{{decisionForm.nextReviewAt}}" bindinput="inputDecisionNextReview" /></view>
+      <label class="switch-row">
+        <switch checked="{{saveEvidence}}" bindchange="toggleSaveEvidence" color="#0b7a53" />
+        <text>自动保存当时证据（价格/结论/来源/时间）</text>
+      </label>
+      <button class="primary-button" bindtap="submitDecision" disabled="{{saving}}">{{state.writable ? '保存想法' : (state.freeRemaining.decisions ? '保存想法' : '免费额度已满，开通会员')}}</button>
+    </view>
+
+    <view wx:if="{{state.memberFeatures}}" class="section-divider"><text>研究工具</text></view>
+    <block wx:if="{{state.memberFeatures}}">
+      <view class="hint-card">
+        <text>台账自用；13F 有滞后，勿跟仓。</text>
+      </view>
+
+      <view class="record-panel">
+        <view class="panel-tools"><text>港股申购记录</text><button class="mini-action" bindtap="toggleIpoForm">{{showIpoForm ? '收起' : '添加'}}</button></view>
+        <view wx:if="{{showIpoForm}}" class="form-panel nested-form">
+          <view class="input-row"><text>名称</text><input class="text-field" data-field="name" value="{{ipoForm.name}}" bindinput="inputIpoField" /></view>
+          <view class="input-row"><text>代码</text><input class="text-field" data-field="code" value="{{ipoForm.code}}" bindinput="inputIpoField" /></view>
+          <view class="input-row"><text>申购日</text><input class="text-field" data-field="applyDate" placeholder="YYYY-MM-DD" value="{{ipoForm.applyDate}}" bindinput="inputIpoField" /></view>
+          <view class="input-row"><text>上市日</text><input class="text-field" data-field="listingDate" placeholder="YYYY-MM-DD" value="{{ipoForm.listingDate}}" bindinput="inputIpoField" /></view>
+          <view class="input-row"><text>手数</text><input class="text-field" data-field="lots" value="{{ipoForm.lots}}" bindinput="inputIpoField" /></view>
+          <view class="input-row"><text>金额</text><input class="text-field" data-field="amount" value="{{ipoForm.amount}}" bindinput="inputIpoField" /></view>
+          <picker mode="selector" range="{{ipoResultOptions}}" range-key="label" value="{{ipoResultIndex}}" bindchange="changeIpoResult">
+            <view class="picker-field"><text>结果</text><text>{{ipoResultOptions[ipoResultIndex].label}} ›</text></view>
+          </picker>
+          <view class="textarea-row"><text>复盘</text><textarea class="text-area" data-field="reviewNote" value="{{ipoForm.reviewNote}}" bindinput="inputIpoField" placeholder="上市后表现对照" /></view>
+          <button class="primary-button" bindtap="submitIpo" disabled="{{saving}}">保存申购记录</button>
+        </view>
+        <view wx:for="{{state.ipoRecords}}" wx:key="id" class="record-row">
+          <view class="record-top"><text class="record-tag">{{item.resultLabel}}</text><text class="record-date">{{item.dateLabel}}</text></view>
+          <text class="record-title">{{item.name}}<text wx:if="{{item.code}}"> · {{item.code}}</text></text>
+          <text class="record-note">申购 {{item.applyDate || '—'}} · 上市 {{item.listingDate || '—'}}{{item.lots ? ' · ' + item.lots + ' 手' : ''}}</text>
+          <text wx:if="{{item.reviewNote}}" class="evidence-line">复盘：{{item.reviewNote}}</text>
+          <button class="delete-button" data-id="{{item.id}}" bindtap="deleteIpo">删除</button>
+        </view>
+        <view wx:if="{{!state.ipoRecords.length && !showIpoForm}}" class="empty-card"><text>还没有申购记录</text></view>
+      </view>
+
+      <view class="record-panel">
+        <view class="panel-tools">
+          <text>收息台账{{dividendSummary.expectedNetCny ? ' · 预计净额约 ¥' + dividendSummary.expectedNetCny : ''}}</text>
+          <button class="mini-action" bindtap="toggleDivForm">{{showDivForm ? '收起' : '添加'}}</button>
+        </view>
+        <view wx:if="{{showDivForm}}" class="form-panel nested-form">
+          <picker mode="selector" range="{{marketOptions}}" range-key="label" value="{{marketIndex}}" bindchange="changeMarket">
+            <view class="picker-field"><text>市场</text><text>{{marketOptions[marketIndex].label}} ›</text></view>
+          </picker>
+          <view class="input-row"><text>名称</text><input class="text-field" data-field="name" value="{{divForm.name}}" bindinput="inputDivField" /></view>
+          <view class="input-row"><text>代码</text><input class="text-field" data-field="code" value="{{divForm.code}}" bindinput="inputDivField" /></view>
+          <view class="input-row"><text>持股</text><input class="text-field" data-field="shares" value="{{divForm.shares}}" bindinput="inputDivField" /></view>
+          <view class="input-row"><text>预计/股</text><input class="text-field" data-field="expectedPerShare" value="{{divForm.expectedPerShare}}" bindinput="inputDivField" /></view>
+          <view class="input-row"><text>股息率%</text><input class="text-field" data-field="yieldPct" value="{{divForm.yieldPct}}" bindinput="inputDivField" /></view>
+          <view class="input-row"><text>实际到账</text><input class="text-field" data-field="actualTotal" value="{{divForm.actualTotal}}" bindinput="inputDivField" /></view>
+          <view class="input-row"><text>除权日</text><input class="text-field" data-field="exDate" placeholder="YYYY-MM-DD" value="{{divForm.exDate}}" bindinput="inputDivField" /></view>
+          <view class="input-row"><text>到账日</text><input class="text-field" data-field="payDate" placeholder="YYYY-MM-DD" value="{{divForm.payDate}}" bindinput="inputDivField" /></view>
+          <button class="primary-button" bindtap="submitDividend" disabled="{{saving}}">保存收息记录</button>
+        </view>
+        <view wx:for="{{dividendSummary.rows}}" wx:key="id" class="record-row">
+          <view class="record-top"><text class="record-tag">{{item.marketLabel}}</text><text class="record-date">{{item.payDate || item.exDate || item.dateLabel}}</text></view>
+          <text class="record-title">{{item.name}}</text>
+          <text class="record-note">预计净额 ¥{{item.expectedNetCny}} · 实际 {{item.actualCny == null ? '待填' : ('¥' + item.actualCny)}}</text>
+          <button class="delete-button" data-id="{{item.id}}" bindtap="deleteDividend">删除</button>
+        </view>
+      </view>
+
+      <view class="record-panel">
+        <view class="panel-tools"><text>税率与汇率</text></view>
+        <view class="form-panel nested-form">
+          <view class="input-row"><text>税率%</text><input class="text-field" data-field="taxRatePct" value="{{settingsForm.taxRatePct}}" bindinput="inputSettingsField" /></view>
+          <view class="input-row"><text>港币</text><input class="text-field" data-field="hkdCny" value="{{settingsForm.hkdCny}}" bindinput="inputSettingsField" /></view>
+          <view class="input-row"><text>美元</text><input class="text-field" data-field="usdCny" value="{{settingsForm.usdCny}}" bindinput="inputSettingsField" /></view>
+          <button class="primary-button" bindtap="submitSettings" disabled="{{saving}}">保存设置</button>
+        </view>
+      </view>
+
+      <view class="record-panel">
+        <view class="panel-tools"><text>聪明人持仓季度变化</text></view>
+        <view wx:for="{{guruChanges}}" wx:key="id" class="record-row">
+          <view class="record-top"><text class="record-tag">{{item.filingDate || '披露日待核'}}</text><text class="record-date">{{item.lagLabel}}</text></view>
+          <text class="record-title">{{item.name}}</text>
+          <text class="record-note">{{item.summary}}</text>
+          <text class="lag-note">不可照抄跟仓；仅作研究观察</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view wx:if="{{activeTab == 'review'}}" class="tab-content">
+    <view wx:if="{{state.memberFeatures}}" class="record-panel">
+      <view class="panel-tools"><text>{{weeklyReview.headline}}</text></view>
+      <view wx:if="{{weeklyReview.rows.length}}">
+        <view wx:for="{{weeklyReview.rows}}" wx:key="id" class="record-row {{item.changed ? 'is-changed' : ''}}">
+          <view class="record-top"><text class="record-tag">{{item.tag || '持续复盘'}}</text><text class="record-date">{{item.dateLabel}}</text></view>
+          <text class="record-title">{{item.title}}</text>
+          <text class="record-note">{{item.outcome}}</text>
+          <text wx:if="{{item.outcomeHint}}" class="evidence-line">{{item.outcomeHint}}</text>
+          <text wx:if="{{item.thenLabel}}" class="evidence-line">当时：{{item.thenLabel}}</text>
+          <text wx:if="{{item.nowLabel}}" class="evidence-line">现在：{{item.nowLabel}}</text>
+          <text wx:if="{{item.summary}}" class="evidence-line">{{item.summary}}</text>
+          <button class="mini-action" data-id="{{item.id}}" bindtap="openSnapshotCompare">对比当时与现在</button>
+        </view>
+      </view>
+      <view wx:else class="empty-card"><text>还没有可复盘内容</text><text>在「关注」写入原始理由与失效条件，或保存带证据的想法。</text></view>
+    </view>
+    <view wx:else class="empty-card">
+      <text>持续复盘是会员能力</text>
+      <text>开通后对照：哪些条件已变、哪些判断尚未被推翻、哪些到了复核日。</text>
+      <button class="primary-button" bindtap="openMember">查看会员</button>
     </view>
   </view>
 
   <view class="management-panel">
     <button class="export-button" bindtap="exportRecords"><text>复制导出全部记录</text><text>›</text></button>
-    <button wx:if="{{state.watchItems.length || state.decisions.length}}" class="delete-all-button" bindtap="deleteAllRecords" disabled="{{saving}}"><text>删除全部记录</text><text>›</text></button>
+    <button wx:if="{{state.watchItems.length || state.decisions.length || state.eventMarks.length}}" class="delete-all-button" bindtap="deleteAllRecords" disabled="{{saving}}"><text>删除全部记录</text><text>›</text></button>
   </view>
 
-  <text class="privacy-note">记录仅当前微信用户可见，到期后仍可查看、导出和删除。</text>
-  <text class="disclaimer">{{disclaimer}}</text>
+  <text class="privacy-note">记录仅当前微信用户可见。到期后仍可只读查看、导出和删除。订单与支付凭证不在导出范围内。{{disclaimer}}</text>
 
   <view class="page-nav">
     <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>

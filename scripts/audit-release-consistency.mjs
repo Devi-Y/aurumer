@@ -37,7 +37,11 @@ const miniQuote = (miniSnapshot.aShare?.quotes || [])[0];
 assert(!miniQuote?.buyPrice && !miniQuote?.currentAdvice, "小程序随包仍含 A 股静态动作价");
 
 assert(typeof SOURCE_REVISION === "string" && SOURCE_REVISION.length > 0, "云函数缺少 SOURCE_REVISION");
-assert(String(SOURCE_REVISION).includes("cache-first"), "云函数 revision 未切换到缓存优先版本");
+assert(
+  String(SOURCE_REVISION).includes("cache-first")
+  && (String(SOURCE_REVISION).includes("sentinel") || String(SOURCE_REVISION).includes("2026")),
+  "云函数 revision 未切换到缓存优先/哨兵版本",
+);
 
 let pagesNote = "Pages 未在线核对";
 try {

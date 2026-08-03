@@ -18,18 +18,60 @@ const MEMBER_FAQ = [
   {
     id: "get",
     title: "买后得到什么",
-    body: "跨设备关注清单、自己填写的研究记录/复盘，以及一键复制导出。不含买卖建议、收益预测或精确出价。",
+    body: "写理由 → 盯变化 → 复盘。含今日简报、站内收件箱、决策快照与节点提醒。不含买卖建议。",
   },
   {
     id: "daily",
     title: "每天怎么用",
-    body: "把盯的标的放进关注，行情或资料变化时自行对照；用记录写下当时判断，方便以后复盘。",
+    body: "打开「今日」看我的变化与待办；无变化就确认今天没事。",
   },
   {
     id: "why",
-    title: "为什么免费版替代不了",
-    body: "免费版可看公开研究资料；会员把关注、记录和导出保存在云端，换手机仍可继续用，到期后仍可只读与导出。",
+    title: "为什么免费版不够",
+    body: "公开答案仍免费。会员买的是个人跟踪与复盘工具：免费 5+5，会员 80+300、跨设备同步与历史保全。",
   },
+];
+
+const COMPARE_BARS = [
+  { id: "watch", label: "关注条数", free: 5, member: 80, freePct: 6, memberPct: 100 },
+  { id: "idea", label: "想法条数", free: 5, member: 300, freePct: 2, memberPct: 100 },
+  { id: "days", label: "有效天数", free: 0, member: 365, freePct: 0, memberPct: 100 },
+];
+
+const CAPABILITY_METERS = [
+  { id: "change", label: "重要变化", valueText: "会员", percent: 94 },
+  { id: "snapshot", label: "决策快照", valueText: "会员", percent: 90 },
+  { id: "task", label: "节点提醒", valueText: "会员", percent: 88 },
+  { id: "brief", label: "今日简报", valueText: "会员", percent: 86 },
+  { id: "inbox", label: "站内收件箱", valueText: "会员", percent: 84 },
+  { id: "export", label: "导出保全", valueText: "会员", percent: 80 },
+  { id: "free", label: "免费试记", valueText: "5+5", percent: 12 },
+];
+
+const CORE_BENEFITS = [
+  {
+    id: "change",
+    title: "重要变化",
+    body: "自动对比结论、风险和关键数据变化。",
+  },
+  {
+    id: "snapshot",
+    title: "决策快照",
+    body: "保存当时的价格、结论、依据和风险。",
+  },
+  {
+    id: "task",
+    title: "节点提醒",
+    body: "管理财报、分红、招股、上市和复盘日期（小程序内提醒）。",
+  },
+];
+
+const EXTRA_BENEFITS = [
+  "跨设备同步",
+  "个人备注",
+  "历史复盘",
+  "复制导出",
+  "到期后仍可查看、导出和删除",
 ];
 
 const PAYMENT_REFRESH_DELAYS = [800, 1600, 2600, 4000, 6000];
@@ -62,10 +104,20 @@ function viewState(state) {
       ? "会员已开通"
       : (purchaseAllowed ? "微信支付可用" : "支付通道准备中"),
     statusDetail: active
-      ? `有效期至 ${formatDate(entitlement.expiresAt)}`
+      ? `有效期至 ${formatDate(entitlement.expiresAt)} · 持续跟踪你的关注对象`
       : (purchaseAllowed
-        ? "付款成功并核对订单后，会员会自动生效。"
+        ? "付款成功并核对订单后，会员会自动生效。公开答案仍免费。"
         : "暂时不能付款，请稍后再试或联系微信客服。"),
+    heroTitle: "持续跟踪你的关注对象",
+    coreBenefits: CORE_BENEFITS,
+    extraBenefits: EXTRA_BENEFITS,
+    sellGate: state.sellGate
+      ? {
+        ...state.sellGate,
+        humanPendingLabel: (state.sellGate.humanPending || []).join("、"),
+      }
+      : null,
+    paymentPubliclyReleased: Boolean(state.paymentPubliclyReleased),
     plans: (state.plans || [])
       .filter((plan) => plan.id === ANNUAL_PLAN.id)
       .map((plan) => ({
@@ -99,6 +151,8 @@ Page({
     disclaimer: MEMBER_DISCLAIMER,
     lastOrderId: "",
     faq: MEMBER_FAQ,
+    compareBars: COMPARE_BARS,
+    capabilityMeters: CAPABILITY_METERS,
     state: viewState({
       paymentReady: false,
       paymentReason: "正在检查会员服务",
@@ -108,6 +162,7 @@ Page({
     }),
   },
   onLoad() {
+    track("member_value_view", { from: "member" });
     this.refresh();
   },
   onShow() {

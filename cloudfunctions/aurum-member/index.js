@@ -33,6 +33,23 @@ const {
   parseWechatTime,
   validateCloudPayOrder,
 } = require("./wechat-cloudpay");
+const {
+  FREE_LIMITS,
+  MEMBER_LIMITS,
+  freeRemaining,
+  cleanNumber,
+} = require("./workspace-features");
+const {
+  buildTodayBrief,
+  publicInbox,
+  scanWorkspaceInbox,
+} = require("./sentinel-inbox");
+const {
+  buildHomeSummary,
+  mutateTask,
+  publicTasks,
+  syncSystemTasksFromWatches,
+} = require("./review-tasks");
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
@@ -40,6 +57,7 @@ const db = cloud.database();
 const ORDERS = "member_orders";
 const ENTITLEMENTS = "member_entitlements";
 const WORKSPACES = "member_workspaces";
+const FACT_LATEST = "data_fact_latest";
 const PENDING_RECONCILE_INTERVAL = 15 * 1000;
 const ACCESS_RECONCILE_INTERVAL = 60 * 1000;
 const SETTLED_RECONCILE_INTERVAL = 6 * 60 * 60 * 1000;
@@ -52,10 +70,7 @@ const ENTITLEMENT_CREDIT_LIMIT = 200;
 const FREE_TEST_TRIGGER_NAME = "member-free-test-grant";
 const FREE_TEST_TARGET_WINDOW_MS = 24 * 60 * 60 * 1000;
 const NEW_PURCHASE_PROVIDER = "wechat-jsapi";
-const WORKSPACE_LIMITS = {
-  watchItems: 50,
-  decisions: 100,
-};
+const WORKSPACE_LIMITS = MEMBER_LIMITS;
 const MARKET_LABELS = {
   hk: "港股",
   us: "美股",
@@ -63,11 +78,24 @@ const MARKET_LABELS = {
   gold: "黄金",
   other: "其他",
 };
+const GROUP_LABELS = {
+  default: "默认",
+  ipo: "打新",
+  dividend: "收息",
+  long: "长期",
+  watch: "观察",
+};
+const IPO_RESULTS = {
+  pending: "待公布",
+  won: "已中签",
+  lost: "未中签",
+  skipped: "未申购",
+};
 const PLAN_DEFINITIONS = [
   {
     id: "research-365d",
     name: "望潮年度研究会员",
-    term: "365 天使用跨设备清单、决策档案与个人记录导出",
+    term: "365 天：个人投资逻辑哨兵——事实变化提醒、失效条件核对、周复盘与台账保全",
     days: 365,
     priceFen: 128800,
     priceLabel: "¥1,288 / 年",
@@ -140,6 +168,58 @@ function cleanText(value, maximum, field, required = false) {
   return text;
 }
 
+function cleanFact(value) {
+  if (value == null) return null;
+  if (typeof value !== "object" || Array.isArray(value)) {
+    throw new MemberError("INVALID_WORKSPACE_INPUT", "事实快照格式无效");
+  }
+  const text = (input, max) => cleanText(input == null ? "" : String(input), max, "事实字段");
+  return {
+    market: text(value.market, 20),
+    code: text(value.code, 30),
+    name: text(value.name, 80),
+    oneLiner: text(value.oneLiner, 200),
+    badge: text(value.badge, 40),
+    risk: text(value.risk, 300),
+    priceLabel: text(value.priceLabel, 60),
+    metricLabel: text(value.metricLabel, 80),
+    asOf: text(value.asOf, 40),
+    source: text(value.source, 80),
+    snapshotUpdatedAt: text(value.snapshotUpdatedAt, 40),
+    unmatched: Boolean(value.unmatched),
+    capturedAt: text(value.capturedAt, 40),
+    title: text(value.title, 80),
+    stampedBy: text(value.stampedBy, 20),
+  };
+}
+
+function factDocId(market, code) {
+  return `${String(market || "x")}_${String(code || "x")}`.replace(/[^\w.\-一-龥]/g, "_").slice(0, 64);
+}
+
+async function stampOfficialFact(market, code, name, fallback) {
+  if (!code && !name) return fallback ? cleanFact(fallback) : null;
+  try {
+    const result = await db.collection(FACT_LATEST).doc(factDocId(market, code || name)).get();
+    const row = result && result.data;
+    if (row && row.fact) {
+      return cleanFact({
+        ...row.fact,
+        name: row.fact.name || name || "",
+        stampedBy: "server",
+        capturedAt: new Date().toISOString(),
+        snapshotUpdatedAt: row.snapshotUpdatedAt || row.fact.snapshotUpdatedAt || "",
+      });
+    }
+  } catch (error) {
+    // 无正式事实时回退客户端预览，并标记未盖章。
+  }
+  if (!fallback) return null;
+  const cleaned = cleanFact(fallback);
+  if (!cleaned) return null;
+  return { ...cleaned, stampedBy: cleaned.stampedBy || "client", unmatched: cleaned.unmatched || !cleaned.oneLiner };
+}
+
 function recordId(prefix) {
   return `${prefix}_${Date.now().toString(36)}_${crypto.randomBytes(5).toString("hex")}`;
 }
@@ -206,6 +286,7 @@ function publicWorkspaceRecord(record) {
     ...record,
     createdAt: dateValue(record.createdAt)?.toISOString() || null,
     updatedAt: dateValue(record.updatedAt)?.toISOString() || null,
+    baselineAt: dateValue(record.baselineAt)?.toISOString() || null,
   };
 }
 
@@ -215,9 +296,17 @@ async function publicWorkspace(openid) {
     getDocument(WORKSPACES, workspaceId(openid)),
   ]);
   const active = Boolean(entitlement && entitlement.active);
+  const remaining = freeRemaining(data || {});
+  const freeWritable = !active && (remaining.watchItems > 0 || remaining.decisions > 0);
+  const inbox = publicInbox(data && data.inbox);
+  const todayBrief = buildTodayBrief(data || {}, inbox);
+  const reviewTasks = publicTasks(data && data.reviewTasks);
   return {
     active,
-    writable: active,
+    writable: active || freeWritable,
+    memberFeatures: active,
+    freeLimits: FREE_LIMITS,
+    freeRemaining: remaining,
     expiresAt: entitlement && entitlement.expiresAt,
     reviewRequired: Boolean(entitlement && entitlement.reviewRequired),
     verificationMessage: entitlement && entitlement.reviewMessage,
@@ -225,7 +314,36 @@ async function publicWorkspace(openid) {
       .map(publicWorkspaceRecord),
     decisions: (data && Array.isArray(data.decisions) ? data.decisions : [])
       .map(publicWorkspaceRecord),
+    eventMarks: (data && Array.isArray(data.eventMarks) ? data.eventMarks : [])
+      .map(publicWorkspaceRecord),
+    ipoRecords: (data && Array.isArray(data.ipoRecords) ? data.ipoRecords : [])
+      .map(publicWorkspaceRecord),
+    dividendLots: (data && Array.isArray(data.dividendLots) ? data.dividendLots : [])
+      .map(publicWorkspaceRecord),
+    reviewTasks,
+    inbox,
+    todayBrief,
+    homeSummary: buildHomeSummary(data || { watchItems: [] }, inbox, todayBrief),
+    settings: (data && data.settings) || {
+      taxRatePct: 10,
+      hkdCny: 0.92,
+      usdCny: 7.2,
+    },
     limits: WORKSPACE_LIMITS,
+    subscribe: subscribeConfig(),
+  };
+}
+
+function subscribeConfig() {
+  const templateId = String(process.env.WANGCHAO_SUBSCRIBE_EVENT_TMPL || "").trim();
+  return {
+    enabled: Boolean(templateId),
+    eventTemplateId: templateId,
+    channelLabel: templateId ? "订阅微信提醒" : "小程序内提醒",
+    authorizedLabel: templateId ? "可申请订阅微信提醒" : "当前仅小程序内提醒",
+    hint: templateId
+      ? "可申请订阅微信提醒；授权成功后才会显示微信提醒已开启"
+      : "事件会记在日历与待办中。配置订阅消息模板并完成用户授权后，才可开通微信提醒",
   };
 }
 
@@ -250,23 +368,57 @@ async function requireActiveEntitlement(openid) {
   if (!entitlement || !entitlement.active) {
     throw new MemberError(
       "ENTITLEMENT_REQUIRED",
-      "新增或删除记录需要有效的研究工具权益；已有记录仍可只读和导出",
+      "此项为会员能力：变化确认、事件微信提醒、打新/收息台账与阈值等；免费仍可保存少量关注与想法",
     );
   }
   return entitlement;
+}
+
+async function requireBasicWrite(openid, kind) {
+  await reconcileRecentOrders(openid, RECONCILE_BATCH_LIMIT, true);
+  const entitlement = await publicEntitlement(openid);
+  if (entitlement && entitlement.active) return { active: true, entitlement };
+  const data = await getDocument(WORKSPACES, workspaceId(openid));
+  const remaining = freeRemaining(data || {});
+  if (kind === "watch" && remaining.watchItems <= 0) {
+    throw new MemberError(
+      "FREE_LIMIT",
+      `免费可保存 ${FREE_LIMITS.watchItems} 条关注，已用完。开通会员可扩展到 ${MEMBER_LIMITS.watchItems} 条并解锁变化雷达等能力`,
+    );
+  }
+  if (kind === "decision" && remaining.decisions <= 0) {
+    throw new MemberError(
+      "FREE_LIMIT",
+      `免费可保存 ${FREE_LIMITS.decisions} 条想法，已用完。开通会员可扩展并解锁每周复盘`,
+    );
+  }
+  return { active: false, entitlement };
 }
 
 function blankWorkspace() {
   return {
     watchItems: [],
     decisions: [],
+    eventMarks: [],
+    ipoRecords: [],
+    dividendLots: [],
+    inbox: [],
+    reviewTasks: [],
+    settings: {
+      taxRatePct: 10,
+      hkdCny: 0.92,
+      usdCny: 7.2,
+    },
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 }
 
 async function updateWorkspace(openid, mutate, requireEntitlement = true) {
-  if (requireEntitlement) await requireActiveEntitlement(openid);
+  if (requireEntitlement === true) await requireActiveEntitlement(openid);
+  else if (requireEntitlement && typeof requireEntitlement === "object" && requireEntitlement.basic) {
+    await requireBasicWrite(openid, requireEntitlement.kind);
+  }
   const id = workspaceId(openid);
   await db.runTransaction(async (transaction) => {
     const reference = transaction.collection(WORKSPACES).doc(id);
@@ -276,12 +428,19 @@ async function updateWorkspace(openid, mutate, requireEntitlement = true) {
     } catch (error) {
       if (!(String(error.errCode) === "-1" || /not exist/i.test(error.message || ""))) throw error;
     }
-    if (!current && !requireEntitlement) return;
+    if (!current && requireEntitlement === false) return;
     const { _id, _openid, ...workspace } = current || blankWorkspace();
     delete workspace.openid;
     workspace.watchItems = Array.isArray(workspace.watchItems) ? workspace.watchItems : [];
     workspace.decisions = Array.isArray(workspace.decisions) ? workspace.decisions : [];
+    workspace.eventMarks = Array.isArray(workspace.eventMarks) ? workspace.eventMarks : [];
+    workspace.ipoRecords = Array.isArray(workspace.ipoRecords) ? workspace.ipoRecords : [];
+    workspace.dividendLots = Array.isArray(workspace.dividendLots) ? workspace.dividendLots : [];
+    workspace.inbox = Array.isArray(workspace.inbox) ? workspace.inbox : [];
+    workspace.reviewTasks = Array.isArray(workspace.reviewTasks) ? workspace.reviewTasks : [];
+    workspace.settings = workspace.settings || blankWorkspace().settings;
     mutate(workspace);
+    workspace.ownerOpenid = openid;
     workspace.updatedAt = new Date();
     await reference.set({ data: workspace });
   });
@@ -289,26 +448,66 @@ async function updateWorkspace(openid, mutate, requireEntitlement = true) {
 }
 
 async function saveWatchItem(openid, event) {
+  const entitlement = await requireBasicWrite(openid, "watch");
   const market = Object.prototype.hasOwnProperty.call(MARKET_LABELS, event.market) ? event.market : "other";
+  let group = Object.prototype.hasOwnProperty.call(GROUP_LABELS, event.group) ? event.group : "default";
+  if (!entitlement.active) group = "default";
   const name = cleanText(event.name, 60, "标的名称", true);
   const code = cleanText(event.code, 30, "代码");
   const note = cleanText(event.note, 500, "跟踪备注");
+  const thesis = cleanText(event.thesis, 300, "为什么关注");
+  const invalidation = cleanText(event.invalidation, 200, "失效条件");
+  const riskNote = cleanText(event.riskNote, 200, "风险");
+  const nextReviewAt = cleanText(event.nextReviewAt, 20, "下次复核日");
+  const reasonId = cleanText(event.reasonId, 40, "关注原因");
+  const reasonLabel = cleanText(event.reasonLabel, 40, "关注原因");
+  const reviewConditionId = cleanText(event.reviewConditionId, 40, "复评条件");
+  const reviewConditionLabel = cleanText(event.reviewConditionLabel, 40, "复评条件");
+  const pageSource = cleanText(event.pageSource, 40, "来源页面");
+  const baselineFact = await stampOfficialFact(market, code, name, event.baselineFact || null);
+  let thresholdPrice = null;
+  let thresholdDirection = "";
+  let thresholdNote = "";
+  if (entitlement.active) {
+    thresholdPrice = cleanNumber(event.thresholdPrice, "阈值价格", { min: 0, max: 1e9 });
+    thresholdDirection = ["above", "below"].includes(event.thresholdDirection) ? event.thresholdDirection : "";
+    thresholdNote = cleanText(event.thresholdNote, 120, "阈值说明");
+  }
   return updateWorkspace(openid, (workspace) => {
-    if (workspace.watchItems.length >= WORKSPACE_LIMITS.watchItems) {
-      throw new MemberError("WORKSPACE_LIMIT", `跟踪清单最多保存 ${WORKSPACE_LIMITS.watchItems} 条`);
+    const limit = entitlement.active ? WORKSPACE_LIMITS.watchItems : FREE_LIMITS.watchItems;
+    if (workspace.watchItems.length >= limit) {
+      throw new MemberError("WORKSPACE_LIMIT", `跟踪清单最多保存 ${limit} 条`);
     }
     const now = new Date();
+    const watchId = recordId("watch");
     workspace.watchItems.unshift({
-      id: recordId("watch"),
+      id: watchId,
       market,
       marketLabel: MARKET_LABELS[market],
+      group,
+      groupLabel: GROUP_LABELS[group],
       name,
       code,
       note,
+      thesis: thesis || reasonLabel,
+      invalidation: invalidation || reviewConditionLabel,
+      riskNote,
+      nextReviewAt,
+      reasonId,
+      reasonLabel,
+      reviewConditionId,
+      reviewConditionLabel,
+      pageSource: pageSource || "workspace",
+      baselineFact,
+      baselineAt: baselineFact ? now : null,
+      thresholdPrice,
+      thresholdDirection,
+      thresholdNote,
       createdAt: now,
       updatedAt: now,
     });
-  });
+    syncSystemTasksFromWatches(workspace, recordId);
+  }, { basic: true, kind: "watch" });
 }
 
 async function removeWatchItem(openid, event) {
@@ -319,16 +518,262 @@ async function removeWatchItem(openid, event) {
 }
 
 async function saveDecision(openid, event) {
+  await requireBasicWrite(openid, "decision");
   const title = cleanText(event.title, 80, "档案标题", true);
-  const note = cleanText(event.note, 1200, "决策记录", true);
+  const market = Object.prototype.hasOwnProperty.call(MARKET_LABELS, event.market) ? event.market : "";
+  const code = cleanText(event.code, 30, "代码");
+  const name = cleanText(event.name, 60, "标的名称");
+  const invalidation = cleanText(event.invalidation, 200, "失效条件");
+  const nextReviewAt = cleanText(event.nextReviewAt, 20, "下次复核日");
+  const reasonId = cleanText(event.reasonId, 40, "关注原因");
+  const reasonLabel = cleanText(event.reasonLabel, 40, "关注原因");
+  const reviewConditionId = cleanText(event.reviewConditionId, 40, "复评条件");
+  const reviewConditionLabel = cleanText(event.reviewConditionLabel, 40, "复评条件");
+  const pageSource = cleanText(event.pageSource, 40, "来源页面");
+  const evidence = await stampOfficialFact(market || "other", code, name || title, event.evidence || null);
+  const noteRaw = cleanText(event.note, 1200, "决策记录");
+  const note = noteRaw || [
+    reasonLabel ? `关注原因：${reasonLabel}` : "",
+    reviewConditionLabel ? `复评条件：${reviewConditionLabel}` : "",
+    evidence ? `当时结论：${evidence.oneLiner || ""}` : "已保存决策快照",
+  ].filter(Boolean).join("；").slice(0, 1200) || "已保存决策快照";
+  const entitlement = await publicEntitlement(openid);
+  const active = Boolean(entitlement && entitlement.active);
   return updateWorkspace(openid, (workspace) => {
-    if (workspace.decisions.length >= WORKSPACE_LIMITS.decisions) {
-      throw new MemberError("WORKSPACE_LIMIT", `决策档案最多保存 ${WORKSPACE_LIMITS.decisions} 条`);
+    const limit = active ? WORKSPACE_LIMITS.decisions : FREE_LIMITS.decisions;
+    if (workspace.decisions.length >= limit) {
+      throw new MemberError("WORKSPACE_LIMIT", `决策档案最多保存 ${limit} 条`);
     }
     const now = new Date();
     workspace.decisions.unshift({
       id: recordId("decision"),
       title,
+      note,
+      market: market || null,
+      marketLabel: market ? MARKET_LABELS[market] : "",
+      code,
+      name,
+      invalidation: invalidation || reviewConditionLabel,
+      nextReviewAt,
+      reasonId,
+      reasonLabel,
+      reviewConditionId,
+      reviewConditionLabel,
+      pageSource: pageSource || "workspace",
+      evidence,
+      closedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+    syncSystemTasksFromWatches(workspace, recordId);
+  }, { basic: true, kind: "decision" });
+}
+
+async function updateReviewTask(openid, event) {
+  const taskId = validRecordId(event.taskId, "task");
+  const action = String(event.taskAction || event.actionName || "").trim();
+  if (!["complete", "snooze", "delete"].includes(action)) {
+    throw new MemberError("INVALID_WORKSPACE_INPUT", "待办操作无效");
+  }
+  const days = action === "snooze" ? (Number(event.days) === 7 ? 7 : 1) : 0;
+  // 到期会员仍可完成/删除/延后已有待办；不可新增需会员权益的内容。
+  return updateWorkspace(openid, (workspace) => {
+    const touched = mutateTask(workspace, taskId, action, days);
+    if (!touched) throw new MemberError("INVALID_WORKSPACE_INPUT", "待办不存在");
+  }, false);
+}
+
+async function ackWatchBaselines(openid, event) {
+  const ids = Array.isArray(event.itemIds) ? event.itemIds.map((id) => String(id || "")).filter(Boolean) : [];
+  if (!ids.length) throw new MemberError("INVALID_WORKSPACE_INPUT", "请选择要确认的关注项");
+  if (ids.length > WORKSPACE_LIMITS.watchItems) {
+    throw new MemberError("INVALID_WORKSPACE_INPUT", "一次确认的关注项过多");
+  }
+  const facts = event.facts && typeof event.facts === "object" && !Array.isArray(event.facts)
+    ? event.facts
+    : {};
+  return updateWorkspace(openid, (workspace) => {
+    const now = new Date();
+    const wanted = new Set(ids);
+    workspace.watchItems = workspace.watchItems.map((item) => {
+      if (!wanted.has(item.id)) return item;
+      const nextFact = facts[item.id] ? cleanFact(facts[item.id]) : item.baselineFact || null;
+      return {
+        ...item,
+        baselineFact: nextFact,
+        baselineAt: now,
+        updatedAt: now,
+      };
+    });
+  });
+}
+
+async function markInboxRead(openid, event) {
+  const ids = Array.isArray(event.itemIds)
+    ? event.itemIds.map((id) => String(id || "")).filter(Boolean)
+    : (event.itemId ? [String(event.itemId)] : []);
+  const markAll = Boolean(event.markAll);
+  return updateWorkspace(openid, (workspace) => {
+    const now = new Date();
+    workspace.inbox = (workspace.inbox || []).map((item) => {
+      if (markAll || ids.includes(item.id)) {
+        return { ...item, readAt: item.readAt || now };
+      }
+      return item;
+    });
+  }, false);
+}
+
+async function scanAllWorkspacesInbox() {
+  const pageSize = 40;
+  let offset = 0;
+  let scanned = 0;
+  let added = 0;
+  for (;;) {
+    const result = await db.collection(WORKSPACES).skip(offset).limit(pageSize).get();
+    const rows = result.data || [];
+    if (!rows.length) break;
+    for (const doc of rows) {
+      scanned += 1;
+      const { _id, _openid, ...workspace } = doc;
+      workspace.watchItems = Array.isArray(workspace.watchItems) ? workspace.watchItems : [];
+      workspace.decisions = Array.isArray(workspace.decisions) ? workspace.decisions : [];
+      workspace.eventMarks = Array.isArray(workspace.eventMarks) ? workspace.eventMarks : [];
+      workspace.inbox = Array.isArray(workspace.inbox) ? workspace.inbox : [];
+      workspace.reviewTasks = Array.isArray(workspace.reviewTasks) ? workspace.reviewTasks : [];
+      const count = await scanWorkspaceInbox(db, workspace, recordId);
+      if (count > 0) {
+        added += count;
+        workspace.updatedAt = new Date();
+        await db.collection(WORKSPACES).doc(_id).set({ data: workspace });
+      }
+    }
+    if (rows.length < pageSize) break;
+    offset += pageSize;
+    if (offset > 2000) break;
+  }
+  return { scanned, added };
+}
+
+async function saveEventMark(openid, event) {
+  const title = cleanText(event.title, 80, "事件标题", true);
+  const detail = cleanText(event.detail, 200, "事件说明");
+  const dateLabel = cleanText(event.dateLabel, 20, "事件日期", true);
+  const kind = cleanText(event.kind, 30, "事件类型");
+  const marketLabel = cleanText(event.marketLabel, 20, "市场");
+  const code = cleanText(event.code, 30, "代码");
+  const source = cleanText(event.source, 80, "来源");
+  const notifyAccepted = Boolean(event.notifyAccepted);
+  return updateWorkspace(openid, (workspace) => {
+    if (workspace.eventMarks.length >= WORKSPACE_LIMITS.eventMarks) {
+      throw new MemberError("WORKSPACE_LIMIT", `事件标记最多保存 ${WORKSPACE_LIMITS.eventMarks} 条`);
+    }
+    const duplicate = workspace.eventMarks.some((item) => (
+      item.title === title && item.dateLabel === dateLabel && item.code === code
+    ));
+    if (duplicate) {
+      workspace.eventMarks = workspace.eventMarks.map((item) => {
+        if (item.title === title && item.dateLabel === dateLabel && item.code === code) {
+          return {
+            ...item,
+            notifyAccepted: item.notifyAccepted || notifyAccepted,
+            updatedAt: new Date(),
+          };
+        }
+        return item;
+      });
+      return;
+    }
+    const now = new Date();
+    workspace.eventMarks.unshift({
+      id: recordId("event"),
+      title,
+      detail,
+      dateLabel,
+      kind,
+      marketLabel,
+      code,
+      source,
+      notifyAccepted,
+      notifiedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+  });
+}
+
+async function saveIpoRecord(openid, event) {
+  const name = cleanText(event.name, 60, "新股名称", true);
+  const code = cleanText(event.code, 30, "代码");
+  const applyDate = cleanText(event.applyDate, 20, "申购日");
+  const listingDate = cleanText(event.listingDate, 20, "上市日");
+  const lots = cleanNumber(event.lots, "申购手数", { min: 0, max: 100000 });
+  const amount = cleanNumber(event.amount, "申购金额", { min: 0, max: 1e9 });
+  const result = Object.prototype.hasOwnProperty.call(IPO_RESULTS, event.result) ? event.result : "pending";
+  const note = cleanText(event.note, 300, "备注");
+  const reviewNote = cleanText(event.reviewNote, 500, "上市后复盘");
+  return updateWorkspace(openid, (workspace) => {
+    if (workspace.ipoRecords.length >= WORKSPACE_LIMITS.ipoRecords) {
+      throw new MemberError("WORKSPACE_LIMIT", `申购记录最多 ${WORKSPACE_LIMITS.ipoRecords} 条`);
+    }
+    const now = new Date();
+    workspace.ipoRecords.unshift({
+      id: recordId("ipo"),
+      name,
+      code,
+      applyDate,
+      listingDate,
+      lots,
+      amount,
+      result,
+      resultLabel: IPO_RESULTS[result],
+      note,
+      reviewNote,
+      createdAt: now,
+      updatedAt: now,
+    });
+  });
+}
+
+async function removeIpoRecord(openid, event) {
+  const id = validRecordId(event.itemId, "ipo");
+  return updateWorkspace(openid, (workspace) => {
+    workspace.ipoRecords = workspace.ipoRecords.filter((item) => item.id !== id);
+  }, false);
+}
+
+async function saveDividendLot(openid, event) {
+  const name = cleanText(event.name, 60, "标的名称", true);
+  const code = cleanText(event.code, 30, "代码");
+  const market = Object.prototype.hasOwnProperty.call(MARKET_LABELS, event.market) ? event.market : "a";
+  const currency = ["CNY", "HKD", "USD"].includes(event.currency) ? event.currency : "CNY";
+  const shares = cleanNumber(event.shares, "持股数量", { min: 0, max: 1e12, required: true });
+  const expectedPerShare = cleanNumber(event.expectedPerShare, "预计每股股息", { min: 0, max: 1e6 });
+  const yieldPct = cleanNumber(event.yieldPct, "股息率", { min: 0, max: 100 });
+  const price = cleanNumber(event.price, "现价", { min: 0, max: 1e9 });
+  const actualTotal = cleanNumber(event.actualTotal, "实际到账", { min: 0, max: 1e12 });
+  const exDate = cleanText(event.exDate, 20, "除权日");
+  const payDate = cleanText(event.payDate, 20, "到账日");
+  const note = cleanText(event.note, 300, "备注");
+  return updateWorkspace(openid, (workspace) => {
+    if (workspace.dividendLots.length >= WORKSPACE_LIMITS.dividendLots) {
+      throw new MemberError("WORKSPACE_LIMIT", `收息台账最多 ${WORKSPACE_LIMITS.dividendLots} 条`);
+    }
+    const now = new Date();
+    workspace.dividendLots.unshift({
+      id: recordId("div"),
+      name,
+      code,
+      market,
+      marketLabel: MARKET_LABELS[market],
+      currency,
+      shares,
+      expectedPerShare,
+      yieldPct,
+      price,
+      actualTotal,
+      exDate,
+      payDate,
       note,
       createdAt: now,
       updatedAt: now,
@@ -336,11 +781,156 @@ async function saveDecision(openid, event) {
   });
 }
 
+async function removeDividendLot(openid, event) {
+  const id = validRecordId(event.itemId, "div");
+  return updateWorkspace(openid, (workspace) => {
+    workspace.dividendLots = workspace.dividendLots.filter((item) => item.id !== id);
+  }, false);
+}
+
+async function saveSettings(openid, event) {
+  const taxRatePct = cleanNumber(event.taxRatePct, "税率", { min: 0, max: 60, required: true });
+  const hkdCny = cleanNumber(event.hkdCny, "港币汇率", { min: 0.01, max: 20, required: true });
+  const usdCny = cleanNumber(event.usdCny, "美元汇率", { min: 0.01, max: 20, required: true });
+  return updateWorkspace(openid, (workspace) => {
+    workspace.settings = {
+      taxRatePct,
+      hkdCny,
+      usdCny,
+      updatedAt: new Date(),
+    };
+  });
+}
+
+function todayLabelShanghai() {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const get = (type) => parts.find((part) => part.type === type)?.value || "00";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+async function sendEventReminders() {
+  const templateId = String(process.env.WANGCHAO_SUBSCRIBE_EVENT_TMPL || "").trim();
+  const today = todayLabelShanghai();
+  if (!templateId) {
+    return {
+      ok: true,
+      skipped: true,
+      reason: "NO_TEMPLATE",
+      today,
+      sent: 0,
+    };
+  }
+  const pageSize = 50;
+  let offset = 0;
+  let sent = 0;
+  let scanned = 0;
+  const errors = [];
+  for (;;) {
+    const result = await db.collection(WORKSPACES).skip(offset).limit(pageSize).get();
+    const rows = result.data || [];
+    if (!rows.length) break;
+    for (const doc of rows) {
+      scanned += 1;
+      const openid = doc.ownerOpenid || doc._openid || doc.openid;
+      const marks = Array.isArray(doc.eventMarks) ? doc.eventMarks : [];
+      const due = marks.filter((item) => (
+        item.dateLabel === today
+        && item.notifyAccepted
+        && !item.notifiedAt
+      ));
+      if (!openid || !due.length) continue;
+      for (const mark of due) {
+        try {
+          await cloud.openapi.subscribeMessage.send({
+            touser: openid,
+            templateId,
+            page: "pages/workspace/index?focus=calendar&addon=remind",
+            data: {
+              thing1: { value: String(mark.title || "投资事件").slice(0, 20) },
+              time2: { value: String(mark.dateLabel || today) },
+              thing3: { value: String(mark.detail || mark.marketLabel || "打开望潮查看").slice(0, 20) },
+            },
+            miniprogramState: "formal",
+          });
+          sent += 1;
+          mark.notifiedAt = new Date();
+        } catch (error) {
+          errors.push(String(error.errMsg || error.message || error).slice(0, 120));
+        }
+      }
+      if (due.some((item) => item.notifiedAt)) {
+        await db.collection(WORKSPACES).doc(doc._id).update({
+          data: {
+            eventMarks: marks,
+            updatedAt: new Date(),
+          },
+        });
+      }
+    }
+    if (rows.length < pageSize) break;
+    offset += pageSize;
+    if (offset > 2000) break;
+  }
+  return {
+    ok: true,
+    today,
+    scanned,
+    sent,
+    errors: errors.slice(0, 5),
+  };
+}
+
+function isEventRemindTimer(event) {
+  const name = String(event.TriggerName || event.triggerName || "");
+  return name === "member-event-remind" || name.includes("event-remind");
+}
+
+async function removeEventMark(openid, event) {
+  const id = validRecordId(event.itemId, "event");
+  return updateWorkspace(openid, (workspace) => {
+    workspace.eventMarks = workspace.eventMarks.filter((item) => item.id !== id);
+  }, false);
+}
+
 async function removeDecision(openid, event) {
   const id = validRecordId(event.itemId, "decision");
   return updateWorkspace(openid, (workspace) => {
     workspace.decisions = workspace.decisions.filter((item) => item.id !== id);
   }, false);
+}
+
+async function refreshSentinel(openid) {
+  try {
+    await reconcileRecentOrders(openid, RECONCILE_BATCH_LIMIT, true);
+  } catch (error) {
+    // 核验失败仍尽量返回工作台，保持只读可用。
+  }
+  const id = workspaceId(openid);
+  const data = await getDocument(WORKSPACES, id);
+  let added = 0;
+  if (data) {
+    const { _id, _openid, ...workspace } = data;
+    delete workspace.openid;
+    workspace.watchItems = Array.isArray(workspace.watchItems) ? workspace.watchItems : [];
+    workspace.decisions = Array.isArray(workspace.decisions) ? workspace.decisions : [];
+    workspace.eventMarks = Array.isArray(workspace.eventMarks) ? workspace.eventMarks : [];
+    workspace.inbox = Array.isArray(workspace.inbox) ? workspace.inbox : [];
+    workspace.reviewTasks = Array.isArray(workspace.reviewTasks) ? workspace.reviewTasks : [];
+    added = await scanWorkspaceInbox(db, workspace, recordId);
+    if (added > 0) {
+      workspace.ownerOpenid = openid;
+      workspace.updatedAt = new Date();
+      await db.collection(WORKSPACES).doc(id).set({ data: workspace });
+    }
+  }
+  const publicData = await publicWorkspace(openid);
+  return { ...publicData, sentinelAdded: added };
 }
 
 async function deleteWorkspace(openid) {
@@ -815,6 +1405,18 @@ async function memberStatus(openid) {
     plans: publicPlans(),
     entitlement,
     orders: await publicOrders(openid),
+    subscribe: subscribeConfig(),
+    freeLimits: FREE_LIMITS,
+    sellGate: {
+      paymentChannelOpen: Boolean(config.ready && config.publicReady && !reviewRequired),
+      codeReady: true,
+      humanPending: [
+        "微信公众平台类目确认",
+        "公众平台隐私保护指引填写",
+        "Android/iOS 真机支付留证",
+        "商户平台人工退款留证",
+      ],
+    },
   };
 }
 
@@ -932,13 +1534,30 @@ exports.main = async (event = {}) => {
       if (context.OPENID) return fail("FREE_TEST_FORBIDDEN", "客户端不能触发免费测试授权");
       return ok(await grantFreeTestEntitlement());
     }
+    if (isEventRemindTimer(event)) {
+      if (context.OPENID) return fail("TIMER_FORBIDDEN", "客户端不能触发事件提醒任务");
+      const inbox = await scanAllWorkspacesInbox();
+      const push = await sendEventReminders();
+      return ok({ inbox, push });
+    }
     if (!context.OPENID) return fail("NO_OPENID", "请从望潮小程序内打开会员页");
     if (event.action === "status") return ok(await memberStatus(context.OPENID));
     if (event.action === "workspace") return ok(await workspaceStatus(context.OPENID));
+    if (event.action === "refreshSentinel") return ok(await refreshSentinel(context.OPENID));
     if (event.action === "saveWatchItem") return ok(await saveWatchItem(context.OPENID, event));
     if (event.action === "removeWatchItem") return ok(await removeWatchItem(context.OPENID, event));
     if (event.action === "saveDecision") return ok(await saveDecision(context.OPENID, event));
     if (event.action === "removeDecision") return ok(await removeDecision(context.OPENID, event));
+    if (event.action === "ackWatchBaselines") return ok(await ackWatchBaselines(context.OPENID, event));
+    if (event.action === "saveEventMark") return ok(await saveEventMark(context.OPENID, event));
+    if (event.action === "removeEventMark") return ok(await removeEventMark(context.OPENID, event));
+    if (event.action === "markInboxRead") return ok(await markInboxRead(context.OPENID, event));
+    if (event.action === "updateReviewTask") return ok(await updateReviewTask(context.OPENID, event));
+    if (event.action === "saveIpoRecord") return ok(await saveIpoRecord(context.OPENID, event));
+    if (event.action === "removeIpoRecord") return ok(await removeIpoRecord(context.OPENID, event));
+    if (event.action === "saveDividendLot") return ok(await saveDividendLot(context.OPENID, event));
+    if (event.action === "removeDividendLot") return ok(await removeDividendLot(context.OPENID, event));
+    if (event.action === "saveSettings") return ok(await saveSettings(context.OPENID, event));
     if (event.action === "deleteWorkspace") return ok(await deleteWorkspace(context.OPENID));
     if (event.action === "preparePurchase") return ok(await preparePurchase(event, context));
     if (event.action === "queryOrder") return ok(await reconcileOrder(context.OPENID, event.orderId));

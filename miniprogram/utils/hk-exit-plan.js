@@ -59,11 +59,11 @@ function buildHkExitPlan(item, options = {}) {
     rows,
     ready,
     basis: ended
-      ? "仅展示该股已披露涨跌，不作出价推算。"
+      ? "已披露涨跌对照，不作出价。"
       : (cohort.sample
-        ? `公开历史 IPO 样本 ${cohort.sample} 个的均值/胜率；不是本股预测价，也不精确到分。`
+        ? `历史样本 ${cohort.sample} 个均值/胜率，非本股预测价。`
         : "历史样本不足"),
-    disclaimer: "研究对照，不是买卖指令，不承诺收益；会员权益为关注/记录/导出，不含出价建议。",
+    disclaimer: "",
   };
 }
 

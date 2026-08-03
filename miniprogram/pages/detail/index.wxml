@@ -20,8 +20,6 @@
         <text class="conclusion-label">结论</text>
         <text class="conclusion-grade">{{view.badge || view.quickAnswer}}</text>
       </view>
-      <text wx:if="{{view.pageHelp}}" class="page-help">{{view.pageHelp}}</text>
-      <text wx:if="{{view.researchScoreBasis}}" class="score-basis">{{view.researchScoreBasis}}</text>
     </view>
 
     <view wx:if="{{view.highlights.length}}" class="highlight-panel">
@@ -42,7 +40,6 @@
         </view>
       </view>
       <text class="exit-plan-basis">{{view.exitPlan.basis}}</text>
-      <text class="exit-plan-disclaimer">{{view.exitPlan.disclaimer}}</text>
     </view>
 
     <block wx:if="{{view.charts.length}}">
@@ -61,11 +58,6 @@
           <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="column-slot">
             <view class="column-bar {{col.tone}}" style="height: {{col.height}}%;"></view>
           </view>
-        </view>
-        <view wx:if="{{item.kind == 'columns'}}" class="column-labels">
-          <text>{{item.lowLabel}}</text>
-          <text>{{item.latestLabel}}</text>
-          <text>{{item.highLabel}}</text>
         </view>
 
         <view wx:if="{{item.kind == 'solid'}}" class="solid-chart">
@@ -161,15 +153,66 @@
       <text>来源 {{view.sourceNote}}</text>
     </view>
 
-    <button class="member-cta" bindtap="openWorkspace" aria-label="保存到我的记录">
-      <view class="cta-copy">
-        <text>保存到我的记录</text>
-        <text class="cta-sub">方便以后对照复盘</text>
-      </view>
-      <text class="cta-arrow">›</text>
-    </button>
+    <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
+      <text class="freshness-label">{{freshness.label}}</text>
+      <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
+    </view>
+
+    <view class="action-stack">
+      <button class="member-cta" data-addon="snapshot" bindtap="openWorkspaceAction" aria-label="{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}">
+        <view class="cta-copy">
+          <text>{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}</text>
+          <text class="cta-sub">{{snapshotSaved ? '对比当时与现在的变化' : '记录当前结论、数据与风险'}}</text>
+        </view>
+        <text class="cta-arrow">›</text>
+      </button>
+      <button class="member-cta secondary-cta" data-addon="remind" bindtap="openWorkspaceAction" aria-label="提醒我相关事件">
+        <view class="cta-copy">
+          <text>提醒我相关事件</text>
+          <text class="cta-sub">招股截止、上市或披露日进入待办</text>
+        </view>
+        <text class="cta-arrow">›</text>
+      </button>
+      <button class="member-cta secondary-cta" data-addon="track" bindtap="openWorkspaceAction" aria-label="追踪此标的变化">
+        <view class="cta-copy">
+          <text>追踪此标的变化</text>
+          <text class="cta-sub">保存基线，之后看相对上次哪里变了</text>
+        </view>
+        <text class="cta-arrow">›</text>
+      </button>
+    </view>
 
     <text class="disclaimer">{{view.disclaimer}}</text>
+  </view>
+
+  <view wx:if="{{snapshotSheetOpen}}" class="snapshot-mask" catchtouchmove="true">
+    <view class="snapshot-sheet">
+      <view class="snapshot-head">
+        <text class="snapshot-title">决策快照预览</text>
+        <button class="snapshot-close" bindtap="closeSnapshotSheet">关闭</button>
+      </view>
+      <text class="snapshot-sub">系统将自动保存当时价格、结论、风险与数据截止时间。公开答案仍免费；正式保存用于个人跟踪与复盘。</text>
+      <view wx:if="{{snapshotPreview}}" class="snapshot-preview">
+        <text>{{snapshotPreview.priceLabel || '价格待核'}} · {{snapshotPreview.oneLiner || '结论待核'}}</text>
+        <text wx:if="{{snapshotPreview.researchScore != null}}">{{snapshotPreview.researchScoreLabel}} {{snapshotPreview.researchScore}}</text>
+        <text wx:if="{{snapshotPreview.metricLabel}}">{{snapshotPreview.metricLabel}}</text>
+        <text wx:if="{{snapshotPreview.risk}}">风险：{{snapshotPreview.risk}}</text>
+        <text>数据截止：{{snapshotPreview.asOf || snapshotPreview.snapshotUpdatedAt || '待核'}}</text>
+      </view>
+      <picker mode="selector" range="{{reasonOptions}}" range-key="label" value="{{reasonIndex}}" bindchange="changeReason">
+        <view class="snapshot-picker"><text>为什么关注</text><text>{{reasonOptions[reasonIndex].label}} ›</text></view>
+      </picker>
+      <picker mode="selector" range="{{reviewConditionOptions}}" range-key="label" value="{{reviewConditionIndex}}" bindchange="changeReviewCondition">
+        <view class="snapshot-picker"><text>何时重新评估</text><text>{{reviewConditionOptions[reviewConditionIndex].label}} ›</text></view>
+      </picker>
+      <view class="snapshot-input"><text>下次查看</text><input value="{{snapshotReviewAt}}" maxlength="20" placeholder="YYYY-MM-DD" bindinput="inputSnapshotReviewAt" /></view>
+      <view class="snapshot-note">
+        <text>个人备注（选填）</text>
+        <textarea maxlength="300" auto-height placeholder="可不填；系统快照仍会保存" value="{{snapshotNote}}" bindinput="inputSnapshotNote"></textarea>
+      </view>
+      <button class="primary-button snapshot-save" bindtap="confirmSnapshotSave" loading="{{snapshotSaving}}" disabled="{{snapshotSaving}}">确认保存决策快照</button>
+      <text class="snapshot-legal">不构成荐股或收益承诺。未成功保存前不会写入你的记录。</text>
+    </view>
   </view>
 
   <view wx:elif="{{loading}}" class="empty">

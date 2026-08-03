@@ -2,7 +2,8 @@
   "permissions": {
     "openapi": [
       "cloudPay.unifiedOrder",
-      "cloudPay.queryOrder"
+      "cloudPay.queryOrder",
+      "subscribeMessage.send"
     ]
   },
   "triggers": [
@@ -10,6 +11,11 @@
       "name": "member-order-reconcile",
       "type": "timer",
       "config": "0 */15 * * * * *"
+    },
+    {
+      "name": "member-event-remind",
+      "type": "timer",
+      "config": "0 0 9 * * * *"
     }
   ]
 }

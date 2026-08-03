@@ -210,25 +210,28 @@ function usItems(snapshot) {
     const fund = fundamentals.get(stock.symbol) || {};
     return { ...stock, fund, id: stock.symbol };
   });
-  const make = (stock, group, badge) => ({
-    id: stock.symbol,
-    market: "us",
-    group,
-    name: US_NAMES[stock.symbol] || stock.symbol,
-    code: stock.symbol,
-    badge,
-    score: null,
-    rank: null,
-    scoreText: group === "hot" ? `热度 ${number(stock.heatScore)} 分` : "七姐妹",
-    rankText: badge,
-    one: [
-      signedPercent(stock.changePercent) || "涨跌待更新",
-      group === "hot" && Number.isFinite(number(stock.heatScore)) ? `热度 ${number(stock.heatScore)}` : null,
-      Number.isFinite(Number(stock.price)) ? money(stock.price) : null,
-    ].filter(Boolean).join(" · "),
-    raw: stock,
-  });
-  const bySymbol = new Map(stocks.map((item) => [item.symbol, item]));
+  const make = (stock, group, badge) => {
+    const heat = Number(stock.heatScore);
+    const hasHeat = Number.isFinite(heat);
+    return {
+      id: stock.symbol,
+      market: "us",
+      group,
+      name: US_NAMES[stock.symbol] || stock.symbol,
+      code: stock.symbol,
+      badge,
+      score: null,
+      rank: null,
+      scoreText: group === "hot" && hasHeat ? `热度 ${Math.round(heat)}` : "七姐妹",
+      rankText: badge,
+      one: [
+        signedPercent(stock.changePercent) || "涨跌待更新",
+        group === "hot" && hasHeat ? `热度 ${Math.round(heat)}` : null,
+        Number.isFinite(Number(stock.price)) ? money(stock.price) : null,
+      ].filter(Boolean).join(" · "),
+      raw: stock,
+    };
+  };  const bySymbol = new Map(stocks.map((item) => [item.symbol, item]));
   const seven = MAGNIFICENT_SEVEN.map((symbol) => bySymbol.get(symbol)).filter(Boolean).map((item) => make(item, "seven", "七姐妹"));
   const nonSeven = stocks
     .filter((item) => !MAGNIFICENT_SEVEN.includes(item.symbol))
@@ -257,17 +260,18 @@ function smartMoneyItems(snapshot) {
       market: "guru",
       group: profile.group,
       name: profile.name,
-      code: profile.performanceValue,
-      badge: profile.marketLabel,
+      code: "",
+      badge: profile.performanceValue || profile.marketLabel,
       score: null,
       rank: profile.order,
-      scoreText: profile.performanceValue,
-      rankText: `第 ${profile.order}/${counts[profile.group]} 名`,
-      one: `原因：${profile.why} 学法：${profile.how}`,
+      scoreText: `${holdings.length}只持仓`,
+      rankText: `第 ${profile.order}/${counts[profile.group]}`,
+      one: `原因：${String(profile.why || "").slice(0, 10)} · 学法：${String(profile.how || "").slice(0, 8)}`,
       raw: {
         ...live,
         profile,
         holdings,
+        sold: Array.isArray(live?.sold) ? live.sold : [],
         reportDate: live?.reportDate || profile.report || "以最新公开报告为准",
         filingDate: live?.filingDate || profile.report || "以原始文件为准",
         source: live?.source || profile.sourceName,
@@ -282,8 +286,10 @@ function goldItems(snapshot) {
   const plan = answer.pricePlan || {};
   const international = gold.quotes?.international;
   const domestic = gold.quotes?.domestic;
-  const quoteLine = international && domestic
-    ? `国际金 ${international.price} 美元/盎司 · 上海金 ${domestic.price} 元/克`
+  const intlPrice = Number(international?.price);
+  const domPrice = Number(domestic?.price);
+  const quoteLine = Number.isFinite(intlPrice) && Number.isFinite(domPrice)
+    ? `国际金 ${intlPrice.toFixed(0)} 美元/盎司 · 上海金 ${domPrice.toFixed(0)} 元/克`
     : "国际金与上海金资料待核验";
   const buyIntl = formatRange(plan.internationalWatch);
   const sellIntl = formatRange(plan.internationalUpper);
@@ -311,9 +317,6 @@ function goldItems(snapshot) {
       [
         buyIntl ? `买 ${buyIntl}` : null,
         sellIntl ? `卖 ${sellIntl}` : null,
-        riskIntl ? `风险 ${riskIntl}` : null,
-        buyCny ? `沪金买 ${buyCny}` : null,
-        sellCny ? `沪金卖 ${sellCny}` : null,
       ].filter(Boolean).join(" · ") || quoteLine,
     ],
   ];
@@ -322,45 +325,109 @@ function goldItems(snapshot) {
     market: "gold",
     group,
     name,
-    code: id === "plan" ? quoteLine : "黄金",
+    code: id === "plan" ? "观察区" : "黄金",
     badge,
-    score: id === "track" ? number(answer.score) : null,
+    score: id === "track" ? (Number.isFinite(Number(answer.score)) ? Number(answer.score) : null) : null,
     rank: 1,
     one,
     raw: { ...gold, view: id },
   }));
 }
 
+function aShareObserveScore(raw = {}) {
+  const financials = raw.financials || {};
+  const yieldNow = Number(raw.currentDividendYield);
+  const yieldSustain = Number(raw.sustainableDividendYield);
+  const fcf = Number(financials.freeCashFlow);
+  const ocf = Number(financials.operatingCashFlow);
+  const conversion = Number(financials.cashConversion);
+  const roe = Number(financials.roe);
+  let total = 0;
+  let weight = 0;
+  if (Number.isFinite(yieldSustain)) {
+    total += Math.min(100, yieldSustain * 11) * 0.22;
+    weight += 0.22;
+  }
+  if (Number.isFinite(yieldNow)) {
+    total += Math.min(100, yieldNow * 10) * 0.16;
+    weight += 0.16;
+  }
+  if (Number.isFinite(yieldNow) && Number.isFinite(yieldSustain) && yieldNow > 0) {
+    const cover = Math.min(1.2, Math.max(0, yieldSustain / yieldNow));
+    total += cover * 85 * 0.14;
+    weight += 0.14;
+  }
+  if (Number.isFinite(fcf)) {
+    total += (fcf > 0 ? 82 : 18) * 0.18;
+    weight += 0.18;
+  } else if (Number.isFinite(ocf)) {
+    total += (ocf > 0 ? 70 : 25) * 0.12;
+    weight += 0.12;
+  }
+  if (Number.isFinite(conversion)) {
+    total += Math.min(100, Math.max(15, conversion * 38)) * 0.14;
+    weight += 0.14;
+  }
+  if (Number.isFinite(roe)) {
+    total += Math.min(100, Math.max(20, roe * 4)) * 0.1;
+    weight += 0.1;
+  }
+  if (!weight) return null;
+  return Math.max(0, Math.min(100, Math.round(total / weight)));
+}
+
 function aShareItems(snapshot) {
   const fundamentals = new Map((snapshot.aShare && snapshot.aShare.fundamentals ? snapshot.aShare.fundamentals : []).map((item) => [item.code, item]));
-  const quotes = [...(snapshot.aShare && snapshot.aShare.quotes ? snapshot.aShare.quotes : [])]
-    .sort((left, right) => number(right.currentDividendYield) - number(left.currentDividendYield));
+  const quotes = [...(snapshot.aShare && snapshot.aShare.quotes ? snapshot.aShare.quotes : [])];
+
   return quotes.map((item) => {
-    const research = item.researchView || {};
-    // 前端只开一个「收息清单」；完整度留给后端排序权重，不展示给用户。
-    const yieldText = Number.isFinite(Number(item.currentDividendYield))
-      ? `股息率 ${Number(item.currentDividendYield).toFixed(2)}%`
-      : "股息率待更新";
-    const advice = item.currentAdvice || research.label || "先看分红";
-    const buy = item.buyPrice || item.recommendPrice || null;
+    const financials = fundamentals.get(item.code) || {};
+    const raw = { ...item, financials };
+    const score = aShareObserveScore(raw);
+    const yieldNow = Number(item.currentDividendYield);
+    const yieldSustain = Number(item.sustainableDividendYield);
+    const fcf = Number(financials.freeCashFlow);
+    const hasYield = Number.isFinite(yieldNow);
+    const hasSustain = Number.isFinite(yieldSustain);
+    const cashOk = Number.isFinite(fcf) ? fcf > 0 : true;
+    const coverOk = hasYield && hasSustain ? yieldSustain >= yieldNow * 0.75 : hasSustain;
+
+    let group = "steady";
+    let badge = "稳健收息";
+    if (score != null && score >= 72 && cashOk && coverOk) {
+      group = "prime";
+      badge = "优等收息";
+    } else if (hasYield && yieldNow >= 5 && (!coverOk || !cashOk || (score != null && score < 55))) {
+      group = "watch";
+      badge = "高息待核";
+    } else if (score != null && score < 45) {
+      group = "watch";
+      badge = "高息待核";
+    }
+
+    const yieldText = hasYield ? `${yieldNow.toFixed(1)}%` : "股息待更";
+    const sustainText = hasSustain ? `可持续 ${yieldSustain.toFixed(1)}%` : null;
+    const scoreText = score != null ? `观察分 ${score}` : null;
+
     return {
       id: String(item.code).replace(/\.(SH|SZ)$/i, ""),
       market: "a",
-      group: "payout",
+      group,
       name: item.name,
       code: item.code,
-      badge: yieldText,
-      score: null,
+      badge,
+      score,
       rank: null,
-      scoreText: advice,
-      rankText: buy ? `参考 ${buy}` : "公开收息样本",
-      one: [
-        yieldText,
-        advice,
-        buy ? `参考 ${buy}` : null,
-      ].filter(Boolean).join(" · "),
-      raw: { ...item, financials: fundamentals.get(item.code) || {} },
+      scoreText: scoreText || badge,
+      rankText: yieldText,
+      one: [yieldText, sustainText, scoreText].filter(Boolean).join(" · "),
+      raw,
     };
+  }).sort((left, right) => {
+    const groupRank = { prime: 0, steady: 1, watch: 2 };
+    const g = (groupRank[left.group] ?? 9) - (groupRank[right.group] ?? 9);
+    if (g !== 0) return g;
+    return number(right.score) - number(left.score);
   });
 }
 
@@ -378,11 +445,11 @@ function groupDefinitions(snapshot, market) {
   let definitions;
   if (market === "hk") {
     definitions = [
-      ["worth", "建议申购", "可关注，先核一手与风险"],
-      ["caution", "暂缓观察", "先看热度，暂不重仓"],
-      ["avoid", "暂不建议", "风险偏多，暂不申购"],
-      ["cancelled", "发行已取消", "已取消，无法申购"],
-      ["ended", "已结束", "只复盘上市表现"],
+      ["worth", "建议申购", "先核一手与风险"],
+      ["caution", "暂缓观察", "先看热度"],
+      ["avoid", "暂不建议", "风险偏多"],
+      ["cancelled", "发行已取消", "无法申购"],
+      ["ended", "已结束", "上市复盘"],
       // 旧完整度字面保留给审计兼容，count 为 0。
       ["legacy-complete", "资料较完整", "已改名为建议申购等动作结论。"],
       ["legacy-review", "重点核验", "已改名为暂缓观察。"],
@@ -390,21 +457,24 @@ function groupDefinitions(snapshot, market) {
     ];
   } else if (market === "us") {
     definitions = [
-      ["seven", "七姐妹", "长期关注的七家科技巨头"],
-      ["hot", "热度前三", "近期热度最高的三只"],
+      ["seven", "七姐妹", "长期关注七巨头"],
+      ["hot", "热度前三", "近期热度最高"],
     ];
   } else if (market === "a") {
     definitions = [
-      ["payout", "收息清单", "按股息率从高到低"],
+      ["prime", "优等收息", "股息可持续+现金支撑"],
+      ["steady", "稳健收息", "综合观察分中等"],
+      ["watch", "高息待核", "高息但现金/可持续偏弱"],
       // 保留旧组名字符串供审计/兼容路由，count 恒为 0，前端会显示暂无。
+      ["payout", "收息清单", "已拆为优等/稳健/待核"],
       ["complete", "资料较完整", "后端完整度分组，已并入收息清单。"],
       ["review", "现金流待核验", "后端完整度分组，已并入收息清单。"],
       ["limited", "资料待补充", "后端完整度分组，已并入收息清单。"],
     ];
   } else if (market === "gold") {
     definitions = [
-      ["track", "现在怎么做", "偏买、观望或回避"],
-      ["plan", "买点与卖点", "买入/卖出观察区"],
+      ["track", "现在怎么做", "偏买 / 观望 / 回避"],
+      ["plan", "买点与卖点", "买入卖出观察区"],
       // 旧四入口字面保留给审计兼容，count 为 0。
       ["answer", "资料结论", "已并入「现在怎么做」。"],
       ["price", "价格位置", "已并入「买点与卖点」。"],
@@ -412,9 +482,9 @@ function groupDefinitions(snapshot, market) {
     ];
   } else {
     definitions = [
-      ["hk", "港股 · 3 个", "可核验候选池内，按公开长期年化从高到低"],
-      ["us", "美股 · 5 个", "可核验候选池内，按公开长期年化从高到低"],
-      ["a", "A股 · 3 个", "可核验候选池内，按公开长期年化从高到低"],
+      ["hk", "港股 · 3 个", "公开长期年化排序"],
+      ["us", "美股 · 5 个", "公开长期年化排序"],
+      ["a", "A股 · 3 个", "公开长期年化排序"],
     ];
   }
   return definitions.map(([id, title, one]) => ({ id, title, one, count: items.filter((item) => item.group === id).length }));

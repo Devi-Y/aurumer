@@ -30,6 +30,10 @@
 
 `member_entitlements` 与 `member_workspaces` 都以 OpenID 的 SHA-256 摘要作为文档 ID，不再在文档正文中冗余保存原始 OpenID。支付订单为完成微信查单验真、归属校验和退款复核仍保存必要的原始 OpenID，并按协议限定用途与保存期限。权益到期后，用户仍可查看、导出和删除自己的记录，但不能新增。
 
+`member_workspaces` 嵌入字段包括：`watchItems`（含 `baselineFact` 历史快照）、`decisions`（含 `evidence`）、`inbox`（变化消息）、`reviewTasks`（节点待办）、`eventMarks`、台账与设置。变化分类见 `change-detect.js`，待办见 `review-tasks.js`。正式公开事实优先从同环境 `data_fact_latest` 盖章写入，客户端不能伪造服务端正式结论。
+
+可选环境变量 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`：配置后才允许申请微信订阅消息；未配置时仅提供小程序内提醒，页面不得显示「微信提醒已开启」。
+
 ## 支付发布环境变量
 
 普通 JSAPI 已固定为唯一新购路线，账号绑定与 JSAPI 授权已经确认，不再要求用环境变量重复声明支付方式或商户绑定状态。旧虚拟支付变量已从云函数环境删除。

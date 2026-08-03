@@ -48,6 +48,11 @@
     </view>
   </view>
 
+  <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
+    <text class="freshness-label">{{freshness.label}}</text>
+    <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
+  </view>
+
   <view class="group-panel">
     <view
       wx:for="{{groups}}"

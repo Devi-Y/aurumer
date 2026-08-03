@@ -4,6 +4,8 @@ const { openPage } = require("../../utils/nav");
 const { shortCompanyName, allItems } = require("../../utils/answers");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
+const { loadWorkspace } = require("../../services/member");
+const { homeMemberSummary } = require("../../utils/change-center");
 
 const CORE_ENTRIES = [
   {
@@ -47,7 +49,7 @@ const CORE_ENTRIES = [
     action: "member",
     icon: "/assets/home/member.svg",
     title: "年费会员",
-    help: "关注·记录·导出",
+    help: "关注·变化·复盘",
     detail: "365天 · ¥1288",
     badge: "¥1288/年",
     tone: "member",
@@ -166,9 +168,34 @@ Page({
   onLoad() {
     track("home_open");
     this.refreshAnswers();
+    this.refreshMemberCard();
+  },
+  onShow() {
+    this.refreshMemberCard();
   },
   onPullDownRefresh() {
     this.refreshAnswers(() => wx.stopPullDownRefresh(), true);
+    this.refreshMemberCard();
+  },
+  refreshMemberCard() {
+    loadWorkspace()
+      .then((workspace) => {
+        const summary = homeMemberSummary({
+          active: workspace.active,
+          todayBrief: workspace.todayBrief,
+          reviewTasks: workspace.reviewTasks,
+        });
+        const entries = this.data.entries.map((item) => {
+          if (item.id !== "member") return item;
+          return {
+            ...item,
+            help: summary.help,
+            detail: summary.detail,
+          };
+        });
+        this.setData({ entries });
+      })
+      .catch(() => {});
   },
   refreshAnswers(done, force = false) {
     loadSnapshot(

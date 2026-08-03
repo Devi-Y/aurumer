@@ -21,10 +21,10 @@ function hkScore(item) {
       basis: "公开招股研究分（单一口径）",
     };
   }
-  if (item?.badge === "建议申购") return { score: 82, label: "研究分", basis: "结论档位映射（无公开分时）" };
-  if (item?.badge === "暂缓观察") return { score: 55, label: "研究分", basis: "结论档位映射（无公开分时）" };
+  if (item?.badge === "建议申购") return { score: 82, label: "研究分", basis: "按结论档位" };
+  if (item?.badge === "暂缓观察") return { score: 55, label: "研究分", basis: "按结论档位" };
   if (item?.badge === "暂不建议" || item?.badge === "资料不够") {
-    return { score: 28, label: "研究分", basis: "结论档位映射（无公开分时）" };
+    return { score: 28, label: "研究分", basis: "按结论档位" };
   }
   return { score: null, label: "研究分", basis: "资料不足" };
 }
@@ -79,35 +79,52 @@ function aScore(item) {
     ? Number(raw.sustainableDividendYield)
     : null;
   const fcf = hasNumber(financials.freeCashFlow) ? Number(financials.freeCashFlow) : null;
+  const ocf = hasNumber(financials.operatingCashFlow) ? Number(financials.operatingCashFlow) : null;
   const conversion = hasNumber(financials.cashConversion) ? Number(financials.cashConversion) : null;
+  const roe = hasNumber(financials.roe) ? Number(financials.roe) : null;
   const change = hasNumber(raw.changePercent) ? Number(raw.changePercent) : null;
 
   let total = 0;
   let weight = 0;
+
+  // 可持续股息：现金支撑能力，不只看账面股息率
   if (yieldSustain != null) {
-    total += Math.min(100, yieldSustain * 13) * 0.4;
-    weight += 0.4;
+    total += Math.min(100, yieldSustain * 11) * 0.22;
+    weight += 0.22;
   }
   if (yieldNow != null) {
-    total += Math.min(100, yieldNow * 12) * 0.3;
-    weight += 0.3;
+    total += Math.min(100, yieldNow * 10) * 0.16;
+    weight += 0.16;
+  }
+  // 可持续 vs 当前：差距过大说明高息难持续
+  if (yieldNow != null && yieldSustain != null && yieldNow > 0) {
+    const cover = Math.min(1.2, Math.max(0, yieldSustain / yieldNow));
+    total += cover * 85 * 0.14;
+    weight += 0.14;
   }
   if (fcf != null) {
-    total += (fcf > 0 ? 80 : 20) * 0.2;
-    weight += 0.2;
+    total += (fcf > 0 ? 82 : 18) * 0.18;
+    weight += 0.18;
+  } else if (ocf != null) {
+    total += (ocf > 0 ? 70 : 25) * 0.12;
+    weight += 0.12;
   }
   if (conversion != null) {
-    total += Math.min(100, Math.max(20, conversion * 40)) * 0.1;
+    total += Math.min(100, Math.max(15, conversion * 38)) * 0.14;
+    weight += 0.14;
+  }
+  if (roe != null) {
+    total += Math.min(100, Math.max(20, roe * 4)) * 0.1;
     weight += 0.1;
   }
-  if (change != null && change <= -5 && weight) {
-    total = Math.max(0, total - 4 * weight);
+  if (change != null && change <= -6 && weight) {
+    total = Math.max(0, total - 5 * weight);
   }
   if (!weight) return { score: null, label: "收息观察分", basis: "公开股息/现金流不足" };
   return {
     score: clamp(total / weight),
     label: "收息观察分",
-    basis: "公开股息与现金流资料排序，不是收益预测",
+    basis: "股息+可持续性+现金流+ROE 综合排序",
   };
 }
 

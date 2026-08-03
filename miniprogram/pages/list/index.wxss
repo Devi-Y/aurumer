@@ -8,12 +8,34 @@
 .list-summary,
 .list-insight,
 .item-panel,
+.freshness-banner,
 .empty {
   overflow: hidden;
   border: 1rpx solid #e7ece9;
   border-radius: 24rpx;
   background: #ffffff;
 }
+
+.freshness-banner {
+  margin-top: 16rpx;
+  padding: 16rpx 20rpx;
+}
+.freshness-banner .freshness-label,
+.freshness-banner .freshness-tip { display: block; }
+.freshness-banner .freshness-label {
+  color: #1b211d;
+  font-size: 24rpx;
+  font-weight: 650;
+}
+.freshness-banner .freshness-tip {
+  margin-top: 4rpx;
+  color: #6a746e;
+  font-size: 22rpx;
+  line-height: 1.45;
+}
+.freshness-banner.tone-ok { background: #eef8f2; border-color: #d7ebe1; }
+.freshness-banner.tone-warn { background: #fff7ec; border-color: #f0e0c8; }
+.freshness-banner.tone-bad { background: #fdf0ee; border-color: #f0d5cf; }
 
 .list-summary {
   display: flex;
@@ -282,6 +304,14 @@
 }
 
 .data-bar-block { margin-top: 11rpx; }
+
+.item-one {
+  display: block;
+  margin-top: 10rpx;
+  color: #6a746d;
+  font-size: 22rpx;
+  line-height: 1.45;
+}
 
 .data-bar-copy {
   color: #4d6959;

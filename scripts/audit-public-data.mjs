@@ -59,8 +59,8 @@ assert(
 if (hkExtraction && hkExtraction.ok === false) {
   console.warn(`[告警] ${hkExtraction.reason}`);
 }
-assert((snapshot.aShare?.quotes || []).length === 12, "A股行情必须完整覆盖 12 只");
-assert((snapshot.aShare?.fundamentals || []).length === 12, "A股财务必须完整覆盖 12 只");
+assert((snapshot.aShare?.quotes || []).length === 20, "A股行情必须完整覆盖 20 只");
+assert((snapshot.aShare?.fundamentals || []).length === 20, "A股财务必须完整覆盖 20 只");
 assert(
   snapshot.aShare.fundamentals.every((item) =>
     Number.isFinite(item.operatingCashFlow)

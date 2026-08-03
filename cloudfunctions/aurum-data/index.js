@@ -2,9 +2,10 @@
 
 const https = require("node:https");
 const { sanitizeSnapshot } = require("./sanitize");
+const { writeFactVersions } = require("./fact-versions");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-08-03-p0-cache-first";
+const SOURCE_REVISION = "2026-08-03-cache-first-sentinel-p0";
 
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 /** 10 分钟内视为新鲜；超过则后台回源，前台仍先读缓存。 */
@@ -152,6 +153,15 @@ async function refreshSnapshot(timeoutMs = WARM_REQUEST_TIMEOUT_MS) {
   };
   cachedAt = Date.now();
   await writePersistedSnapshot(cachedResult);
+  try {
+    const db = getDatabase();
+    if (db) {
+      const factStats = await writeFactVersions(db, cachedResult.data || cachedResult);
+      cachedResult.factStats = factStats;
+    }
+  } catch (error) {
+    console.warn("写入事实版本失败", error && error.message);
+  }
   return cachedResult;
 }
 

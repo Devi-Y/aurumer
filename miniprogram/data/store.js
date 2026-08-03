@@ -1,9 +1,9 @@
 const bundledSnapshot = require("./live-snapshot");
 
 const REMOTE_TTL_MS = 10 * 60 * 1000;
-// 快照超过这个年龄，就算 status=live 也不能再叫「自动更新」——批量刷新一天就两趟，
-// 周末还可能空窗 50 小时，用户必须能一眼看出这是「上一份可用数据」。
-const FRESH_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+// 公开快照工作日约两趟（09:30 / 16:30），周末空窗更长。
+// 在云函数仍可服务的 36 小时窗口内，「自动更新」就是当前已发布结论，不要误报成故障。
+const CURRENT_PUBLISH_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 const STALE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
 let memorySnapshot = bundledSnapshot;
@@ -54,25 +54,39 @@ function snapshotAgeMs(snapshot) {
 
 function freshnessKind(snapshot, baseSource, warning) {
   const age = snapshotAgeMs(snapshot);
-  if (warning || baseSource === "缓存回退" || /UPSTREAM|TEMPORARILY|stale/i.test(String(warning || ""))) {
+  const warnText = String(warning || "");
+  // 仅上游不可用 / 明确缓存回退才算异常；动作结论待同步等软提示不算故障。
+  if (
+    baseSource === "缓存回退"
+    || /UPSTREAM|TEMPORARILY|stale|上游暂不可用/i.test(warnText)
+  ) {
     return "cached";
   }
-  if (baseSource === "离线备用数据") return "offline";
-  if (age > STALE_MAX_AGE_MS) return "stale";
-  if (age > FRESH_MAX_AGE_MS) return "aging";
-  if (baseSource === "自动更新") return "fresh";
-  return "aging";
+  if (age > STALE_MAX_AGE_MS) {
+    return baseSource === "离线备用数据" ? "offline" : "stale";
+  }
+  // 随包/已发布快照仍在服务窗口内：这是当前可用结论，不是故障。
+  // 冷启动先读随包时也不要闪「未连云端」橙条，等云端失败且数据已陈旧再提示。
+  if (baseSource === "离线备用数据" || baseSource === "自动更新") {
+    return "fresh";
+  }
+  if (age > CURRENT_PUBLISH_MAX_AGE_MS) return "aging";
+  return "fresh";
 }
 
 function sourceLabel(snapshot, baseSource, warning) {
   const stamp = formatSnapshotDate(snapshot && snapshot.updatedAt);
   const kind = freshnessKind(snapshot, baseSource, warning);
-  // 「自动更新」「离线备用数据」字面必须保留给审计；陈旧时加诚实前缀，不伪装成刚刷的。
-  if (kind === "fresh") return `自动更新 · ${stamp}`;
+  // 「自动更新」「离线备用数据」字面必须保留给审计；仅在真异常时改前缀。
+  if (kind === "fresh") {
+    return baseSource === "离线备用数据"
+      ? `离线备用数据 · ${stamp}`
+      : `自动更新 · ${stamp}`;
+  }
   if (kind === "offline") return `离线备用数据 · ${stamp}`;
   if (kind === "cached") return `缓存回退（上游暂不可用）· ${stamp}`;
   if (kind === "stale") return `数据已陈旧 · ${stamp}`;
-  return `上一份可用数据 · ${stamp}`;
+  return `最近同步 · ${stamp}`;
 }
 
 function isRemoteNewerOrEqual(next, current) {

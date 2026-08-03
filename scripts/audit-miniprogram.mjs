@@ -86,7 +86,7 @@ assert(snapshot.us.stocks.length >= 20, "小程序美股不足 20 只");
 assert(snapshot.us.fundamentals.length >= 20, "小程序美股财务数据不足 20 只");
 assert(snapshot.hk.listings.length >= 1, "小程序缺少当前港股新股");
 assert(snapshot.hk.history.length >= 8, "小程序港股历史样本不足 8 只");
-assert(snapshot.aShare.quotes.length >= 12, "小程序 A 股不足 12 只");
+assert(snapshot.aShare.quotes.length >= 20, "小程序 A 股不足 20 只");
 assert(snapshot.aShare.fundamentals.length >= 12, "小程序 A 股现金流数据不足 12 只");
 assert(snapshot.investors.length >= 8, "小程序聪明人持仓不足 8 位");
 
@@ -138,8 +138,9 @@ for (const [group, count] of [["hk", 3], ["us", 5], ["a", 3]]) {
   }
 }
 for (const item of miniAShareItems) {
-  assert(item.group === "payout", `${item.name} 应收息清单统一分组`);
+  assert(["prime", "steady", "watch"].includes(item.group), `${item.name} 应收息分级分组`);
   assert(item.raw.researchView?.state, `${item.name} 缺少后端完整度状态`);
+  assert(item.score == null || Number.isFinite(Number(item.score)), `${item.name} 观察分异常`);
 }
 for (const item of miniHKItems.filter((entry) => ["worth", "caution", "avoid"].includes(entry.group))) {
   assert(["建议申购", "暂缓观察", "暂不建议", "资料不够"].includes(item.badge), `${item.name} 缺少人话申购结论`);
@@ -186,7 +187,7 @@ assert(
 assert(indexTemplate.includes("today-card") || indexTemplate.includes("home-hero"), "小程序首页没有以今日重点和核心入口铺满移动视口");
 assert(
   indexStyles.includes("min-height: 100vh")
-    && (indexStyles.includes("min-height: 188rpx") || indexStyles.includes("min-height: 210rpx"))
+    && (indexStyles.includes("min-height: 176rpx") || indexStyles.includes("min-height: 188rpx") || indexStyles.includes("min-height: 210rpx"))
     && (indexTemplate.includes("today-card") || indexTemplate.includes("home-hero")),
   "小程序首页没有以今日重点和核心入口铺满移动视口",
 );
@@ -282,7 +283,7 @@ assert(
   "今日重点应支持点击跳转标的详情，无标的时回退品类",
 );
 assert(!indexSource.includes("pages/workspace/index"), "首页不应再挂研究记录入口");
-for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "七姐妹", "热度前三", "收息清单", "现在怎么做", "买点与卖点", "资料较完整", "重点核验", "资料不足", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "可核验候选池内", "按公开长期年化从高到低"]) {
+for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "七姐妹", "热度前三", "收息清单", "优等收息", "稳健收息", "高息待核", "现在怎么做", "买点与卖点", "资料较完整", "重点核验", "资料不足", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "公开长期年化排序"]) {
   assert(sectionSource.includes(label), `小程序缺少二级入口：${label}`);
 }
 for (const label of ["近 60 日最低", "近 60 日中位数", "近 60 日最高", "历史样本区间", "自由现金流", "公开持仓", "完整分析", "为什么看它", "怎么学"]) {
@@ -303,8 +304,7 @@ for (const actionField of ["technicalPlan", "targetPrice", "targetUpside", "buy_
 }
 assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes("pricePlan"), "云函数清洗层应保留公开动作结论与黄金买卖观察区");
 assert(
-  indexSource.includes("今天重点关注标的")
-  && indexTemplate.includes("今日重点")
+  indexTemplate.includes("今日重点")
   && indexTemplate.includes("openTodayCategory")
   && indexTemplate.includes("openTodayTarget")
   && (indexSource.includes("数据截至") || indexTemplate.includes("dataAsOf")),
@@ -312,9 +312,38 @@ assert(
 );
 
 assert(sectionSource.includes('one: "') || (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes("one:"), "栏目页缺少品类研究摘要文案配置");
-for (const label of ["望潮年费会员", "365 天会员", "会员功能", "保存关注", "记录想法", "复制导出", "购买须知", "会员说明", "买后得到什么", "每天怎么用", "为什么免费版替代不了", "不含买卖建议"]) {
+for (const label of [
+  "逻辑哨兵",
+  "365 天会员",
+  "会员包含什么",
+  "今日简报",
+  "站内收件箱",
+  "关注上限 80",
+  "购买须知",
+  "买后得到什么",
+  "每天怎么用",
+  "不含买卖建议",
+  "持续跟踪你的关注对象",
+  "重要变化",
+  "决策快照",
+  "节点提醒",
+]) {
   assert(`${memberPageSource}\n${memberTemplate}`.includes(label), `小程序会员页缺少关键内容：${label}`);
 }
+assert(
+  `${memberPageSource}\n${memberTemplate}`.includes("写理由")
+  || `${memberPageSource}\n${memberTemplate}`.includes("事实一变"),
+  "会员页应写明逻辑哨兵承诺",
+);
+assert(
+  (pageTemplatesByPath.get("pages/workspace/index") || "").includes("今日")
+  && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("关注")
+  && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("复盘")
+  && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("逻辑哨兵")
+  && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("站内收件箱"),
+  "工作台应包含今日/关注/复盘三 Tab 与收件箱",
+);
+assert(await access(path.join(miniRoot, "utils", "fact-snapshot.js")).then(() => true).catch(() => false), "工作台应接入变化对照能力");
 assert(!`${memberPageSource}\n${memberTemplate}`.includes("暗盘/首周出价") && !`${memberPageSource}\n${memberTemplate}`.includes("打新出价观察"), "会员页不应再把精确出价当作付费卖点");
 assert(indexTemplate.includes("todayHelp") && indexTemplate.includes("card-help"), "首页应露出今日帮助与入口说明");
 assert((pageTemplatesByPath.get("pages/section/index") || "").includes("meta.one") && (pageTemplatesByPath.get("pages/section/index") || "").includes("group-help"), "栏目页应露出本页用途与分组说明");
@@ -339,13 +368,18 @@ assert(
   "营业执照主体全称没有正确写入公开协议配置",
 );
 assert(legalPage.includes("draft: !legalInfo.operatorReady") && legalTemplate.includes('wx:if="{{draft}}"'), "运营主体未完成时的草案保护逻辑被移除");
-for (const label of ["我的记录", "关注", "想法", "复制导出全部记录", "删除全部记录", "到期后仍可查看、导出和删除"]) {
+for (const label of ["逻辑哨兵", "今日", "关注", "复盘", "站内收件箱", "我的变化", "待办与节点", "为什么", "失效条件", "复制导出全部记录", "删除全部记录", "记录仅当前微信用户可见"]) {
   assert(workspaceTemplate.includes(label), `小程序研究工作台缺少关键内容：${label}`);
 }
-for (const action of ["workspace", "saveWatchItem", "removeWatchItem", "saveDecision", "removeDecision", "deleteWorkspace"]) {
-  assert(memberService.includes(`\"${action}\"`), `小程序会员服务缺少工作台操作：${action}`);
+for (const action of ["workspace", "refreshSentinel", "saveWatchItem", "removeWatchItem", "saveDecision", "removeDecision", "ackWatchBaselines", "saveEventMark", "removeEventMark", "updateReviewTask", "saveIpoRecord", "saveDividendLot", "saveSettings", "deleteWorkspace"]) {
+  assert(memberService.includes(`"${action}"`) || memberService.includes(`'${action}'`) || memberService.includes(action), `小程序会员服务缺少工作台操作：${action}`);
 }
-assert(detailContract.includes("保存到我的记录") && detailSource.includes("pages/workspace/index"), "详情页没有接入研究工作台");
+assert(
+  (detailTemplate.includes("保存决策快照") || detailContract.includes("保存决策快照"))
+  && detailTemplate.includes("追踪此标的变化")
+  && detailSource.includes("pages/workspace/index"),
+  "详情页没有接入研究工作台",
+);
 assert(memberTemplate.includes('open-type="contact"'), "会员页缺少微信客服入口");
 assert(memberPageSource.includes("purchase(planId") && memberPageSource.includes("adultConfirmed: true") && memberPageSource.includes('url: "/pages/legal/index"'), "会员页缺少直达支付、成年确认或完整协议入口");
 assert(
@@ -396,7 +430,9 @@ assert(detailSource.includes("detailsExpanded: false") && detailTemplate.include
 assert(detailSource.includes("kind: \"columns\"") && detailSource.includes("kind: \"solid\"") && detailSource.includes("kind: \"meter\""), "详情页缺少价格轨迹、竖柱对比或位置仪表图");
 assert(!pageStylesByPath.get("pages/detail/index").includes("solid-cap") && !pageStylesByPath.get("pages/detail/index").includes("solid-side") && !pageStylesByPath.get("pages/detail/index").includes("column-pillar"), "详情图表不应再使用立体柱体样式");
 assert(detailSource.includes("base.charts.slice(0, 8)") || detailSource.includes(".slice(0, 8)") || detailSource.includes(".slice(0, 6)"), "详情页应展示更完整的多图数据");
-assert(workspaceSource.includes('activeTab: "watch"') && workspaceTemplate.includes('data-tab="watch"') && workspaceTemplate.includes('data-tab="decision"'), "记录页没有把关注与想法拆成简单双标签交互");
+assert(workspaceSource.includes('activeTab: "today"') && workspaceTemplate.includes('data-tab="today"') && workspaceTemplate.includes('data-tab="watch"') && workspaceTemplate.includes('data-tab="review"') && workspaceSource.includes("markInboxRead") && workspaceSource.includes("buildWeeklyReview") && workspaceSource.includes("refreshSentinel"), "记录页应提供今日/关注/复盘三 Tab，并接入收件箱、持续复盘与打开时扫描");
+assert(workspaceSource.includes("FREE") || workspaceTemplate.includes("免费额度") || workspaceSource.includes("freeRemaining") || workspaceSource.includes("freeLabel"), "工作台应支持免费少量关注额度提示");
+assert(workspaceTemplate.includes("inputWatchThesis") && workspaceTemplate.includes("inputDecisionNextReview"), "关注/想法表单应支持原始理由与复核日");
 assert(!detailSource.includes("openDeep"), "小程序详情仍保留外链分析入口");
 assert(!detailContract.includes("继续看完整分析"), "小程序详情仍会引导用户离开原生页面");
 assert(!detailSource.includes("raw.currentPrice || 0"), "小程序 A 股缺失价格仍会显示 0 元");

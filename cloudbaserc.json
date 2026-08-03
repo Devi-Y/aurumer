@@ -1,0 +1,15 @@
+{
+  "envId": "cloud1-d6gl8we7c8fa1d672",
+  "functionRoot": "cloudfunctions",
+  "functions": [
+    {
+      "name": "aurum-data",
+      "timeout": 10,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "memorySize": 256,
+      "installDependency": true,
+      "ignore": ["node_modules/**", ".git/**", "*.md"]
+    }
+  ]
+}

@@ -33,6 +33,7 @@ const REVIEW_CONDITION_OPTIONS = [
 
 const CHANGE_TYPE_LABELS = {
   conclusion: "研究结论变化",
+  band_cross: "结论跨档",
   score_proxy: "研究观察分变化",
   risk: "风险等级变化",
   price: "价格位置变化",
@@ -41,6 +42,7 @@ const CHANGE_TYPE_LABELS = {
   status: "标的状态变化",
   risk_added: "新增风险提示",
   risk_cleared: "风险提示解除",
+  invalidation: "触及失效条件",
   hk_offer_start: "招股开始",
   hk_offer_near: "招股即将截止",
   hk_offer_end: "招股截止",
@@ -90,7 +92,25 @@ function changeKey(market, targetId, changeType, currentValue) {
   ].join("|");
 }
 
-function classifyFactDiff(baseline, current, market) {
+function observationBand(badge, oneLiner) {
+  const text = `${badge || ""} ${oneLiner || ""}`;
+  if (/值得打|买入|重点|优先|可分批|积极/.test(text)) return "prime";
+  if (/谨慎|等待|观察|持有|中性/.test(text)) return "steady";
+  if (/不建议|回避|结束|过期|风险|降级/.test(text)) return "watch";
+  if (/A|B|C|D|优|良|中|差/.test(String(badge || ""))) {
+    const grade = String(badge || "").trim().charAt(0).toUpperCase();
+    if ("ABCD".includes(grade)) return `grade-${grade}`;
+  }
+  return String(badge || oneLiner || "").trim().slice(0, 24) || "none";
+}
+
+function isPriceOnlyTypes(types) {
+  const meaningful = types.filter((type) => type !== "updated_at");
+  if (!meaningful.length) return true;
+  return meaningful.every((type) => ["price", "us_zone", "gold_intl", "metric", "a_yield", "score_proxy", "hk_issue_data", "us_fundamentals", "us_heat", "gold_spread"].includes(type));
+}
+
+function classifyFactDiff(baseline, current, market, options = {}) {
   if (!current || current.unmatched) {
     return {
       changeTypes: [],
@@ -99,6 +119,7 @@ function classifyFactDiff(baseline, current, market) {
       importanceLabel: IMPORTANCE.low.label,
       summary: "暂无公开对照",
       changeKey: "",
+      notifyWorthy: false,
     };
   }
   if (!baseline || baseline.unmatched) {
@@ -109,6 +130,7 @@ function classifyFactDiff(baseline, current, market) {
       importanceLabel: IMPORTANCE.medium.label,
       summary: "首次建立对照基线",
       changeKey: changeKey(market || current.market, current.code || current.name, "status", current.oneLiner),
+      notifyWorthy: false,
     };
   }
 
@@ -130,6 +152,12 @@ function classifyFactDiff(baseline, current, market) {
   }
   push("price", baseline.priceLabel, current.priceLabel);
   push("metric", baseline.metricLabel, current.metricLabel);
+
+  const beforeBand = observationBand(baseline.badge, baseline.oneLiner);
+  const afterBand = observationBand(current.badge, current.oneLiner);
+  if (beforeBand !== afterBand && !types.includes("band_cross")) types.push("band_cross");
+  if (options.invalidationHit && !types.includes("invalidation")) types.push("invalidation");
+
   if (baseline.snapshotUpdatedAt !== current.snapshotUpdatedAt
     && baseline.snapshotUpdatedAt
     && current.snapshotUpdatedAt
@@ -146,7 +174,7 @@ function classifyFactDiff(baseline, current, market) {
     if (types.includes("score_proxy")) types.push("us_heat");
     if (types.includes("price")) types.push("us_zone");
   } else if (m === "a") {
-    if (types.includes("conclusion")) types.push("a_verdict");
+    if (types.includes("conclusion") || types.includes("band_cross")) types.push("a_verdict");
     if (types.includes("metric")) types.push("a_yield");
   } else if (m === "gold") {
     if (types.includes("conclusion")) types.push("gold_verdict");
@@ -157,10 +185,12 @@ function classifyFactDiff(baseline, current, market) {
   }
 
   let importance = IMPORTANCE.low.id;
-  if (types.some((type) => ["conclusion", "risk", "risk_added", "hk_verdict", "a_verdict", "gold_verdict", "us_zone"].includes(type))) {
+  if (types.some((type) => ["conclusion", "band_cross", "risk", "risk_added", "invalidation", "hk_verdict", "a_verdict", "gold_verdict"].includes(type))) {
     importance = IMPORTANCE.high.id;
+  } else if (isPriceOnlyTypes(types)) {
+    importance = IMPORTANCE.low.id;
   } else if (types.some((type) => ["price", "metric", "score_proxy", "hk_issue_data", "us_fundamentals", "a_yield"].includes(type))) {
-    importance = IMPORTANCE.medium.id;
+    importance = IMPORTANCE.low.id;
   } else if (!types.length) {
     return {
       changeTypes: [],
@@ -169,12 +199,16 @@ function classifyFactDiff(baseline, current, market) {
       importanceLabel: IMPORTANCE.low.label,
       summary: "相对上次无实质变化",
       changeKey: "",
+      notifyWorthy: false,
     };
   }
 
   const labels = types.map((type) => CHANGE_TYPE_LABELS[type] || type);
-  const primary = types[0] || "status";
-  const currentHash = [current.oneLiner, current.badge, current.risk, current.priceLabel, current.metricLabel].join("|");
+  const primary = types.includes("band_cross")
+    ? "band_cross"
+    : (types.includes("invalidation") ? "invalidation" : (types[0] || "status"));
+  const currentHash = [current.oneLiner, current.badge, current.risk, current.priceLabel, current.metricLabel, afterBand].join("|");
+  const notifyWorthy = importance === IMPORTANCE.high.id;
   return {
     changeTypes: types,
     changeLabels: labels,
@@ -182,11 +216,14 @@ function classifyFactDiff(baseline, current, market) {
     importanceLabel: IMPORTANCE[importance].label,
     summary: labels.slice(0, 3).join("、") || "公开资料有更新",
     changeKey: changeKey(m, current.code || current.name, primary, currentHash),
+    notifyWorthy,
   };
 }
 
 function compareOutcome(baseline, current, invalidation) {
-  const classified = classifyFactDiff(baseline, current, current && current.market);
+  const classified = classifyFactDiff(baseline, current, current && current.market, {
+    invalidationHit: Boolean(invalidation),
+  });
   if (!classified.changeTypes.length) {
     return {
       status: "stable",
@@ -195,7 +232,7 @@ function compareOutcome(baseline, current, invalidation) {
       needReassess: false,
     };
   }
-  if (classified.importance === "high" || invalidation) {
+  if (classified.notifyWorthy || classified.importance === "high" || invalidation) {
     return {
       status: "changed",
       label: "关键条件已经变化",
@@ -208,7 +245,7 @@ function compareOutcome(baseline, current, invalidation) {
   return {
     status: "partial",
     label: "原判断仍有数据支持",
-    hint: "部分信息已更新，可继续观察",
+    hint: "普通价格波动不打扰；有结论或风险变化时再提醒",
     needReassess: false,
   };
 }

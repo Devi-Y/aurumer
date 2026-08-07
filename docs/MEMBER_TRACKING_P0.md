@@ -43,6 +43,22 @@
 1. 真机验收三场景（快照 / 变化 / 待办）
 2. 订阅消息模板 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`（可选；未配置时仅站内提醒）
 
+## 运维已落地（2026-08-08）
+
+- A 股契约统一 **20**（README / 审计 / sanitize ingest）
+- 快照过期自动降级动作；网页只展示真实 `updatedAt`
+- `WANGCHAO_OPS_ALERT_WEBHOOK`：warm/回源/同步失败即告警（15 分钟去重）
+- 变化提醒收窄为结论变化、结论跨档、风险新增、触及失效条件
+- 事件标记增加 `deliveryStatus` / `retryCount` / 每日补偿扫描
+- 会员页压缩为：核心价值 → 三项能力 → 履约证据 → 价格与边界
+
+## 仍需平台人工 / 仓外
+
+1. **恢复仓外自动生产任务**（工作日 09:30 / 16:30），当前公开快照停在 2026-08-03
+2. 配置 `WANGCHAO_OPS_ALERT_WEBHOOK` 与（可选）`WANGCHAO_SUBSCRIBE_EVENT_TMPL`
+3. 真机验收三场景（快照 / 变化 / 待办）
+4. 部署更新后的 `aurum-data` / `aurum-member` 云函数，并重新 `sync:latest` + 上传小程序
+
 ## 运维已落地（2026-08-03）
 
 - `aurum-data` 超时 **20 秒**；`data-snapshot-warm` 每 30 分钟；`SOURCE_REVISION` 含 `cache-first` / `sentinel`

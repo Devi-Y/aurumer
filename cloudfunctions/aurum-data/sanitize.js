@@ -259,10 +259,12 @@ function assertSourceSnapshot(snapshot) {
   }
   // 机构持仓阈值留出余量：13F 是季度披露，个别机构延迟很常见，
   // 不该因为少一位就把整份行情（美股、A股、港股、黄金）一起判为不可用。
+  // A 股公开契约已统一为 20 只；云端 soft-serve 仍允许短窗缺数，但 ingest 按 20 验收。
   const checks = [
     [snapshot.us && snapshot.us.stocks, 20, "美股行情"],
     [snapshot.us && snapshot.us.fundamentals, 20, "美股财务"],
-    [snapshot.aShare && snapshot.aShare.quotes, 5, "A 股资料"],
+    [snapshot.aShare && snapshot.aShare.quotes, 20, "A 股行情"],
+    [snapshot.aShare && snapshot.aShare.fundamentals, 20, "A 股财务"],
     [snapshot.investors, 6, "机构持仓"],
   ];
   for (const [items, minimum, label] of checks) {
@@ -280,10 +282,11 @@ function assertSourceSnapshot(snapshot) {
 
 function sanitizeSnapshot(snapshot) {
   assertSourceSnapshot(snapshot);
+  const { degradeStaleActions } = require("./action-freshness");
   const aShareFundamentals = (snapshot.aShare && snapshot.aShare.fundamentals || [])
     .map(sanitizeAShareFundamental);
   const fundamentalsByCode = new Map(aShareFundamentals.map((item) => [item.code, item]));
-  return {
+  const sanitized = {
     status: "live",
     updatedAt: snapshot.updatedAt,
     us: {
@@ -303,6 +306,7 @@ function sanitizeSnapshot(snapshot) {
     gold: sanitizeGold(snapshot.gold),
     investors: (snapshot.investors || []).map(sanitizeInvestor),
   };
+  return degradeStaleActions(sanitized);
 }
 
 module.exports = { assertSourceSnapshot, sanitizeSnapshot };

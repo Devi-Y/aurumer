@@ -15,13 +15,17 @@
     <button class="query-button" bindtap="manualQuery" data-order="{{lastOrderId}}" loading="{{querying}}" disabled="{{querying}}">刷新权益 / 查单</button>
   </view>
 
-  <view class="stat-strip">
-    <view class="stat-cell"><text>写</text><text>理由</text></view>
-    <view class="stat-cell"><text>盯</text><text>变化</text></view>
-    <view class="stat-cell"><text>复</text><text>盘</text></view>
+  <text class="block-title">核心价值</text>
+  <view class="value-panel">
+    <text class="value-lead">公开答案仍免费。会员买的是写理由、盯变化、复盘——跨设备保全你的研究记录。</text>
+    <view class="stat-strip compact">
+      <view class="stat-cell"><text>写</text><text>理由</text></view>
+      <view class="stat-cell"><text>盯</text><text>变化</text></view>
+      <view class="stat-cell"><text>复</text><text>盘</text></view>
+    </view>
   </view>
 
-  <text class="block-title">三个核心权益</text>
+  <text class="block-title">三项真实能力</text>
   <view class="benefit-panel core-benefits">
     <view wx:for="{{state.coreBenefits}}" wx:key="id" class="benefit core-benefit">
       <text class="core-title">{{item.title}}</text>
@@ -29,12 +33,7 @@
     </view>
   </view>
 
-  <text class="block-title">辅助权益</text>
-  <view class="benefit-panel compact-benefits">
-    <view wx:for="{{state.extraBenefits}}" wx:key="*this" class="benefit"><text>✓</text><text>{{item}}</text></view>
-  </view>
-
-  <text class="block-title">会员包含什么</text>
+  <text class="block-title">履约证据</text>
   <view class="compare-panel">
     <view wx:for="{{compareBars}}" wx:key="id" class="compare-row">
       <view class="compare-head">
@@ -51,42 +50,20 @@
       </view>
     </view>
   </view>
-
-  <text class="block-title">能力刻度</text>
-  <view class="meter-panel">
-    <view wx:for="{{capabilityMeters}}" wx:key="id" class="meter-row">
-      <view class="meter-head">
-        <text>{{item.label}}</text>
-        <text>{{item.valueText}}</text>
-      </view>
-      <view class="meter-track">
-        <view class="meter-fill" style="width: {{item.percent}}%;"></view>
-      </view>
-    </view>
-  </view>
-
-  <view class="benefit-panel compact-benefits">
-    <view class="benefit"><text>✓</text><text>关注上限 80</text></view>
-    <view class="benefit"><text>✓</text><text>想法上限 300</text></view>
-    <view class="benefit"><text>✓</text><text>365 天有效</text></view>
-    <view class="benefit"><text>✓</text><text>基线对照更新</text></view>
-    <view class="benefit"><text>✓</text><text>今日简报</text></view>
-    <view class="benefit"><text>✓</text><text>站内收件箱</text></view>
+  <view class="evidence-strip">
+    <text>免费 5+5 → 会员关注 80 / 想法 300</text>
+    <text>一次购买 · 365 天 · 不自动续费 · 含今日简报与站内收件箱</text>
+    <text>到期后仍可查看、导出和删除</text>
     <button class="workspace-cta" bindtap="openWorkspace">
       <text>{{state.active ? '打开逻辑哨兵' : '先看哨兵能力'}}</text>
       <text>›</text>
     </button>
   </view>
 
-  <view class="promise-card">
-    <text class="promise-title">边界说明</text>
-    <text class="promise-body">市场公开答案仍然免费。会员购买的是个人跟踪和复盘工具，不提供荐股，不承诺收益，不自动续费，到期不自动扣款。到期后历史记录仍可只读、导出和删除。新变化检测、同步与提醒需要联网。当前提醒为小程序内提醒；微信提醒仅在你授权且平台模板就绪后开启。</text>
-  </view>
-
-  <text class="block-title">年度方案</text>
+  <text class="block-title">价格与边界</text>
   <view class="plan-list">
     <view wx:for="{{state.plans}}" wx:key="id" class="plan-card">
-      <text class="recommend-label">一年</text>
+      <text class="recommend-label">唯一方案</text>
       <text class="plan-name">365 天会员</text>
       <view class="price-row">
         <text>{{item.priceMain}}</text>
@@ -101,12 +78,16 @@
     </view>
   </view>
 
+  <view class="promise-card">
+    <text class="promise-title">边界</text>
+    <text class="promise-body">不含买卖建议、收益预测或荐股。市场公开答案仍然免费；会员只提供个人跟踪与复盘工具。当前提醒为小程序内提醒；微信提醒仅在你授权且平台模板就绪后开启。</text>
+  </view>
+
   <view wx:if="{{state.sellGate}}" class="promise-card gate-card">
     <text class="promise-title">收费通道</text>
     <text class="promise-body">{{state.paymentPubliclyReleased || state.sellGate.paymentChannelOpen ? '微信支付已开放（¥1288/365天）。' : '支付通道尚未开放。'}}{{state.sellGate.humanPendingLabel ? '待人工：' + state.sellGate.humanPendingLabel : ''}}</text>
   </view>
 
-  <text class="block-title">三问</text>
   <view class="faq-panel">
     <view wx:for="{{faq}}" wx:key="id" class="faq-row">
       <text class="faq-title">{{item.title}}</text>

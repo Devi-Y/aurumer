@@ -32,6 +32,10 @@
 
 `member_workspaces` 嵌入字段包括：`watchItems`（含 `baselineFact` 历史快照）、`decisions`（含 `evidence`）、`inbox`（变化消息）、`reviewTasks`（节点待办）、`eventMarks`、台账与设置。变化分类见 `change-detect.js`，待办见 `review-tasks.js`。正式公开事实优先从同环境 `data_fact_latest` 盖章写入，客户端不能伪造服务端正式结论。
 
+变化提醒只推送：结论变化、结论跨档、风险新增、触及用户失效条件；普通价格波动不进收件箱。
+
+`eventMarks` 送达薄队列字段：`deliveryStatus`（pending/sent/failed/skipped）、`retryCount`、`lastError`、`nextRetryAt`、`notifiedAt`。每日 09:00（或对账 piggyback）补偿扫描失败项，最多重试 3 次。
+
 可选环境变量 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`：配置后才允许申请微信订阅消息；未配置时仅提供小程序内提醒，页面不得显示「微信提醒已开启」。
 
 ## 支付发布环境变量

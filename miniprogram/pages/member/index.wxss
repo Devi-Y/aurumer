@@ -1,5 +1,5 @@
 .member-shell {
-  padding: 20rpx 20rpx calc(198rpx + env(safe-area-inset-bottom));
+  padding: 16rpx 16rpx calc(188rpx + env(safe-area-inset-bottom));
   background: #f4f6f5;
 }
 
@@ -66,6 +66,42 @@
   font-size: 28rpx;
   font-weight: 700;
   line-height: 1.4;
+}
+
+.value-panel,
+.evidence-strip {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 16rpx;
+  padding: 22rpx 24rpx;
+  overflow: hidden;
+  border-radius: 24rpx;
+  background: #ffffff;
+}
+
+.value-lead {
+  display: block;
+  color: #2a312c;
+  font-size: 28rpx;
+  font-weight: 560;
+  line-height: 1.55;
+}
+
+.stat-strip.compact {
+  margin-top: 18rpx;
+  margin-bottom: 0;
+}
+
+.evidence-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.evidence-strip > text {
+  color: #4c554f;
+  font-size: 24rpx;
+  line-height: 1.45;
 }
 
 .core-benefits {
@@ -334,7 +370,7 @@
   display: flex;
   box-sizing: border-box;
   width: 50%;
-  min-height: 100rpx;
+  min-height: 88rpx;
   padding: 18rpx 12rpx;
   flex-direction: column;
   align-items: center;
@@ -645,7 +681,7 @@
 @media (min-width: 700px) {
   .member-shell { padding: 24px 32px calc(194px + env(safe-area-inset-bottom)); }
   .member-shell-active { padding-bottom: calc(42px + env(safe-area-inset-bottom)); }
-  .benefit { min-height: 100px; }
+  .benefit { min-height: 88px; }
   .pay-dock { padding-right: 32px; padding-left: 32px; }
   .pay-dock .buy-button { width: 260px; }
   .legal-link { width: calc(100vw - 118px) !important; }

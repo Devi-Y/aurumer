@@ -38,26 +38,16 @@ const COMPARE_BARS = [
   { id: "days", label: "有效天数", free: 0, member: 365, freePct: 0, memberPct: 100 },
 ];
 
-const CAPABILITY_METERS = [
-  { id: "change", label: "重要变化", valueText: "会员", percent: 94 },
-  { id: "snapshot", label: "决策快照", valueText: "会员", percent: 90 },
-  { id: "task", label: "节点提醒", valueText: "会员", percent: 88 },
-  { id: "brief", label: "今日简报", valueText: "会员", percent: 86 },
-  { id: "inbox", label: "站内收件箱", valueText: "会员", percent: 84 },
-  { id: "export", label: "导出保全", valueText: "会员", percent: 80 },
-  { id: "free", label: "免费试记", valueText: "5+5", percent: 12 },
-];
-
 const CORE_BENEFITS = [
   {
     id: "change",
     title: "重要变化",
-    body: "自动对比结论、风险和关键数据变化。",
+    body: "只提醒结论变化、结论跨档、风险新增与失效条件，不打扰普通价格波动。",
   },
   {
     id: "snapshot",
     title: "决策快照",
-    body: "保存当时的价格、结论、依据和风险。",
+    body: "保存当时的价格、结论、依据和风险，方便事后对照。",
   },
   {
     id: "task",
@@ -66,13 +56,7 @@ const CORE_BENEFITS = [
   },
 ];
 
-const EXTRA_BENEFITS = [
-  "跨设备同步",
-  "个人备注",
-  "历史复盘",
-  "复制导出",
-  "到期后仍可查看、导出和删除",
-];
+const EXTRA_BENEFITS = [];
 
 const PAYMENT_REFRESH_DELAYS = [800, 1600, 2600, 4000, 6000];
 
@@ -152,7 +136,6 @@ Page({
     lastOrderId: "",
     faq: MEMBER_FAQ,
     compareBars: COMPARE_BARS,
-    capabilityMeters: CAPABILITY_METERS,
     state: viewState({
       paymentReady: false,
       paymentReason: "正在检查会员服务",

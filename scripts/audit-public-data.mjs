@@ -70,6 +70,13 @@ assert(
   ),
   "A股必须使用可核验现金流资料，不能发布 mock 财务",
 );
+assert(
+  snapshot.aShare.quotes.filter((item) => String(item.industry || "").trim()).length >= 12,
+  "A股行业事实覆盖不足（至少 12/20 只有所属行业；完整行业建模在仓外）",
+);
+if (snapshot.aShare.quotes.some((item) => !String(item.industry || "").trim())) {
+  console.warn("[告警] 部分 A 股缺少所属行业字段，请在源端补齐");
+}
 // 13F 按季度披露，个别机构延迟属于正常情况：低于 6 位才判定为数据异常，
 // 6-8 位只告警，不阻断其余板块发布。
 const investorCount = (snapshot.investors || []).length;
@@ -80,8 +87,14 @@ if (investorCount < 9) {
 assert(snapshot.gold?.quotes?.international, "黄金国际行情缺失");
 assert(snapshot.gold?.quotes?.domestic, "上海金 Au99.99 行情缺失");
 assert(Number.isFinite(snapshot.gold?.answer?.score), "黄金最终答案与评分缺失");
+assert(snapshot.gold?.answer?.action || snapshot.gold?.answer?.conclusion, "黄金缺少公开动作或结论");
 assert(snapshot.gold?.answer?.pricePlan?.internationalWatch, "黄金国际金关注区间缺失");
+assert(snapshot.gold?.answer?.pricePlan?.domesticWatch, "黄金上海金关注区间缺失");
 assert((snapshot.gold?.indicators || []).length >= 6, "黄金驱动数据不足 6 项");
+assert(
+  snapshot.us.stocks.every((stock) => String(stock.symbol || "").trim() && Number.isFinite(stock.price)),
+  "美股策略门禁：每只必须有代码与可核验价格",
+);
 assert(
   snapshot.investors.every((item) => Number.isFinite(item.trackingScore)),
   "每位聪明人必须有最终跟踪价值分",

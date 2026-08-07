@@ -696,6 +696,10 @@ async function saveEventMark(openid, event) {
       source,
       notifyAccepted,
       notifiedAt: null,
+      deliveryStatus: notifyAccepted ? "pending" : "skipped",
+      retryCount: 0,
+      lastError: "",
+      nextRetryAt: null,
       createdAt: now,
       updatedAt: now,
     });
@@ -817,6 +821,7 @@ function todayLabelShanghai() {
 async function sendEventReminders() {
   const templateId = String(process.env.WANGCHAO_SUBSCRIBE_EVENT_TMPL || "").trim();
   const today = todayLabelShanghai();
+  const MAX_RETRY = 3;
   if (!templateId) {
     return {
       ok: true,
@@ -824,11 +829,16 @@ async function sendEventReminders() {
       reason: "NO_TEMPLATE",
       today,
       sent: 0,
+      retried: 0,
+      failed: 0,
     };
   }
   const pageSize = 50;
   let offset = 0;
   let sent = 0;
+  let retried = 0;
+  let failed = 0;
+  let compensated = 0;
   let scanned = 0;
   const errors = [];
   for (;;) {
@@ -839,13 +849,24 @@ async function sendEventReminders() {
       scanned += 1;
       const openid = doc.ownerOpenid || doc._openid || doc.openid;
       const marks = Array.isArray(doc.eventMarks) ? doc.eventMarks : [];
-      const due = marks.filter((item) => (
-        item.dateLabel === today
-        && item.notifyAccepted
-        && !item.notifiedAt
-      ));
-      if (!openid || !due.length) continue;
+      let dirty = false;
+      const due = marks.filter((item) => {
+        if (!item.notifyAccepted || !openid) return false;
+        const status = item.deliveryStatus || (item.notifiedAt ? "sent" : "pending");
+        if (status === "sent" || status === "skipped") return false;
+        const retryCount = Number(item.retryCount || 0);
+        if (retryCount >= MAX_RETRY && status === "failed") return false;
+        // 当日事件，或失败后进入每日补偿（日期已到且未超重试）。
+        if (item.dateLabel === today) return true;
+        if (status === "failed" && String(item.dateLabel || "") <= today) {
+          compensated += 1;
+          return true;
+        }
+        return false;
+      });
+      if (!due.length) continue;
       for (const mark of due) {
+        const retryCount = Number(mark.retryCount || 0);
         try {
           await cloud.openapi.subscribeMessage.send({
             touser: openid,
@@ -859,12 +880,26 @@ async function sendEventReminders() {
             miniprogramState: "formal",
           });
           sent += 1;
+          if (retryCount > 0) retried += 1;
           mark.notifiedAt = new Date();
+          mark.deliveryStatus = "sent";
+          mark.lastError = "";
+          mark.nextRetryAt = null;
+          mark.updatedAt = new Date();
+          dirty = true;
         } catch (error) {
-          errors.push(String(error.errMsg || error.message || error).slice(0, 120));
+          failed += 1;
+          const message = String(error.errMsg || error.message || error).slice(0, 120);
+          errors.push(message);
+          mark.deliveryStatus = "failed";
+          mark.retryCount = retryCount + 1;
+          mark.lastError = message;
+          mark.nextRetryAt = today;
+          mark.updatedAt = new Date();
+          dirty = true;
         }
       }
-      if (due.some((item) => item.notifiedAt)) {
+      if (dirty) {
         await db.collection(WORKSPACES).doc(doc._id).update({
           data: {
             eventMarks: marks,
@@ -882,6 +917,9 @@ async function sendEventReminders() {
     today,
     scanned,
     sent,
+    retried,
+    failed,
+    compensated,
     errors: errors.slice(0, 5),
   };
 }

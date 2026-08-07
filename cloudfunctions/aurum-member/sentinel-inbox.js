@@ -96,6 +96,8 @@ async function scanWorkspaceInbox(db, workspace, recordId) {
     if (baseline && fingerprint(baseline) === fingerprint(latest.fact)) continue;
     const classified = classifyFactDiff(baseline || latest.previousFact, latest.fact, watch.market);
     if (!classified.changeTypes.length && !latest.changed) continue;
+    // 普通价格波动不进收件箱；结论变化 / 跨档 / 风险新增才提醒。
+    if (!classified.notifyWorthy && classified.importance !== "high") continue;
     const summary = classified.summary || diffSummary(baseline || latest.previousFact, latest.fact, watch.market);
     const dedupeKey = classified.changeKey
       || `fact-change|${watch.id}|${latest.snapshotUpdatedAt || latest.fact.snapshotUpdatedAt || ""}`;
@@ -111,7 +113,7 @@ async function scanWorkspaceInbox(db, workspace, recordId) {
       fromFact: baseline || latest.previousFact,
       toFact: latest.fact,
       changeTypes: classified.changeTypes,
-      importance: classified.importance || "medium",
+      importance: classified.importance || "high",
       changeKey: classified.changeKey || "",
       dedupeKey,
     })) added += 1;
@@ -168,6 +170,10 @@ async function scanWorkspaceInbox(db, workspace, recordId) {
       snapshotUpdatedAt: latest.snapshotUpdatedAt || latest.fact.snapshotUpdatedAt,
       fromFact: decision.evidence,
       toFact: latest.fact,
+      changeTypes: ["invalidation", "conclusion"],
+      importance: "high",
+      changeKey: `invalidation|${decision.id}|${latest.snapshotUpdatedAt || ""}`,
+      dedupeKey: `thesis-risk|${decision.id}|${latest.snapshotUpdatedAt || latest.fact.snapshotUpdatedAt || ""}`,
     })) added += 1;
   }
 

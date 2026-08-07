@@ -3,9 +3,11 @@
 const https = require("node:https");
 const { sanitizeSnapshot } = require("./sanitize");
 const { writeFactVersions } = require("./fact-versions");
+const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS } = require("./action-freshness");
+const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-08-03-cache-first-sentinel-member-tracking-p0";
+const SOURCE_REVISION = "2026-08-08-action-freshness-ops-alert-a20-contract";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 /** 10 分钟内视为新鲜；超过则后台回源，前台仍先读缓存。 */
 const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -167,8 +169,12 @@ async function refreshSnapshot(timeoutMs = WARM_REQUEST_TIMEOUT_MS) {
 function scheduleBackgroundRefresh() {
   if (pendingRefresh) return pendingRefresh;
   pendingRefresh = refreshSnapshot(WARM_REQUEST_TIMEOUT_MS)
-    .catch((error) => {
+    .catch(async (error) => {
       console.warn("后台回源失败", error && error.message);
+      await alertOpsOnce("background-refresh-failed", {
+        error: error && error.message,
+        revision: SOURCE_REVISION,
+      });
       return null;
     })
     .finally(() => {
@@ -177,9 +183,27 @@ function scheduleBackgroundRefresh() {
   return pendingRefresh;
 }
 
-function withCacheMeta(result, cache, extra = {}) {
-  return {
+function applyServeFreshness(result) {
+  if (!result || !result.data) return result;
+  const data = degradeStaleActions(result.data);
+  const contentAge = snapshotAgeMs(data.updatedAt);
+  const next = {
     ...result,
+    data,
+    actionsFresh: data.actionsFresh !== false,
+    contentAgeMs: contentAge,
+  };
+  if (contentAge > ACTION_MAX_AGE_MS) {
+    next.warning = next.warning || "SNAPSHOT_CONTENT_STALE";
+    next.actionDegradeReason = data.actionDegradeReason || "数据过期，暂不提供动作";
+  }
+  return next;
+}
+
+function withCacheMeta(result, cache, extra = {}) {
+  const fresh = applyServeFreshness(result);
+  return {
+    ...fresh,
     cache,
     revision: SOURCE_REVISION,
     ...extra,
@@ -212,6 +236,14 @@ exports.main = async (event = {}) => {
   if (action === "warm") {
     try {
       const result = await refreshSnapshot(WARM_REQUEST_TIMEOUT_MS);
+      const contentAge = snapshotAgeMs(result.updatedAt);
+      if (contentAge > ACTION_MAX_AGE_MS) {
+        await alertOpsOnce("warm-content-stale", {
+          error: `公开快照内容已过期 ${(contentAge / 3_600_000).toFixed(1)} 小时`,
+          updatedAt: result.updatedAt,
+          revision: SOURCE_REVISION,
+        });
+      }
       return withCacheMeta({
         ok: true,
         warmed: true,
@@ -219,6 +251,10 @@ exports.main = async (event = {}) => {
       }, "refreshed");
     } catch (error) {
       console.error("aurum-data warm failed", error && error.message);
+      await alertOpsOnce("warm-failed", {
+        error: error && error.message,
+        revision: SOURCE_REVISION,
+      });
       const persisted = await readPersistedSnapshot();
       if (persisted) {
         cachedResult = persisted;
@@ -267,6 +303,10 @@ exports.main = async (event = {}) => {
     return withCacheMeta(result, "refreshed");
   } catch (error) {
     console.error("aurum-data refresh failed", error && error.message);
+    await alertOpsOnce("refresh-failed", {
+      error: error && error.message,
+      revision: SOURCE_REVISION,
+    });
     if (cachedResult) {
       return withCacheMeta({
         ...cachedResult,

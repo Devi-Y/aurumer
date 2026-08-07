@@ -87,7 +87,7 @@ assert(snapshot.us.fundamentals.length >= 20, "小程序美股财务数据不足
 assert(snapshot.hk.listings.length >= 1, "小程序缺少当前港股新股");
 assert(snapshot.hk.history.length >= 8, "小程序港股历史样本不足 8 只");
 assert(snapshot.aShare.quotes.length >= 20, "小程序 A 股不足 20 只");
-assert(snapshot.aShare.fundamentals.length >= 12, "小程序 A 股现金流数据不足 12 只");
+assert(snapshot.aShare.fundamentals.length >= 20, "小程序 A 股现金流数据不足 20 只");
 assert(snapshot.investors.length >= 8, "小程序聪明人持仓不足 8 位");
 
 const sectionSource = await readFile(path.join(miniRoot, "utils", "answers.js"), "utf8");
@@ -315,10 +315,10 @@ assert(sectionSource.includes('one: "') || (await readFile(path.join(miniRoot, "
 for (const label of [
   "逻辑哨兵",
   "365 天会员",
-  "会员包含什么",
+  "履约证据",
   "今日简报",
   "站内收件箱",
-  "关注上限 80",
+  "关注 80",
   "购买须知",
   "买后得到什么",
   "每天怎么用",
@@ -327,6 +327,9 @@ for (const label of [
   "重要变化",
   "决策快照",
   "节点提醒",
+  "核心价值",
+  "三项真实能力",
+  "价格与边界",
 ]) {
   assert(`${memberPageSource}\n${memberTemplate}`.includes(label), `小程序会员页缺少关键内容：${label}`);
 }

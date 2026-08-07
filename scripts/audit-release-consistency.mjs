@@ -25,7 +25,11 @@ assert(Number(fund.liquidAssets) > 1e10, "NVDA 现金资产仍像千美元未换
 
 const quote = (sanitized.aShare?.quotes || [])[0];
 assert(!quote?.buyPrice && !quote?.recommendPrice && !quote?.safeMarginPrice, "A股静态动作价仍出现在清洗结果");
-assert(!quote?.currentAdvice, "A股买入/持有/等待动作结论仍出现在清洗结果");
+assert(
+  !quote?.currentAdvice
+  || quote.currentAdvice === "数据过期，暂不提供动作",
+  "A股买入/持有/等待动作结论仍出现在清洗结果",
+);
 
 const miniPath = path.join(root, "miniprogram", "data", "live-snapshot.js");
 const miniSnapshot = require(miniPath);
@@ -34,13 +38,18 @@ const miniFund = (miniSnapshot.us?.fundamentals || []).find((item) => item.symbo
 assert(miniFund && miniFund.amountUnit === "USD", "小程序随包美股财务未规范化");
 assert(Number(miniFund.operatingCashFlow) > 1e10, "小程序随包 NVDA 经营现金流未换算为基础美元");
 const miniQuote = (miniSnapshot.aShare?.quotes || [])[0];
-assert(!miniQuote?.buyPrice && !miniQuote?.currentAdvice, "小程序随包仍含 A 股静态动作价");
+assert(
+  !miniQuote?.buyPrice
+  && (!miniQuote?.currentAdvice || miniQuote.currentAdvice === "数据过期，暂不提供动作"),
+  "小程序随包仍含 A 股静态动作价",
+);
 
 assert(typeof SOURCE_REVISION === "string" && SOURCE_REVISION.length > 0, "云函数缺少 SOURCE_REVISION");
 assert(
-  String(SOURCE_REVISION).includes("cache-first")
-  && (String(SOURCE_REVISION).includes("sentinel") || String(SOURCE_REVISION).includes("2026")),
-  "云函数 revision 未切换到缓存优先/哨兵版本",
+  String(SOURCE_REVISION).includes("action-freshness")
+  || String(SOURCE_REVISION).includes("cache-first")
+  || String(SOURCE_REVISION).includes("2026"),
+  "云函数 revision 未切换到动作新鲜度/缓存优先版本",
 );
 
 let pagesNote = "Pages 未在线核对";

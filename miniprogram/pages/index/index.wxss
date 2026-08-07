@@ -142,7 +142,7 @@
   display: flex;
   width: 33.333333%;
   min-width: 0;
-  min-height: 164rpx;
+  min-height: 176rpx;
   padding: 18rpx 8rpx 14rpx;
   flex: 0 0 33.333333%;
   flex-direction: column;
@@ -225,7 +225,7 @@
   .hero-cell { min-height: 108rpx; padding: 12rpx 4rpx; gap: 6rpx; }
   .hero-label { font-size: 28rpx; }
   .hero-value { font-size: 20rpx; }
-  .grid-card { min-height: 152rpx; padding: 14rpx 4rpx 12rpx; }
+  .grid-card { min-height: 176rpx; padding: 14rpx 4rpx 12rpx; }
   .entry-icon { width: 52rpx; height: 52rpx; }
   .card-title { font-size: 24rpx; margin-top: 10rpx; }
   .card-help { font-size: 18rpx; }

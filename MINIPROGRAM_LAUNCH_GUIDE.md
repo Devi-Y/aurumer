@@ -45,8 +45,9 @@
 | 微信开发版 | `0.2.35`，说明“会员跟踪P0：变化中心、决策快照、待办节点、打开即扫描；A股20只补齐与最新快照多端同步”，包体 368.4 KB | 2026-08-03 已通过官方 CLI 上传成功 |
 | 微信开发版 | `0.2.36`，说明“会员跟踪P0补齐：今日变化摘要标题、决策快照快捷选项；公开快照A股20只多端对齐”，包体 369.7 KB | 2026-08-03 已通过官方 CLI 上传成功 |
 | 微信开发版 | `0.2.37`，说明“多端同步：云函数20s超时+cache-first revision；会员对账定时器挂载提醒；快照A股20对齐Pages/云端”，包体 369.7 KB | 2026-08-03 已通过官方 CLI 上传成功 |
-| 云函数 `aurum-data` | 已用 tcb 部署 Git 版（`cache-first-sentinel-member-tracking-p0`）；超时 **20 秒**；触发器 `data-snapshot-warm` 每 30 分钟；含 `data_fact_latest`/`data_fact_history` | 2026-08-03 运维多端同步部署 |
-| 云函数 `aurum-member` | 免费额度、打新/收息台账、收费门禁、站内收件箱、`refreshSentinel`/`reviewTasks`/决策快照；线上 timer=`member-order-reconcile`（15 分钟，09:00 挂载事件提醒） | 2026-08-03 CLI 部署成功 |
+| 微信开发版 | `0.2.38`，说明“P0-P2：A股20契约、过期动作降级、真实快照时间、运维告警、提醒收窄、事件重试、会员页压缩”，包体 373.0 KB | 2026-08-08 已通过官方 CLI 上传成功（源端快照仍停在 8/3，随包动作已降级） |
+| 云函数 `aurum-data` | 已用 tcb 部署 Git 版（`action-freshness-ops-alert-a20-contract`）；超时 **20 秒**；触发器 `data-snapshot-warm` 每 30 分钟；含动作过期降级与 `WANGCHAO_OPS_ALERT_WEBHOOK` | 2026-08-08 CLI 部署成功 |
+| 云函数 `aurum-member` | 免费额度、打新/收息台账、收费门禁、站内收件箱、提醒收窄、事件送达重试/补偿；线上 timer=`member-order-reconcile`（15 分钟，09:00 挂载事件提醒） | 2026-08-08 CLI 部署成功 |
 | 微信审核/发布 | 尚未提交审核或发布 | 未完成 |
 
 ## 为什么不需要再填密钥和证书

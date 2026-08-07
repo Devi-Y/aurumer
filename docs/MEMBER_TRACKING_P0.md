@@ -28,8 +28,9 @@
 
 - A 股契约统一 **20**（README / 审计 / sanitize ingest）
 - 快照过期自动降级动作；网页只展示真实 `updatedAt`
-- **主告警（免费）**：`aurum-engine` GitHub Actions 失败开 `ops-alert` Issue，成功自动关闭；仓库设为 Watching 收邮件
+- **主告警（免费）**：`aurum-engine` GitHub Actions 失败开 `ops-alert` Issue，成功自动关闭；仓库设为 Watching 收邮件。可用 `workflow_dispatch` 的 `force_fail=true` 做实弹演练。
 - `WANGCHAO_OPS_ALERT_WEBHOOK`：可选云函数 warm 兜底，不配置不影响生产刷新
+- `WANGCHAO_SUBSCRIBE_EVENT_TMPL`：微信订阅消息模板 ID。未配置时事件队列仍写站内收件箱并重试字段，但不发微信订阅消息；页面只显示「小程序内提醒」。在云开发控制台给 `aurum-member` 配置该环境变量后重新部署即可开启。
 - 变化提醒收窄为结论变化、结论跨档、风险新增、触及失效条件
 - 事件标记增加 `deliveryStatus` / `retryCount` / 每日补偿扫描
 - 会员页压缩为：核心价值 → 三项能力 → 履约证据 → 价格与边界

@@ -1,7 +1,7 @@
 /**
  * 服务端变化分类与去重键；与小程序 change-center 口径对齐，不暴露内部权重。
  *
- * 提醒只关心：结论变化、结论跨档、风险新增、触及用户失效条件。
+ * 提醒只关心：结论变化（含「频率变化」/观察标签变化）、结论跨档、风险新增、触及用户失效条件。
  * 普通价格波动 / 纯价格位置变化不进入高优先级，也不应推送。
  */
 
@@ -40,13 +40,14 @@ function observationBand(badge, oneLiner) {
 function isPriceOnlyTypes(types) {
   const meaningful = types.filter((type) => type !== "updated_at");
   if (!meaningful.length) return true;
-  return meaningful.every((type) => ["price", "us_zone", "gold_intl", "metric", "a_yield", "score_proxy"].includes(type));
+  return meaningful.every((type) => ["price", "us_zone", "gold_intl", "metric", "a_yield"].includes(type));
 }
 
 function isNotifyWorthy(types, importance) {
   if (importance === "high") return true;
   return types.some((type) => [
     "conclusion",
+    "frequency",
     "band_cross",
     "risk",
     "risk_added",
@@ -87,6 +88,11 @@ function classifyFactDiff(baseline, current, market, options = {}) {
 
   push("conclusion", baseline.oneLiner, current.oneLiner);
   push("score_proxy", baseline.badge, current.badge);
+  // 「频率变化」：观察标签/频率口径变化，按结论变化提醒（不是普通价格波动）。
+  if (types.includes("score_proxy") && !types.includes("conclusion")) {
+    types.push("frequency");
+    types.push("conclusion");
+  }
   push("risk", baseline.risk, current.risk);
   if (!String(baseline.risk || "").trim() && String(current.risk || "").trim()) types.push("risk_added");
   if (String(baseline.risk || "").trim() && !String(current.risk || "").trim()) types.push("risk_cleared");
@@ -120,6 +126,7 @@ function classifyFactDiff(baseline, current, market, options = {}) {
   let importance = "low";
   if (types.some((type) => [
     "conclusion",
+    "frequency",
     "band_cross",
     "risk",
     "risk_added",
@@ -129,7 +136,7 @@ function classifyFactDiff(baseline, current, market, options = {}) {
     "gold_verdict",
   ].includes(type))) {
     importance = "high";
-  } else if (types.some((type) => ["price", "metric", "score_proxy", "us_zone"].includes(type))) {
+  } else if (types.some((type) => ["price", "metric", "us_zone"].includes(type))) {
     // 普通价格/指标波动：保留分类供工作台静默展示，不升为提醒。
     importance = "low";
   }
@@ -150,6 +157,7 @@ function classifyFactDiff(baseline, current, market, options = {}) {
 
   const labels = {
     conclusion: "研究结论",
+    frequency: "频率变化",
     band_cross: "结论跨档",
     score_proxy: "观察标签",
     risk: "风险",
@@ -167,7 +175,11 @@ function classifyFactDiff(baseline, current, market, options = {}) {
   };
   const primary = types.includes("band_cross")
     ? "band_cross"
-    : (types.includes("invalidation") ? "invalidation" : types[0]);
+    : (types.includes("invalidation")
+      ? "invalidation"
+      : (types.includes("frequency")
+        ? "frequency"
+        : (types.includes("conclusion") ? "conclusion" : types[0])));
   const currentHash = [current.oneLiner, current.badge, current.risk, current.priceLabel, current.metricLabel, afterBand].join("|");
   const notifyWorthy = isNotifyWorthy(types, importance);
   return {

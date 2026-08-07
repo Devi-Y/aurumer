@@ -407,6 +407,8 @@ assert(!indexSource.includes("pages/webview/index?target=${target}"), "小程序
 assert(!appSource.includes("PUBLIC_ORIGIN"), "小程序 App 仍依赖外部网页域名");
 assert(!storeSource.includes("wx.request"), "小程序数据层仍依赖运行时外部请求");
 assert(storeSource.includes('name: "aurum-data"') && storeSource.includes("离线备用数据") && storeSource.includes("自动更新"), "小程序没有接入最新数据云函数与离线回退");
+assert(storeSource.includes("degradeStaleActions") || storeSource.includes("action-freshness"), "小程序数据层缺少运行时过期动作降级");
+assert(storeSource.includes("quotes.length >= 20"), "小程序可用快照 A 股门槛应与公开契约同为 20");
 assert(liveDataFunction.includes("devi-y.github.io/aurumer/data/live-snapshot.json") && liveDataFunction.includes("CACHE_TTL_MS") && liveDataFunction.includes("REQUEST_TIMEOUT_MS"), "最新数据云函数缺少公开源、缓存或超时保护");
 for (const field of forbiddenKeys) {
   assert(liveDataSanitizer.includes(field) || !generatedSource.includes(`\"${field}\"`), `实时数据清洗没有覆盖内部字段：${field}`);

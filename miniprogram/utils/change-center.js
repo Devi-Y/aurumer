@@ -33,6 +33,7 @@ const REVIEW_CONDITION_OPTIONS = [
 
 const CHANGE_TYPE_LABELS = {
   conclusion: "研究结论变化",
+  frequency: "频率变化",
   band_cross: "结论跨档",
   score_proxy: "研究观察分变化",
   risk: "风险等级变化",
@@ -107,7 +108,7 @@ function observationBand(badge, oneLiner) {
 function isPriceOnlyTypes(types) {
   const meaningful = types.filter((type) => type !== "updated_at");
   if (!meaningful.length) return true;
-  return meaningful.every((type) => ["price", "us_zone", "gold_intl", "metric", "a_yield", "score_proxy", "hk_issue_data", "us_fundamentals", "us_heat", "gold_spread"].includes(type));
+  return meaningful.every((type) => ["price", "us_zone", "gold_intl", "metric", "a_yield", "hk_issue_data", "us_fundamentals", "us_heat", "gold_spread"].includes(type));
 }
 
 function classifyFactDiff(baseline, current, market, options = {}) {
@@ -143,6 +144,11 @@ function classifyFactDiff(baseline, current, market, options = {}) {
 
   push("conclusion", baseline.oneLiner, current.oneLiner);
   push("score_proxy", baseline.badge, current.badge);
+  // 「频率变化」按结论变化提醒：观察标签变化不是普通价格波动。
+  if (types.includes("score_proxy") && !types.includes("conclusion")) {
+    types.push("frequency");
+    types.push("conclusion");
+  }
   push("risk", baseline.risk, current.risk);
   if (!String(baseline.risk || "").trim() && String(current.risk || "").trim()) {
     if (!types.includes("risk_added")) types.push("risk_added");
@@ -185,11 +191,11 @@ function classifyFactDiff(baseline, current, market, options = {}) {
   }
 
   let importance = IMPORTANCE.low.id;
-  if (types.some((type) => ["conclusion", "band_cross", "risk", "risk_added", "invalidation", "hk_verdict", "a_verdict", "gold_verdict"].includes(type))) {
+  if (types.some((type) => ["conclusion", "frequency", "band_cross", "risk", "risk_added", "invalidation", "hk_verdict", "a_verdict", "gold_verdict"].includes(type))) {
     importance = IMPORTANCE.high.id;
   } else if (isPriceOnlyTypes(types)) {
     importance = IMPORTANCE.low.id;
-  } else if (types.some((type) => ["price", "metric", "score_proxy", "hk_issue_data", "us_fundamentals", "a_yield"].includes(type))) {
+  } else if (types.some((type) => ["price", "metric", "hk_issue_data", "us_fundamentals", "a_yield"].includes(type))) {
     importance = IMPORTANCE.low.id;
   } else if (!types.length) {
     return {

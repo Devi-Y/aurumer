@@ -71,12 +71,13 @@ assert(
   "A股必须使用可核验现金流资料，不能发布 mock 财务",
 );
 assert(
-  snapshot.aShare.quotes.filter((item) => String(item.industry || "").trim()).length >= 12,
-  "A股行业事实覆盖不足（至少 12/20 只有所属行业；完整行业建模在仓外）",
+  snapshot.aShare.quotes.filter((item) => String(item.industry || "").trim()).length >= 20,
+  "A股行业事实必须完整覆盖 20 只",
 );
-if (snapshot.aShare.quotes.some((item) => !String(item.industry || "").trim())) {
-  console.warn("[告警] 部分 A 股缺少所属行业字段，请在源端补齐");
-}
+assert(
+  snapshot.aShare.quotes.filter((item) => Number.isFinite(Number(item.currentDividendYield)) && Number(item.currentDividendYield) > 0).length >= 20,
+  "A股股息率事实必须完整覆盖 20 只",
+);
 // 13F 按季度披露，个别机构延迟属于正常情况：低于 6 位才判定为数据异常，
 // 6-8 位只告警，不阻断其余板块发布。
 const investorCount = (snapshot.investors || []).length;

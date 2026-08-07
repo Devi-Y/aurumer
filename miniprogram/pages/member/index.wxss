@@ -662,20 +662,24 @@
 .page-nav.above-dock { padding-bottom: calc(230rpx + env(safe-area-inset-bottom)); }
 
 @media (max-width: 340px) {
-  .member-shell { padding-right: 15rpx; padding-left: 15rpx; }
+  .member-shell { padding-right: 12rpx; padding-left: 12rpx; }
   .member-status-card,
-  .plan-card { padding-right: 22rpx; padding-left: 22rpx; }
-  .member-hero-image-wrap { width: 80rpx; height: 80rpx; }
-  .member-hero-image-wrap image { width: 50rpx; height: 50rpx; }
-  .status-title { font-size: 35rpx; }
-  .pay-dock { padding-right: 15rpx; padding-left: 15rpx; }
-  .pay-dock .buy-button { width: 250rpx; font-size: 25rpx; }
+  .plan-card { padding-right: 18rpx; padding-left: 18rpx; }
+  .member-hero-image-wrap { width: 72rpx; height: 72rpx; }
+  .member-hero-image-wrap image { width: 44rpx; height: 44rpx; }
+  .status-title { font-size: 32rpx; }
+  .status-detail,
+  .hero-track { font-size: 22rpx; line-height: 1.4; }
+  .pay-dock { padding-right: 12rpx; padding-left: 12rpx; gap: 6rpx 10rpx; }
+  .pay-dock .buy-button { width: 230rpx; font-size: 24rpx; }
+  .pay-dock-copy text:first-child { font-size: 21rpx; }
+  .pay-dock-copy text:last-child { font-size: 24rpx; }
   .order-row { align-items: flex-start; flex-direction: column; }
-  .legal-link { width: calc(100vw - 74rpx) !important; }
+  .legal-link { width: calc(100vw - 60rpx) !important; }
   .workspace-cta,
   .orders-toggle,
   .notice-toggle,
-  .contact-button { width: calc(100vw - 30rpx) !important; }
+  .contact-button { width: calc(100vw - 24rpx) !important; }
 }
 
 @media (min-width: 700px) {

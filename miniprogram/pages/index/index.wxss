@@ -7,7 +7,7 @@
 }
 
 .home-hero {
-  padding: 20rpx 24rpx 36rpx;
+  padding: 16rpx 24rpx 28rpx;
   background: linear-gradient(165deg, #0d8a5c 0%, #0b7a53 55%, #096844 100%);
 }
 
@@ -98,7 +98,7 @@
 .home-panel {
   position: relative;
   z-index: 1;
-  margin: -36rpx 20rpx 0;
+  margin: -24rpx 20rpx 0;
   overflow: hidden;
   border: 1rpx solid #e7ece9;
   border-radius: 24rpx;
@@ -142,8 +142,8 @@
   display: flex;
   width: 33.333333%;
   min-width: 0;
-  min-height: 176rpx;
-  padding: 22rpx 8rpx 18rpx;
+  min-height: 164rpx;
+  padding: 18rpx 8rpx 14rpx;
   flex: 0 0 33.333333%;
   flex-direction: column;
   align-items: center;
@@ -205,7 +205,7 @@
 
 .page-footer {
   display: flex;
-  padding: 28rpx 28rpx 0;
+  padding: 18rpx 28rpx 0;
   flex-direction: column;
   align-items: center;
   text-align: center;
@@ -219,15 +219,17 @@
 }
 
 @media (max-width: 340px) {
-  .home-hero { padding-right: 18rpx; padding-left: 18rpx; }
-  .home-panel { margin-right: 14rpx; margin-left: 14rpx; }
-  .hero-title { font-size: 40rpx; }
-  .hero-cell { min-height: 118rpx; padding: 14rpx 4rpx; gap: 8rpx; }
-  .hero-label { font-size: 30rpx; }
-  .hero-value { font-size: 22rpx; }
-  .grid-card { min-height: 174rpx; }
-  .entry-icon { width: 58rpx; height: 58rpx; }
-  .card-title { font-size: 26rpx; }
+  .home-hero { padding: 12rpx 16rpx 22rpx; }
+  .home-panel { margin: -18rpx 12rpx 0; }
+  .hero-title { font-size: 38rpx; }
+  .hero-cell { min-height: 108rpx; padding: 12rpx 4rpx; gap: 6rpx; }
+  .hero-label { font-size: 28rpx; }
+  .hero-value { font-size: 20rpx; }
+  .grid-card { min-height: 152rpx; padding: 14rpx 4rpx 12rpx; }
+  .entry-icon { width: 52rpx; height: 52rpx; }
+  .card-title { font-size: 24rpx; margin-top: 10rpx; }
+  .card-help { font-size: 18rpx; }
+  .page-footer { padding-top: 12rpx; }
 }
 
 @media (min-width: 700px) {

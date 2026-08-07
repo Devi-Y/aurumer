@@ -1,4 +1,5 @@
 const bundledSnapshot = require("./live-snapshot");
+const { degradeStaleActions } = require("../utils/action-freshness");
 
 const REMOTE_TTL_MS = 10 * 60 * 1000;
 // 公开快照工作日约两趟（09:30 / 16:30），周末空窗更长。
@@ -6,7 +7,7 @@ const REMOTE_TTL_MS = 10 * 60 * 1000;
 const CURRENT_PUBLISH_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 const STALE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
-let memorySnapshot = bundledSnapshot;
+let memorySnapshot = degradeStaleActions(bundledSnapshot);
 let memorySource = "离线备用数据";
 let memoryWarning = "";
 let fetchedAt = 0;
@@ -14,6 +15,10 @@ let refreshPromise = null;
 
 const INVESTOR_MINIMUM = 6;
 const INVESTOR_EXPECTED = 9;
+
+function prepareSnapshot(snapshot) {
+  return degradeStaleActions(snapshot);
+}
 
 function isUsableSnapshot(snapshot) {
   const investors = snapshot && Array.isArray(snapshot.investors) ? snapshot.investors : null;
@@ -29,7 +34,7 @@ function isUsableSnapshot(snapshot) {
       && Array.isArray(snapshot.us && snapshot.us.stocks)
       && snapshot.us.stocks.length >= 20
       && Array.isArray(snapshot.aShare && snapshot.aShare.quotes)
-      && snapshot.aShare.quotes.length >= 5
+      && snapshot.aShare.quotes.length >= 20
       && investors
       && investors.length >= INVESTOR_MINIMUM
       && snapshot.gold
@@ -127,9 +132,11 @@ function fetchLatest(force) {
     fetchedAt = Date.now();
     if (!result || !result.ok || !isUsableSnapshot(result.data)) return null;
     const warning = result.warning || "";
+    const remoteSnapshot = prepareSnapshot(result.data);
     // 云函数若仍是旧清洗层，会剥掉黄金买卖观察区与港股申购结论。
     // 此时保留随包/本机动作版快照，避免「能用」被在线回源刷没。
-    if (!hasActionSurface(result.data) && hasActionSurface(memorySnapshot)) {
+    if (!hasActionSurface(remoteSnapshot) && hasActionSurface(memorySnapshot)
+      && memorySnapshot.actionsFresh !== false) {
       memoryWarning = warning || "云端动作结论待同步";
       return {
         snapshot: memorySnapshot,
@@ -137,8 +144,8 @@ function fetchLatest(force) {
         warning: memoryWarning,
       };
     }
-    if (isRemoteNewerOrEqual(result.data, memorySnapshot)) {
-      memorySnapshot = result.data;
+    if (isRemoteNewerOrEqual(remoteSnapshot, memorySnapshot)) {
+      memorySnapshot = remoteSnapshot;
       memorySource = warning ? "缓存回退" : "自动更新";
       memoryWarning = warning;
     }
@@ -154,14 +161,15 @@ function fetchLatest(force) {
 }
 
 function loadSnapshot(onUpdate, onComplete, options = {}) {
-  let initialSnapshot = memorySnapshot;
+  let initialSnapshot = prepareSnapshot(memorySnapshot);
   let initialSource = memorySource;
   let initialWarning = memoryWarning;
   if (!isUsableSnapshot(initialSnapshot) && isUsableSnapshot(bundledSnapshot)) {
-    initialSnapshot = bundledSnapshot;
+    initialSnapshot = prepareSnapshot(bundledSnapshot);
     initialSource = "离线备用数据";
     initialWarning = "";
   }
+  memorySnapshot = initialSnapshot;
   if (isUsableSnapshot(initialSnapshot)) {
     onUpdate(
       initialSnapshot,
@@ -189,4 +197,5 @@ module.exports = {
   loadSnapshot,
   sourceLabel,
   freshnessKind,
+  prepareSnapshot,
 };

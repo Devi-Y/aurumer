@@ -33,12 +33,11 @@
 - 事件标记增加 `deliveryStatus` / `retryCount` / 每日补偿扫描
 - 会员页压缩为：核心价值 → 三项能力 → 履约证据 → 价格与边界
 
-## 仍需平台人工 / 仓外
+## 仍需平台人工
 
-1. **恢复仓外自动生产任务**（工作日 09:30 / 16:30），当前公开快照停在 2026-08-03
-2. 配置 `WANGCHAO_OPS_ALERT_WEBHOOK` 与（可选）`WANGCHAO_SUBSCRIBE_EVENT_TMPL`
-3. 真机验收三场景（快照 / 变化 / 待办）
-4. 部署更新后的 `aurum-data` / `aurum-member` 云函数，并重新 `sync:latest` + 上传小程序
+1. 真机验收三场景（快照 / 变化 / 待办）
+2. 配置 `WANGCHAO_OPS_ALERT_WEBHOOK`（可选飞书/企微）与 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`
+3. 工作日自动生产任务（09:30 / 16:30）持续值守；本次已手动恢复 A20 出数并发布
 
 ## 运维已落地（2026-08-03）
 

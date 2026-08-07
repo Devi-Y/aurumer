@@ -38,7 +38,7 @@
 ## 仍需平台人工
 
 1. 真机验收三场景（快照 / 变化 / 待办）
-2. 仓库 Watching 即可收免费运维邮件；可选配置 `WANGCHAO_OPS_ALERT_WEBHOOK` 与 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`
+2. 仓库 Watching 即可收免费运维邮件；可用 `force_fail=true` 实弹验证 Issue。可选配置 `WANGCHAO_OPS_ALERT_WEBHOOK`；微信订阅提醒需在云开发配置 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`（未配则仅站内收件箱）
 3. 工作日自动生产任务（09:30 / 16:30）持续值守；本次已手动恢复 A20 出数并发布
 
 ## 运维已落地（2026-08-03）

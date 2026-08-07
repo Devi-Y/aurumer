@@ -1,8 +1,9 @@
 "use strict";
 
 /**
- * 运维告警：自动任务 / warm / sync 失败时 POST 到 webhook。
- * 未配置 WANGCHAO_OPS_ALERT_WEBHOOK 时仅打日志，不抛错。
+ * 运维告警兜底：小程序 warm/sync 失败时可选 POST。
+ * 主告警通道是免费 GitHub Actions（失败开 Issue + 仓库 Watch 邮件），
+ * 不依赖云开发控制台配置。未设置 WANGCHAO_OPS_ALERT_WEBHOOK 时只打日志。
  */
 function postOpsAlert(payload) {
   const url = String(process.env.WANGCHAO_OPS_ALERT_WEBHOOK || "").trim();

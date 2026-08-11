@@ -390,6 +390,7 @@ function baseView(item) {
     metricsTitle: "关键数据",
     actions: [],
     risk: "数据不足时宁可不给硬答案。",
+    riskItems: [],
     riskLabel: RISK_LABEL,
     pageHelp: "",
     sourceNote: "公开资料整理",
@@ -775,7 +776,57 @@ function buildAShareFundView(base, item) {
   ];
   base.actions = [];
   base.risk = "基金分红不固定，指数成分和估值会变化；场内价格可能偏离基金净值，不构成固定收益承诺。";
+  base.riskItems = [
+    { title: "产品风险", body: "ETF 不保本，基金分红不固定；不能把成分股的股息率直接当成基金收益率。" },
+    { title: "指数风险", body: "红利指数会调仓，行业权重和成分质量会变；分红、净值和场内价格要分开看。" },
+    { title: "价格风险", body: "若场内价格明显偏离净值，或单日跌幅扩大，先核对折溢价、指数变化和公告，再决定是否继续持有。" },
+  ];
   base.sourceNote = `${raw.source || raw.priceSource || "公开行情"} · ${raw.priceAsOf || raw.asOf || "日期待核验"}`;
+}
+
+function buildAShareRiskItems(raw = {}, financials = {}) {
+  const industry = String(raw.industry || financials.industry || "");
+  const change = Number(raw.changePercent);
+  const revenueGrowth = Number(financials.revenueGrowth);
+  const profitGrowth = Number(financials.netProfitGrowth);
+  const freeCashFlow = Number(financials.freeCashFlow);
+  const cashConversion = Number(financials.cashConversion);
+  const operatingSignals = [];
+  if (Number.isFinite(revenueGrowth) && revenueGrowth < 0) operatingSignals.push(`营收同比 ${revenueGrowth.toFixed(1)}%`);
+  if (Number.isFinite(profitGrowth) && profitGrowth < 0) operatingSignals.push(`净利润同比 ${profitGrowth.toFixed(1)}%`);
+  if (Number.isFinite(freeCashFlow) && freeCashFlow <= 0) operatingSignals.push("自由现金流为负");
+  if (Number.isFinite(cashConversion) && cashConversion < 1) operatingSignals.push(`现金利润比 ${cashConversion.toFixed(2)}`);
+  const operatingBody = operatingSignals.length
+    ? `经营风险：${operatingSignals.join("、")}。股息率再高也不能替代现金流，下一次财报优先核对营收、利润和经营现金流是否继续恶化。`
+    : "经营风险：当前快照未触发负增长或现金流警报，但仍要按财报期复核营收、净利润、经营现金流和自由现金流。";
+
+  let industryBody = "行业风险：行业周期、竞争格局和政策变化可能先于公司财报反映到股价；若行业景气下行与公司数据同时转弱，先降低风险敞口。";
+  if (/银行|金融/u.test(industry)) {
+    industryBody = "行业风险：净息差下行、资产质量恶化和房地产/地方债信用成本上升会压缩银行利润；重点盯净息差、不良率、拨备覆盖率和资本充足率。";
+  } else if (/能源|油气|煤炭/u.test(industry)) {
+    industryBody = "行业风险：油气/煤炭价格、产量、资本开支和能源政策共同决定盈利；商品价格下行与资本开支上升同时出现时，股息可持续性要下调。";
+  } else if (/公用事业|水电|电力/u.test(industry)) {
+    industryBody = "行业风险：来水、上网电价、利用小时和大额资本开支会影响现金流；若电价下调或负债扩张，稳定股息不等于没有回撤。";
+  } else if (/钢铁|水泥|建材/u.test(industry)) {
+    industryBody = "行业风险：地产/基建需求、产能过剩和原材料价格决定利润；产品价格下行而库存或负债上升时，先核现金流再看股息。";
+  } else if (/家电|消费|食品|汽车/u.test(industry)) {
+    industryBody = "行业风险：终端需求、价格战、原材料和渠道库存会压缩利润；若营收放缓叠加毛利率下滑，不要只看过去股息。";
+  } else if (/高速|交通|铁路|港口/u.test(industry)) {
+    industryBody = "行业风险：车流/货运量、收费政策、维护资本开支和债务会影响稳定现金流；客流或货运量连续下降时应重新评估分红。";
+  }
+
+  const priceBody = Number.isFinite(change)
+    ? change <= -5
+      ? `价格风险：今日跌幅 ${change.toFixed(1)}%，已触发价格警报；先查公告、业绩和行业事件，不在原因未明时补跌。`
+      : `价格风险：今日涨跌 ${change >= 0 ? "+" : ""}${change.toFixed(1)}%；预警线为单日跌幅≤-5%或连续两日收跌，触发后先暂停加仓并复核基本面。`
+    : "价格风险：实时涨跌暂缺；预警线为单日跌幅≤-5%或连续两日收跌，触发后先核实原因。";
+  const exitBody = "退出触发：价格跌破预警线且伴随经营或行业信号时，优先降低风险敞口；如果只是大盘同步波动，先确认是否有公司层面的新事实。";
+  return [
+    { title: "经营风险", body: operatingBody },
+    { title: "行业风险", body: industryBody },
+    { title: "价格风险", body: priceBody },
+    { title: "退出触发", body: exitBody },
+  ];
 }
 
 function buildAShareView(base, item) {
@@ -877,7 +928,8 @@ function buildAShareView(base, item) {
     { title: "现金流", body: `经营 ${formatLarge(financials.operatingCashFlow)} · 自由 ${formatLarge(financials.freeCashFlow)}` },
   ];
   base.actions = [];
-  base.risk = "过往分红不代表未来；现金流转弱时分红可能被砍。静态买入/推荐价已不展示。";
+  base.riskItems = buildAShareRiskItems(raw, financials);
+  base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   base.sourceNote = `${raw.priceSource || raw.source || "公开行情"} · ${financials.source || "公开财务资料"}`;
 }
 
@@ -985,6 +1037,9 @@ function buildGoldView(base, item) {
   const etf = gold.quotes?.etf || {};
   const usdCny = gold.quotes?.usdCny || {};
   const returns = international.returns || {};
+  const scoreBundle = answer.scores || {};
+  const internationalScore = Number(scoreBundle.international?.score ?? answer.internationalScore);
+  const domesticScore = Number(scoreBundle.domestic?.score ?? answer.domesticScore);
   const internationalRange = historyStats((gold.history?.international || []).map((entry) => entry.close));
   const domesticRange = historyStats((gold.history?.domestic || []).map((entry) => entry.close));
   const rangeText = (range, currency) => range ? `${Number(range.low).toFixed(1)}–${Number(range.high).toFixed(1)} ${currency}` : "待核验";
@@ -1001,6 +1056,8 @@ function buildGoldView(base, item) {
   base.answer = item.one;
   base.metrics = [
     ["现在动作", action],
+    ["国际观察分", Number.isFinite(internationalScore) ? `${internationalScore}` : "暂缺"],
+    ["人民币观察分", Number.isFinite(domesticScore) ? `${domesticScore}` : "暂缺"],
     ["国际金", hasNumber(international.price) ? `${Number(international.price).toFixed(0)}` : "暂缺"],
     ["人民币金", hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(1)}` : "暂缺"],
     ["半年位置", hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "暂缺"],
@@ -1015,9 +1072,9 @@ function buildGoldView(base, item) {
   base.highlights = [
     { label: "国际金", value: hasNumber(international.price) ? `${Number(international.price).toFixed(0)}` : "—" },
     { label: "人民币金", value: hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(1)}` : "—" },
-    { label: "半年位", value: hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "—" },
+    { label: "国际分", value: Number.isFinite(internationalScore) ? `${internationalScore}` : "—" },
+    { label: "人民币分", value: Number.isFinite(domesticScore) ? `${domesticScore}` : "—" },
     { label: "20日", value: formatPercent(returns.day20) },
-    { label: "动作", value: String(action).slice(0, 6) },
   ];
   base.pageHelp = "";
 
@@ -1034,7 +1091,8 @@ function buildGoldView(base, item) {
 
   setCharts(
     base,
-    scoreMeter(scoredGold.score, "观察分", action),
+    scoreMeter(internationalScore, "国际金观察分", action),
+    scoreMeter(domesticScore, "人民币金观察分", "国内价格"),
     priceVisual(intlHistory, "国际金轨迹", (value) => Number(value).toFixed(0)),
     meterVisual(intlHistory, international.price, "国际金位置", (value) => Number(value).toFixed(0)),
     domesticHistory.length >= 2
@@ -1064,6 +1122,8 @@ function buildGoldView(base, item) {
 
   base.facts = compactFacts([
     ["现在动作", action],
+    ["国际金观察分", Number.isFinite(internationalScore) ? `${internationalScore}` : null],
+    ["人民币金观察分", Number.isFinite(domesticScore) ? `${domesticScore}` : null],
     ["国际金价", hasNumber(international.price) ? `${Number(international.price).toFixed(1)}${international.currency || "USD/oz"}` : null],
     ["国际金涨跌", hasNumber(international.changePercent) ? formatPercent(international.changePercent) : null],
     ["国际金截至", international.asOf],
@@ -1084,11 +1144,16 @@ function buildGoldView(base, item) {
     ...(gold.indicators || []).slice(0, 8).map((entry) => [entry.label, hasNumber(entry.value) ? `${entry.value}${entry.unit || ""}` : null]),
   ]);
   base.analysis = [
-    { title: "动作", body: action.length > 22 ? `${action.slice(0, 22)}…` : action },
+    { title: "双分怎么看", body: `国际金 ${Number.isFinite(internationalScore) ? internationalScore : "待核"} 分 · 人民币金 ${Number.isFinite(domesticScore) ? domesticScore : "待核"} 分；前者看国际宏观与美元，后者看上海金、汇率和国内折溢价。` },
     { title: "买卖区", body: `买 ${buyIntl || buyCny || "暂缺"} · 卖 ${sellIntl || sellCny || "暂缺"}` },
   ];
   base.actions = [];
-  base.risk = "黄金波动可能很大；以上为观察区，不是买卖指令。";
+  base.riskItems = [
+    { title: "国际金风险", body: `国际金观察分 ${Number.isFinite(internationalScore) ? internationalScore : "待核"}；重点看实际利率、美元、投机持仓和国际金风险下沿 ${riskIntl || "待核"}。` },
+    { title: "人民币金风险", body: `人民币金观察分 ${Number.isFinite(domesticScore) ? domesticScore : "待核"}；重点看人民币汇率、上海金折溢价和国内风险下沿 ${riskCny || "待核"}。` },
+    { title: "价格触发", body: "国际金与人民币金不是同一价格；任一维度跌破自己的风险下沿，先核实汇率、国内溢价和宏观驱动，再决定是否降低风险敞口。" },
+  ];
+  base.risk = `${base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ")} 黄金波动可能很大，以上为观察区，不是买卖指令。`;
   base.sourceNote = (gold.sources || []).filter((source) => source.ok).map((source) => source.name).join(" · ") || "公开行情与宏观资料";
 }
 
@@ -1103,7 +1168,9 @@ function detailView(item, snapshot) {
   const scored = scoreForItem(item);
   if (scored.score != null) {
     const metrics = Array.isArray(base.metrics) ? base.metrics.slice() : [];
-    const hasScore = metrics.some((row) => (
+    const hasScore = item.market === "gold"
+      ? metrics.some((row) => row[0] === "国际观察分" || row[0] === "人民币观察分")
+      : metrics.some((row) => (
       row[0] === scored.label
       || row[0] === "研究分"
       || row[0] === "研究观察分"
@@ -1111,7 +1178,7 @@ function detailView(item, snapshot) {
       || row[0] === "收息分"
       || row[0] === "收息观察分"
       || row[0] === "观察分"
-    ));
+      ));
     if (!hasScore) metrics.unshift([scored.label, `${scored.score}`]);
     base.metrics = metrics;
     base.researchScore = scored.score;

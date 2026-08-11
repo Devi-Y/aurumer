@@ -135,6 +135,11 @@ assert(miniAShareItems.some((item) => item.code === "515180.SH" && item.raw?.ass
 assert(miniGoldItems.length === 2, `小程序黄金入口应有 2 个答案，实际 ${miniGoldItems.length}`);
 assert(miniGoldItems.every((item) => ["track", "plan"].includes(item.group)), "小程序黄金入口应是现在怎么做 / 买点与卖点");
 assert(miniGoldItems.some((item) => item.one.includes("人民币金")), "小程序黄金追踪缺少人民币金数据");
+const allAShareQuotes = snapshot.aShare?.quotes || [];
+assert(allAShareQuotes.length >= 20, `小程序 A 股详情覆盖门槛应至少为 20 只，实际 ${allAShareQuotes.length}`);
+assert(allAShareQuotes.every((quote) => answers.findItem(snapshot, "a", quote.code)), "小程序 A 股 20 只行情标的必须均可打开详情");
+assert(Number.isFinite(snapshot.gold?.answer?.scores?.international?.score), "小程序缺少国际金观察分");
+assert(Number.isFinite(snapshot.gold?.answer?.scores?.domestic?.score), "小程序缺少人民币金观察分");
 for (const [group, count] of [["hk", 3], ["us", 5], ["a", 3]]) {
   const profiles = smartMoneyProfiles.filter((item) => item.group === group);
   const items = miniGuruItems.filter((item) => item.group === group);
@@ -196,9 +201,19 @@ for (const label of expectedDetailModuleLabels) {
   assert([...label].length === 2, `详情页模块名称不是 2 个字：${label}`);
   assert(detailSource.includes(`label: "${label}"`), `详情页缺少模块：${label}`);
 }
-for (const marker of ["先看答案", "价格与位置", "数据与质量", "研究图表", "已披露资料", "先看边界"]) {
+for (const marker of ["先看答案", "价格与位置", "数据与质量", "研究图表", "已披露资料", "风险提醒"]) {
   assert(detailTemplate.includes(marker), `详情页横向模块缺少对应内容：${marker}`);
 }
+assert(
+  detailSource.includes("buildAShareRiskItems")
+    && detailSource.includes('title: "经营风险"')
+    && detailSource.includes('title: "行业风险"')
+    && detailSource.includes('title: "价格风险"')
+    && detailSource.includes('title: "退出触发"')
+    && detailTemplate.includes("riskItems"),
+  "A 股详情缺少经营/行业/价格/退出触发四类投研风险提醒",
+);
+assert(detailSource.includes("国际观察分") && detailSource.includes("人民币观察分"), "黄金详情缺少双观察分展示");
 assert(indexSource.includes("pages/section/index"), "小程序首页仍未进入原生二级页");
 assert(appConfig.pages.includes("pages/member/index"), "小程序仍应保留会员页路由");
 assert(indexSource.includes("pages/member/index"), "小程序首页缺少研究会员入口");
@@ -354,7 +369,8 @@ for (const label of [
 ]) {
   assert(`${memberPageSource}\n${memberTemplate}`.includes(label), `小程序会员页缺少关键内容：${label}`);
 }
-assert(memberTemplate.includes("打开逻辑哨兵"), "已开通会员页应保留进入工作台的入口");
+assert(memberTemplate.includes("个人投资逻辑哨兵") && memberTemplate.includes("写理由 · 盯变化 · 复盘"), "会员页缺少简化后的核心定位文案");
+assert(!memberTemplate.includes("打开逻辑哨兵") && !memberTemplate.includes("page-nav"), "会员页不应保留额外工作台入口或页脚导航");
 assert(
   (pageTemplatesByPath.get("pages/workspace/index") || "").includes("今日")
   && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("关注")
@@ -418,7 +434,7 @@ assert(
 );
 assert(memberTemplate.includes("点击即确认已满 18 周岁") && !memberTemplate.includes("showPaymentTestTools") && !memberTemplate.includes("changePurchaseConsent"), "会员页应使用清晰的按钮确认，不应暴露内部验收控件");
 assert(!memberTemplate.includes("核心价值") && !memberTemplate.includes("履约证据") && !memberTemplate.includes("购买须知"), "会员页不应重新引入已删除的长篇页面介绍");
-assert(!memberTemplate.includes("个人投资逻辑哨兵") && !memberTemplate.includes("公开答案免费") && !memberTemplate.includes("会员用于个人跟踪"), "会员页不应保留营销式页面介绍");
+assert(!memberTemplate.includes("公开答案免费") && !memberTemplate.includes("会员用于个人跟踪"), "会员页不应保留营销式页面介绍");
 assert(legalPage.includes("pages/member/index") && legalTemplate.includes('open-type="contact"'), "协议页缺少返回会员或客服通道");
 assert(sitemap.rules.some((rule) => rule.action === "disallow" && rule.page === "pages/workspace/index"), "个人工作台不应进入小程序页面索引");
 assert(!indexSource.includes("pages/webview/index?target=${target}"), "小程序首页仍直接依赖 web-view");

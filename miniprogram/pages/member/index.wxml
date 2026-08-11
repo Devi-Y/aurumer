@@ -2,6 +2,7 @@
   <view class="member-status-card">
     <view class="member-hero-copy">
       <text class="status-value {{state.active ? 'active' : ''}}">{{state.active ? '会员已开通' : '会员未开通'}}</text>
+      <text class="member-title">个人投资逻辑哨兵</text>
       <text wx:if="{{state.statusDetail}}" class="status-detail">{{state.statusDetail}}</text>
     </view>
     <view class="member-hero-image-wrap"><image src="/assets/home/member.svg" mode="aspectFit" aria-hidden="true"></image></view>
@@ -25,6 +26,7 @@
       <view>
         <text class="plan-name">365 天会员</text>
         <text class="plan-term">一次购买 · 不自动续费</text>
+        <text class="plan-brief">写理由 · 盯变化 · 复盘</text>
       </view>
       <text class="plan-price">{{state.plans[0].priceMain}}</text>
     </view>
@@ -33,20 +35,11 @@
 
   <view wx:if="{{!state.active && !state.plans.length}}" class="state-note payment-closed">{{state.paymentReason || '支付通道准备中'}}</view>
 
-  <view wx:if="{{state.active}}" class="active-entry" bindtap="openWorkspace">
-    <text>打开逻辑哨兵</text><text>›</text>
-  </view>
-
   <view class="member-links">
     <button class="support-link" open-type="contact" show-message-card="true">支付问题联系客服</button>
   </view>
 
   <text class="disclaimer">{{disclaimer}}</text>
-
-  <view class="page-nav">
-    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
-    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
-  </view>
 
   <view wx:if="{{state.plans.length && !state.active}}" class="pay-dock">
     <view class="pay-dock-copy">

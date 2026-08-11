@@ -48,6 +48,7 @@
 .status-detail { display: block; }
 .status-value { color: #777e79; font-size: 23rpx; font-weight: 600; }
 .status-value.active { color: #0b7a53; }
+.member-title { display: block; margin-top: 8rpx; color: #1b211d; font-size: 42rpx; font-weight: 760; line-height: 1.2; }
 .status-detail { margin-top: 9rpx; color: #606762; font-size: 24rpx; line-height: 1.5; }
 
 .member-shortcuts {
@@ -114,6 +115,7 @@
 .plan-term { display: block; }
 .plan-name { color: #202421; font-size: 31rpx; font-weight: 700; }
 .plan-term { margin-top: 8rpx; color: #6b756f; font-size: 24rpx; }
+.plan-brief { display: block; margin-top: 12rpx; color: #078d4b; font-size: 24rpx; font-weight: 650; }
 .plan-price { color: #152019; font-size: 54rpx; font-weight: 730; }
 .legal-link,
 .support-link {

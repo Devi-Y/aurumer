@@ -20,6 +20,12 @@
   margin-top: 16rpx;
   padding: 16rpx 20rpx;
 }
+.freshness-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
 .freshness-banner .freshness-label,
 .freshness-banner .freshness-tip { display: block; }
 .freshness-banner .freshness-label {
@@ -32,6 +38,16 @@
   color: #6a746e;
   font-size: 22rpx;
   line-height: 1.45;
+}
+.freshness-action {
+  flex: none;
+  padding: 5rpx 14rpx;
+  border: 1rpx solid #d4c3a6;
+  border-radius: 999rpx;
+  color: #8b5b20;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1.35;
 }
 .freshness-banner.tone-ok { background: #eef8f2; border-color: #d7ebe1; }
 .freshness-banner.tone-warn { background: #fff7ec; border-color: #f0e0c8; }
@@ -208,8 +224,8 @@
 
 .item-row {
   display: flex;
-  min-height: 132rpx;
-  padding: 19rpx 17rpx 19rpx 19rpx;
+  min-height: 0;
+  padding: 18rpx 17rpx 18rpx 19rpx;
   align-items: flex-start;
   gap: 14rpx;
 }
@@ -218,8 +234,8 @@
 
 .item-number {
   display: flex;
-  width: 44rpx;
-  height: 44rpx;
+  width: 42rpx;
+  height: 42rpx;
   margin-top: 2rpx;
   flex: none;
   align-items: center;
@@ -270,6 +286,61 @@
   font-weight: 700;
   line-height: 1.4;
   text-align: center;
+}
+
+.badge-a {
+  background: #eaf8f0;
+  color: #0b7a53;
+}
+
+.badge-gold {
+  background: #fff7df;
+  color: #9b6a16;
+}
+
+.badge-us {
+  background: #edf4fb;
+  color: #27658e;
+}
+
+.badge-guru {
+  background: #f0edfb;
+  color: #6650a6;
+}
+
+.item-strategy {
+  display: flex;
+  margin-top: 10rpx;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.item-strategy-label {
+  max-width: 150rpx;
+  padding: 3rpx 8rpx;
+  overflow: hidden;
+  flex: none;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-strategy-label.tone-good { background: #eaf8f0; color: #0b7a53; }
+.item-strategy-label.tone-warn { background: #fff7ec; color: #93621d; }
+.item-strategy-label.tone-bad { background: #fdf0ee; color: #a34b3e; }
+.item-strategy-label.tone-muted { background: #f0f2f1; color: #778079; }
+
+.item-strategy-copy {
+  min-width: 0;
+  overflow: hidden;
+  color: #68736c;
+  font-size: 21rpx;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .item-tags {
@@ -401,6 +472,7 @@
   .title { font-size: 35rpx; }
   .item-row { padding-right: 13rpx; padding-left: 15rpx; }
   .badge { max-width: 138rpx; }
+  .item-strategy-label { max-width: 132rpx; }
 }
 
 @media (min-width: 700px) {

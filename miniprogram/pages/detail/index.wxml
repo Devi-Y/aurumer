@@ -60,6 +60,15 @@
           </view>
           <text class="exit-plan-basis">{{view.exitPlan.basis}}</text>
         </view>
+        <view wx:if="{{view.strategy}}" class="strategy-card tone-{{view.strategy.tone}}">
+          <view class="strategy-card-head">
+            <text class="strategy-card-title">策略信号</text>
+            <text class="strategy-card-label">{{view.strategy.label}}</text>
+          </view>
+          <text class="strategy-card-action">{{view.strategy.action}}</text>
+          <text class="strategy-card-trigger">触发：{{view.strategy.trigger}}</text>
+          <text class="strategy-card-basis">口径：{{view.strategy.basis}}</text>
+        </view>
         <view wx:if="{{!view.answer && !view.exitPlan}}" class="module-empty">当前没有可展示的结论。</view>
       </view>
 
@@ -188,7 +197,10 @@
           <text>来源 {{view.sourceNote}}</text>
         </view>
         <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
-          <text class="freshness-label">{{freshness.label}}</text>
+          <view class="freshness-head">
+            <text class="freshness-label">{{freshness.label}}</text>
+            <view wx:if="{{freshness.showRetry}}" class="freshness-action" bindtap="retryFreshness" aria-role="button">重试</view>
+          </view>
           <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
         </view>
         <view class="action-stack">

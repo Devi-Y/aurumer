@@ -226,6 +226,12 @@
   border-radius: 20rpx;
   background: #ffffff;
 }
+.freshness-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
 .freshness-banner .freshness-label,
 .freshness-banner .freshness-tip { display: block; }
 .freshness-banner .freshness-label {
@@ -238,6 +244,16 @@
   color: #6a746e;
   font-size: 22rpx;
   line-height: 1.45;
+}
+.freshness-action {
+  flex: none;
+  padding: 5rpx 14rpx;
+  border: 1rpx solid #d4c3a6;
+  border-radius: 999rpx;
+  color: #8b5b20;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1.35;
 }
 .freshness-banner.tone-ok { background: #eef8f2; }
 .freshness-banner.tone-warn { background: #fff7ec; }

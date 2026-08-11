@@ -5,6 +5,7 @@ const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
 const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList } = require("../../utils/answers");
 const { scoreForItem } = require("../../utils/strategy-score");
+const { buildStrategySignal } = require("../../utils/strategy-signals");
 const { buildHkExitPlan } = require("../../utils/hk-exit-plan");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
@@ -1165,6 +1166,8 @@ function detailView(item, snapshot) {
   else if (item.market === "gold") buildGoldView(base, item);
   else buildGuruView(base, item);
 
+  base.strategy = buildStrategySignal(item, { snapshot, evidence: strategyEvidence });
+
   const scored = scoreForItem(item);
   if (scored.score != null) {
     const metrics = Array.isArray(base.metrics) ? base.metrics.slice() : [];
@@ -1332,6 +1335,7 @@ Page({
     this.refreshMemberLink();
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
+  retryFreshness() { this.refresh(null, true); },
   refreshMemberLink() {
     loadWorkspace()
       .then((workspace) => {

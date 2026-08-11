@@ -5,6 +5,8 @@ const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
+const { buildStrategySignal } = require("../../utils/strategy-signals");
+const strategyEvidence = require("../../data/strategy-evidence");
 
 const MARKET_META = {
   hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -120,6 +122,7 @@ Page({
     this.refresh();
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
+  retryFreshness() { this.refresh(null, true); },
   refresh(done, force = false) {
     loadSnapshot((snapshot, source, meta = {}) => {
       const definitions = groupDefinitions(snapshot, this.data.market).filter((item) => item.count > 0);
@@ -131,12 +134,14 @@ Page({
       const items = rawItems.map((item, index) => {
         const visual = comparable[index];
         const scored = scoreForItem(item);
+        const strategy = buildStrategySignal(item, { evidence: strategyEvidence });
         return {
           id: item.id,
           name: item.name,
-          shortName: shortCompanyName(item.name, item.code || "标的", 8),
+          shortName: item.raw?.shortName || shortCompanyName(item.name, item.code || "标的", 8),
           code: item.code,
           badge: item.badge,
+          badgeTone: this.data.market,
           position: index + 1,
           positionLabel: String(index + 1).padStart(2, "0"),
           scoreText: item.scoreText || (item.score > 0 ? `${item.score} 分` : "资料待核验"),
@@ -151,6 +156,9 @@ Page({
           barWidth: visual && maxValue > 0
             ? Math.min(100, Math.max(12, Math.round((visual.value / maxValue) * 100)))
             : 0,
+          strategyLabel: strategy.label,
+          strategyTone: strategy.tone,
+          strategyLine: strategy.action,
         };
       });
       this.setData({

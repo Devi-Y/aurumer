@@ -11,7 +11,10 @@
   <text wx:if="{{groupHelp}}" class="list-help">{{groupHelp}}</text>
 
   <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
-    <text class="freshness-label">{{freshness.label}}</text>
+    <view class="freshness-head">
+      <text class="freshness-label">{{freshness.label}}</text>
+      <view wx:if="{{freshness.showRetry}}" class="freshness-action" bindtap="retryFreshness" aria-role="button">重试</view>
+    </view>
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
@@ -35,8 +38,12 @@
           </view>
           <view class="item-tags">
             <text wx:if="{{item.researchScoreLabel}}" class="score-chip">{{item.researchScoreLabel}}</text>
-            <text class="badge">{{item.badge}}</text>
+            <text class="badge badge-{{item.badgeTone}}">{{item.badge}}</text>
           </view>
+        </view>
+        <view wx:if="{{item.strategyLabel}}" class="item-strategy">
+          <text class="item-strategy-label tone-{{item.strategyTone}}">策略 {{item.strategyLabel}}</text>
+          <text class="item-strategy-copy">{{item.strategyLine}}</text>
         </view>
         <view wx:if="{{item.showBar}}" class="data-bar-block">
           <view class="data-bar-track"><view class="data-bar-value {{item.barTone}}" style="width: {{item.barWidth}}%;"></view></view>

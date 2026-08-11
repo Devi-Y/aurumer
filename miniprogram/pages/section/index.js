@@ -269,6 +269,7 @@ Page({
   onPullDownRefresh() {
     this.refresh(() => wx.stopPullDownRefresh(), true);
   },
+  retryFreshness() { this.refresh(null, true); },
   refresh(done, force = false) {
     loadSnapshot((snapshot, source, meta = {}) => {
       const groups = groupDefinitions(snapshot, this.data.market)

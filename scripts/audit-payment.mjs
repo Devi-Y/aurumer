@@ -170,7 +170,7 @@ assert(memberPage.includes('url: "/pages/legal/index"') && memberTemplate.includ
 for (const label of ["会员商品与价格", "下单、交付与有效期", "退款与售后", "处理的信息与用途", "保存期限与删除", "用户权利与退出", "未满 18 周岁", "复制全部文字"]) {
   assert(`${legalPage}\n${legalTemplate}`.includes(label), `协议与隐私页缺少：${label}`);
 }
-assert(memberTemplate.includes("购买记录") && memberPage.includes("copyOrder"), "会员页缺少可联系客服核对的购买记录");
+assert(memberTemplate.includes("刷新权益") && memberPage.includes("manualQuery"), "会员页缺少支付后的权益核对入口");
 const paidRules = `${memberTemplate}\n${legalPage}\n${legalTemplate}`;
 for (const label of ["不自动续费", "全额退款", "部分退款", "保存 3 年"]) {
   assert(paidRules.includes(label), `会员页或完整协议缺少付费规则：${label}`);
@@ -349,7 +349,7 @@ const manualRefundTestPayment = paymentReadiness({
 });
 assert(manualRefundTestPayment.ready && manualRefundTestPayment.mode === "test" && manualRefundTestPayment.refundMode === "merchant-manual", "人工原路退款模式仍被错误要求配置退款 API");
 assert(!memberTemplate.includes("showPaymentTestTools") && !memberTemplate.includes("验收账号") && !memberTemplate.includes("环境变量"), "会员页不得向普通用户暴露内部支付验收控件");
-assert(memberTemplate.includes("直接打开微信收银台") && memberTemplate.includes("点击即确认"), "会员页缺少和问岳一致的直接微信收银台说明与操作");
+assert(memberTemplate.includes("立即微信支付") && memberTemplate.includes("点击即确认"), "会员页缺少和问岳一致的一键微信收银台操作");
 assert(backend.includes('const NEW_PURCHASE_PROVIDER = "wechat-jsapi"') && backend.includes("paymentProvider: NEW_PURCHASE_PROVIDER"), "普通 JSAPI 没有固定为唯一新购路线");
 assert(!backendContract.includes("WANGCHAO_PAYMENT_PROVIDER") && !backendContract.includes("WANGCHAO_CLOUDPAY_MERCHANT_BOUND"), "已确认的 JSAPI/商户绑定仍被重复要求配置环境变量");
 assert(REQUIRED_LEGAL_VERSIONS.termsVersion === legalConfig.termsVersion, "客户端与云函数会员协议版本不一致");

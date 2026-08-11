@@ -13,51 +13,6 @@ const ANNUAL_PLAN = {
   priceUnit: "/ 年",
 };
 
-/** 会员只回答三问：买后得到什么、每天怎么用、为什么免费版替代不了。 */
-const MEMBER_FAQ = [
-  {
-    id: "get",
-    title: "买后得到什么",
-    body: "写理由 → 盯变化 → 复盘。含今日简报、站内收件箱、决策快照与节点提醒。不含买卖建议。",
-  },
-  {
-    id: "daily",
-    title: "每天怎么用",
-    body: "打开「今日」看我的变化与待办；无变化就确认今天没事。",
-  },
-  {
-    id: "why",
-    title: "为什么免费版不够",
-    body: "公开答案仍免费。会员买的是个人跟踪与复盘工具：免费 5+5，会员 80+300、跨设备同步与历史保全。",
-  },
-];
-
-const COMPARE_BARS = [
-  { id: "watch", label: "关注条数", free: 5, member: 80, freePct: 6, memberPct: 100 },
-  { id: "idea", label: "想法条数", free: 5, member: 300, freePct: 2, memberPct: 100 },
-  { id: "days", label: "有效天数", free: 0, member: 365, freePct: 0, memberPct: 100 },
-];
-
-const CORE_BENEFITS = [
-  {
-    id: "change",
-    title: "重要变化",
-    body: "只提醒结论变化、结论跨档、风险新增与失效条件，不打扰普通价格波动。",
-  },
-  {
-    id: "snapshot",
-    title: "决策快照",
-    body: "保存当时的价格、结论、依据和风险，方便事后对照。",
-  },
-  {
-    id: "task",
-    title: "节点提醒",
-    body: "管理财报、分红、招股、上市和复盘日期（小程序内提醒）。",
-  },
-];
-
-const EXTRA_BENEFITS = [];
-
 const PAYMENT_REFRESH_DELAYS = [800, 1600, 2600, 4000, 6000];
 
 function formatDate(value) {
@@ -84,23 +39,9 @@ function viewState(state) {
     operatorReady,
     purchaseAllowed,
     serverLegalReady,
-    statusTitle: active
-      ? "会员已开通"
-      : (purchaseAllowed ? "微信支付可用" : "支付通道准备中"),
     statusDetail: active
-      ? `有效期至 ${formatDate(entitlement.expiresAt)} · 持续跟踪你的关注对象`
-      : (purchaseAllowed
-        ? "付款成功并核对订单后，会员会自动生效。公开答案仍免费。"
-        : "暂时不能付款，请稍后再试或联系微信客服。"),
-    heroTitle: "持续跟踪你的关注对象",
-    coreBenefits: CORE_BENEFITS,
-    extraBenefits: EXTRA_BENEFITS,
-    sellGate: state.sellGate
-      ? {
-        ...state.sellGate,
-        humanPendingLabel: (state.sellGate.humanPending || []).join("、"),
-      }
-      : null,
+      ? `有效期至 ${formatDate(entitlement.expiresAt)}`
+      : "",
     paymentPubliclyReleased: Boolean(state.paymentPubliclyReleased),
     plans: (state.plans || [])
       .filter((plan) => plan.id === ANNUAL_PLAN.id)
@@ -129,13 +70,9 @@ Page({
     paying: false,
     settling: false,
     querying: false,
-    showOrders: false,
-    showNotice: false,
     legalInfo,
     disclaimer: MEMBER_DISCLAIMER,
     lastOrderId: "",
-    faq: MEMBER_FAQ,
-    compareBars: COMPARE_BARS,
     state: viewState({
       paymentReady: false,
       paymentReason: "正在检查会员服务",
@@ -167,11 +104,11 @@ Page({
       });
   },
   buy(event) {
-    if (this.data.paying) return;
+    if (this.data.paying || this.data.settling) return;
     if (!this.data.state.purchaseAllowed) {
       wx.showModal({
         title: "支付通道准备中",
-        content: "当前还不能发起付款。你可以稍后再试，或联系微信客服。",
+        content: "当前还不能发起付款，请稍后再试或联系微信客服。",
         showCancel: false,
         confirmText: "知道了",
       });
@@ -194,7 +131,6 @@ Page({
           paying: false,
           settling: true,
           lastOrderId: (result && result.orderId) || "",
-          showOrders: true,
         });
         wx.showToast({ title: "支付成功", icon: "success" });
         this.refreshAfterPayment(0);
@@ -227,8 +163,7 @@ Page({
       }
       const delay = PAYMENT_REFRESH_DELAYS[attempt];
       if (delay == null) {
-        this.setData({ settling: false, showOrders: true });
-        wx.showToast({ title: "可点「刷新权益」", icon: "none" });
+        wx.showToast({ title: "可点“刷新权益”", icon: "none" });
         return;
       }
       this.paymentRefreshTimer = setTimeout(() => this.refreshAfterPayment(attempt + 1), delay);
@@ -245,26 +180,20 @@ Page({
     this.setData({ querying: true });
     queryOrder(orderId)
       .then((result) => {
-        if (result && result.fulfilled) {
-          wx.showToast({ title: "会员已开通", icon: "success" });
-        } else {
-          wx.showToast({
-            title: (result && result.statusLabel) || "仍在核对",
-            icon: "none",
-          });
-        }
+        wx.showToast({
+          title: result && result.fulfilled ? "会员已开通" : ((result && result.statusLabel) || "仍在核对"),
+          icon: result && result.fulfilled ? "success" : "none",
+        });
         return loadMemberState();
       })
       .then((state) => {
         if (state) this.setData({ state: viewState(state), settling: false });
       })
-      .catch((error) => {
-        wx.showModal({
-          title: "查单暂不可用",
-          content: error.message || "请稍后重试或联系微信客服",
-          showCancel: false,
-        });
-      })
+      .catch((error) => wx.showModal({
+        title: "查单暂不可用",
+        content: error.message || "请稍后重试或联系微信客服",
+        showCancel: false,
+      }))
       .finally(() => this.setData({ querying: false }));
   },
   openWorkspace() {
@@ -275,17 +204,6 @@ Page({
       url: "/pages/legal/index",
       fail: () => wx.redirectTo({ url: "/pages/legal/index" }),
     });
-  },
-  copyOrder(event) {
-    const orderId = String(event.currentTarget.dataset.order || "");
-    if (!orderId) return;
-    wx.setClipboardData({ data: orderId });
-  },
-  toggleOrders() {
-    this.setData({ showOrders: !this.data.showOrders });
-  },
-  toggleNotice() {
-    this.setData({ showNotice: !this.data.showNotice });
   },
   goBack() {
     wx.navigateBack({ fail: () => goHome() });

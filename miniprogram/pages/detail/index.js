@@ -710,7 +710,79 @@ function buildUSView(base, item, snapshot) {
   base.sourceNote = `公开行情与财务资料 · ${raw.asOf || fund.period || "日期待核验"}`;
 }
 
+function buildAShareFundView(base, item) {
+  const raw = item.raw || {};
+  const financials = raw.financials || {};
+  const price = hasNumber(raw.currentPrice) ? Number(raw.currentPrice) : null;
+  const history = (raw.history || []).map((entry) => entry?.close).filter(hasNumber).map(Number);
+  const fundPrice = price == null ? "暂缺" : `¥${price.toFixed(3)}`;
+  const change = formatPercent(raw.changePercent);
+  const size = hasNumber(financials.fundSize) ? formatLarge(financials.fundSize) : "暂缺";
+
+  base.title = raw.shortName || "红利ETF";
+  base.code = raw.code || item.code;
+  base.badge = "红利ETF";
+  base.answer = "指数化收息，分散单只股票风险；基金分红不固定，先看指数和公告。";
+  base.metrics = [
+    ["资产类型", raw.fundType || "ETF"],
+    ["跟踪指数", raw.trackingIndex || "中证红利指数"],
+    ["当前价格", fundPrice],
+    ["今日涨跌", change],
+    ["基金规模", size],
+    ["管理费托管", raw.expenseRatio || "暂缺"],
+    ["成立日期", raw.inceptionDate || "暂缺"],
+    ["分红口径", raw.distributionNote || "以基金公告为准"],
+  ];
+  base.highlights = [
+    { label: "类型", value: "ETF" },
+    { label: "现价", value: fundPrice },
+    { label: "今日", value: change },
+    { label: "指数", value: "中证红利" },
+  ];
+  const priceBand = solidVisual([
+    price != null ? { label: "现价", value: price, valueText: fundPrice } : null,
+    hasNumber(raw.previousClose) ? { label: "昨收", value: Number(raw.previousClose), valueText: `¥${Number(raw.previousClose).toFixed(3)}` } : null,
+  ].filter(Boolean), "ETF价格对照");
+  setCharts(
+    base,
+    history.length >= 2 ? priceVisual(history, "红利ETF轨迹", (value) => `¥${Number(value).toFixed(3)}`) : null,
+    history.length >= 2 ? meterVisual(history, price, "红利ETF位置", (value) => `¥${Number(value).toFixed(3)}`) : null,
+    priceBand,
+    metricTilesVisual([
+      ["基金规模", size],
+      ["跟踪指数", raw.trackingIndex || "中证红利指数"],
+      ["管理人", raw.fundManager || "易方达基金"],
+      ["分红", "以公告为准"],
+    ], "基金资料"),
+  );
+  base.facts = compactFacts([
+    ["基金全称", raw.name || "易方达中证红利ETF"],
+    ["基金代码", raw.code || item.code],
+    ["资产类型", raw.fundType || "ETF"],
+    ["跟踪指数", raw.trackingIndex || "中证红利指数"],
+    ["基金管理人", raw.fundManager || "易方达基金"],
+    ["成立日期", raw.inceptionDate],
+    ["基金规模", size],
+    ["管理费托管", raw.expenseRatio],
+    ["价格日期", raw.priceAsOf || raw.asOf],
+    ["历史样本", history.length ? `${history.length}个交易日` : null],
+    ["分红说明", raw.distributionNote || "以基金公告为准"],
+    ["资料来源", raw.source || raw.priceSource],
+  ]);
+  base.analysis = [
+    { title: "怎么收息", body: "ETF 用一篮子红利成分股实现分散收息，不能把单只股票的股息率直接套到基金上。" },
+    { title: "先核什么", body: "先看基金公告、指数成分、分红记录和场内价格相对净值的偏离，再决定是否继续观察。" },
+  ];
+  base.actions = [];
+  base.risk = "基金分红不固定，指数成分和估值会变化；场内价格可能偏离基金净值，不构成固定收益承诺。";
+  base.sourceNote = `${raw.source || raw.priceSource || "公开行情"} · ${raw.priceAsOf || raw.asOf || "日期待核验"}`;
+}
+
 function buildAShareView(base, item) {
+  if (item.raw?.assetType === "fund") {
+    buildAShareFundView(base, item);
+    return;
+  }
   const raw = item.raw || {};
   const financials = raw.financials || {};
   const annualDividend = hasNumber(raw.annualDividendPer100k) ? Number(raw.annualDividendPer100k) : null;
@@ -930,7 +1002,7 @@ function buildGoldView(base, item) {
   base.metrics = [
     ["现在动作", action],
     ["国际金", hasNumber(international.price) ? `${Number(international.price).toFixed(0)}` : "暂缺"],
-    ["上海金", hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(1)}` : "暂缺"],
+    ["人民币金", hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(1)}` : "暂缺"],
     ["半年位置", hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "暂缺"],
     ["GLD", hasNumber(etf.price) ? `${Number(etf.price).toFixed(1)}` : "暂缺"],
     ["美元兑人民币", hasNumber(usdCny.price) ? `${Number(usdCny.price).toFixed(2)}` : "暂缺"],
@@ -942,6 +1014,7 @@ function buildGoldView(base, item) {
   ];
   base.highlights = [
     { label: "国际金", value: hasNumber(international.price) ? `${Number(international.price).toFixed(0)}` : "—" },
+    { label: "人民币金", value: hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(1)}` : "—" },
     { label: "半年位", value: hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "—" },
     { label: "20日", value: formatPercent(returns.day20) },
     { label: "动作", value: String(action).slice(0, 6) },
@@ -965,7 +1038,7 @@ function buildGoldView(base, item) {
     priceVisual(intlHistory, "国际金轨迹", (value) => Number(value).toFixed(0)),
     meterVisual(intlHistory, international.price, "国际金位置", (value) => Number(value).toFixed(0)),
     domesticHistory.length >= 2
-      ? priceVisual(domesticHistory, "上海金轨迹", (value) => Number(value).toFixed(1))
+      ? priceVisual(domesticHistory, "人民币金轨迹", (value) => Number(value).toFixed(1))
       : null,
     solidVisual([
       hasNumber(returns.day20) ? { label: "20日", value: returns.day20, valueText: formatPercent(returns.day20) } : null,
@@ -981,10 +1054,10 @@ function buildGoldView(base, item) {
     metricTilesVisual([
       ["国际金买入", buyIntl],
       ["国际金卖出", sellIntl],
-      ["上海金买入", buyCny],
-      ["上海金卖出", sellCny],
+      ["人民币金买入", buyCny],
+      ["人民币金卖出", sellCny],
       ["国际金风险", riskIntl],
-      ["上海金风险", riskCny],
+      ["人民币金风险", riskCny],
     ].filter((row) => row[1]), "买卖观察区"),
     indicatorTiles,
   );
@@ -994,19 +1067,19 @@ function buildGoldView(base, item) {
     ["国际金价", hasNumber(international.price) ? `${Number(international.price).toFixed(1)}${international.currency || "USD/oz"}` : null],
     ["国际金涨跌", hasNumber(international.changePercent) ? formatPercent(international.changePercent) : null],
     ["国际金截至", international.asOf],
-    ["上海金价", hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(2)}${domestic.currency || "CNY/g"}` : null],
-    ["上海金涨跌", hasNumber(domestic.changePercent) ? formatPercent(domestic.changePercent) : null],
-    ["上海金截至", domestic.asOf],
+    ["人民币金价", hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(2)}${domestic.currency || "CNY/g"}` : null],
+    ["人民币金涨跌", hasNumber(domestic.changePercent) ? formatPercent(domestic.changePercent) : null],
+    ["人民币金截至", domestic.asOf],
     ["GLD", hasNumber(etf.price) ? `${Number(etf.price).toFixed(2)}·${formatPercent(etf.changePercent)}` : null],
     ["美元兑人民币", hasNumber(usdCny.price) ? `${Number(usdCny.price).toFixed(4)}` : null],
     ["国际金买入观察", buyIntl],
     ["国际金卖出观察", sellIntl],
     ["国际金风险下沿", riskIntl],
-    ["上海金买入观察", buyCny],
-    ["上海金卖出观察", sellCny],
-    ["上海金风险下沿", riskCny],
+    ["人民币金买入观察", buyCny],
+    ["人民币金卖出观察", sellCny],
+    ["人民币金风险下沿", riskCny],
     ["国际金样本", internationalRange ? `${internationalRange.count}个·${rangeText(internationalRange, international.currency || "USD/oz")}` : null],
-    ["上海金样本", domesticRange ? `${domesticRange.count}个·${rangeText(domesticRange, domestic.currency || "CNY/g")}` : null],
+    ["人民币金样本", domesticRange ? `${domesticRange.count}个·${rangeText(domesticRange, domestic.currency || "CNY/g")}` : null],
     ["历史样本区间", internationalRange ? rangeText(internationalRange, international.currency || "USD/oz") : null],
     ...(gold.indicators || []).slice(0, 8).map((entry) => [entry.label, hasNumber(entry.value) ? `${entry.value}${entry.unit || ""}` : null]),
   ]);
@@ -1082,10 +1155,68 @@ function detailView(item, snapshot) {
   base.group = item.group;
   base.market = item.market;
   // 标题用简称；全称放在公司资料里。
-  base.title = shortCompanyName(item.name || base.title, base.title, 10);
+  base.title = item.raw?.assetType === "fund"
+    ? (item.raw.shortName || item.name || base.title)
+    : shortCompanyName(item.name || base.title, base.title, 10);
   base.fullName = item.name || base.title;
   if (item.market !== "guru") base.rank = "";
   return base;
+}
+
+function detailModules(market) {
+  if (market === "gold") {
+    return [
+      { id: "summary", label: "结论" },
+      { id: "price", label: "金价" },
+      { id: "finance", label: "驱动" },
+      { id: "source", label: "资料" },
+      { id: "research", label: "研究" },
+      { id: "risk", label: "风险" },
+    ];
+  }
+  if (market === "guru") {
+    return [
+      { id: "summary", label: "结论" },
+      { id: "price", label: "持仓" },
+      { id: "finance", label: "业绩" },
+      { id: "source", label: "资料" },
+      { id: "research", label: "研究" },
+      { id: "risk", label: "风险" },
+    ];
+  }
+  return [
+    { id: "summary", label: "结论" },
+    { id: "price", label: "价格" },
+    { id: "finance", label: "财务" },
+    { id: "source", label: "资料" },
+    { id: "research", label: "研究" },
+    { id: "risk", label: "风险" },
+  ];
+}
+
+function buildDetailModules(view, market) {
+  const charts = Array.isArray(view.charts) ? view.charts : [];
+  const chartText = (chart) => String(chart?.title || "");
+  const pricePattern = market === "gold"
+    ? /金|价格|位置|买卖/u
+    : market === "guru"
+      ? /持仓|仓位|滞后/u
+      : /价格|位置|轨迹|涨跌|招股价|退出/u;
+  const financePattern = market === "gold"
+    ? /指标|驱动|位置/u
+    : market === "guru"
+      ? /业绩|摘要/u
+      : /股息|现金|成长|质量|利润|估值|认购|中签|发行规模/u;
+  const priceCharts = charts.filter((chart) => pricePattern.test(chartText(chart)));
+  const financeCharts = charts.filter((chart) => !pricePattern.test(chartText(chart)) && financePattern.test(chartText(chart)));
+  const researchCharts = charts.filter((chart) => !priceCharts.includes(chart) && !financeCharts.includes(chart));
+  return {
+    ...view,
+    modules: detailModules(market),
+    priceCharts: priceCharts.length ? priceCharts : charts.slice(0, 2),
+    financeCharts: financeCharts.length ? financeCharts : charts.slice(0, 2),
+    researchCharts: researchCharts.length ? researchCharts : charts.slice(-2),
+  };
 }
 
 Page({
@@ -1097,6 +1228,8 @@ Page({
     loading: true,
     loadError: "",
     detailsExpanded: false,
+    activeModule: "summary",
+    activeCharts: [],
     view: {},
     source: "正在读取同步数据",
     freshness: freshnessBanner("正在读取同步数据", "fresh"),
@@ -1175,7 +1308,7 @@ Page({
           });
           return;
         }
-        const view = detailView(item, snapshot);
+        const view = buildDetailModules(detailView(item, snapshot), item.market);
         if (item.market === "hk") {
           view.exitPlan = buildHkExitPlan(item, { evidence: strategyEvidence });
         } else {
@@ -1187,6 +1320,8 @@ Page({
           loading: false,
           loadError: "",
           view,
+          activeModule: "summary",
+          activeCharts: view.priceCharts || [],
           group: item.group || "",
           source,
           freshness,
@@ -1218,6 +1353,22 @@ Page({
   goHome() { goHome(); },
   toggleDetails() {
     this.setData({ detailsExpanded: !this.data.detailsExpanded });
+  },
+  switchModule(event) {
+    const moduleId = String(event.currentTarget.dataset.module || "summary");
+    const view = this.data.view || {};
+    if (!(view.modules || []).some((item) => item.id === moduleId)) return;
+    const chartMap = {
+      price: view.priceCharts,
+      finance: view.financeCharts,
+      research: view.researchCharts,
+    };
+    track("detail_module_switch", { market: this.data.market, module: moduleId });
+    this.setData({
+      activeModule: moduleId,
+      activeCharts: chartMap[moduleId] || [],
+      detailsExpanded: moduleId === "research" ? this.data.detailsExpanded : false,
+    });
   },
   openMember() {
     track("member_open", { from: "detail" });

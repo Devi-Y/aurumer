@@ -88,6 +88,13 @@ assert(snapshot.hk.listings.length >= 1, "小程序缺少当前港股新股");
 assert(snapshot.hk.history.length >= 8, "小程序港股历史样本不足 8 只");
 assert(snapshot.aShare.quotes.length >= 20, "小程序 A 股不足 20 只");
 assert(snapshot.aShare.fundamentals.length >= 20, "小程序 A 股现金流数据不足 20 只");
+assert(Array.isArray(snapshot.aShare.funds), "小程序 A 股收息快照缺少基金资产数组");
+const miniDividendEtf = snapshot.aShare.funds.find((item) =>
+  String(item.code || "").replace(/\.(SH|SZ)$/i, "") === "515180"
+);
+assert(miniDividendEtf && Number.isFinite(Number(miniDividendEtf.currentPrice)), "小程序 A 股收息快照缺少可核验价格的 515180");
+assert(miniDividendEtf.asOf, "小程序 A 股收息快照缺少 515180 行情时间");
+assert(Array.isArray(miniDividendEtf.history) && miniDividendEtf.history.length >= 5, "小程序 515180 缺少足够价格历史");
 assert(snapshot.investors.length >= 8, "小程序聪明人持仓不足 8 位");
 
 const sectionSource = await readFile(path.join(miniRoot, "utils", "answers.js"), "utf8");
@@ -117,8 +124,17 @@ const nonSeven = snapshot.us.stocks
 const expectedHot = nonSeven.slice(0, 3).map((item) => item.symbol);
 const actualHot = miniUsItems.filter((item) => item.group === "hot").map((item) => item.id);
 assert(JSON.stringify(actualHot) === JSON.stringify(expectedHot), `小程序热度前三口径不一致：${actualHot.join(",")}`);
+assert(miniAShareItems.length === 10, `小程序 A 股收息固定研究样本应为 10 只，实际 ${miniAShareItems.length}`);
+const fixedAShareCodes = ["600900.SH", "600036.SH", "600941.SH", "515180.SH", "601088.SH", "000333.SZ"];
+assert(
+  JSON.stringify(miniAShareItems.slice(0, fixedAShareCodes.length).map((item) => item.code)) === JSON.stringify(fixedAShareCodes),
+  `小程序 A 股收息固定样本顺序不一致：${miniAShareItems.slice(0, fixedAShareCodes.length).map((item) => item.code).join(",")}`,
+);
+assert(miniAShareItems.filter((item) => !fixedAShareCodes.includes(item.code)).length === 4, "小程序 A 股自动补充收息样本应为 4 只");
+assert(miniAShareItems.some((item) => item.code === "515180.SH" && item.raw?.assetType === "fund"), "小程序 A 股收息样本缺少独立 ETF 资产 515180");
 assert(miniGoldItems.length === 2, `小程序黄金入口应有 2 个答案，实际 ${miniGoldItems.length}`);
 assert(miniGoldItems.every((item) => ["track", "plan"].includes(item.group)), "小程序黄金入口应是现在怎么做 / 买点与卖点");
+assert(miniGoldItems.some((item) => item.one.includes("人民币金")), "小程序黄金追踪缺少人民币金数据");
 for (const [group, count] of [["hk", 3], ["us", 5], ["a", 3]]) {
   const profiles = smartMoneyProfiles.filter((item) => item.group === group);
   const items = miniGuruItems.filter((item) => item.group === group);
@@ -168,6 +184,21 @@ const liveDataFunction = await readFile(path.join(root, "cloudfunctions", "aurum
 const liveDataSanitizer = await readFile(path.join(root, "cloudfunctions", "aurum-data", "sanitize.js"), "utf8");
 const hkExitPlan = await readFile(path.join(miniRoot, "utils", "hk-exit-plan.js"), "utf8");
 const detailContract = `${detailSource}\n${detailTemplate}`;
+const expectedDetailModuleLabels = ["结论", "金价", "驱动", "资料", "研究", "风险", "持仓", "业绩", "价格", "财务"];
+assert(
+  detailTemplate.includes('scroll-x="true"')
+  && detailTemplate.includes('class="detail-tabs"')
+  && detailSource.includes("buildDetailModules")
+  && detailSource.includes("switchModule"),
+  "详情页缺少横向滑动模块",
+);
+for (const label of expectedDetailModuleLabels) {
+  assert([...label].length === 2, `详情页模块名称不是 2 个字：${label}`);
+  assert(detailSource.includes(`label: "${label}"`), `详情页缺少模块：${label}`);
+}
+for (const marker of ["先看答案", "价格与位置", "数据与质量", "研究图表", "已披露资料", "先看边界"]) {
+  assert(detailTemplate.includes(marker), `详情页横向模块缺少对应内容：${marker}`);
+}
 assert(indexSource.includes("pages/section/index"), "小程序首页仍未进入原生二级页");
 assert(appConfig.pages.includes("pages/member/index"), "小程序仍应保留会员页路由");
 assert(indexSource.includes("pages/member/index"), "小程序首页缺少研究会员入口");
@@ -315,29 +346,15 @@ assert(sectionSource.includes('one: "') || (await readFile(path.join(miniRoot, "
 for (const label of [
   "逻辑哨兵",
   "365 天会员",
-  "履约证据",
-  "今日简报",
-  "站内收件箱",
-  "关注 80",
-  "购买须知",
-  "买后得到什么",
-  "每天怎么用",
   "不含买卖建议",
-  "持续跟踪你的关注对象",
-  "重要变化",
-  "决策快照",
-  "节点提醒",
-  "核心价值",
-  "三项真实能力",
-  "价格与边界",
+  "不自动续费",
+  "会员协议与退款规则",
+  "立即微信支付",
+  "点击即确认",
 ]) {
   assert(`${memberPageSource}\n${memberTemplate}`.includes(label), `小程序会员页缺少关键内容：${label}`);
 }
-assert(
-  `${memberPageSource}\n${memberTemplate}`.includes("写理由")
-  || `${memberPageSource}\n${memberTemplate}`.includes("事实一变"),
-  "会员页应写明逻辑哨兵承诺",
-);
+assert(memberTemplate.includes("打开逻辑哨兵"), "已开通会员页应保留进入工作台的入口");
 assert(
   (pageTemplatesByPath.get("pages/workspace/index") || "").includes("今日")
   && (pageTemplatesByPath.get("pages/workspace/index") || "").includes("关注")
@@ -400,7 +417,8 @@ assert(
   "会员页缺少可完成支付的收银台入口",
 );
 assert(memberTemplate.includes("点击即确认已满 18 周岁") && !memberTemplate.includes("showPaymentTestTools") && !memberTemplate.includes("changePurchaseConsent"), "会员页应使用清晰的按钮确认，不应暴露内部验收控件");
-assert(memberPageSource.includes("showNotice: false") && memberTemplate.includes('wx:if="{{showNotice}}"'), "会员页购买须知应默认收起并可按需展开");
+assert(!memberTemplate.includes("核心价值") && !memberTemplate.includes("履约证据") && !memberTemplate.includes("购买须知"), "会员页不应重新引入已删除的长篇页面介绍");
+assert(!memberTemplate.includes("个人投资逻辑哨兵") && !memberTemplate.includes("公开答案免费") && !memberTemplate.includes("会员用于个人跟踪"), "会员页不应保留营销式页面介绍");
 assert(legalPage.includes("pages/member/index") && legalTemplate.includes('open-type="contact"'), "协议页缺少返回会员或客服通道");
 assert(sitemap.rules.some((rule) => rule.action === "disallow" && rule.page === "pages/workspace/index"), "个人工作台不应进入小程序页面索引");
 assert(!indexSource.includes("pages/webview/index?target=${target}"), "小程序首页仍直接依赖 web-view");
@@ -428,7 +446,7 @@ assert(
 );
 assert(
   memberTemplate.includes("disclaimer")
-  && memberTemplate.includes("购买须知")
+  && memberTemplate.includes("点击即确认")
   && workspaceTemplate.includes("disclaimer"),
   "会员页或记录页缺少注意事项/免责声明",
 );

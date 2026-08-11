@@ -1,142 +1,44 @@
 <view class="page-shell member-shell {{state.active ? 'member-shell-active' : ''}}">
   <view class="member-status-card">
     <view class="member-hero-copy">
-      <text class="status-value {{state.active ? 'active' : ''}}">{{state.statusTitle}}</text>
-      <text class="status-title">个人投资逻辑哨兵</text>
-      <text class="hero-track">{{state.heroTitle || '持续跟踪你的关注对象'}}</text>
-      <text class="status-detail">{{state.statusDetail}}</text>
+      <text class="status-value {{state.active ? 'active' : ''}}">{{state.active ? '会员已开通' : '会员未开通'}}</text>
+      <text wx:if="{{state.statusDetail}}" class="status-detail">{{state.statusDetail}}</text>
     </view>
     <view class="member-hero-image-wrap"><image src="/assets/home/member.svg" mode="aspectFit" aria-hidden="true"></image></view>
   </view>
 
-  <view wx:if="{{settling || (!state.active && state.orders.length)}}" class="settle-card">
-    <text wx:if="{{settling}}">正在核对微信支付结果…</text>
-    <text wx:else>若已付款但权益未到，可手动刷新。</text>
-    <button class="query-button" bindtap="manualQuery" data-order="{{lastOrderId}}" loading="{{querying}}" disabled="{{querying}}">刷新权益 / 查单</button>
+  <view wx:if="{{state.active}}" class="member-shortcuts">
+    <view class="member-shortcut" bindtap="openWorkspace" data-tab="watch"><text>写</text><text>理由</text></view>
+    <view class="member-shortcut" bindtap="openWorkspace" data-tab="today"><text>盯</text><text>变化</text></view>
+    <view class="member-shortcut" bindtap="openWorkspace" data-tab="review"><text>复</text><text>盘</text></view>
   </view>
 
-  <text class="block-title">核心价值</text>
-  <view class="value-panel">
-    <text class="value-lead">公开答案仍免费。会员买的是写理由、盯变化、复盘——跨设备保全你的研究记录。</text>
-    <view class="stat-strip compact">
-      <view class="stat-cell"><text>写</text><text>理由</text></view>
-      <view class="stat-cell"><text>盯</text><text>变化</text></view>
-      <view class="stat-cell"><text>复</text><text>盘</text></view>
-    </view>
+  <view wx:if="{{loading}}" class="state-note">正在读取会员状态…</view>
+
+  <view wx:if="{{settling || (!state.active && lastOrderId)}}" class="settle-card">
+    <text>{{settling ? '正在核对微信支付结果…' : '若已付款但权益未到，请刷新。'}}</text>
+    <button class="query-button" bindtap="manualQuery" data-order="{{lastOrderId}}" loading="{{querying}}" disabled="{{querying}}">刷新权益</button>
   </view>
 
-  <text class="block-title">三项真实能力</text>
-  <view class="benefit-panel core-benefits">
-    <view wx:for="{{state.coreBenefits}}" wx:key="id" class="benefit core-benefit">
-      <text class="core-title">{{item.title}}</text>
-      <text class="core-body">{{item.body}}</text>
-    </view>
-  </view>
-
-  <text class="block-title">履约证据</text>
-  <view class="compare-panel">
-    <view wx:for="{{compareBars}}" wx:key="id" class="compare-row">
-      <view class="compare-head">
-        <text class="compare-label">{{item.label}}</text>
-        <text class="compare-value">{{item.free}} → {{item.member}}</text>
+  <view wx:if="{{!state.active && state.plans.length}}" class="plan-card">
+    <view class="plan-heading">
+      <view>
+        <text class="plan-name">365 天会员</text>
+        <text class="plan-term">一次购买 · 不自动续费</text>
       </view>
-      <view class="compare-track">
-        <view class="compare-free" style="width: {{item.freePct}}%;"></view>
-        <view class="compare-member" style="width: {{item.memberPct}}%;"></view>
-      </view>
-      <view class="compare-legend">
-        <text>免费 {{item.free}}</text>
-        <text>会员 {{item.member}}</text>
-      </view>
+      <text class="plan-price">{{state.plans[0].priceMain}}</text>
     </view>
-  </view>
-  <view class="evidence-strip">
-    <text>免费 5+5 → 会员关注 80 / 想法 300</text>
-    <text>一次购买 · 365 天 · 不自动续费 · 含今日简报与站内收件箱</text>
-    <text>到期后仍可查看、导出和删除</text>
-    <button class="workspace-cta" bindtap="openWorkspace">
-      <text>{{state.active ? '打开逻辑哨兵' : '先看哨兵能力'}}</text>
-      <text>›</text>
-    </button>
+    <button class="legal-link" bindtap="openLegal">会员协议与退款规则 <text>›</text></button>
   </view>
 
-  <text class="block-title">价格与边界</text>
-  <view class="plan-list">
-    <view wx:for="{{state.plans}}" wx:key="id" class="plan-card">
-      <text class="recommend-label">唯一方案</text>
-      <text class="plan-name">365 天会员</text>
-      <view class="price-row">
-        <text>{{item.priceMain}}</text>
-        <text>{{item.priceUnit}}</text>
-      </view>
-      <view class="plain-promises">
-        <text>微信支付</text>
-        <text>不自动续费</text>
-        <text>到期不扣款</text>
-      </view>
-      <button class="legal-link" bindtap="openLegal">协议与退款规则 <text>›</text></button>
-    </view>
+  <view wx:if="{{!state.active && !state.plans.length}}" class="state-note payment-closed">{{state.paymentReason || '支付通道准备中'}}</view>
+
+  <view wx:if="{{state.active}}" class="active-entry" bindtap="openWorkspace">
+    <text>打开逻辑哨兵</text><text>›</text>
   </view>
 
-  <view class="promise-card">
-    <text class="promise-title">边界</text>
-    <text class="promise-body">不含买卖建议、收益预测或荐股。市场公开答案仍然免费；会员只提供个人跟踪与复盘工具。当前提醒为小程序内提醒；微信提醒仅在你授权且平台模板就绪后开启。</text>
-  </view>
-
-  <view wx:if="{{state.sellGate}}" class="promise-card gate-card">
-    <text class="promise-title">收费通道</text>
-    <text class="promise-body">{{state.paymentPubliclyReleased || state.sellGate.paymentChannelOpen ? '微信支付已开放（¥1288/365天）。' : '支付通道尚未开放。'}}{{state.sellGate.humanPendingLabel ? '待人工：' + state.sellGate.humanPendingLabel : ''}}</text>
-  </view>
-
-  <view class="faq-panel">
-    <view wx:for="{{faq}}" wx:key="id" class="faq-row">
-      <text class="faq-title">{{item.title}}</text>
-      <text class="faq-body">{{item.body}}</text>
-    </view>
-  </view>
-
-  <text wx:if="{{state.orders.length}}" class="block-title">购买记录</text>
-  <view wx:if="{{state.orders.length}}" class="order-card">
-    <button class="orders-toggle" bindtap="toggleOrders">
-      <text>购买记录（{{state.orders.length}}）</text>
-      <text>{{showOrders ? '收起 ︿' : '查看 ﹀'}}</text>
-    </button>
-    <view wx:if="{{showOrders}}" class="order-list">
-      <view wx:for="{{state.orders}}" wx:key="orderId" class="order-row">
-        <view class="order-main">
-          <view class="order-title"><text>{{item.planName}}</text><text>{{item.statusLabel}}</text></view>
-          <text>{{item.amountLabel}} · {{item.paidLabel ? '支付 ' + item.paidLabel : '创建 ' + item.createdLabel}}</text>
-          <text>{{item.orderCode}}{{item.expiresLabel ? ' · 权益至 ' + item.expiresLabel : ''}}</text>
-          <text wx:if="{{item.refundLabel}}" class="refund-label">{{item.refundLabel}}</text>
-        </view>
-        <view class="order-actions">
-          <button class="copy-order" data-order="{{item.orderId}}" bindtap="copyOrder">复制单号</button>
-          <button
-            wx:if="{{item.canQuery || settling}}"
-            class="query-order"
-            data-order="{{item.orderId}}"
-            bindtap="manualQuery"
-            loading="{{querying}}"
-            disabled="{{querying}}"
-          >刷新权益</button>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <view class="notice-card">
-    <button class="notice-toggle" bindtap="toggleNotice">
-      <text>购买须知</text>
-      <text>{{showNotice ? '收起 ︿' : '查看 ﹀'}}</text>
-    </button>
-    <view wx:if="{{showNotice}}" class="notice-content">
-      <view class="rule-row"><text>续费</text><text>到期不会自动扣款。</text></view>
-      <view class="rule-row"><text>开通</text><text>微信核对付款后自动生效；也可点「刷新权益」。</text></view>
-      <view class="rule-row"><text>退款①</text><text>联系小程序内微信客服说明原因。</text></view>
-      <view class="rule-row"><text>退款②</text><text>运营方在微信支付商户平台人工原路退款。</text></view>
-      <view class="rule-row"><text>退款③</text><text>订单进入核对后，客服按全额/部分规则处理权益。</text></view>
-      <button class="contact-button" open-type="contact" show-message-card="true">联系微信客服</button>
-    </view>
+  <view class="member-links">
+    <button class="support-link" open-type="contact" show-message-card="true">支付问题联系客服</button>
   </view>
 
   <text class="disclaimer">{{disclaimer}}</text>
@@ -151,7 +53,6 @@
       <text>365 天会员</text>
       <text>¥1,288 · 不自动续费</text>
     </view>
-    <text class="dock-hint">点击后直接打开微信收银台</text>
     <button
       class="buy-button {{!state.purchaseAllowed ? 'is-disabled' : ''}}"
       data-plan="{{state.plans[0].id}}"
@@ -159,6 +60,6 @@
       disabled="{{paying || settling || !state.purchaseAllowed}}"
       loading="{{paying}}"
     >{{settling ? '会员开通中' : (state.purchaseAllowed ? '立即微信支付' : '支付准备中')}}</button>
-    <text class="dock-consent">点击即确认已满 18 周岁，并同意会员协议、隐私说明和退款规则</text>
+    <text class="dock-consent">不含买卖建议 · 点击即确认已满 18 周岁，并同意会员协议、隐私说明和退款规则</text>
   </view>
 </view>

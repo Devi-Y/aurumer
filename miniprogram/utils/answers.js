@@ -2,6 +2,17 @@ const { SMART_MONEY_PROFILES } = require("./smart-money");
 
 const MAGNIFICENT_SEVEN = ["NVDA", "MSFT", "AAPL", "GOOGL", "AMZN", "META", "TSLA"];
 
+// 前台只保留 10 个收息研究样本：用户指定的 5 只股票 + 1 只 ETF，另 4 只由当前快照自动筛选。
+const A_SHARE_FIXED_ORDER = [
+  "600900.SH", // 长江电力
+  "600036.SH", // 招商银行
+  "600941.SH", // 中国移动
+  "515180.SH", // 易方达中证红利 ETF
+  "601088.SH", // 中国神华
+  "000333.SZ", // 美的集团
+];
+const A_SHARE_SAMPLE_COUNT = 10;
+
 const US_NAMES = {
   NVDA: "英伟达", MSFT: "微软", AAPL: "苹果", GOOGL: "谷歌-A", AMZN: "亚马逊",
   META: "Meta", TSLA: "特斯拉", AMD: "超威半导体", AVGO: "博通", PLTR: "Palantir",
@@ -289,8 +300,8 @@ function goldItems(snapshot) {
   const intlPrice = Number(international?.price);
   const domPrice = Number(domestic?.price);
   const quoteLine = Number.isFinite(intlPrice) && Number.isFinite(domPrice)
-    ? `国际金 ${intlPrice.toFixed(0)} 美元/盎司 · 上海金 ${domPrice.toFixed(0)} 元/克`
-    : "国际金与上海金资料待核验";
+    ? `国际金 ${intlPrice.toFixed(0)} 美元/盎司 · 人民币金 ${domPrice.toFixed(0)} 元/克`
+    : "国际金与人民币金资料待核验";
   const buyIntl = formatRange(plan.internationalWatch);
   const sellIntl = formatRange(plan.internationalUpper);
   const riskIntl = formatRange(plan.internationalRisk);
@@ -307,6 +318,7 @@ function goldItems(snapshot) {
         action,
         Number.isFinite(Number(international?.percentile180)) ? `半年位 ${Number(international.percentile180)}%` : null,
         Number.isFinite(Number(international?.price)) ? `国际金 ${Number(international.price).toFixed(0)}` : null,
+        Number.isFinite(domPrice) ? `人民币金 ${domPrice.toFixed(0)}` : null,
       ].filter(Boolean).join(" · "),
     ],
     [
@@ -380,7 +392,7 @@ function aShareItems(snapshot) {
   const fundamentals = new Map((snapshot.aShare && snapshot.aShare.fundamentals ? snapshot.aShare.fundamentals : []).map((item) => [item.code, item]));
   const quotes = [...(snapshot.aShare && snapshot.aShare.quotes ? snapshot.aShare.quotes : [])];
 
-  return quotes.map((item) => {
+  const makeStockItem = (item) => {
     const financials = fundamentals.get(item.code) || {};
     const raw = { ...item, financials };
     const score = aShareObserveScore(raw);
@@ -423,12 +435,67 @@ function aShareItems(snapshot) {
       one: [yieldText, sustainText, scoreText].filter(Boolean).join(" · "),
       raw,
     };
-  }).sort((left, right) => {
-    const groupRank = { prime: 0, steady: 1, watch: 2 };
-    const g = (groupRank[left.group] ?? 9) - (groupRank[right.group] ?? 9);
-    if (g !== 0) return g;
-    return number(right.score) - number(left.score);
-  });
+  };
+
+  const makeFundItem = (source = {}) => {
+    const raw = {
+      ...source,
+      code: source.code || "515180.SH",
+      name: source.name || "易方达中证红利ETF",
+      shortName: source.shortName || "红利ETF",
+      assetType: "fund",
+      fundType: source.fundType || "ETF",
+      trackingIndex: source.trackingIndex || "中证红利指数",
+      fundManager: source.fundManager || "易方达基金",
+      researchView: source.researchView || {
+        state: "review",
+        label: "ETF待核",
+        note: "价格已接入，基金公告与分红记录仍需补齐。",
+      },
+      financials: source.financials || {},
+    };
+    const priceText = Number.isFinite(Number(raw.currentPrice))
+      ? `现价 ${Number(raw.currentPrice).toFixed(3)}`
+      : "价格待更";
+    return {
+      id: String(raw.code).replace(/\.(SH|SZ)$/i, ""),
+      market: "a",
+      group: "steady",
+      name: raw.name,
+      code: raw.code,
+      badge: "红利ETF",
+      score: null,
+      rank: null,
+      scoreText: "红利ETF",
+      rankText: "指数化收息",
+      one: `${priceText} · 指数化收息 · 分红看公告`,
+      raw,
+    };
+  };
+
+  const stockItems = quotes.map(makeStockItem);
+  const stockByCode = new Map(stockItems.map((item) => [item.code, item]));
+  const fundSource = (snapshot.aShare && snapshot.aShare.funds || [])
+    .find((item) => String(item.code || "").replace(/\.(SH|SZ)$/i, "") === "515180")
+    || { code: "515180.SH" };
+  const fixedItems = A_SHARE_FIXED_ORDER.map((code) => (
+    code === "515180.SH" ? makeFundItem(fundSource) : stockByCode.get(code)
+  )).filter(Boolean);
+  const selectedCodes = new Set(A_SHARE_FIXED_ORDER);
+  const autoItems = stockItems
+    .filter((item) => !selectedCodes.has(item.code))
+    .sort((left, right) => {
+      const leftFinancials = left.raw.financials || {};
+      const rightFinancials = right.raw.financials || {};
+      const leftCash = Number(leftFinancials.freeCashFlow) > 0 ? 1 : 0;
+      const rightCash = Number(rightFinancials.freeCashFlow) > 0 ? 1 : 0;
+      if (rightCash !== leftCash) return rightCash - leftCash;
+      return number(right.score) - number(left.score);
+    });
+  return [
+    ...fixedItems,
+    ...autoItems.slice(0, Math.max(0, A_SHARE_SAMPLE_COUNT - fixedItems.length)),
+  ].slice(0, A_SHARE_SAMPLE_COUNT);
 }
 
 function allItems(snapshot, market) {

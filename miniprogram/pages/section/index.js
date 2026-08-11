@@ -182,6 +182,7 @@ function buildOverview(snapshot, market) {
     const gold = snapshot.gold || {};
     const answer = gold.answer || {};
     const international = gold.quotes?.international || {};
+    const domestic = gold.quotes?.domestic || {};
     const scored = scoreForItem({ market: "gold", raw: gold });
     return {
       metrics: [
@@ -200,14 +201,16 @@ function buildOverview(snapshot, market) {
           enabled: true,
         },
         {
-          label: "半年位",
-          value: hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "—",
+          label: "人民币金",
+          value: hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "—",
           action: "detail",
           id: "plan",
           enabled: true,
         },
       ],
-      target: hasNumber(international.price) ? `国际金 ${Number(international.price).toFixed(0)}` : "黄金",
+      target: hasNumber(domestic.price)
+        ? `人民币金 ${Number(domestic.price).toFixed(1)}`
+        : (hasNumber(international.price) ? `国际金 ${Number(international.price).toFixed(0)}` : "黄金"),
       targetId: "track",
       grade: answer.action || "继续观察",
       gradeGroup: "track",

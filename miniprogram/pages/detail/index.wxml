@@ -173,8 +173,14 @@
       </view>
 
       <view wx:if="{{activeModule == 'risk'}}" class="module-content">
-        <text class="module-title">先看边界</text>
-        <view wx:if="{{view.risk}}" class="risk-card">
+        <text class="module-title">风险提醒</text>
+        <view wx:if="{{view.riskItems && view.riskItems.length}}" class="risk-stack">
+          <view wx:for="{{view.riskItems}}" wx:key="title" class="risk-card">
+            <text class="risk-label">{{item.title}}</text>
+            <text class="risk-body">{{item.body}}</text>
+          </view>
+        </view>
+        <view wx:elif="{{view.risk}}" class="risk-card">
           <text class="risk-label">{{view.riskLabel}}</text>
           <text class="risk-body">{{view.risk}}</text>
         </view>

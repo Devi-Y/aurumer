@@ -95,6 +95,8 @@ if (investorCount < 9) {
 assert(snapshot.gold?.quotes?.international, "黄金国际行情缺失");
 assert(snapshot.gold?.quotes?.domestic, "上海金 Au99.99 行情缺失");
 assert(Number.isFinite(snapshot.gold?.answer?.score), "黄金最终答案与评分缺失");
+assert(Number.isFinite(snapshot.gold?.answer?.scores?.international?.score), "黄金国际金观察分缺失");
+assert(Number.isFinite(snapshot.gold?.answer?.scores?.domestic?.score), "黄金人民币金观察分缺失");
 assert(snapshot.gold?.answer?.action || snapshot.gold?.answer?.conclusion, "黄金缺少公开动作或结论");
 assert(snapshot.gold?.answer?.pricePlan?.internationalWatch, "黄金国际金关注区间缺失");
 assert(snapshot.gold?.answer?.pricePlan?.domesticWatch, "黄金上海金关注区间缺失");

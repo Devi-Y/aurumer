@@ -294,6 +294,9 @@ function smartMoneyItems(snapshot) {
 function goldItems(snapshot) {
   const gold = snapshot.gold || {};
   const answer = gold.answer || {};
+  const scores = answer.scores || {};
+  const internationalScore = Number(scores.international?.score ?? answer.internationalScore);
+  const domesticScore = Number(scores.domestic?.score ?? answer.domesticScore);
   const plan = answer.pricePlan || {};
   const international = gold.quotes?.international;
   const domestic = gold.quotes?.domestic;
@@ -319,6 +322,8 @@ function goldItems(snapshot) {
         Number.isFinite(Number(international?.percentile180)) ? `半年位 ${Number(international.percentile180)}%` : null,
         Number.isFinite(Number(international?.price)) ? `国际金 ${Number(international.price).toFixed(0)}` : null,
         Number.isFinite(domPrice) ? `人民币金 ${domPrice.toFixed(0)}` : null,
+        Number.isFinite(internationalScore) ? `国际金观察分 ${internationalScore}` : null,
+        Number.isFinite(domesticScore) ? `人民币金观察分 ${domesticScore}` : null,
       ].filter(Boolean).join(" · "),
     ],
     [
@@ -344,6 +349,49 @@ function goldItems(snapshot) {
     one,
     raw: { ...gold, view: id },
   }));
+}
+
+function aShareDetailFallback(snapshot, id) {
+  const normalize = (value) => String(value || "")
+    .toUpperCase()
+    .replace(/\.(SH|SZ)$/i, "")
+    .replace(/^A-/, "");
+  const wanted = normalize(id);
+  const quote = (snapshot.aShare?.quotes || []).find((item) => normalize(item.code) === wanted);
+  if (!quote) return null;
+  const financials = (snapshot.aShare?.fundamentals || []).find((item) => item.code === quote.code) || {};
+  const raw = { ...quote, financials };
+  const score = aShareObserveScore(raw);
+  const yieldNow = Number(raw.currentDividendYield);
+  const yieldSustain = Number(raw.sustainableDividendYield);
+  const fcf = Number(financials.freeCashFlow);
+  const cashOk = Number.isFinite(fcf) ? fcf > 0 : true;
+  const coverOk = Number.isFinite(yieldNow) && Number.isFinite(yieldSustain)
+    ? yieldSustain >= yieldNow * 0.75
+    : Number.isFinite(yieldSustain);
+  const badge = score != null && score >= 72 && cashOk && coverOk
+    ? "优等收息"
+    : Number.isFinite(yieldNow) && yieldNow >= 5 && (!coverOk || !cashOk || (score != null && score < 55))
+      ? "高息待核"
+      : "稳健收息";
+  return {
+    id: String(quote.code).replace(/\.(SH|SZ)$/i, ""),
+    market: "a",
+    group: "detail-only",
+    name: quote.name,
+    code: quote.code,
+    badge,
+    score,
+    rank: null,
+    scoreText: score != null ? `观察分 ${score}` : badge,
+    rankText: Number.isFinite(yieldNow) ? `${yieldNow.toFixed(1)}%` : "股息待更",
+    one: [
+      Number.isFinite(yieldNow) ? `${yieldNow.toFixed(1)}%` : "股息待更",
+      Number.isFinite(yieldSustain) ? `可持续 ${yieldSustain.toFixed(1)}%` : null,
+      score != null ? `观察分 ${score}` : null,
+    ].filter(Boolean).join(" · "),
+    raw,
+  };
 }
 
 function aShareObserveScore(raw = {}) {
@@ -568,7 +616,7 @@ function findItem(snapshot, market, id) {
   const want = normalize(needle);
   const exact = items.find((item) => String(item.id).toUpperCase() === needle || normalize(item.id) === want);
   if (exact) return exact;
-  return items.find((item) => {
+  const found = items.find((item) => {
     const candidates = [
       item.id,
       item.code,
@@ -579,7 +627,11 @@ function findItem(snapshot, market, id) {
       item.raw?.id,
     ].filter(Boolean).map(normalize);
     return candidates.includes(want);
-  }) || null;
+  });
+  if (found) return found;
+  // A 股列表刻意只展示 10 个深度收息样本，但 20 个实时标的都必须能打开详情。
+  if (market === "a") return aShareDetailFallback(snapshot, id);
+  return null;
 }
 
 module.exports = {

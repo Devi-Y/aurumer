@@ -143,11 +143,11 @@ function goldScore(item) {
   } else if (score != null) {
     score = clamp(score);
   }
-  if (score == null) return { score: null, label: "观察分", basis: "观察分暂缺" };
+  if (score == null) return { score: null, label: "综合观察分", basis: "综合观察分暂缺" };
   return {
     score,
-    label: "观察分",
-    basis: "公开金价观察分与半年位置，不是买卖指令",
+    label: "综合观察分",
+    basis: "国际金与人民币金双维度综合，不是买卖指令",
   };
 }
 

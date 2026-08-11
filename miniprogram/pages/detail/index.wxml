@@ -258,13 +258,13 @@
     </view>
   </view>
 
-  <view wx:elif="{{loading}}" class="empty">
+  <view wx:if="{{!ready && loading}}" class="empty">
     <image src="/assets/home/today.svg" mode="aspectFit" aria-hidden="true"></image>
     <text class="empty-title">正在加载资料</text>
     <text class="empty-sub">请稍候</text>
   </view>
 
-  <view wx:else class="empty">
+  <view wx:elif="{{!ready}}" class="empty">
     <image src="/assets/home/today.svg" mode="aspectFit" aria-hidden="true"></image>
     <text class="empty-title">{{loadError || '资料暂不可用'}}</text>
     <text class="empty-sub">可下拉刷新，或返回列表重试</text>

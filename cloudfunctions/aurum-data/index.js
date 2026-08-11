@@ -7,7 +7,7 @@ const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS } = require("./act
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-08-11-multisource-strategy-signals-b1";
+const SOURCE_REVISION = "2026-08-11-multisource-strategy-signals-b2";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 // GitHub Pages 偶发超时不能让前台只能看到旧缓存；备用源仍指向同一份公开快照。
 // 顺序固定：先走发布页，再走 GitHub 原始文件，最后走当前开发分支。
@@ -25,7 +25,8 @@ const SERVE_STALE_MAX_MS = 36 * 60 * 60 * 1000;
  * 前台读路径必须在该预算内结束；回源放后台。
  */
 const PLATFORM_SAFE_MS = 2500;
-const WARM_REQUEST_TIMEOUT_MS = 15000;
+// 留出数据库缓存与事实版本写入时间，避免 warm 把 20 秒函数预算全部耗在回源上。
+const WARM_REQUEST_TIMEOUT_MS = 10000;
 const MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
 
 const CACHE_COLLECTION = "data_snapshot_cache";

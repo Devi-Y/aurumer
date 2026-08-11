@@ -154,87 +154,98 @@ async function ensureCollection(db, name, error) {
   }
 }
 
-async function writeFactVersions(db, snapshot) {
-  if (!db) return { written: 0, changed: 0 };
-  const facts = extractFacts(snapshot);
+const FACT_WRITE_CONCURRENCY = 8;
+
+async function writeFactVersion(db, fact) {
+  const id = docId(fact.market, fact.code);
+  let previous = null;
+  try {
+    const current = await db.collection(FACT_LATEST).doc(id).get();
+    previous = current && current.data && current.data.fact ? current.data.fact : null;
+  } catch (error) {
+    if (!(await ensureCollection(db, FACT_LATEST, error))) {
+      // ignore missing previous
+    }
+  }
+
+  const prevFp = fingerprint(previous);
+  const nextFp = fingerprint(fact);
+  const didChange = Boolean(previous) && prevFp !== nextFp;
+  const record = {
+    market: fact.market,
+    code: fact.code,
+    fact,
+    previousFact: previous,
+    fingerprint: nextFp,
+    changed: didChange,
+    snapshotUpdatedAt: fact.snapshotUpdatedAt,
+    updatedAt: new Date(),
+  };
   let written = 0;
-  let changed = 0;
-  for (const fact of facts) {
-    const id = docId(fact.market, fact.code);
-    let previous = null;
-    try {
-      const current = await db.collection(FACT_LATEST).doc(id).get();
-      previous = current && current.data && current.data.fact ? current.data.fact : null;
-    } catch (error) {
-      if (!(await ensureCollection(db, FACT_LATEST, error))) {
-        // ignore missing previous
+  try {
+    await db.collection(FACT_LATEST).doc(id).set({ data: record });
+    written = 1;
+  } catch (error) {
+    if (await ensureCollection(db, FACT_LATEST, error)) {
+      try {
+        await db.collection(FACT_LATEST).doc(id).set({ data: record });
+        written = 1;
+      } catch (retryError) {
+        console.warn("fact version write retry failed", id, retryError && retryError.message);
       }
     }
-    const prevFp = fingerprint(previous);
-    const nextFp = fingerprint(fact);
-    const didChange = Boolean(previous) && prevFp !== nextFp;
-    if (didChange) changed += 1;
-    const record = {
+  }
+
+  if (didChange) {
+    const history = {
       market: fact.market,
       code: fact.code,
+      factKey: id,
       fact,
-      previousFact: didChange ? previous : (previous || null),
+      previousFact: previous,
       fingerprint: nextFp,
-      changed: didChange,
+      previousFingerprint: prevFp,
       snapshotUpdatedAt: fact.snapshotUpdatedAt,
-      updatedAt: new Date(),
+      createdAt: new Date(),
     };
     try {
-      await db.collection(FACT_LATEST).doc(id).set({ data: record });
-      written += 1;
-    } catch (error) {
-      if (await ensureCollection(db, FACT_LATEST, error)) {
+      await db.collection(FACT_HISTORY).add({ data: history });
+    } catch (historyError) {
+      if (await ensureCollection(db, FACT_HISTORY, historyError)) {
         try {
-          await db.collection(FACT_LATEST).doc(id).set({ data: record });
-          written += 1;
-        } catch (retryError) {
-          console.warn("fact version write retry failed", id, retryError && retryError.message);
-        }
-      }
-    }
-    if (didChange) {
-      try {
-        await db.collection(FACT_HISTORY).add({
-          data: {
-            market: fact.market,
-            code: fact.code,
-            factKey: id,
-            fact,
-            previousFact: previous,
-            fingerprint: nextFp,
-            previousFingerprint: prevFp,
-            snapshotUpdatedAt: fact.snapshotUpdatedAt,
-            createdAt: new Date(),
-          },
-        });
-      } catch (historyError) {
-        if (await ensureCollection(db, FACT_HISTORY, historyError)) {
-          try {
-            await db.collection(FACT_HISTORY).add({
-              data: {
-                market: fact.market,
-                code: fact.code,
-                factKey: id,
-                fact,
-                previousFact: previous,
-                fingerprint: nextFp,
-                previousFingerprint: prevFp,
-                snapshotUpdatedAt: fact.snapshotUpdatedAt,
-                createdAt: new Date(),
-              },
-            });
-          } catch (retryHistoryError) {
-            console.warn("fact history write failed", id, retryHistoryError && retryHistoryError.message);
-          }
+          await db.collection(FACT_HISTORY).add({ data: history });
+        } catch (retryHistoryError) {
+          console.warn("fact history write failed", id, retryHistoryError && retryHistoryError.message);
         }
       }
     }
   }
+
+  return { written, changed: didChange ? 1 : 0 };
+}
+
+async function writeFactVersions(db, snapshot) {
+  if (!db) return { written: 0, changed: 0 };
+  const facts = extractFacts(snapshot);
+  const results = new Array(facts.length);
+  let nextIndex = 0;
+  async function worker() {
+    while (nextIndex < facts.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      try {
+        results[index] = await writeFactVersion(db, facts[index]);
+      } catch (error) {
+        console.warn("fact version task failed", facts[index].code, error && error.message);
+        results[index] = { written: 0, changed: 0 };
+      }
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(FACT_WRITE_CONCURRENCY, facts.length) }, () => worker()),
+  );
+  const written = results.reduce((total, result) => total + (result ? result.written : 0), 0);
+  const changed = results.reduce((total, result) => total + (result ? result.changed : 0), 0);
   try {
     await db.collection(FACT_META).doc("latest").set({
       data: {

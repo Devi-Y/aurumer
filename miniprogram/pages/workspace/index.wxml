@@ -11,7 +11,10 @@
   </view>
 
   <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
-    <text class="freshness-label">{{freshness.label}}</text>
+    <view class="freshness-head">
+      <text class="freshness-label">{{freshness.label}}</text>
+      <view wx:if="{{freshness.showRetry}}" class="freshness-action" bindtap="retryFreshness" aria-role="button">重试</view>
+    </view>
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 

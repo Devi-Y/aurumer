@@ -7,8 +7,15 @@ const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS } = require("./act
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-08-08-action-freshness-ops-alert-a20-contract";
+const SOURCE_REVISION = "2026-08-11-multisource-strategy-signals-b2";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
+// GitHub Pages 偶发超时不能让前台只能看到旧缓存；备用源仍指向同一份公开快照。
+// 顺序固定：先走发布页，再走 GitHub 原始文件，最后走当前开发分支。
+const SOURCE_URLS = [
+  SOURCE_URL,
+  "https://raw.githubusercontent.com/Devi-Y/aurumer/main/data/live-snapshot.json",
+  "https://raw.githubusercontent.com/Devi-Y/aurumer/agent/wangchao-risk-gold-member-20260811/data/live-snapshot.json",
+];
 /** 10 分钟内视为新鲜；超过则后台回源，前台仍先读缓存。 */
 const CACHE_TTL_MS = 10 * 60 * 1000;
 /** 可读的陈旧缓存上限；超过则不再当作可用交付。 */
@@ -18,7 +25,8 @@ const SERVE_STALE_MAX_MS = 36 * 60 * 60 * 1000;
  * 前台读路径必须在该预算内结束；回源放后台。
  */
 const PLATFORM_SAFE_MS = 2500;
-const WARM_REQUEST_TIMEOUT_MS = 15000;
+// 留出数据库缓存与事实版本写入时间，避免 warm 把 20 秒函数预算全部耗在回源上。
+const WARM_REQUEST_TIMEOUT_MS = 10000;
 const MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
 
 const CACHE_COLLECTION = "data_snapshot_cache";
@@ -139,15 +147,32 @@ function readJson(url, timeoutMs, redirectsLeft = 2) {
   });
 }
 
+async function readLatestSnapshot(timeoutMs) {
+  const attempts = SOURCE_URLS.map((url) => {
+    const separator = url.includes("?") ? "&" : "?";
+    return readJson(`${url}${separator}mini=${Date.now()}`, timeoutMs)
+      .then((data) => ({ data, url }));
+  });
+  try {
+    return await Promise.any(attempts);
+  } catch (error) {
+    const reasons = Array.isArray(error?.errors)
+      ? error.errors.map((reason, index) => `${new URL(SOURCE_URLS[index]).hostname}: ${reason?.message || reason}`)
+      : [error?.message || "unknown error"];
+    throw new Error(`公开快照多源回源失败；${reasons.join(" | ")}`);
+  }
+}
+
 async function refreshSnapshot(timeoutMs = WARM_REQUEST_TIMEOUT_MS) {
-  const separator = SOURCE_URL.includes("?") ? "&" : "?";
-  const raw = await readJson(`${SOURCE_URL}${separator}mini=${Date.now()}`, timeoutMs);
+  const result = await readLatestSnapshot(timeoutMs);
+  const raw = result.data;
   const data = sanitizeSnapshot(raw);
   const fetchedAt = new Date().toISOString();
   cachedResult = {
     ok: true,
     data,
     source: "望潮最新公开数据",
+    sourceUrl: result.url,
     updatedAt: data.updatedAt,
     fetchedAt,
     revision: SOURCE_REVISION,

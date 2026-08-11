@@ -430,6 +430,7 @@ Page({
   onPullDownRefresh() {
     this.refresh(() => wx.stopPullDownRefresh());
   },
+  retryFreshness() { this.refreshDerivations(this.data.state, true); },
   refreshLocalHint() {
     this.setData({ localHoldingsCount: listHoldings().length });
   },
@@ -454,7 +455,7 @@ Page({
         if (done) done();
       });
   },
-  refreshDerivations(state = this.data.state) {
+  refreshDerivations(state = this.data.state, force = false) {
     loadSnapshot((snapshot, source, meta = {}) => {
       const events = buildResearchEvents(snapshot, state.watchItems || []);
       const feed = buildChangeFeed(state.watchItems, snapshot).map((item) => {
@@ -485,7 +486,7 @@ Page({
         },
         freshness: freshnessBanner(source, meta.kind),
       });
-    }, null, { force: false });
+    }, null, { force });
   },
   switchTab(event) {
     const tab = event.currentTarget.dataset.tab;

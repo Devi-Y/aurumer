@@ -61,6 +61,13 @@ if (hkExtraction && hkExtraction.ok === false) {
 }
 assert((snapshot.aShare?.quotes || []).length === 20, "A股行情必须完整覆盖 20 只");
 assert((snapshot.aShare?.fundamentals || []).length === 20, "A股财务必须完整覆盖 20 只");
+const dividendEtf = (snapshot.aShare?.funds || []).find((item) =>
+  String(item.code || "").replace(/\.(SH|SZ)$/i, "") === "515180"
+);
+assert(dividendEtf && Number.isFinite(Number(dividendEtf.currentPrice)), "A股收息基金必须包含可核验价格的 515180");
+assert(dividendEtf.asOf, "A股收息基金 515180 缺少行情时间");
+assert(Array.isArray(dividendEtf.history) && dividendEtf.history.length >= 5, "A股收息基金 515180 缺少价格历史");
+assert(["live", "fallback"].includes(dividendEtf.dataStatus || "live"), "A股收息基金 515180 数据状态未标记");
 assert(
   snapshot.aShare.fundamentals.every((item) =>
     Number.isFinite(item.operatingCashFlow)

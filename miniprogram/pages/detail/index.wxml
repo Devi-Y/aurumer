@@ -29,157 +29,186 @@
       </view>
     </view>
 
-    <view wx:if="{{view.exitPlan && view.exitPlan.show}}" class="exit-plan">
-      <view class="exit-plan-head">
-        <text class="exit-plan-title">{{view.exitPlan.title}}</text>
+    <scroll-view class="detail-tabs" scroll-x="true" enable-flex="true" show-scrollbar="false" enhanced="true">
+      <view class="detail-tabs-inner">
+        <view
+          wx:for="{{view.modules}}"
+          wx:key="id"
+          class="detail-tab {{activeModule == item.id ? 'on' : ''}}"
+          data-module="{{item.id}}"
+          bindtap="switchModule"
+          hover-class="detail-tab-tap"
+          aria-role="tab"
+          aria-selected="{{activeModule == item.id}}"
+        >{{item.label}}</view>
       </view>
-      <view class="exit-plan-rows">
-        <view wx:for="{{view.exitPlan.rows}}" wx:key="label" class="exit-plan-row">
-          <text>{{item.label}}</text>
-          <text>{{item.value}}</text>
-        </view>
-      </view>
-      <text class="exit-plan-basis">{{view.exitPlan.basis}}</text>
-    </view>
+    </scroll-view>
 
-    <block wx:if="{{view.charts.length}}">
-      <view wx:for="{{view.charts}}" wx:key="title" class="visual-card">
-        <text class="visual-title">{{item.title}}</text>
-        <text wx:if="{{item.hint}}" class="visual-hint">{{item.hint}}</text>
-
-        <view wx:if="{{item.stats && item.stats.length}}" class="chart-stats">
-          <view wx:for="{{item.stats}}" wx:for-item="stat" wx:key="label" class="chart-stat">
-            <text>{{stat.label}}</text>
-            <text>{{stat.value}}</text>
+    <view class="module-panel">
+      <view wx:if="{{activeModule == 'summary'}}" class="module-content">
+        <text class="module-title">先看答案</text>
+        <text class="module-answer">{{view.answer || '结论待核验'}}</text>
+        <view wx:if="{{view.exitPlan && view.exitPlan.show}}" class="exit-plan">
+          <view class="exit-plan-head">
+            <text class="exit-plan-title">{{view.exitPlan.title}}</text>
           </view>
-        </view>
-
-        <view wx:if="{{item.kind == 'columns'}}" class="column-chart">
-          <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="column-slot">
-            <view class="column-bar {{col.tone}}" style="height: {{col.height}}%;"></view>
-          </view>
-        </view>
-
-        <view wx:if="{{item.kind == 'solid'}}" class="solid-chart">
-          <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="solid-slot">
-            <text class="solid-value">{{col.valueText}}</text>
-            <view class="solid-pillar-wrap">
-              <view class="solid-bar {{col.tone}} tone-{{col.colorIndex}}" style="height: {{col.height}}%;"></view>
-            </view>
-            <text class="solid-label">{{col.label}}</text>
-          </view>
-        </view>
-
-        <view wx:if="{{item.kind == 'bars'}}" class="bar-chart">
-          <view wx:for="{{item.items}}" wx:for-item="bar" wx:key="id" class="bar-row">
-            <view class="bar-copy"><text>{{bar.label}}</text><text>{{bar.valueText}}</text></view>
-            <view class="bar-track">
-              <view class="bar-value {{bar.tone}} tone-{{bar.colorIndex}}" style="width: {{bar.width}}%;"></view>
+          <view class="exit-plan-rows">
+            <view wx:for="{{view.exitPlan.rows}}" wx:key="label" class="exit-plan-row">
+              <text>{{item.label}}</text>
+              <text>{{item.value}}</text>
             </view>
           </view>
+          <text class="exit-plan-basis">{{view.exitPlan.basis}}</text>
         </view>
+        <view wx:if="{{!view.answer && !view.exitPlan}}" class="module-empty">当前没有可展示的结论。</view>
+      </view>
 
-        <view wx:if="{{item.kind == 'meter'}}" class="meter-chart">
-          <view class="meter-track">
-            <view class="meter-fill" style="width: {{item.percent}}%;"></view>
-            <view class="meter-dot" style="left: {{item.percent}}%;"></view>
+      <view wx:if="{{activeModule == 'price' || activeModule == 'finance' || activeModule == 'research'}}" class="module-content">
+        <text class="module-title">{{activeModule == 'price' ? '价格与位置' : (activeModule == 'finance' ? '数据与质量' : '研究图表')}}</text>
+        <block wx:if="{{activeCharts.length}}">
+          <view wx:for="{{activeCharts}}" wx:key="title" class="visual-card">
+            <text class="visual-title">{{item.title}}</text>
+            <text wx:if="{{item.hint}}" class="visual-hint">{{item.hint}}</text>
+
+            <view wx:if="{{item.stats && item.stats.length}}" class="chart-stats">
+              <view wx:for="{{item.stats}}" wx:for-item="stat" wx:key="label" class="chart-stat">
+                <text>{{stat.label}}</text>
+                <text>{{stat.value}}</text>
+              </view>
+            </view>
+
+            <view wx:if="{{item.kind == 'columns'}}" class="column-chart">
+              <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="column-slot">
+                <view class="column-bar {{col.tone}}" style="height: {{col.height}}%;"></view>
+              </view>
+            </view>
+
+            <view wx:if="{{item.kind == 'solid'}}" class="solid-chart">
+              <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="solid-slot">
+                <text class="solid-value">{{col.valueText}}</text>
+                <view class="solid-pillar-wrap">
+                  <view class="solid-bar {{col.tone}} tone-{{col.colorIndex}}" style="height: {{col.height}}%;"></view>
+                </view>
+                <text class="solid-label">{{col.label}}</text>
+              </view>
+            </view>
+
+            <view wx:if="{{item.kind == 'bars'}}" class="bar-chart">
+              <view wx:for="{{item.items}}" wx:for-item="bar" wx:key="id" class="bar-row">
+                <view class="bar-copy"><text>{{bar.label}}</text><text>{{bar.valueText}}</text></view>
+                <view class="bar-track">
+                  <view class="bar-value {{bar.tone}} tone-{{bar.colorIndex}}" style="width: {{bar.width}}%;"></view>
+                </view>
+              </view>
+            </view>
+
+            <view wx:if="{{item.kind == 'meter'}}" class="meter-chart">
+              <view class="meter-track">
+                <view class="meter-fill" style="width: {{item.percent}}%;"></view>
+                <view class="meter-dot" style="left: {{item.percent}}%;"></view>
+              </view>
+              <view class="meter-labels">
+                <text>{{item.lowLabel}}</text>
+                <text>{{item.midLabel}}</text>
+                <text>{{item.highLabel}}</text>
+              </view>
+            </view>
+
+            <view wx:if="{{item.kind == 'tiles'}}" class="tile-chart">
+              <view wx:for="{{item.items}}" wx:for-item="tile" wx:key="id" class="tile-cell">
+                <text>{{tile.label}}</text>
+                <text>{{tile.valueText}}</text>
+              </view>
+            </view>
           </view>
-          <view class="meter-labels">
-            <text>{{item.lowLabel}}</text>
-            <text>{{item.midLabel}}</text>
-            <text>{{item.highLabel}}</text>
+        </block>
+        <view wx:else class="module-empty">当前模块暂无足够数据。</view>
+
+        <view wx:if="{{activeModule == 'finance' && view.metrics.length}}" class="metric-panel">
+          <text class="block-title">{{view.metricsTitle || '关键数据'}}</text>
+          <view class="metric-grid">
+            <view wx:for="{{view.metrics}}" wx:key="*this" class="metric">
+              <text>{{item[0]}}</text>
+              <text>{{item[1]}}</text>
+            </view>
           </view>
         </view>
 
-        <view wx:if="{{item.kind == 'tiles'}}" class="tile-chart">
-          <view wx:for="{{item.items}}" wx:for-item="tile" wx:key="id" class="tile-cell">
-            <text>{{tile.label}}</text>
-            <text>{{tile.valueText}}</text>
+        <view wx:if="{{activeModule == 'research' && view.analysis.length}}" class="section-card analysis-card">
+          <view class="analysis-head">
+            <text class="block-title">{{view.analysisTitle || '研究要点'}}</text>
+            <view class="details-toggle-inline" bindtap="toggleDetails" hover-class="tap-active">
+              <text>{{detailsExpanded ? '收起分析' : '完整分析'}}</text>
+            </view>
+          </view>
+          <view wx:if="{{detailsExpanded}}">
+            <view wx:for="{{view.analysis}}" wx:key="title" class="analysis-block">
+              <text class="analysis-index">{{item.indexLabel}}</text>
+              <view class="analysis-copy">
+                <text class="analysis-title">{{item.title}}</text>
+                <text class="analysis-body">{{item.body}}</text>
+              </view>
+            </view>
+          </view>
+          <text wx:else class="collapsed-hint">点击“完整分析”查看研究依据与使用方法。</text>
+        </view>
+      </view>
+
+      <view wx:if="{{activeModule == 'source'}}" class="module-content">
+        <text class="module-title">已披露资料</text>
+        <view wx:if="{{view.facts.length}}" class="section-card">
+          <view wx:for="{{view.facts}}" wx:key="*this" class="fact-row">
+            <text>{{item[0]}}</text>
+            <text>{{item[1]}}</text>
           </view>
         </view>
-      </view>
-    </block>
-
-    <view wx:if="{{view.metrics.length}}" class="metric-panel">
-      <text class="block-title">{{view.metricsTitle || '关键数据'}}</text>
-      <view class="metric-grid">
-        <view wx:for="{{view.metrics}}" wx:key="*this" class="metric">
-          <text>{{item[0]}}</text>
-          <text>{{item[1]}}</text>
-        </view>
-      </view>
-    </view>
-
-    <view wx:if="{{view.facts.length}}" class="section-card">
-      <text class="block-title">{{view.factsTitle || '详细资料'}}</text>
-      <view wx:for="{{view.facts}}" wx:key="*this" class="fact-row">
-        <text>{{item[0]}}</text>
-        <text>{{item[1]}}</text>
-      </view>
-    </view>
-
-    <view wx:if="{{view.holdings.length}}" class="section-card">
-      <text class="block-title">机构持仓对照</text>
-      <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
-        <text>{{item.name}}</text>
-        <text>{{item.value}}</text>
-      </view>
-    </view>
-
-    <view wx:if="{{view.analysis.length}}" class="section-card analysis-card">
-      <view class="analysis-head">
-        <text class="block-title">{{view.analysisTitle || '研究要点'}}</text>
-        <view class="details-toggle-inline" bindtap="toggleDetails" hover-class="tap-active">
-          <text>{{detailsExpanded ? '收起分析' : '完整分析'}}</text>
-        </view>
-      </view>
-      <view wx:if="{{detailsExpanded}}">
-        <view wx:for="{{view.analysis}}" wx:key="title" class="analysis-block">
-          <text class="analysis-index">{{item.indexLabel}}</text>
-          <view class="analysis-copy">
-            <text class="analysis-title">{{item.title}}</text>
-            <text class="analysis-body">{{item.body}}</text>
+        <view wx:if="{{view.holdings.length}}" class="section-card">
+          <text class="block-title">机构持仓对照</text>
+          <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
+            <text>{{item.name}}</text>
+            <text>{{item.value}}</text>
           </view>
         </view>
+        <view wx:if="{{!view.facts.length && !view.holdings.length}}" class="module-empty">当前没有可公开展示的资料。</view>
       </view>
-    </view>
 
-    <view wx:if="{{view.risk}}" class="risk-card">
-      <text class="risk-label">{{view.riskLabel}}</text>
-      <text class="risk-body">{{view.risk}}</text>
-    </view>
-
-    <view wx:if="{{view.sourceNote}}" class="source-note">
-      <text>来源 {{view.sourceNote}}</text>
-    </view>
-
-    <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
-      <text class="freshness-label">{{freshness.label}}</text>
-      <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
-    </view>
-
-    <view class="action-stack">
-      <button class="member-cta" data-addon="snapshot" bindtap="openWorkspaceAction" aria-label="{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}">
-        <view class="cta-copy">
-          <text>{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}</text>
-          <text class="cta-sub">{{snapshotSaved ? '对比当时与现在的变化' : '记录当前结论、数据与风险'}}</text>
+      <view wx:if="{{activeModule == 'risk'}}" class="module-content">
+        <text class="module-title">先看边界</text>
+        <view wx:if="{{view.risk}}" class="risk-card">
+          <text class="risk-label">{{view.riskLabel}}</text>
+          <text class="risk-body">{{view.risk}}</text>
         </view>
-        <text class="cta-arrow">›</text>
-      </button>
-      <button class="member-cta secondary-cta" data-addon="remind" bindtap="openWorkspaceAction" aria-label="提醒我相关事件">
-        <view class="cta-copy">
-          <text>提醒我相关事件</text>
-          <text class="cta-sub">招股截止、上市或披露日进入待办</text>
+        <view wx:if="{{view.sourceNote}}" class="source-note">
+          <text>来源 {{view.sourceNote}}</text>
         </view>
-        <text class="cta-arrow">›</text>
-      </button>
-      <button class="member-cta secondary-cta" data-addon="track" bindtap="openWorkspaceAction" aria-label="追踪此标的变化">
-        <view class="cta-copy">
-          <text>追踪此标的变化</text>
-          <text class="cta-sub">保存基线，之后看相对上次哪里变了</text>
+        <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
+          <text class="freshness-label">{{freshness.label}}</text>
+          <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
         </view>
-        <text class="cta-arrow">›</text>
-      </button>
+        <view class="action-stack">
+          <button class="member-cta" data-addon="snapshot" bindtap="openWorkspaceAction" aria-label="{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}">
+            <view class="cta-copy">
+              <text>{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}</text>
+              <text class="cta-sub">{{snapshotSaved ? '对比当时与现在的变化' : '记录当前结论、数据与风险'}}</text>
+            </view>
+            <text class="cta-arrow">›</text>
+          </button>
+          <button class="member-cta secondary-cta" data-addon="remind" bindtap="openWorkspaceAction" aria-label="提醒我相关事件">
+            <view class="cta-copy">
+              <text>提醒我相关事件</text>
+              <text class="cta-sub">进入工作台设置复核节点</text>
+            </view>
+            <text class="cta-arrow">›</text>
+          </button>
+          <button class="member-cta secondary-cta" data-addon="track" bindtap="openWorkspaceAction" aria-label="追踪此标的变化">
+            <view class="cta-copy">
+              <text>追踪此标的变化</text>
+              <text class="cta-sub">保存基线，之后看相对上次哪里变了</text>
+            </view>
+            <text class="cta-arrow">›</text>
+          </button>
+        </view>
+      </view>
     </view>
 
     <text class="disclaimer">{{view.disclaimer}}</text>
@@ -201,23 +230,11 @@
       </view>
       <text class="snapshot-field-label">为什么关注</text>
       <view class="chip-row">
-        <button
-          wx:for="{{reasonOptions}}"
-          wx:key="id"
-          class="chip {{reasonIndex === index ? 'chip-active' : ''}}"
-          data-index="{{index}}"
-          bindtap="selectReasonChip"
-        >{{item.label}}</button>
+        <button wx:for="{{reasonOptions}}" wx:key="id" class="chip {{reasonIndex === index ? 'chip-active' : ''}}" data-index="{{index}}" bindtap="selectReasonChip">{{item.label}}</button>
       </view>
       <text class="snapshot-field-label">何时重新评估</text>
       <view class="chip-row">
-        <button
-          wx:for="{{reviewConditionOptions}}"
-          wx:key="id"
-          class="chip {{reviewConditionIndex === index ? 'chip-active' : ''}}"
-          data-index="{{index}}"
-          bindtap="selectReviewChip"
-        >{{item.label}}</button>
+        <button wx:for="{{reviewConditionOptions}}" wx:key="id" class="chip {{reviewConditionIndex === index ? 'chip-active' : ''}}" data-index="{{index}}" bindtap="selectReviewChip">{{item.label}}</button>
       </view>
       <text class="snapshot-field-label">下次查看</text>
       <view class="chip-row">

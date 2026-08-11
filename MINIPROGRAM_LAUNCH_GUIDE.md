@@ -51,7 +51,7 @@
 | 微信开发版 | `0.2.41`，说明“多端同步：Pages/云/随包统一 2026-08-07T17:58:17Z”，包体 378.0 KB | 2026-08-08 `preupload` + warm + CLI 上传；四端 `updatedAt` 一致 |
 | 微信开发版 | `0.2.42`，说明“多源回源与投研信号：风险提醒、双金观察、收息样本、会员精简”，包体 399.9 KB | 2026-08-11 通过官方 CLI 上传成功；本地/随包新鲜度通过，Pages 暂不可达 |
 | 微信开发版 | `0.2.43`，说明“数据同步与稳定性：最新快照、策略信号、双金观察、会员精简”，包体 399.9 KB | 2026-08-11 通过官方 CLI 上传成功；随包与 Pages/云缓存统一 `2026-08-11T09:32:37.685Z` |
-| 云函数 `aurum-data` | 已用 tcb 部署 Git 版（`2026-08-11-multisource-strategy-signals-b2`）；超时 **20 秒**；触发器 `data-snapshot-warm` 每 30 分钟；多源回源、受控并发事实写入、动作过期降级；运维主通道为免费 Actions Issue，webhook 可选 | 2026-08-11 CLI 部署成功；线上 health 已核对 revision 与数据库缓存 |
+| 云函数 `aurum-data` | 已用 tcb 部署 Git 版（`2026-08-11-multisource-strategy-signals-b4`）；超时 **20 秒**；触发器 `data-snapshot-warm` 每 30 分钟；多源回源、缓存优先、数据库副作用 5 秒预算、事实版本写入、动作过期降级；运维主通道为免费 Actions Issue，webhook 可选 | 2026-08-11 CLI 部署成功；线上 health/warm 连续核对 revision、数据库缓存与 20 秒内返回 |
 | 云函数 `aurum-member` | 免费额度、打新/收息台账、收费门禁、站内收件箱、提醒收窄、事件送达重试/补偿；线上 timer=`member-order-reconcile`（15 分钟，09:00 挂载事件提醒） | 2026-08-08 CLI 部署成功 |
 | 微信审核/发布 | 尚未提交审核或发布 | 未完成 |
 
@@ -211,4 +211,4 @@ npm run preupload   # sync:latest → audit → 随包新鲜度检查（默认 3
 
 开发版上传不等于微信审核，审核通过也不等于正式发布。
 
-> 注：`aurum-data` 读路径已改为「缓存优先、回源后台化」，并暴露 `SOURCE_REVISION` / `health`。仓库与线上超时均已对齐为 **20 秒**（`config.json` + `tcb config`）；`warm` 全量回源偶发仍会顶满 20 秒，读路径以数据库/内存缓存为准。`aurum-member` 线上仅保留 `member-order-reconcile`（每 15 分钟）；事件提醒在上海时间 09:00 窗口内挂载执行（云开发同函数通常只能挂一个 timer）。订阅消息需另行配置 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`，未配置时仅站内提醒。发布前运行 `npm run audit:release`。
+> 注：`aurum-data` 读路径已改为「缓存优先、回源后台化」，并暴露 `SOURCE_REVISION` / `health`。仓库与线上超时均已对齐为 **20 秒**（`config.json` + `tcb config`）；`warm` 将公开快照回源与数据库副作用分离，副作用共用 5 秒预算，超时让出主路径，读路径以数据库/内存缓存为准。2026-08-11 b4 实测连续两次 warm 成功（云端函数耗时 9.1 秒、11.3 秒），health 返回 revision 与数据库缓存一致。`aurum-member` 线上仅保留 `member-order-reconcile`（每 15 分钟）；事件提醒在上海时间 09:00 窗口内挂载执行（云开发同函数通常只能挂一个 timer）。订阅消息需另行配置 `WANGCHAO_SUBSCRIBE_EVENT_TMPL`，未配置时仅站内提醒。发布前运行 `npm run audit:release`。

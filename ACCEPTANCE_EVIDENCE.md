@@ -56,13 +56,18 @@
 
 > 未做真机付款前，可先提审体验版；正式对外收款前建议至少完成一端真实付款验收。
 
-## D. 提审与发布（仍须人工）
+## D. 提审与发布（必须在微信公众平台完成；CLI 无法代发）
 
-- [ ] 体验版已分发给审核与内部验收账号
-- [ ] 使用 `MINIPROGRAM_REVIEW_COPY.txt` 提交审核
+操作卡：[docs/FORMAL_RELEASE_STEPS.md](docs/FORMAL_RELEASE_STEPS.md)  
+提审复制稿：[MINIPROGRAM_REVIEW_COPY.txt](MINIPROGRAM_REVIEW_COPY.txt)（已对齐 **0.2.46**）
+
+- [ ] 体验版已分发给审核与内部验收账号（可选）
+- [ ] 在「版本管理」对开发版 **0.2.46** 提交审核
 - [ ] 审核通过
 - [ ] 正式发布
 - [ ] 发布后抽查：首页数据、会员购买入口、工作台只读/可写
+
+> 开发版上传 ≠ 审核；审核通过 ≠ 正式发布。上两项须管理员在 https://mp.weixin.qq.com/ 点击完成。
 
 ## E. 证据存放建议
 

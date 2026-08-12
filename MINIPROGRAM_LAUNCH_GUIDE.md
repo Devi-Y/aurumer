@@ -196,6 +196,7 @@
 
 ```bash
 npm run preupload   # sync:latest → audit → 随包新鲜度检查（默认 36 小时）
+npm run sync:multi  # 推送 main 后：audit → 云 warm → 四端 updatedAt 核对
 ```
 
 `miniprogram/data` 里的快照是**打包时冻结**的：用户首次打开、断网或云函数回源失败时看到的就是它。

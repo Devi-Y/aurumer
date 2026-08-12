@@ -7,10 +7,11 @@
 | 端 | 状态 |
 | --- | --- |
 | 本地 / 小程序随包 | `updatedAt=2026-08-12T09:42:31.815Z` |
-| 私有生产 `aurum-engine` | 以最新公开快照为准 |
-| GitHub `main` / Pages | 与本地 `updatedAt` 一致 |
-| 云函数 | revision=`2026-08-11-multisource-strategy-signals-b4` |
+| GitHub `main` / Pages | 已推送 `8659cd1`；Pages `updatedAt` 一致 |
+| 云函数 `aurum-data` | warm 成功（2026-08-12）；缓存 `updatedAt=2026-08-12T09:42:31.815Z`；revision=`2026-08-11-multisource-strategy-signals-b4` |
 | 微信开发版 | **0.2.46** 已 CLI 上传（440.7 KB） |
+
+一键核对：`npm run sync:multi`（audit:release → 云 warm → Pages/随包 updatedAt 对齐）
 
 ## 数据结构 / 云函数 / 页面
 

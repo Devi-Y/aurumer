@@ -29,6 +29,85 @@
         >{{item.value}}</text>
       </view>
     </view>
+    <view
+      wx:if="{{thesisLines.length}}"
+      class="thesis-ticker"
+      bindtap="openThesisLine"
+      hover-class="hero-tap"
+      aria-role="button"
+      aria-label="打开当前思路"
+    >
+      <text class="thesis-kicker">思路</text>
+      <view class="thesis-copy">
+        <text class="thesis-title">{{thesisLines[thesisIndex].title}}</text>
+        <text class="thesis-text">{{thesisLines[thesisIndex].text}}</text>
+      </view>
+      <text class="thesis-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="home-panel holdings-panel">
+    <view class="panel-head">
+      <text class="panel-title">我的持仓</text>
+      <text
+        class="panel-action"
+        bindtap="toggleHoldingForm"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="{{showHoldingForm ? '收起添加持仓' : '添加持仓'}}"
+      >{{showHoldingForm ? '收起' : '＋ 添加'}}</text>
+    </view>
+    <view class="holding-reminder {{holdingsReminder.tone}}">{{holdingsReminder.text}}</view>
+    <view wx:if="{{holdings.length}}" class="holding-list">
+      <view
+        wx:for="{{holdings}}"
+        wx:key="id"
+        class="holding-row"
+      >
+        <view
+          class="holding-main"
+          data-id="{{item.id}}"
+          bindtap="openHoldingDetail"
+          hover-class="tap-active"
+          aria-role="button"
+          aria-label="打开 {{item.name}} 详情"
+        >
+          <view class="holding-title-row">
+            <text class="holding-name">{{item.name}}</text>
+            <text class="holding-market">{{item.marketLabel}}</text>
+          </view>
+          <text class="holding-meta">{{item.displayMeta}}</text>
+          <text class="holding-action {{item.actionTone}}">{{item.actionText}}</text>
+        </view>
+        <text
+          class="holding-delete"
+          data-id="{{item.id}}"
+          catchtap="deleteHolding"
+          aria-role="button"
+          aria-label="删除 {{item.name}}"
+        >删除</text>
+      </view>
+    </view>
+    <view wx:else class="holding-empty">
+      <text>先添加一只你真正持有的股票。</text>
+      <text>持仓只保存在本机，不上传服务器；匹配到公开样本后可点进详情。</text>
+    </view>
+    <view wx:if="{{showHoldingForm}}" class="holding-form">
+      <picker mode="selector" range="{{marketOptions}}" range-key="label" value="{{marketIndex}}" bindchange="changeHoldingMarket">
+        <view class="holding-picker" aria-role="button">
+          <text>市场</text>
+          <text>{{marketOptions[marketIndex].label}} ›</text>
+        </view>
+      </picker>
+      <input class="holding-input" placeholder="名称，如 英伟达 / 黄金" value="{{holdingForm.name}}" bindinput="inputHoldingName" />
+      <input class="holding-input" placeholder="代码（黄金可留空）" value="{{holdingForm.code}}" bindinput="inputHoldingCode" />
+      <input class="holding-input" type="digit" placeholder="成本（选填）" value="{{holdingForm.cost}}" bindinput="inputHoldingCost" />
+      <input class="holding-input" type="digit" placeholder="数量股/克（选填）" value="{{holdingForm.quantity}}" bindinput="inputHoldingQuantity" />
+      <view class="holding-form-actions">
+        <view class="holding-cancel" bindtap="toggleHoldingForm" hover-class="tap-active" aria-role="button">取消</view>
+        <view class="holding-save" bindtap="saveHolding" hover-class="tap-active" aria-role="button">保存到本机</view>
+      </view>
+    </view>
   </view>
 
   <view class="home-panel">

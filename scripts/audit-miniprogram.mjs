@@ -254,7 +254,30 @@ assert(
   ['id: "hk"', 'id: "us"', 'id: "a"', 'id: "gold"'].every((marker) => indexSource.includes(marker)),
   "今日重点应覆盖港股、美股、A股、黄金四个方向",
 );
-assert(!indexTemplate.includes("本机速记") && !indexTemplate.includes("我的研究记录") && !indexTemplate.includes("查看 4 项速览"), "首页仍保留本机速记、研究记录或展开速览");
+assert(
+  indexTemplate.includes("我的持仓")
+    && indexSource.includes("openHoldingDetail")
+    && indexSource.includes("add_holding")
+    && indexSource.includes("trackHomeVisit")
+    && indexTemplate.includes("thesis-ticker")
+    && indexSource.includes("buildThesisTicker")
+    && !indexTemplate.includes("本机速记")
+    && !indexTemplate.includes("我的研究记录")
+    && !indexTemplate.includes("查看 4 项速览"),
+  "首页应恢复我的持仓闭环与滚动思路条，且不再保留旧的本机速记条、研究记录条或展开速览",
+);
+assert(await access(path.join(miniRoot, "utils", "holding-observe.js")).then(() => true).catch(() => false), "首页持仓观察缺少 holding-observe 工具");
+assert(await access(path.join(miniRoot, "utils", "master-playbooks.js")).then(() => true).catch(() => false), "缺少大师策略摘要模块");
+assert(await access(path.join(miniRoot, "utils", "thesis-ticker.js")).then(() => true).catch(() => false), "缺少首页滚动思路条模块");
+const analyticsSource = await readFile(path.join(miniRoot, "utils", "analytics.js"), "utf8");
+assert(analyticsSource.includes("return_visit") && analyticsSource.includes("add_holding"), "首页行为埋点应覆盖添加持仓与次日回访");
+assert(analyticsSource.includes("trackHomeVisit"), "首页应通过 trackHomeVisit 统一记录打开与次日回访");
+const playbookSource = await readFile(path.join(miniRoot, "utils", "master-playbooks.js"), "utf8");
+for (const name of ["李嘉诚", "潘石屹", "沈南鹏", "桥水基金", "文艺复兴", "索罗斯", "孙宇晨案例"]) {
+  assert(playbookSource.includes(name), `大师策略摘要缺少：${name}`);
+}
+assert(playbookSource.includes("不可照抄") || playbookSource.includes("copyHoldings: false"), "大师策略必须标明不可照抄仓位");
+assert((pageTemplatesByPath.get("pages/section/index") || "").includes("大师策略摘要"), "机构持仓栏目应露出大师策略摘要");
 assert(!appConfig.tabBar, "首页已去掉记录/会员后不应再保留底部 tabBar");
 assert(indexStyles.includes("width: 25%") && indexStyles.includes("font-size: 28rpx"), "小程序首页方向标签或标题没有使用清晰统一尺寸");
 assert(

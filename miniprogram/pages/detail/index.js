@@ -1020,8 +1020,8 @@ function buildGuruView(base, item) {
     ["资料来源", raw.source || "SEC 13F"],
   ], 12);
   base.analysis = [
-    { title: "为什么看它", body: String(profile.why || "公开业绩与持仓可对照学习。").slice(0, 36) },
-    { title: "怎么学", body: String(profile.how || "学框架，不照抄持仓。").slice(0, 28) },
+    { title: "为什么看它", body: String(profile.why || "公开业绩与持仓可对照学习。").slice(0, 120) },
+    { title: "怎么学", body: String(profile.how || "学框架，不照抄持仓。").slice(0, 120) },
   ];
   base.actions = [];
   base.risk = "公开持仓有滞后，只能学习对照，不能当跟仓信号。";

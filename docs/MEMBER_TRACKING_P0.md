@@ -1,16 +1,16 @@
 # 会员跟踪 P0：变化中心 · 决策快照 · 节点待办
 
-> 基于已有「逻辑哨兵」增量完善。开发版：**0.2.39**（P0–P2 运维硬化 + 源端 A20 契约恢复与最新快照）。
+> 基于已有「逻辑哨兵」增量完善。开发版：**0.2.44**（首页持仓闭环 + 滚动思路条 + 大师策略摘要）。
 
 ## 多端同步记录
 
 | 端 | 状态 |
 | --- | --- |
-| 本地 / 小程序随包 | `updatedAt=2026-08-07T17:18:52.168Z`，A股 **20**；`actionsFresh=true` |
-| 私有生产 `aurum-engine` | `200996c` 恢复 A20 + market-first merge；已推送 |
-| GitHub `main` / Pages | `0a52cd0` publish public snapshot；CDN 已对齐 |
-| 云函数 | revision=`2026-08-08-action-freshness-ops-alert-a20-contract`；warm 已对齐最新戳 |
-| 微信开发版 | **0.2.39** 已 CLI 上传（373.7 KB） |
+| 本地 / 小程序随包 | `updatedAt=2026-08-12T03:38:19.542Z` |
+| 私有生产 `aurum-engine` | 以最新公开快照为准 |
+| GitHub `main` / Pages | 与本地 `updatedAt` 一致 |
+| 云函数 | revision=`2026-08-11-multisource-strategy-signals-b4` |
+| 微信开发版 | **0.2.44** 已 CLI 上传（424.9 KB） |
 
 ## 数据结构 / 云函数 / 页面
 

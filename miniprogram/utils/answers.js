@@ -277,7 +277,7 @@ function smartMoneyItems(snapshot) {
       rank: profile.order,
       scoreText: `${holdings.length}只持仓`,
       rankText: `第 ${profile.order}/${counts[profile.group]}`,
-      one: `原因：${String(profile.why || "").slice(0, 10)} · 学法：${String(profile.how || "").slice(0, 8)}`,
+      one: `原因：${String(profile.why || "公开可核验").slice(0, 36)}｜学法：${String(profile.how || "学框架不照抄").slice(0, 28)}`,
       raw: {
         ...live,
         profile,

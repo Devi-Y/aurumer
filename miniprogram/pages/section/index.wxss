@@ -8,6 +8,7 @@
 .section-hero,
 .insight-panel,
 .group-panel,
+.playbook-panel,
 .freshness-banner {
   overflow: hidden;
   border: 1rpx solid #e7ece9;
@@ -243,6 +244,78 @@
   color: #9aa19c;
   font-size: 26rpx;
   font-weight: 600;
+}
+
+.playbook-panel {
+  margin-top: 16rpx;
+}
+
+.playbook-head {
+  display: flex;
+  min-height: 76rpx;
+  padding: 0 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.playbook-title {
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.playbook-meta {
+  color: #8a918c;
+  font-size: 22rpx;
+}
+
+.playbook-row {
+  display: flex;
+  min-height: 110rpx;
+  padding: 18rpx 24rpx;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.playbook-row + .playbook-row {
+  border-top: 1rpx solid #edf0ee;
+}
+
+.playbook-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.playbook-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.playbook-name {
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 650;
+}
+
+.playbook-tag {
+  flex: none;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  background: #eef2fb;
+  color: #4256c5;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.playbook-principle {
+  display: block;
+  margin-top: 6rpx;
+  color: #6a746e;
+  font-size: 23rpx;
+  line-height: 1.45;
 }
 
 .group-index {

@@ -37,7 +37,37 @@ const ALLOWED = new Set([
   "subscription_reminder_request",
   "subscription_reminder_authorized",
   "subscription_reminder_denied",
+  "add_holding",
+  "holding_detail_open",
+  "holding_delete",
+  "return_visit",
 ]);
+
+const VISIT_KEY = "aurum_last_home_visit_day";
+
+function beijingDayKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const pick = (type) => parts.find((part) => part.type === type)?.value || "00";
+  return `${pick("year")}-${pick("month")}-${pick("day")}`;
+}
+
+/** 记录首页打开；若相对上次打开跨了北京时间自然日，额外报次日回访。 */
+function trackHomeVisit() {
+  track("home_open");
+  try {
+    const today = beijingDayKey();
+    const previous = String(wx.getStorageSync(VISIT_KEY) || "");
+    if (previous && previous !== today) track("return_visit", { gap: "day" });
+    wx.setStorageSync(VISIT_KEY, today);
+  } catch (error) {
+    // 回访埋点失败不影响主流程。
+  }
+}
 
 function track(event, payload = {}) {
   const name = String(event || "");
@@ -63,4 +93,4 @@ function track(event, payload = {}) {
   }
 }
 
-module.exports = { track };
+module.exports = { track, trackHomeVisit };

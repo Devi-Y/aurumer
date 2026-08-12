@@ -1,11 +1,15 @@
 const { loadSnapshot } = require("../../data/store");
-const { track } = require("../../utils/analytics");
+const { track, trackHomeVisit } = require("../../utils/analytics");
 const { openPage } = require("../../utils/nav");
 const { shortCompanyName, allItems } = require("../../utils/answers");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { loadWorkspace } = require("../../services/member");
 const { homeMemberSummary } = require("../../utils/change-center");
+const { listHoldings, upsertHolding, removeHolding } = require("../../utils/local-holdings");
+const { viewHoldings, holdingsReminder } = require("../../utils/holding-observe");
+const { buildThesisTicker } = require("../../utils/thesis-ticker");
+const { findPlaybook } = require("../../utils/master-playbooks");
 
 const CORE_ENTRIES = [
   {
@@ -63,6 +67,13 @@ const CORE_ENTRIES = [
     detail: "港3 · 美5 · A3",
     tone: "guru",
   },
+];
+
+const MARKET_OPTIONS = [
+  { id: "us", label: "美股" },
+  { id: "hk", label: "港股" },
+  { id: "a", label: "A股" },
+  { id: "gold", label: "黄金" },
 ];
 
 function hasNumber(value) {
@@ -155,6 +166,7 @@ function buildToday(data) {
 }
 
 const TODAY_HELP_FRESH = "今天重点关注标的";
+const EMPTY_HOLDING_FORM = { name: "", code: "", cost: "", quantity: "", market: "us" };
 
 Page({
   data: {
@@ -164,13 +176,19 @@ Page({
     freshnessKind: "offline",
     todayHelp: TODAY_HELP_FRESH,
     footerDisclaimer: FOOTER_DISCLAIMER,
+    holdings: [],
+    holdingsReminder: holdingsReminder([]),
+    thesisLines: [],
+    thesisIndex: 0,
+    showHoldingForm: false,
+    marketOptions: MARKET_OPTIONS,
+    marketIndex: 0,
+    holdingForm: { ...EMPTY_HOLDING_FORM },
   },
   onLoad() {
-    track("home_open");
+    trackHomeVisit();
+    this._snapshot = null;
     this.refreshAnswers();
-    this.refreshMemberCard();
-  },
-  onShow() {
     this.refreshMemberCard();
   },
   onPullDownRefresh() {
@@ -197,17 +215,30 @@ Page({
       })
       .catch(() => {});
   },
+  refreshHoldings(snapshot = this._snapshot) {
+    const views = viewHoldings(listHoldings(), snapshot || {});
+    this.setData({
+      holdings: views,
+      holdingsReminder: holdingsReminder(views),
+    });
+  },
   refreshAnswers(done, force = false) {
     loadSnapshot(
       (data, source, meta = {}) => {
         const kind = meta.kind || "aging";
         const asOf = this.formatAsOf(data.updatedAt, kind);
+        this._snapshot = data;
+        const thesisLines = buildThesisTicker(data);
         this.setData({
           today: buildToday(data),
           dataAsOf: asOf,
           freshnessKind: kind,
           todayHelp: TODAY_HELP_FRESH,
+          thesisLines,
+          thesisIndex: 0,
         });
+        this.refreshHoldings(data);
+        this.startThesisRotate(thesisLines.length);
       },
       done,
       { force },
@@ -224,6 +255,74 @@ Page({
     const stamp = this.formatTime(date);
     if (kind === "stale") return `数据截至 ${stamp} · 已偏旧`;
     return `数据截至 ${stamp}`;
+  },
+  startThesisRotate(count) {
+    if (this._thesisTimer) {
+      clearInterval(this._thesisTimer);
+      this._thesisTimer = null;
+    }
+    if (!count || count < 2) return;
+    this._thesisTimer = setInterval(() => {
+      const next = ((this.data.thesisIndex || 0) + 1) % count;
+      this.setData({ thesisIndex: next });
+    }, 3800);
+  },
+  onUnload() {
+    if (this._thesisTimer) {
+      clearInterval(this._thesisTimer);
+      this._thesisTimer = null;
+    }
+  },
+  onHide() {
+    if (this._thesisTimer) {
+      clearInterval(this._thesisTimer);
+      this._thesisTimer = null;
+    }
+  },
+  onShow() {
+    this.refreshHoldings();
+    this.refreshMemberCard();
+    if ((this.data.thesisLines || []).length > 1) {
+      this.startThesisRotate(this.data.thesisLines.length);
+    }
+  },
+  openThesisLine() {
+    const line = (this.data.thesisLines || [])[this.data.thesisIndex || 0];
+    if (!line) return;
+    track("detail_open", { market: String(line.market || ""), from: "thesis_ticker" });
+    if (line.kind === "playbook") {
+      const book = findPlaybook(line.targetId || line.id);
+      if (!book) {
+        wx.navigateTo({ url: "/pages/section/index?market=guru" });
+        return;
+      }
+      wx.showModal({
+        title: `${book.name} · 策略摘要`,
+        content: [
+          book.principle,
+          `敏感度：${book.sensitivity}`,
+          `价值透镜：${book.valueLens}`,
+          `边界：${book.doNot}`,
+          `来源：${book.sourceNote}`,
+        ].join("\n"),
+        showCancel: true,
+        cancelText: "关闭",
+        confirmText: "机构持仓",
+        success: (result) => {
+          if (result.confirm) wx.navigateTo({ url: "/pages/section/index?market=guru" });
+        },
+      });
+      return;
+    }
+    if (line.targetId && line.market) {
+      wx.navigateTo({
+        url: `/pages/detail/index?market=${encodeURIComponent(line.market)}&id=${encodeURIComponent(line.targetId)}`,
+      });
+      return;
+    }
+    if (line.market) {
+      wx.navigateTo({ url: `/pages/section/index?market=${line.market}` });
+    }
   },
   openTodayCategory(event) {
     const market = event.currentTarget.dataset.market;
@@ -254,6 +353,75 @@ Page({
       return;
     }
     if (entry.action === "member") openPage("/pages/member/index");
+  },
+  toggleHoldingForm() {
+    this.setData({ showHoldingForm: !this.data.showHoldingForm });
+  },
+  changeHoldingMarket(event) {
+    const index = Number(event.detail.value) || 0;
+    const option = MARKET_OPTIONS[index] || MARKET_OPTIONS[0];
+    this.setData({
+      marketIndex: index,
+      "holdingForm.market": option.id,
+    });
+  },
+  inputHoldingName(event) {
+    this.setData({ "holdingForm.name": event.detail.value });
+  },
+  inputHoldingCode(event) {
+    this.setData({ "holdingForm.code": event.detail.value });
+  },
+  inputHoldingCost(event) {
+    this.setData({ "holdingForm.cost": event.detail.value });
+  },
+  inputHoldingQuantity(event) {
+    this.setData({ "holdingForm.quantity": event.detail.value });
+  },
+  saveHolding() {
+    try {
+      const form = this.data.holdingForm || {};
+      const market = form.market || "us";
+      const name = String(form.name || "").trim()
+        || (market === "gold" ? "黄金" : String(form.code || "").trim().toUpperCase());
+      upsertHolding({
+        name,
+        code: market === "gold" ? (String(form.code || "").trim() || "TRACK") : form.code,
+        market,
+        cost: form.cost,
+        quantity: form.quantity,
+      });
+      track("add_holding", { market: String(market) });
+      this.setData({
+        holdingForm: { ...EMPTY_HOLDING_FORM, market },
+        showHoldingForm: false,
+        marketIndex: Math.max(0, MARKET_OPTIONS.findIndex((item) => item.id === market)),
+      });
+      this.refreshHoldings();
+      wx.showToast({ title: "已加入本机持仓", icon: "success" });
+    } catch (error) {
+      wx.showToast({ title: error.message || "未能保存", icon: "none" });
+    }
+  },
+  deleteHolding(event) {
+    const id = event.currentTarget.dataset.id;
+    if (!id) return;
+    removeHolding(id);
+    track("holding_delete");
+    this.refreshHoldings();
+  },
+  openHoldingDetail(event) {
+    const id = event.currentTarget.dataset.id;
+    const row = (this.data.holdings || []).find((item) => item.id === id);
+    if (!row) return;
+    if (!row.hasDetail || !row.detailMarket || !row.detailId) {
+      wx.showToast({ title: "暂无匹配详情", icon: "none" });
+      return;
+    }
+    track("holding_detail_open", { market: String(row.detailMarket) });
+    track("detail_open", { market: String(row.detailMarket), from: "holding" });
+    wx.navigateTo({
+      url: `/pages/detail/index?market=${encodeURIComponent(row.detailMarket)}&id=${encodeURIComponent(row.detailId)}`,
+    });
   },
   onShareAppMessage() {
     track("share_tap", { page: "home" });

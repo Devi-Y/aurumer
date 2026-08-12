@@ -5,6 +5,7 @@ const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
+const { MASTER_PLAYBOOKS } = require("../../utils/master-playbooks");
 
 const META = {
   hk: {
@@ -258,10 +259,23 @@ Page({
     source: "正在读取同步数据",
     freshness: freshnessBanner("正在读取同步数据", "fresh"),
     disclaimer: RESEARCH_DISCLAIMER,
+    playbooks: [],
   },
   onLoad(options) {
     const market = META[options.market] ? options.market : "hk";
-    this.setData({ market, meta: META[market] });
+    const playbooks = market === "guru"
+      ? MASTER_PLAYBOOKS.map((item) => ({
+        id: item.id,
+        name: item.name,
+        tag: item.tag,
+        principle: item.principle,
+        sensitivity: item.sensitivity,
+        valueLens: item.valueLens,
+        doNot: item.doNot,
+        sourceNote: item.sourceNote,
+      }))
+      : [];
+    this.setData({ market, meta: META[market], playbooks });
     wx.setNavigationBarTitle({ title: META[market].title });
     track("section_open", { market: String(market), from: "direct" });
     this.refresh();
@@ -324,6 +338,24 @@ Page({
     track("detail_open", { market: this.data.market, from });
     wx.navigateTo({
       url: `/pages/detail/index?market=${encodeURIComponent(this.data.market)}&id=${encodeURIComponent(id)}`,
+    });
+  },
+  openPlaybook(event) {
+    const id = event.currentTarget.dataset.id;
+    const book = (this.data.playbooks || []).find((item) => item.id === id);
+    if (!book) return;
+    track("detail_open", { market: "guru", from: "playbook" });
+    wx.showModal({
+      title: `${book.name} · ${book.tag}`,
+      content: [
+        book.principle,
+        `敏感度：${book.sensitivity}`,
+        `价值透镜：${book.valueLens}`,
+        `边界：${book.doNot}`,
+        `来源：${book.sourceNote}`,
+      ].join("\n"),
+      showCancel: false,
+      confirmText: "知道了",
     });
   },
   openGroupById(group, from = "section_group") {

@@ -99,14 +99,29 @@ assert(snapshot.investors.length >= 8, "小程序聪明人持仓不足 8 位");
 
 const sectionSource = await readFile(path.join(miniRoot, "utils", "answers.js"), "utf8");
 const smartMoneySource = await readFile(path.join(miniRoot, "utils", "smart-money.js"), "utf8");
+const strategyScoreSource = await readFile(path.join(miniRoot, "utils", "strategy-score.js"), "utf8");
+const guruOverlapSource = await readFile(path.join(miniRoot, "utils", "guru-overlap.js"), "utf8");
 const smartMoneyModule = { exports: {} };
 vm.runInNewContext(smartMoneySource, { module: smartMoneyModule, exports: smartMoneyModule.exports });
+const strategyScoreModule = { exports: {} };
+vm.runInNewContext(strategyScoreSource, { module: strategyScoreModule, exports: strategyScoreModule.exports });
+const guruOverlapModule = { exports: {} };
+vm.runInNewContext(guruOverlapSource, {
+  module: guruOverlapModule,
+  exports: guruOverlapModule.exports,
+  require(request) {
+    if (request === "./smart-money") return smartMoneyModule.exports;
+    throw new Error(`交叉重叠模块出现未知依赖：${request}`);
+  },
+});
 const miniModule = { exports: {} };
 vm.runInNewContext(sectionSource, {
   module: miniModule,
   exports: miniModule.exports,
   require(request) {
     if (request === "./smart-money") return smartMoneyModule.exports;
+    if (request === "./strategy-score") return strategyScoreModule.exports;
+    if (request === "./guru-overlap") return guruOverlapModule.exports;
     throw new Error(`小程序答案模块出现未知依赖：${request}`);
   },
 });
@@ -124,6 +139,16 @@ const nonSeven = snapshot.us.stocks
 const expectedHot = nonSeven.slice(0, 3).map((item) => item.symbol);
 const actualHot = miniUsItems.filter((item) => item.group === "hot").map((item) => item.id);
 assert(JSON.stringify(actualHot) === JSON.stringify(expectedHot), `小程序热度前三口径不一致：${actualHot.join(",")}`);
+const hot10 = miniUsItems.filter((item) => item.group === "hot10");
+const valueBoard = miniUsItems.filter((item) => item.group === "value");
+assert(hot10.length === 10, `小程序热度前十应为 10 只，实际 ${hot10.length}`);
+assert(valueBoard.length === 10, `小程序性价比观察榜应为 10 只，实际 ${valueBoard.length}`);
+assert(hot10.every((item, index) => item.rank === index + 1), "热度前十排名必须从 1 连续");
+assert(valueBoard.every((item, index) => item.rank === index + 1), "性价比观察榜排名必须从 1 连续");
+assert(sectionSource.includes("热度前十") && sectionSource.includes("性价比观察"), "栏目分组缺少热度前十或性价比观察");
+const overlapItems = miniGuruItems.filter((item) => item.group === "overlap");
+assert(overlapItems.length >= 2, `小程序交叉重叠应至少 2 条，实际 ${overlapItems.length}`);
+assert(sectionSource.includes("交叉重叠"), "机构栏目缺少交叉重叠深度入口");
 assert(miniAShareItems.length === 10, `小程序 A 股收息固定研究样本应为 10 只，实际 ${miniAShareItems.length}`);
 const fixedAShareCodes = ["600900.SH", "600036.SH", "600941.SH", "515180.SH", "601088.SH", "000333.SZ"];
 assert(
@@ -352,9 +377,26 @@ assert(
   "今日重点应支持点击跳转标的详情，无标的时回退品类",
 );
 assert(!indexSource.includes("pages/workspace/index"), "首页不应再挂研究记录入口");
-for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "七姐妹", "热度前三", "收息清单", "优等收息", "稳健收息", "高息待核", "现在怎么做", "买点与卖点", "资料较完整", "重点核验", "资料不足", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "公开长期年化排序"]) {
+for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "七姐妹", "热度前三", "热度前十", "性价比观察", "交叉重叠", "收息清单", "优等收息", "稳健收息", "高息待核", "现在怎么做", "买点与卖点", "资料较完整", "重点核验", "资料不足", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "公开长期年化排序"]) {
   assert(sectionSource.includes(label), `小程序缺少二级入口：${label}`);
 }
+assert(
+  indexTemplate.includes("copyDailyCard")
+    && indexSource.includes("buildDailyCard")
+    && indexSource.includes("daily_card_copy"),
+  "首页应提供可复制的微信群每日卡片文案",
+);
+assert(
+  (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes("buildDeepLinks")
+    && (pageTemplatesByPath.get("pages/section/index") || "").includes("deepLinks"),
+  "栏目页应提供历史样本 / 热度前十 / 性价比深度入口",
+);
+assert(
+  detailSource.includes("公开事实")
+    && detailSource.includes("跟随边界")
+    && detailSource.includes("【望潮研究归纳】"),
+  "机构持仓详情应区分公开事实与望潮研究归纳，并展示跟随边界",
+);
 for (const label of ["近 60 日最低", "近 60 日中位数", "近 60 日最高", "历史样本区间", "自由现金流", "公开持仓", "完整分析", "为什么看它", "怎么学"]) {
   assert(detailContract.includes(label), `小程序详情缺少关键内容：${label}`);
 }

@@ -1,4 +1,6 @@
+const { guruOverlapItems } = require("./guru-overlap");
 const { SMART_MONEY_PROFILES } = require("./smart-money");
+const { usScore } = require("./strategy-score");
 
 const MAGNIFICENT_SEVEN = ["NVDA", "MSFT", "AAPL", "GOOGL", "AMZN", "META", "TSLA"];
 
@@ -249,7 +251,48 @@ function usItems(snapshot) {
     .sort((left, right) => number(right.heatScore) - number(left.heatScore));
   const hot = nonSeven.slice(0, 3)
     .map((item) => make(item, "hot", "热度前三"));
-  return [...seven, ...hot];
+  // 热度前十 / 性价比观察：同一标的可出现在多个研究榜，列表按 group 过滤。
+  const hot10 = [...stocks]
+    .sort((left, right) => number(right.heatScore) - number(left.heatScore))
+    .slice(0, 10)
+    .map((item, index) => {
+      const row = make(item, "hot10", `热度第${index + 1}`);
+      row.rank = index + 1;
+      row.rankText = `热度观察第 ${index + 1}`;
+      row.one = [
+        signedPercent(item.changePercent) || "涨跌待更新",
+        Number.isFinite(Number(item.heatScore)) ? `热度 ${Math.round(Number(item.heatScore))}` : null,
+        Number.isFinite(Number(item.price)) ? money(item.price) : null,
+        "热度≠买入信号",
+      ].filter(Boolean).join(" · ");
+      return row;
+    });
+  const value = [...stocks]
+    .map((item) => {
+      const draft = make(item, "value", "性价比观察");
+      const scored = usScore(draft);
+      return { item, draft, score: scored.score };
+    })
+    .filter((entry) => entry.score != null)
+    .sort((left, right) => Number(right.score) - Number(left.score))
+    .slice(0, 10)
+    .map((entry, index) => {
+      const row = entry.draft;
+      row.group = "value";
+      row.badge = `性价比 ${entry.score}`;
+      row.score = entry.score;
+      row.rank = index + 1;
+      row.scoreText = `${entry.score} 分`;
+      row.rankText = `性价比第 ${index + 1}`;
+      row.one = [
+        `${entry.score} 分`,
+        signedPercent(entry.item.changePercent) || null,
+        Number.isFinite(Number(entry.item.price)) ? money(entry.item.price) : null,
+        "研究排序，非收益承诺",
+      ].filter(Boolean).join(" · ");
+      return row;
+    });
+  return [...seven, ...hot, ...hot10, ...value];
 }
 
 function smartMoneyItems(snapshot) {
@@ -332,8 +375,9 @@ function goldItems(snapshot) {
       "买点与卖点",
       "价格观察",
       [
-        buyIntl ? `买 ${buyIntl}` : null,
-        sellIntl ? `卖 ${sellIntl}` : null,
+        buyIntl ? `观察低位 ${buyIntl}` : null,
+        sellIntl ? `观察上沿 ${sellIntl}` : null,
+        riskIntl ? `风险下沿 ${riskIntl}` : null,
       ].filter(Boolean).join(" · ") || quoteLine,
     ],
   ];
@@ -551,7 +595,7 @@ function allItems(snapshot, market) {
   if (market === "us") return usItems(snapshot);
   if (market === "a") return aShareItems(snapshot);
   if (market === "gold") return goldItems(snapshot);
-  if (market === "guru") return smartMoneyItems(snapshot);
+  if (market === "guru") return [...smartMoneyItems(snapshot), ...guruOverlapItems(snapshot)];
   return [];
 }
 
@@ -564,7 +608,7 @@ function groupDefinitions(snapshot, market) {
       ["caution", "暂缓观察", "先看热度"],
       ["avoid", "暂不建议", "风险偏多"],
       ["cancelled", "发行已取消", "无法申购"],
-      ["ended", "已结束", "上市复盘"],
+      ["ended", "已结束", "历史样本对照：暗盘·首日·五日"],
       // 旧完整度字面保留给审计兼容，count 为 0。
       ["legacy-complete", "资料较完整", "已改名为建议申购等动作结论。"],
       ["legacy-review", "重点核验", "已改名为暂缓观察。"],
@@ -574,6 +618,8 @@ function groupDefinitions(snapshot, market) {
     definitions = [
       ["seven", "七姐妹", "长期关注七巨头"],
       ["hot", "热度前三", "近期热度最高"],
+      ["hot10", "热度前十", "公开热度横向比较，热度≠买入信号"],
+      ["value", "性价比观察", "质量·估值·热度综合排序，非收益承诺"],
     ];
   } else if (market === "a") {
     definitions = [
@@ -589,7 +635,7 @@ function groupDefinitions(snapshot, market) {
   } else if (market === "gold") {
     definitions = [
       ["track", "现在怎么做", "偏买 / 观望 / 回避"],
-      ["plan", "买点与卖点", "买入卖出观察区"],
+      ["plan", "买点与卖点", "观察低位 / 观察上沿 / 风险下沿"],
       // 旧四入口字面保留给审计兼容，count 为 0。
       ["answer", "资料结论", "已并入「现在怎么做」。"],
       ["price", "价格位置", "已并入「买点与卖点」。"],
@@ -600,6 +646,7 @@ function groupDefinitions(snapshot, market) {
       ["hk", "港股 · 3 个", "公开长期年化排序"],
       ["us", "美股 · 5 个", "公开长期年化排序"],
       ["a", "A股 · 3 个", "公开长期年化排序"],
+      ["overlap", "交叉重叠", "多机构共同持有，研究对照非推荐"],
     ];
   }
   return definitions.map(([id, title, one]) => ({ id, title, one, count: items.filter((item) => item.group === id).length }));

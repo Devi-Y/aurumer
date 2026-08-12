@@ -705,7 +705,20 @@ function buildUSView(base, item, snapshot) {
   base.holdings = holders;
   base.analysis = [
     { title: "位置", body: stockRange(raw.history, raw.price) },
-    { title: "怎么用", body: item.group === "seven" ? "七家长期跟踪样本，不急着追涨。" : "热度高只说明关注多，不等于马上买。" },
+    {
+      title: "怎么用",
+      body: item.group === "seven"
+        ? "七家长期跟踪样本，不急着追涨。"
+        : item.group === "value"
+          ? "性价比观察分用于横向比较，不是买入信号或收益承诺。"
+          : "热度高只说明关注多，不等于马上买。",
+    },
+    {
+      title: "研究观察分",
+      body: scoredUS.score != null
+        ? `${scoredUS.score} 分 · ${scoredUS.basis}`
+        : "公开行情/财务不足，暂不排序。",
+    },
   ];
   base.actions = [];
   base.risk = "历史价格不预测未来；财报与事件可能造成跳空。";
@@ -1020,11 +1033,40 @@ function buildGuruView(base, item) {
     ["资料来源", raw.source || "SEC 13F"],
   ], 12);
   base.analysis = [
-    { title: "为什么看它", body: String(profile.why || "公开业绩与持仓可对照学习。").slice(0, 120) },
-    { title: "怎么学", body: String(profile.how || "学框架，不照抄持仓。").slice(0, 120) },
+    {
+      title: "公开事实",
+      body: [
+        `报告期 ${raw.reportDate || profile.report || "待核"}`,
+        filingDate ? `披露日 ${filingDate}` : null,
+        lagDays != null ? `滞后约 ${lagDays} 天` : null,
+        "法定披露通常只含多头、季频更新",
+      ].filter(Boolean).join(" · "),
+    },
+    { title: "为什么看它", body: `【望潮研究归纳】${String(profile.why || "公开业绩与持仓可对照学习。").slice(0, 100)}` },
+    { title: "怎么学", body: `【望潮研究归纳】${String(profile.how || "学框架，不照抄持仓。").slice(0, 100)}` },
+    {
+      title: "跟随边界",
+      body: "公开持仓有滞后且不完整；只能学习框架与风险，不能当实时跟仓或买卖指令。",
+    },
   ];
   base.actions = [];
-  base.risk = "公开持仓有滞后，只能学习对照，不能当跟仓信号。";
+  base.riskItems = [
+    {
+      title: "披露滞后",
+      body: lagDays == null
+        ? "13F / 公开报告存在滞后，报告期仓位不等于当前仓位。"
+        : `距披露约 ${lagDays} 天；期间仓位可能已大幅变化。`,
+    },
+    {
+      title: "只含多头",
+      body: "法定披露通常不包含空头与完整衍生品，不能还原全部策略。",
+    },
+    {
+      title: "不是跟仓信号",
+      body: "WHY/HOW 是望潮基于公开资料的研究归纳，不是投资人本人实时表述，也不构成投资建议。",
+    },
+  ];
+  base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   base.pageHelp = "";
   base.sourceNote = `${raw.source || profile.sourceName || "公开报告"} · ${filingDate || profile.report || "披露待核"}`;
 }
@@ -1066,8 +1108,8 @@ function buildGoldView(base, item) {
     ["美元兑人民币", hasNumber(usdCny.price) ? `${Number(usdCny.price).toFixed(2)}` : "暂缺"],
     ["20日涨跌", formatPercent(returns.day20)],
     ["60日涨跌", formatPercent(returns.day60)],
-    ["买入观察", buyIntl || buyCny || "暂缺"],
-    ["卖出观察", sellIntl || sellCny || "暂缺"],
+    ["观察低位", buyIntl || buyCny || "暂缺"],
+    ["观察上沿", sellIntl || sellCny || "暂缺"],
     ["风险下沿", riskIntl || riskCny || "暂缺"],
   ];
   base.highlights = [
@@ -1111,13 +1153,13 @@ function buildGoldView(base, item) {
         ], "半年高低位置")
       : null,
     metricTilesVisual([
-      ["国际金买入", buyIntl],
-      ["国际金卖出", sellIntl],
-      ["人民币金买入", buyCny],
-      ["人民币金卖出", sellCny],
+      ["国际金观察低位", buyIntl],
+      ["国际金观察上沿", sellIntl],
+      ["人民币金观察低位", buyCny],
+      ["人民币金观察上沿", sellCny],
       ["国际金风险", riskIntl],
       ["人民币金风险", riskCny],
-    ].filter((row) => row[1]), "买卖观察区"),
+    ].filter((row) => row[1]), "价格观察区"),
     indicatorTiles,
   );
 
@@ -1133,11 +1175,11 @@ function buildGoldView(base, item) {
     ["人民币金截至", domestic.asOf],
     ["GLD", hasNumber(etf.price) ? `${Number(etf.price).toFixed(2)}·${formatPercent(etf.changePercent)}` : null],
     ["美元兑人民币", hasNumber(usdCny.price) ? `${Number(usdCny.price).toFixed(4)}` : null],
-    ["国际金买入观察", buyIntl],
-    ["国际金卖出观察", sellIntl],
+    ["国际金观察低位", buyIntl],
+    ["国际金观察上沿", sellIntl],
     ["国际金风险下沿", riskIntl],
-    ["人民币金买入观察", buyCny],
-    ["人民币金卖出观察", sellCny],
+    ["人民币金观察低位", buyCny],
+    ["人民币金观察上沿", sellCny],
     ["人民币金风险下沿", riskCny],
     ["国际金样本", internationalRange ? `${internationalRange.count}个·${rangeText(internationalRange, international.currency || "USD/oz")}` : null],
     ["人民币金样本", domesticRange ? `${domesticRange.count}个·${rangeText(domesticRange, domestic.currency || "CNY/g")}` : null],

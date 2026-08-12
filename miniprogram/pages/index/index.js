@@ -10,6 +10,7 @@ const { listHoldings, upsertHolding, removeHolding } = require("../../utils/loca
 const { viewHoldings, holdingsReminder } = require("../../utils/holding-observe");
 const { buildThesisTicker } = require("../../utils/thesis-ticker");
 const { findPlaybook } = require("../../utils/master-playbooks");
+const { buildDailyCard } = require("../../utils/daily-card");
 
 const CORE_ENTRIES = [
   {
@@ -184,6 +185,7 @@ Page({
     marketOptions: MARKET_OPTIONS,
     marketIndex: 0,
     holdingForm: { ...EMPTY_HOLDING_FORM },
+    dailyCardPreview: "",
   },
   onLoad() {
     trackHomeVisit();
@@ -215,11 +217,18 @@ Page({
       })
       .catch(() => {});
   },
-  refreshHoldings(snapshot = this._snapshot) {
+  refreshHoldings(snapshot = this._snapshot, todayPoints = null) {
     const views = viewHoldings(listHoldings(), snapshot || {});
+    const reminder = holdingsReminder(views);
+    const points = todayPoints || this.data.today?.points || [];
     this.setData({
       holdings: views,
-      holdingsReminder: holdingsReminder(views),
+      holdingsReminder: reminder,
+      dailyCardPreview: buildDailyCard({
+        points,
+        asOf: this.data.dataAsOf,
+        holdingsReminder: reminder,
+      }),
     });
   },
   refreshAnswers(done, force = false) {
@@ -229,15 +238,16 @@ Page({
         const asOf = this.formatAsOf(data.updatedAt, kind);
         this._snapshot = data;
         const thesisLines = buildThesisTicker(data);
+        const today = buildToday(data);
         this.setData({
-          today: buildToday(data),
+          today,
           dataAsOf: asOf,
           freshnessKind: kind,
           todayHelp: TODAY_HELP_FRESH,
           thesisLines,
           thesisIndex: 0,
         });
-        this.refreshHoldings(data);
+        this.refreshHoldings(data, today.points);
         this.startThesisRotate(thesisLines.length);
       },
       done,
@@ -421,6 +431,24 @@ Page({
     track("detail_open", { market: String(row.detailMarket), from: "holding" });
     wx.navigateTo({
       url: `/pages/detail/index?market=${encodeURIComponent(row.detailMarket)}&id=${encodeURIComponent(row.detailId)}`,
+    });
+  },
+  copyDailyCard() {
+    const text = this.data.dailyCardPreview
+      || buildDailyCard({
+        points: this.data.today?.points || [],
+        asOf: this.data.dataAsOf,
+        holdingsReminder: this.data.holdingsReminder,
+      });
+    if (!text) {
+      wx.showToast({ title: "今日文案尚未就绪", icon: "none" });
+      return;
+    }
+    track("daily_card_copy");
+    wx.setClipboardData({
+      data: text,
+      success: () => wx.showToast({ title: "已复制群卡片", icon: "success" }),
+      fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
   },
   onShareAppMessage() {

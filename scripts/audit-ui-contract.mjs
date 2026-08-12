@@ -62,7 +62,8 @@ assert(html.includes("现金流质量"), "A股深度页缺少现金流分析");
 assert(html.includes("function aShareCalcNote"), "A股计算器缺少动态持仓说明");
 assert(html.includes("button.classList.toggle('on'"), "A股计算器年限按钮不会同步选中状态");
 assert(html.includes("动作时间线"), "聪明人深度页缺少动作时间线");
-assert(html.includes("function insightMeters"), "深层答案页缺少直观温度条");
+assert(html.includes("function renderGuruOverlap"), "聪明人持仓缺少交叉重叠研究页");
+assert(html.includes("保荐人历史样本"), "港股历史页缺少保荐人胜率档案");
 assert(html.includes("以上均为已经发生的历史结果，不是预测准确率"), "港股历史页未区分历史结果与预测准确率");
 assert(html.includes("收息与现金流总榜"), "A股深度页缺少收息与现金流横向排名");
 assert(html.includes("itemCashFlow.label"), "A股横向排名缺少自由现金流结论");
@@ -99,6 +100,16 @@ assert(dailyHtml.includes("assets/dashboard.js"), "每日驾驶舱缺少交互�
 
 for (const forbidden of ["策略权重", "模型公式", "评分公式", "保证赚钱", "必然上涨"]) {
   assert(!html.includes(forbidden), `公开页面出现不应展示的内容：${forbidden}`);
+}
+
+for (const forbidden of [
+  "合理买入",
+  "买入参考",
+  "快速看止盈止损",
+  "已形成买入、止盈和止损",
+  "specialDisclaimer('买入和卖出价格",
+]) {
+  assert(!html.includes(forbidden), `index.html 合规文案未通过：${forbidden}`);
 }
 
 console.log("页面层级与多端 UI 合约检查通过");

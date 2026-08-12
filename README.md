@@ -26,6 +26,8 @@
 
 望潮不是普通行情站，而是面向中文用户的「港美股与黄金投资答案工具」。
 
+竞品对标与合规分阶段路线见 [docs/COMPETITOR_BENCHMARK.md](docs/COMPETITOR_BENCHMARK.md)。
+
 核心原则：
 
 1. 先给结论：用户先知道值不值得看。

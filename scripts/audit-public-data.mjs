@@ -44,7 +44,7 @@ assert(
     && Array.isArray(stock.technicalPlan?.tp)
     && stock.technicalPlan.tp.length >= 2,
   ),
-  "每只美股必须具备买入、止盈和止损研究参考",
+  "每只美股必须具备观察低位、观察上沿与风险下沿研究参考",
 );
 assert((snapshot.hk?.history || []).length >= 10, "港股历史样本不足 10 只");
 assert((snapshot.hk?.listings || []).length >= 1, "港股当前项目为空");

@@ -7,6 +7,7 @@ const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
+const { buildHkHistoryStats } = require("../../utils/hk-history-stats");
 
 const MARKET_META = {
   hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -26,8 +27,11 @@ function performanceNumber(value) {
 
 function comparisonMetric(item, market) {
   if (market === "us") {
-    if (item.group === "hot" && hasNumber(item.raw?.heatScore)) {
+    if ((item.group === "hot" || item.group === "hot10") && hasNumber(item.raw?.heatScore)) {
       return { value: Number(item.raw.heatScore), label: `热度 ${Number(item.raw.heatScore)}` };
+    }
+    if (item.group === "value" && hasNumber(item.score)) {
+      return { value: Number(item.score), label: `性价比 ${Number(item.score)}` };
     }
     if (hasNumber(item.raw?.changePercent)) {
       const value = Number(item.raw.changePercent);
@@ -58,8 +62,8 @@ function comparisonMetric(item, market) {
       const plan = answer.pricePlan || {};
       const buy = Number(plan.internationalWatch?.low || plan.internationalWatch?.high || 0);
       const sell = Number(plan.internationalUpper?.low || plan.internationalUpper?.high || 0);
-      if (sell > 0) return { value: sell, label: `卖出观察 ${sell}` };
-      if (buy > 0) return { value: buy, label: `买入观察 ${buy}` };
+      if (sell > 0) return { value: sell, label: `观察上沿 ${sell}` };
+      if (buy > 0) return { value: buy, label: `观察低位 ${buy}` };
       if (hasNumber(international.price)) {
         return { value: Number(international.price), label: `国际金 ${Number(international.price).toFixed(0)}` };
       }
@@ -114,6 +118,7 @@ Page({
     freshness: freshnessBanner("正在读取同步数据", "fresh"),
     disclaimer: RESEARCH_DISCLAIMER,
     groupHelp: "",
+    statsBanner: null,
   },
   onLoad(options) {
     const market = MARKET_META[options.market] ? options.market : "hk";
@@ -149,7 +154,7 @@ Page({
           researchScoreLabel: scored.score != null ? `${scored.label} ${scored.score}` : "",
           rankText: item.rankText || (item.rank ? `第 ${item.rank} 名` : "暂不排名"),
           one: item.one,
-          showOne: this.data.market === "guru" && Boolean(item.one),
+          showOne: (this.data.market === "guru" || this.data.market === "us") && Boolean(item.one),
           showBar: Boolean(visual && maxValue > 0),
           barLabel: visual?.label || "",
           barTone: visual?.tone || "",
@@ -161,11 +166,47 @@ Page({
           strategyLine: strategy.action,
         };
       });
+      let groupHelp = group ? group.one : "";
+      let statsBanner = null;
+      if (this.data.market === "hk" && activeGroup === "ended") {
+        const stats = buildHkHistoryStats(snapshot);
+        const industries = buildHkIndustryStats(snapshot).slice(0, 2);
+        const sponsors = buildHkSponsorStats(snapshot).slice(0, 1);
+        const extra = [
+          industries.length ? `行业样本 ${industries.map((item) => `${item.name} ${item.sampleCount}只`).join(" · ")}` : "",
+          sponsors.length ? `保荐人 ${sponsors[0].name} 样本 ${sponsors[0].sampleCount}只` : "",
+        ].filter(Boolean).join(" · ");
+        groupHelp = extra ? `${stats.summary} · ${extra}` : stats.summary;
+        statsBanner = {
+          title: "历史样本对照",
+          body: `暗盘上涨 ${stats.greyWinRate} · 首日上涨 ${stats.firstDayWinRate} · 暗盘→首日同向 ${stats.greyToFirstDirection}`,
+          note: stats.disclaimer,
+        };
+      } else if (activeGroup === "hot10") {
+        statsBanner = {
+          title: "热度观察榜算法",
+          body: "按公开热度分从高到低排序；热度只反映关注度，不代表未来涨幅。",
+          note: "研究观察，不构成买卖建议。",
+        };
+      } else if (activeGroup === "value") {
+        statsBanner = {
+          title: "性价比观察指数",
+          body: "盈利质量 50% · 估值 30% · 热度 15% · 近周变动 5%；分数用于横向比较。",
+          note: "研究排序，不是收益承诺或买入信号。",
+        };
+      } else if (activeGroup === "overlap") {
+        statsBanner = {
+          title: "交叉重叠研究工具",
+          body: "统计 11 个可核验机构组合中共同出现的标的；重叠只表示公开披露一致，不是买入推荐。",
+          note: "报告期存在滞后，不构成实时交易信号。",
+        };
+      }
       this.setData({
         group: activeGroup,
         groups: definitions,
         title: group ? group.title : "建议明细",
-        groupHelp: group ? group.one : "",
+        groupHelp,
+        statsBanner,
         items,
         source,
         freshness: freshnessBanner(source, meta.kind),
@@ -174,7 +215,21 @@ Page({
     }, done, { force });
   },
   openItem(event) {
-    wx.navigateTo({ url: `/pages/detail/index?market=${this.data.market}&id=${encodeURIComponent(event.currentTarget.dataset.id)}` });
+    const id = event.currentTarget.dataset.id;
+    if (String(id || "").startsWith("overlap-")) {
+      const item = (this.data.items || []).find((row) => row.id === id);
+      const overlap = item?.raw?.overlap;
+      if (overlap) {
+        wx.showModal({
+          title: `${overlap.name} · ${overlap.symbol}`,
+          content: overlap.holders.map((holder) => `${holder.name}（${holder.market}）${holder.weight}`).join("\n"),
+          showCancel: false,
+          confirmText: "知道了",
+        });
+        return;
+      }
+    }
+    wx.navigateTo({ url: `/pages/detail/index?market=${this.data.market}&id=${encodeURIComponent(id)}` });
   },
   goBack() { wx.navigateBack({ fail: () => goHome() }); },
   goHome() { goHome(); },

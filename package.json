@@ -19,7 +19,9 @@
     "check:domain": "node scripts/check-custom-domain.mjs",
     "audit": "npm run check:public && npm run check:pages && npm run check:ui && npm run check:mini && npm run check:payment",
     "audit:release": "npm run audit && npm run check:fresh && npm run check:release",
-    "preupload": "npm run sync:latest && npm run audit:release"
+    "preupload": "npm run sync:latest && npm run audit:release",
+    "upload:mini": "node scripts/upload-miniprogram.mjs",
+    "sync:multi": "node scripts/sync-multi-end.mjs"
   },
   "description": "港股打新、美股投资、A股收息、黄金投资与聪明人持仓工具的公开只读镜像。",
   "main": "sw.js",

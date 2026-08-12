@@ -148,6 +148,44 @@
   font-size: 28rpx;
 }
 
+.daily-card-row {
+  display: flex;
+  margin-top: 12rpx;
+  min-height: 72rpx;
+  padding: 12rpx 16rpx;
+  align-items: center;
+  gap: 12rpx;
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.daily-card-title {
+  flex: none;
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.daily-card-help {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-card-arrow {
+  flex: none;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
 .home-panel {
   position: relative;
   z-index: 1;

@@ -56,6 +56,28 @@
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
+  <view wx:if="{{deepLinks.length}}" class="deep-panel">
+    <view
+      wx:for="{{deepLinks}}"
+      wx:key="id"
+      class="deep-row {{item.enabled ? '' : 'is-empty'}}"
+      data-group="{{item.group}}"
+      data-enabled="{{item.enabled}}"
+      bindtap="openDeepLink"
+      hover-class="{{item.enabled ? 'tap-active' : ''}}"
+      aria-role="button"
+      aria-disabled="{{item.enabled ? 'false' : 'true'}}"
+      aria-label="{{item.title}}，{{item.help}}"
+    >
+      <view class="deep-copy">
+        <text class="deep-title">{{item.title}}</text>
+        <text class="deep-help">{{item.help}}</text>
+      </view>
+      <text wx:if="{{item.enabled}}" class="arrow">›</text>
+      <text wx:else class="group-empty-hint">—</text>
+    </view>
+  </view>
+
   <view class="group-panel">
     <view
       wx:for="{{groups}}"

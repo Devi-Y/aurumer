@@ -6,6 +6,7 @@ const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { MASTER_PLAYBOOKS } = require("../../utils/master-playbooks");
+const { buildHkHistoryStats, buildHkIndustryStats, buildHkSponsorStats } = require("../../utils/hk-history-stats");
 
 const META = {
   hk: {
@@ -260,6 +261,7 @@ Page({
     freshness: freshnessBanner("正在读取同步数据", "fresh"),
     disclaimer: RESEARCH_DISCLAIMER,
     playbooks: [],
+    deepLinks: [],
   },
   onLoad(options) {
     const market = META[options.market] ? options.market : "hk";
@@ -284,6 +286,46 @@ Page({
     this.refresh(() => wx.stopPullDownRefresh(), true);
   },
   retryFreshness() { this.refresh(null, true); },
+  buildDeepLinks(snapshot, market) {
+    if (market === "hk") {
+      const stats = buildHkHistoryStats(snapshot);
+      return [{
+        id: "history",
+        group: "ended",
+        title: "历史样本对照",
+        help: stats.summary,
+        enabled: stats.sampleCount > 0,
+      }];
+    }
+    if (market === "us") {
+      return [
+        {
+          id: "hot10",
+          group: "hot10",
+          title: "热度前十",
+          help: "公开热度横向比较，热度≠买入信号",
+          enabled: true,
+        },
+        {
+          id: "value",
+          group: "value",
+          title: "性价比观察",
+          help: "质量·估值·热度综合排序，非收益承诺",
+          enabled: true,
+        },
+      ];
+    }
+    if (market === "guru") {
+      return [{
+        id: "overlap",
+        group: "overlap",
+        title: "交叉重叠",
+        help: "多机构共同持有，仅供研究对照",
+        enabled: true,
+      }];
+    }
+    return [];
+  },
   refresh(done, force = false) {
     loadSnapshot((snapshot, source, meta = {}) => {
       const groups = groupDefinitions(snapshot, this.data.market)
@@ -295,6 +337,7 @@ Page({
       this.setData({
         groups,
         overview: buildOverview(snapshot, this.data.market),
+        deepLinks: this.buildDeepLinks(snapshot, this.data.market),
         source,
         freshness: freshnessBanner(source, meta.kind),
       });
@@ -370,6 +413,15 @@ Page({
   openGroup(event) {
     const group = event.currentTarget.dataset.group;
     this.openGroupById(group, "section_group");
+  },
+  openDeepLink(event) {
+    const group = event.currentTarget.dataset.group;
+    const enabled = event.currentTarget.dataset.enabled;
+    if (String(enabled) === "false" || enabled === false) {
+      wx.showToast({ title: "暂无历史样本", icon: "none" });
+      return;
+    }
+    this.openGroupById(group, "section_deep");
   },
   goBack() {
     wx.navigateBack({ fail: () => goHome() });

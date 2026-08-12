@@ -8,6 +8,7 @@
 .section-hero,
 .insight-panel,
 .group-panel,
+.deep-panel,
 .playbook-panel,
 .freshness-banner {
   overflow: hidden;
@@ -159,6 +160,49 @@
 .insight-panel {
   margin-top: 14rpx;
   padding: 22rpx 24rpx;
+}
+
+.deep-panel {
+  margin-top: 14rpx;
+}
+
+.deep-row {
+  display: flex;
+  min-height: 108rpx;
+  padding: 22rpx 24rpx;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.deep-row + .deep-row {
+  border-top: 1rpx solid #edf0ee;
+}
+
+.deep-row.is-empty {
+  opacity: 0.55;
+}
+
+.deep-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.deep-title,
+.deep-help {
+  display: block;
+}
+
+.deep-title {
+  color: #1b211d;
+  font-size: 30rpx;
+  font-weight: 720;
+}
+
+.deep-help {
+  margin-top: 6rpx;
+  color: #66706a;
+  font-size: 24rpx;
+  line-height: 1.45;
 }
 
 .insight-line {

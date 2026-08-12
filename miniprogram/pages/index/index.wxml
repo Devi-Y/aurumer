@@ -44,6 +44,17 @@
       </view>
       <text class="thesis-arrow">›</text>
     </view>
+    <view
+      class="daily-card-row"
+      bindtap="copyDailyCard"
+      hover-class="hero-tap"
+      aria-role="button"
+      aria-label="复制今日微信群卡片文案"
+    >
+      <text class="daily-card-title">复制群卡片</text>
+      <text class="daily-card-help">今日结论 · 不含买卖建议</text>
+      <text class="daily-card-arrow">复制</text>
+    </view>
   </view>
 
   <view class="home-panel holdings-panel">

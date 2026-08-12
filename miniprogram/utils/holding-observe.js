@@ -68,7 +68,7 @@ function deriveGoldAction(holding, snapshot) {
     return { text: "进入分批观察区间", tone: "good", triggered: true, current: intl };
   }
   if (rangeHit(intl, plan.internationalUpper) || rangeHit(dom, plan.domesticUpper)) {
-    return { text: "进入止盈观察区间", tone: "risk", triggered: true, current: intl };
+    return { text: "进入上沿观察区间", tone: "risk", triggered: true, current: intl };
   }
   const fromCost = costHint(cost, Number.isFinite(dom) ? dom : intl);
   if (fromCost) return { ...fromCost, current: Number.isFinite(dom) ? dom : intl };

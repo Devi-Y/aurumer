@@ -13,6 +13,7 @@
 - [x] 购买须知写明人工退款三步
 - [x] 提审复制稿见 `MINIPROGRAM_REVIEW_COPY.txt`
 - [x] 隐私补充说明见 `MINIPROGRAM_PRIVACY_SUPPLEMENT.txt`
+- [x] 开发版 **0.2.46** 已 CLI 上传（440.7 KB；说明见 `MINIPROGRAM_LAUNCH_GUIDE.md`）
 
 ## B. 公众平台与合规（必须人工）
 
@@ -20,6 +21,7 @@
 - [ ] 公众平台《用户隐私保护指引》已填写并与小程序内文案一致
 - [ ] 具备证券业务经验的专业意见已归档（通过 / 需改范围 / 需持牌）
 - [ ] 营业执照主体「深圳岳大科技有限公司」与商户号主体一致
+- [x] 全站文案已按 [docs/COMPETITOR_BENCHMARK.md](docs/COMPETITOR_BENCHMARK.md) 第五节完成「买入/止盈/止损/建议」→ 研究观察口径审计（含 `index.html`、`legacy.html`、`stocks/*/index.html` meta 与 OG 描述；`npm run check:ui` 合规断言已通过）
 
 > 代码侧：支付环境变量已开启 `COMPLIANCE/RELEASE=true`；会员页会显示「收费通道状态」与待人工项。未勾选本表人工项前，不要对外宣称「已完成类目/隐私/真机验收」。
 

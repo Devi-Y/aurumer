@@ -82,6 +82,40 @@
   white-space: nowrap;
 }
 
+.stats-banner {
+  margin-top: 14rpx;
+  padding: 18rpx 20rpx;
+  border: 1rpx solid #e7ece9;
+  border-radius: 24rpx;
+  background: #ffffff;
+}
+
+.stats-title,
+.stats-body,
+.stats-note {
+  display: block;
+}
+
+.stats-title {
+  color: #1b211d;
+  font-size: 26rpx;
+  font-weight: 720;
+}
+
+.stats-body {
+  margin-top: 8rpx;
+  color: #3f4742;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.stats-note {
+  margin-top: 8rpx;
+  color: #7a847e;
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
 .summary-copy { min-width: 0; flex: 1; }
 
 .title,

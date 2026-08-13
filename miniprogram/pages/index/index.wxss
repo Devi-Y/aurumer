@@ -346,6 +346,17 @@
 .holding-action.risk { color: #b45309; }
 .holding-action.wait { color: #5a6d62; }
 
+.holding-performance {
+  display: block;
+  margin-top: 6rpx;
+  color: #858c87;
+  font-size: 21rpx;
+  line-height: 1.4;
+}
+
+.holding-performance.up { color: #0b7a53; }
+.holding-performance.down { color: #b45309; }
+
 .holding-delete {
   flex: none;
   align-self: center;

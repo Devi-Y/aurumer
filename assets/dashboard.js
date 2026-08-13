@@ -1,7 +1,7 @@
 'use strict';
 
 const STORAGE_KEY = 'aurumHoldingsV1';
-const state = { data: null, digest: null, holdings: loadHoldings() };
+const state = { data: null, digest: null, digestSyncing: false, holdings: loadHoldings() };
 const $ = (selector) => document.querySelector(selector);
 
 function escapeHTML(value='') {
@@ -30,7 +30,9 @@ function formatNumber(value, digits = 2) {
 function loadHoldings() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed.filter(item => item && item.market && item.code && Number(item.cost) >= 0) : [];
+    return Array.isArray(parsed)
+      ? parsed.filter(item => item && item.market && item.code && (item.cost == null || Number(item.cost) >= 0))
+      : [];
   } catch {
     return [];
   }
@@ -70,27 +72,73 @@ function deriveUSAction(item) {
   return { text:'继续持有或等待更好价格', tone:'wait' };
 }
 
+function impliedDividendPlan(item) {
+  const price = Number(item?.currentPrice);
+  const currentYield = Number(item?.currentDividendYield);
+  const sustainableYield = Number(item?.sustainableDividendYield);
+  if (![price, currentYield, sustainableYield].every(Number.isFinite) || price <= 0 || currentYield <= 0 || sustainableYield <= 0) return null;
+  const dividendPerShare = price * currentYield / 100;
+  const addYield = Math.max(sustainableYield * 1.12, sustainableYield + 0.4);
+  const trimYield = Math.max(0.2, Math.min(sustainableYield * 0.88, sustainableYield - 0.3));
+  if (trimYield <= 0 || addYield <= trimYield) return null;
+  return {
+    price,
+    addPrice: dividendPerShare / addYield * 100,
+    trimPrice: dividendPerShare / trimYield * 100,
+    zone: currentYield >= addYield ? 'add' : currentYield <= trimYield ? 'trim' : 'hold',
+  };
+}
+
 function deriveHoldingView(holding, maps) {
   const market = holding.market;
   const code = normalizeCode(market, holding.code);
-  const cost = Number(holding.cost);
+  const costValue = Number(holding.cost);
+  const cost = Number.isFinite(costValue) && costValue > 0 ? costValue : null;
   const shares = Number(holding.shares) || 0;
   if (market === 'US') {
     const item = maps.us.get(code);
     const current = Number(item?.price);
     const action = item ? deriveUSAction(item) : {text:'未匹配到当前数据，请核对代码',tone:'wait'};
-    return { name:item?.name || code, current, change:Number(item?.changePercent), action, detail:'legacy.html#/us', shares, cost, source:item?.asOf ? `Yahoo Finance · ${formatDateTime(item.asOf)}` : '数据待核验' };
+    return { name:item?.name || code, current, change:Number(item?.changePercent), action, detail:'index.html#/us', shares, cost, source:item?.asOf ? `Yahoo Finance · ${formatDateTime(item.asOf)}` : '数据待核验' };
   }
   if (market === 'A') {
     const item = maps.a.get(code);
     const current = Number(item?.currentPrice);
-    const text = item?.currentAdvice ? `${item.currentAdvice}：${item.summary || '查看完整收息判断'}` : '未匹配到当前数据，请核对代码';
-    const tone = item?.currentAdvice === '买入' ? 'good' : item?.currentAdvice === '回避' ? 'risk' : 'wait';
-    return { name:item?.name || code, current, change:Number(item?.changePercent), action:{text,tone}, detail:'legacy.html#/a-shares', shares, cost, source:item?.priceAsOf ? `${item.priceSource || '公开行情'} · ${formatDateTime(item.priceAsOf)}` : '数据待核验' };
+    const plan = impliedDividendPlan(item);
+    const text = !item
+      ? '未匹配到当前数据，请核对代码'
+      : plan?.zone === 'add'
+        ? `进入加大观察区：现价 ${formatNumber(current)}，加大观察 ${formatNumber(plan.addPrice)}`
+        : plan?.zone === 'trim'
+          ? `进入兑现观察区：现价 ${formatNumber(current)}，兑现观察 ${formatNumber(plan.trimPrice)}`
+          : plan
+            ? `继续观察：现价 ${formatNumber(current)}，加大观察 ${formatNumber(plan.addPrice)}`
+            : (item.summary || item.actionPriceNote || '收息观察价待公告核验');
+    const tone = !item ? 'wait' : plan?.zone === 'add' ? 'good' : plan?.zone === 'trim' ? 'risk' : 'wait';
+    return { name:item?.name || code, current, change:Number(item?.changePercent), action:{text,tone}, detail:'index.html#/a-shares', shares, cost, source:item?.priceAsOf ? `${item.priceSource || '公开行情'} · ${formatDateTime(item.priceAsOf)}` : '数据待核验' };
+  }
+  if (market === 'GOLD') {
+    const gold = state.data?.gold || {};
+    const useUSD = String(code).toUpperCase() === 'USD';
+    const quote = useUSD ? gold.quotes?.international : gold.quotes?.domestic;
+    const plan = useUSD ? gold.answer?.pricePlan?.internationalWatch : gold.answer?.pricePlan?.domesticWatch;
+    const upper = useUSD ? gold.answer?.pricePlan?.internationalUpper : gold.answer?.pricePlan?.domesticUpper;
+    const current = Number(quote?.price);
+    const low = Number(plan?.high ?? plan?.low);
+    const high = Number(upper?.low ?? upper?.high);
+    const text = !Number.isFinite(current)
+      ? '黄金价格待核验'
+      : Number.isFinite(low) && current <= low
+        ? `进入持有观察区：现价 ${formatNumber(current, 1)}`
+        : Number.isFinite(high) && current >= high
+          ? `进入卖出观察区：现价 ${formatNumber(current, 1)}`
+          : `继续观察：现价 ${formatNumber(current, 1)}`;
+    const tone = Number.isFinite(high) && current >= high ? 'risk' : Number.isFinite(low) && current <= low ? 'good' : 'wait';
+    return { name:useUSD ? '美元金' : '人民币金', current, change:Number(quote?.changePercent), action:{text,tone}, detail:'index.html#/gold/answer', shares, cost, source:quote?.asOf ? `${quote.currency || '公开行情'} · ${formatDateTime(quote.asOf)}` : '数据待核验' };
   }
   const item = maps.hk.get(code);
   const assessment = item?.publicAnswer || {};
-  return { name:item?.name || code, current:null, change:null, action:{text:assessment.action || assessment.verdict || '港股持仓行情暂未接入',tone:'wait'}, detail:'legacy.html#/hk', shares, cost, source:item?.source || '港交所公开资料' };
+  return { name:item?.name || code, current:null, change:null, action:{text:assessment.action || assessment.verdict || '港股持仓行情暂未接入',tone:'wait'}, detail:'index.html#/hk', shares, cost, source:item?.source || '港交所公开资料' };
 }
 
 function getUSFocus(data) {
@@ -136,9 +184,22 @@ function digestTone(tone) {
 
 function digestMarketCard(market, type, href, source) {
   const cards = state.digest?.markets?.[market] || [];
-  const lead = cards.find((item) => item.enabled) || cards[0];
+  const leadId = {
+    hk: 'hk-worth',
+    us: 'us-cheap',
+    a: 'a-core',
+    gold: 'gold-usd-hold',
+    guru: 'guru-holdings',
+  }[market];
+  const lead = cards.find((item) => item.id === leadId) || cards.find((item) => item.enabled) || cards[0];
   if (!lead) return '';
-  const facts = cards.slice(0, 3).map((item) => [item.question, item.names || item.answer || '—']);
+  const facts = cards.filter((item) => item !== lead).map((item) => {
+    const answer = item.answer || '—';
+    const names = item.names || '';
+    const nameParts = names.split(/[·、]/u).map((value) => value.trim()).filter(Boolean);
+    const value = names && !nameParts.every((name) => answer.includes(name)) ? `${answer} · ${names}` : answer;
+    return [item.question, value];
+  });
   return conclusionCard({
     type,
     title: lead.question || type,
@@ -155,11 +216,15 @@ function renderConclusions() {
   const box = $('#daily-conclusions');
   const data = state.data;
   if (!data) return;
+  if (state.digestSyncing) {
+    box.innerHTML = `<div class="digest-sync-state"><b>今日答案正在同步</b><span>公开行情已更新，但摘要版本还未对齐；暂不把旧答案和新价格混在一起。稍后刷新即可。</span></div>`;
+    return;
+  }
   const digestCards = ['hk','us','a','gold','guru']
     .map((market, index) => digestMarketCard(
       market,
       ['港股打新','美股投资','A股收息','黄金追踪','聪明人持仓'][index],
-      ['legacy.html#/hk','legacy.html#/us','legacy.html#/a-shares','legacy.html#/gold','legacy.html#/gurus'][index],
+      ['index.html#/hk','index.html#/us','index.html#/a-shares','index.html#/gold','index.html#/gurus'][index],
       sourceText(data, ['港交所公开资料','公开行情','A股公开行情','黄金公开行情','SEC 13F / 基金季报'][index]),
     ))
     .filter(Boolean);
@@ -175,7 +240,7 @@ function renderConclusions() {
       type:'美股投资', title:`${us.symbol} · 今日美股焦点`, status:action.text, tone:action.tone,
       answer:`当前价 ${formatNumber(us.price)} 美元，先按价格纪律判断，不因热度追高。`,
       facts:[['综合评分',formatNumber(us.fundamental.finalScore,0)],['热度分',formatNumber(us.heatScore,0)],['日涨跌',`${Number(us.changePercent)>=0?'+':''}${formatNumber(us.changePercent)}%`]],
-      href:'legacy.html#/us', source:us.asOf ? `Yahoo Finance · ${formatDateTime(us.asOf)}` : sourceText(data,'公开行情')
+      href:'index.html#/us', source:us.asOf ? `Yahoo Finance · ${formatDateTime(us.asOf)}` : sourceText(data,'公开行情')
     }));
   }
   const hk = getHKFocus(data);
@@ -185,10 +250,10 @@ function renderConclusions() {
       type:'港股打新', title:`${hk.name || hk.code || hk.stockCode || '新股'} · 申购判断`, status:assessment.verdict || '待核验', tone:assessment.verdict?.includes('不') ? 'risk' : assessment.verdict?.includes('值得') ? 'good' : 'wait',
       answer:assessment.action || '核心招股资料已进入核验，未完成前不输出确定答案。',
       facts:[['股票代码',String(hk.code || hk.stockCode || '—')],['上市日期',String(hk.listingDate || '待公布')],['招股价',String(hk.offerPrice || hk.priceRange || '以招股章程为准')]],
-      href:'legacy.html#/hk', source:sourceText(data,'港交所公开资料')
+      href:'index.html#/hk', source:sourceText(data,'港交所公开资料')
     }));
   } else {
-    cards.push(conclusionCard({type:'港股打新',title:'当前无可验证的新股结论',status:'保持空白',tone:'wait',answer:'没有满足资料完整性要求的新股时，望潮不使用虚拟样本或静态答案补位。',facts:[['原则','只展示真实新股'],['预测','必须标注验证状态'],['结果','支持历史回溯']],href:'legacy.html#/hk',source:sourceText(data,'港交所公开资料')}));
+    cards.push(conclusionCard({type:'港股打新',title:'当前无可验证的新股结论',status:'保持空白',tone:'wait',answer:'没有满足资料完整性要求的新股时，望潮不使用虚拟样本或静态答案补位。',facts:[['原则','只展示真实新股'],['预测','必须标注验证状态'],['结果','支持历史回溯']],href:'index.html#/hk',source:sourceText(data,'港交所公开资料')}));
   }
   const guru = getGuruFocus(data);
   if (guru) {
@@ -197,11 +262,11 @@ function renderConclusions() {
       type:'聪明人持仓', title:`${guru.name || guru.id || '最新机构'} · 最新披露`, status:'披露事实', tone:'wait',
       answer:'只参考资金方向，不照抄买入时点；13F 存在天然滞后。',
       facts:[['报告期',String(guru.reportDate || '待确认')],['披露日',String(guru.filingDate || '待确认')],['主要敞口',top]],
-      href:'legacy.html#/gurus', source:'SEC EDGAR 13F'
+      href:'index.html#/gurus', source:'SEC EDGAR 13F'
     }));
   } else {
     const a = [...(data.aShare?.quotes || [])].sort((x,y) => Number(y.score||0)-Number(x.score||0))[0];
-    cards.push(conclusionCard({type:'A股收息',title:a ? `${a.name} · 收息观察` : 'A股收息数据待核验',status:a?.currentAdvice || '待核验',tone:a?.currentAdvice==='买入'?'good':'wait',answer:a?.summary || '没有完成核验的数据，不输出静态替代结论。',facts:[['当前价格',a?formatNumber(a.currentPrice):'—'],['股息率',a&&Number.isFinite(Number(a.currentDividendYield))?`${formatNumber(a.currentDividendYield)}%`:'—'],['数据来源',a?.priceSource || '公开行情']],href:'legacy.html#/a-shares',source:sourceText(data,'A股公开行情')}));
+    cards.push(conclusionCard({type:'A股收息',title:a ? `${a.name} · 收息观察` : 'A股收息数据待核验',status:a?.currentAdvice || '待核验',tone:a?.currentAdvice==='买入'?'good':'wait',answer:a?.summary || '没有完成核验的数据，不输出静态替代结论。',facts:[['当前价格',a?formatNumber(a.currentPrice):'—'],['股息率',a&&Number.isFinite(Number(a.currentDividendYield))?`${formatNumber(a.currentDividendYield)}%`:'—'],['数据来源',a?.priceSource || '公开行情']],href:'index.html#/a-shares',source:sourceText(data,'A股公开行情')}));
   }
   box.innerHTML = cards.join('');
 }
@@ -218,18 +283,21 @@ function renderHoldings() {
   box.innerHTML = state.holdings.map((holding, index) => {
     const view = deriveHoldingView(holding, maps);
     const hasCurrent = Number.isFinite(view.current);
-    const returnPct = hasCurrent && view.cost > 0 ? (view.current / view.cost - 1) * 100 : null;
+    const hasCost = Number.isFinite(view.cost) && view.cost > 0;
+    const returnPct = hasCurrent && hasCost ? (view.current / view.cost - 1) * 100 : null;
     const pnl = returnPct !== null && view.shares > 0 ? (view.current - view.cost) * view.shares : null;
+    const performanceNote = !hasCost ? '未填成本，不计算浮盈' : pnl === null ? '已算比例；填数量后再算金额' : '按本地成本与数量计算，未计费用税费';
     return `<article class="holding-card">
       <div class="holding-main">
         <div class="holding-title"><b>${escapeHTML(view.name)}</b><span>${escapeHTML(normalizeCode(holding.market,holding.code))}</span><span class="market-tag">${escapeHTML(holding.market)}</span></div>
-        <div class="holding-meta"><span>成本 ${formatNumber(view.cost)}</span><span>现价 ${hasCurrent?formatNumber(view.current):'待接入'}</span>${view.shares?`<span>数量 ${formatNumber(view.shares)}</span>`:''}</div>
+        <div class="holding-meta"><span>成本 ${hasCost?formatNumber(view.cost):'未填写'}</span><span>现价 ${hasCurrent?formatNumber(view.current):'待接入'}</span>${view.shares?`<span>数量 ${formatNumber(view.shares)}</span>`:''}</div>
         <div class="holding-action ${view.action.tone}">${escapeHTML(view.action.text)}</div>
         <div class="holding-meta"><span>${escapeHTML(view.source)}</span></div>
       </div>
       <div class="holding-side">
         <strong>${returnPct===null?'—':`${returnPct>=0?'+':''}${formatNumber(returnPct)}%`}</strong>
-        <span class="${returnPct===null?'':returnPct>=0?'up':'down'}">${pnl===null?'未计算金额盈亏':`${pnl>=0?'+':''}${formatNumber(pnl)} `}</span>
+        <span class="${returnPct===null?'':returnPct>=0?'up':'down'}">${pnl===null?(returnPct===null?'未计算': '比例已算，金额待数量'):`${pnl>=0?'+':''}${formatNumber(pnl)} `}</span>
+        <div class="holding-performance">${performanceNote}</div>
         <div class="holding-tools"><a href="${view.detail}">完整判断</a><button type="button" data-delete-holding="${index}">删除</button></div>
       </div>
     </article>`;
@@ -293,9 +361,10 @@ function bindEvents() {
     event.preventDefault();
     const market = $('#holding-market').value;
     const code = normalizeCode(market, $('#holding-code').value);
-    const cost = Number($('#holding-cost').value);
+    const costRaw = $('#holding-cost').value.trim();
+    const cost = costRaw ? Number(costRaw) : null;
     const shares = Number($('#holding-shares').value) || 0;
-    if (!code || !Number.isFinite(cost) || cost < 0) return;
+    if (!code || (costRaw && (!Number.isFinite(cost) || cost <= 0))) return;
     const existing = state.holdings.findIndex(item => item.market === market && normalizeCode(market,item.code) === code);
     const payload = {market, code, cost, shares, createdAt:new Date().toISOString()};
     if (existing >= 0) state.holdings[existing] = payload; else state.holdings.unshift(payload);
@@ -309,7 +378,11 @@ async function loadDailyDigest(updatedAt) {
     if (!response.ok) return null;
     const digest = await response.json();
     if (!digest?.markets?.hk) return null;
-    if (updatedAt && digest.updatedAt && digest.updatedAt !== updatedAt) return digest;
+    if (updatedAt && digest.updatedAt && digest.updatedAt !== updatedAt) {
+      state.digestSyncing = true;
+      return null;
+    }
+    state.digestSyncing = false;
     return digest;
   } catch {
     return null;
@@ -338,7 +411,7 @@ async function init() {
   try { await loadData(); }
   catch (error) {
     $('#updated-at').textContent = '数据暂不可用';
-    $('#daily-conclusions').innerHTML = conclusionCard({type:'数据状态',title:'当前无法读取最新数据',status:'不输出替代答案',tone:'risk',answer:'望潮不会用静态价格或虚拟样本补位，请稍后刷新。',facts:[['错误',error.message],['原则','数据必须有日期和来源'],['持仓','本地记录仍可查看']],href:'legacy.html',source:'数据服务'});
+    $('#daily-conclusions').innerHTML = conclusionCard({type:'数据状态',title:'当前无法读取最新数据',status:'不输出替代答案',tone:'risk',answer:'望潮不会用静态价格或虚拟样本补位，请稍后刷新。',facts:[['错误',error.message],['原则','数据必须有日期和来源'],['持仓','本地记录仍可查看']],href:'index.html',source:'数据服务'});
     renderChannels(); renderReminder();
   }
 }

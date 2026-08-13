@@ -35,7 +35,7 @@
     <header class="topbar">
       <a class="brand" href="./" aria-label="望潮首页">望潮 <small>Aurum</small></a>
       <nav class="top-actions" aria-label="主导航">
-        <a href="legacy.html#/us">完整工具</a>
+        <a href="index.html#/us">完整工具</a>
         <a class="primary-link" href="growth.html">加入内测</a>
       </nav>
     </header>
@@ -54,10 +54,10 @@
       <section class="section" aria-labelledby="today-title">
         <div class="section-head">
           <div>
-            <span class="eyebrow">TODAY</span>
-            <h2 id="today-title">今日结论</h2>
+            <span class="eyebrow">FIVE ANSWERS</span>
+            <h2 id="today-title">五个栏目今天直接看见的答案</h2>
           </div>
-          <a href="legacy.html#/us">查看全部答案 →</a>
+          <a href="index.html#/us">打开完整研究 →</a>
         </div>
         <div id="daily-conclusions" class="conclusion-grid" aria-live="polite">
           <div class="skeleton-card"></div>
@@ -89,23 +89,23 @@
           <span class="section-note">按当前优先级排列</span>
         </div>
         <div id="channel-grid" class="channel-grid">
-          <a class="channel-card hk" href="legacy.html#/hk">
+          <a class="channel-card hk" href="index.html#/hk">
             <span class="channel-order">01</span>
             <div><b>港股打新</b><p id="hk-channel-copy">申购、暗盘、首日与回溯</p></div><i>→</i>
           </a>
-          <a class="channel-card us" href="legacy.html#/us">
+          <a class="channel-card us" href="index.html#/us">
             <span class="channel-order">02</span>
             <div><b>美股投资</b><p id="us-channel-copy">机会、估值与价格纪律</p></div><i>→</i>
           </a>
-          <a class="channel-card a" href="legacy.html#/a-shares">
+          <a class="channel-card a" href="index.html#/a-shares">
             <span class="channel-order">03</span>
             <div><b>A股收息</b><p id="a-channel-copy">股息、现金流与资金成本</p></div><i>→</i>
           </a>
-          <a class="channel-card gold" href="legacy.html#/gold">
+          <a class="channel-card gold" href="index.html#/gold">
             <span class="channel-order">04</span>
             <div><b>黄金追踪</b><p id="gold-channel-copy">人民币金与美元金观察区</p></div><i>→</i>
           </a>
-          <a class="channel-card guru" href="legacy.html#/gurus">
+          <a class="channel-card guru" href="index.html#/gurus">
             <span class="channel-order">05</span>
             <div><b>聪明人持仓</b><p id="guru-channel-copy">只看公开披露的资金方向</p></div><i>→</i>
           </a>
@@ -125,7 +125,7 @@
     <footer>
       <p>数据来自公开行情、公司财务资料、港交所与 SEC 披露；每条结论以页面标注的时间和来源为准。</p>
       <p>本工具仅用于信息整理、数据分析和投资研究辅助，不构成投资建议、收益承诺或买卖指令。</p>
-      <div class="footer-links"><a href="cockpit.html">方法说明</a><a href="legacy.html">完整工具</a><a href="PRODUCT_PLAN.md">产品规划</a></div>
+      <div class="footer-links"><a href="cockpit.html">方法说明</a><a href="index.html">完整工具</a><a href="PRODUCT_PLAN.md">产品规划</a></div>
     </footer>
   </div>
 
@@ -140,20 +140,21 @@
           <option value="US">美股</option>
           <option value="HK">港股</option>
           <option value="A">A股</option>
+          <option value="GOLD">黄金</option>
         </select>
       </label>
-      <label>股票代码
-        <input id="holding-code" name="code" placeholder="例如 NVDA / 00700 / 600036" autocomplete="off" required>
+      <label>标的代码
+        <input id="holding-code" name="code" placeholder="例如 NVDA / 00700 / 600036；黄金可填 CNY 或 USD" autocomplete="off" required>
       </label>
       <div class="form-grid">
         <label>持仓成本
-          <input id="holding-cost" name="cost" type="number" min="0" step="0.001" placeholder="每股成本" required>
+          <input id="holding-cost" name="cost" type="number" min="0" step="0.001" placeholder="有成本再填写（不填不算盈亏）">
         </label>
         <label>持仓数量（选填）
           <input id="holding-shares" name="shares" type="number" min="0" step="0.001" placeholder="用于计算盈亏">
         </label>
       </div>
-      <p class="form-hint">第一阶段仅支持手动录入；后续再增加持仓截图识别。</p>
+      <p class="form-hint">成本可留空；未填写成本时只记录持仓，不计算浮盈或金额盈亏。数据只保存在当前浏览器。</p>
       <button class="submit-button" type="submit">保存持仓</button>
     </form>
   </dialog>

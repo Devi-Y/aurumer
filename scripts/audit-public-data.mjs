@@ -130,6 +130,22 @@ assert(digest.markets.us.some((card) => card.question === "低估的七姐妹"),
 assert(digest.markets.a.some((card) => card.question === "什么价可加大"), "今日答案摘要缺少A股加大观察价");
 assert(digest.markets.gold.some((card) => card.question === "人民币金卖出观察"), "今日答案摘要缺少人民币金卖出观察");
 assert(digest.markets.guru.some((card) => card.question === "应该避免什么"), "今日答案摘要缺少机构边界");
+const requiredQuestions = {
+  hk: ["哪些值得打", "哪些要避雷", "打中后暗盘", "打中后首日", "打中后首周"],
+  us: ["低估的七姐妹", "风险升高要减", "行业公司观察", "底仓如何配置"],
+  a: ["底仓长期持有", "周期短持", "什么价可加大", "什么价可兑现"],
+  gold: ["美元金可持有", "美元金卖出观察", "人民币金可持有", "人民币金卖出观察"],
+  guru: ["业绩靠前持仓", "他们怎么想", "我们如何借鉴", "应该避免什么"],
+};
+for (const [market, questions] of Object.entries(requiredQuestions)) {
+  const actual = new Set((digest.markets[market] || []).map((card) => card.question));
+  for (const question of questions) assert(actual.has(question), `今日答案摘要 ${market} 缺少：${question}`);
+}
+const answerText = JSON.stringify(digest.markets);
+assert(answerText.includes("谷歌-A") && answerText.includes("Meta"), "美股每日答案必须回答谷歌-A与Meta低估观察");
+assert(answerText.includes("特斯拉"), "美股每日答案必须回答特斯拉风险观察");
+assert(answerText.includes("万事达") && answerText.includes("优步"), "美股每日答案必须保留万事达与优步行业对照");
+assert(answerText.includes("不照抄仓位") && answerText.includes("滞后披露"), "机构每日答案必须保留跟随边界");
 assert(!/strategyAssessment|modelEstimate|breakProbability/.test(JSON.stringify(digest)), "今日答案摘要泄露内部字段");
 
 try {

@@ -7,6 +7,7 @@ const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrg
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const { buildHkExitPlan } = require("../../utils/hk-exit-plan");
+const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lenses, MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
 const {
@@ -589,6 +590,12 @@ function buildHKView(base, item) {
       ]
     : [
         { title: item.badge || "结论", body: "先核一手金额与截止日；建议≠保证赚钱。" },
+        {
+          title: "高杠杆观察",
+          body: hkLeverageEligible(item)
+            ? "达到十倍融资观察门槛，仍须能承受一手亏损；默认一手，融资会放大破发。"
+            : "未达十倍融资观察门槛；结论不是建议申购、拥挤度高或资料不全时不加杠杆。",
+        },
         { title: "风险", body: "可能破发或中签极低，盈亏自负。" },
       ];
   base.actions = [];
@@ -666,6 +673,16 @@ function buildUSView(base, item, snapshot) {
     : null;
 
   const scoredUS = scoreForItem(item);
+  const sevenItems = MAGNIFICENT_SEVEN
+    .map((symbol) => findItem(snapshot, "us", symbol))
+    .filter(Boolean);
+  const mag7tags = mag7Lenses(item, mag7Context(sevenItems));
+  const mag7Label = mag7tags.includes("risk7")
+    ? "风险升高"
+    : [
+        mag7tags.includes("cheap7") ? "相对低估" : null,
+        mag7tags.includes("hold7") ? "长期观察" : null,
+      ].filter(Boolean).join(" · ") || (item.group === "industry" ? "行业观察" : (item.group === "seven" ? "七姐妹跟踪" : ""));
   setCharts(
     base,
     scoreMeter(scoredUS.score, "研究观察分", item.badge),
@@ -705,13 +722,16 @@ function buildUSView(base, item, snapshot) {
   base.holdings = holders;
   base.analysis = [
     { title: "位置", body: stockRange(raw.history, raw.price) },
+    mag7Label ? { title: "七姐妹/行业分档", body: mag7Label } : null,
     {
       title: "怎么用",
-      body: item.group === "seven"
-        ? "七家长期跟踪样本，不急着追涨。"
+      body: item.group === "seven" || mag7tags.length
+        ? "分档来自质量、估值和近60日位置，不是买卖指令。"
         : item.group === "value"
           ? "性价比观察分用于横向比较，不是买入信号或收益承诺。"
-          : "热度高只说明关注多，不等于马上买。",
+          : item.group === "industry"
+            ? "非七姐妹里质量与分数同时过关，只作行业对照。"
+            : "热度高只说明关注多，不等于马上买。",
     },
     {
       title: "研究观察分",
@@ -719,7 +739,7 @@ function buildUSView(base, item, snapshot) {
         ? `${scoredUS.score} 分 · ${scoredUS.basis}`
         : "公开行情/财务不足，暂不排序。",
     },
-  ];
+  ].filter(Boolean);
   base.actions = [];
   base.risk = "历史价格不预测未来；财报与事件可能造成跳空。";
   base.sourceNote = `公开行情与财务资料 · ${raw.asOf || fund.period || "日期待核验"}`;
@@ -853,14 +873,20 @@ function buildAShareView(base, item) {
   const annualDividend = hasNumber(raw.annualDividendPer100k) ? Number(raw.annualDividendPer100k) : null;
   const advice = raw.researchView?.label || item.scoreText || "先看分红";
   const scoredPreview = scoreForItem(item).score;
+  const role = aShareRole(item);
+  const implied = yieldImpliedPlan(raw);
+  const roleLabel = role === "core" ? "底仓长期" : (role === "cycle" ? "周期短持" : "角色待定");
 
   base.badge = item.badge || (hasNumber(raw.currentDividendYield) ? `股息 ${Number(raw.currentDividendYield).toFixed(1)}%` : base.badge);
   base.answer = item.one;
   base.metrics = [
     ["收息分级", item.badge || "—"],
+    ["持仓角色", roleLabel],
     ["收息观察分", scoredPreview != null ? `${scoredPreview}` : "暂缺"],
     ["当前股息", hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺"],
     ["可持续股息", hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺"],
+    ["加大观察价", implied ? money(implied.addPrice, "¥") : null],
+    ["兑现观察价", implied ? money(implied.trimPrice, "¥") : null],
     ["自由现金流", formatLarge(financials.freeCashFlow)],
     ["现金利润比", hasNumber(financials.cashConversion) ? `${Number(financials.cashConversion).toFixed(2)}` : "暂缺"],
     ["股东回报", formatPercent(financials.roe)],
@@ -939,8 +965,12 @@ function buildAShareView(base, item) {
   ]);
   base.analysis = [
     { title: "资料", body: advice },
+    { title: "持仓角色", body: role === "core" ? "现金流较稳，可作为底仓长期收息样本。" : (role === "cycle" ? "景气敏感，只作周期短持观察，不把高息当永续。" : "行业角色不够清晰，先看现金流再决定仓位角色。") },
+    implied
+      ? { title: "观察价", body: `加大 ${money(implied.addPrice, "¥")} · 兑现 ${money(implied.trimPrice, "¥")} · 现价 ${money(implied.price, "¥")}（按当前每股分红回推）` }
+      : null,
     { title: "现金流", body: `经营 ${formatLarge(financials.operatingCashFlow)} · 自由 ${formatLarge(financials.freeCashFlow)}` },
-  ];
+  ].filter(Boolean);
   base.actions = [];
   base.riskItems = buildAShareRiskItems(raw, financials);
   base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
@@ -1044,6 +1074,10 @@ function buildGuruView(base, item) {
     },
     { title: "为什么看它", body: `【望潮研究归纳】${String(profile.why || "公开业绩与持仓可对照学习。").slice(0, 100)}` },
     { title: "怎么学", body: `【望潮研究归纳】${String(profile.how || "学框架，不照抄持仓。").slice(0, 100)}` },
+    {
+      title: "应该避免",
+      body: "不照抄报告期仓位、不把滞后披露当实时单、不复制机构杠杆与集中度；WHY/HOW 不是投资人本人实时表述。",
+    },
     {
       title: "跟随边界",
       body: "公开持仓有滞后且不完整；只能学习框架与风险，不能当实时跟仓或买卖指令。",
@@ -1188,7 +1222,8 @@ function buildGoldView(base, item) {
   ]);
   base.analysis = [
     { title: "双分怎么看", body: `国际金 ${Number.isFinite(internationalScore) ? internationalScore : "待核"} 分 · 人民币金 ${Number.isFinite(domesticScore) ? domesticScore : "待核"} 分；前者看国际宏观与美元，后者看上海金、汇率和国内折溢价。` },
-    { title: "买卖区", body: `买 ${buyIntl || buyCny || "暂缺"} · 卖 ${sellIntl || sellCny || "暂缺"}` },
+    { title: "美元金", body: `持有观察 ${buyIntl || "暂缺"} · 卖出观察 ${sellIntl || "暂缺"} · 现价 ${hasNumber(international.price) ? Number(international.price).toFixed(0) : "暂缺"}` },
+    { title: "人民币金", body: `持有观察 ${buyCny || "暂缺"} · 卖出观察 ${sellCny || "暂缺"} · 现价 ${hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "暂缺"}` },
   ];
   base.actions = [];
   base.riskItems = [
@@ -1423,7 +1458,7 @@ Page({
         }
         const view = buildDetailModules(detailView(item, snapshot), item.market);
         if (item.market === "hk") {
-          view.exitPlan = buildHkExitPlan(item, { evidence: strategyEvidence });
+        view.exitPlan = buildHkExitPlan(item, { evidence: strategyEvidence, snapshot });
         } else {
           view.exitPlan = null;
         }

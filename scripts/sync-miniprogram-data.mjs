@@ -2,6 +2,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { writeDailyDigest } from "./build-daily-digest.mjs";
+import { fetchSleeveQuotes, writeSleeveQuotes } from "./fetch-sleeve-quotes.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourcePath = path.join(root, "data", "live-snapshot.json");
@@ -51,6 +53,20 @@ function slimForMiniProgram(data) {
 
 const slimSnapshot = slimForMiniProgram(publicSnapshot);
 
+try {
+  const sleeve = await fetchSleeveQuotes();
+  await writeSleeveQuotes(sleeve);
+  if (sleeve.quotes.length) {
+    slimSnapshot.us = { ...slimSnapshot.us, sleeveQuotes: sleeve.quotes };
+    console.log(`底仓 ETF 行情已并入小程序：${sleeve.quotes.map((item) => `${item.symbol} $${Number(item.price).toFixed(2)}`).join(" · ")}`);
+  }
+  if (sleeve.errors.length) {
+    console.warn(`底仓 ETF 行情未齐：${sleeve.errors.join("；")}`);
+  }
+} catch (error) {
+  console.warn(`底仓 ETF 行情未同步：${error.message}`);
+}
+
 await mkdir(path.dirname(outputPath), { recursive: true });
 await writeFile(
   outputPath,
@@ -70,5 +86,7 @@ try {
   console.warn(`策略证据未同步（可先 npm run build:evidence）：${error.message}`);
 }
 
+const digest = await writeDailyDigest(slimSnapshot);
 const bytes = Buffer.byteLength(JSON.stringify(slimSnapshot), "utf8");
 console.log(`小程序离线快照已同步：${slimSnapshot.updatedAt}（约 ${Math.round(bytes / 1024)} KB，历史采样 ${HISTORY_LIMIT} 点）`);
+console.log(`今日答案摘要已同步：港${digest.markets.hk.length} / 美${digest.markets.us.length} / A${digest.markets.a.length} / 金${digest.markets.gold.length} / 机构${digest.markets.guru.length} 问`);

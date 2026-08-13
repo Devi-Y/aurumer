@@ -56,6 +56,31 @@
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
+  <view wx:if="{{answers.length}}" class="answer-panel">
+    <view class="answer-head">
+      <text class="answer-title">今日答案</text>
+      <text class="answer-meta">研究观察，不是买卖指令</text>
+    </view>
+    <view
+      wx:for="{{answers}}"
+      wx:key="id"
+      class="answer-row tone-{{item.tone}} {{item.enabled ? '' : 'is-empty'}}"
+      data-id="{{item.id}}"
+      bindtap="openAnswer"
+      hover-class="{{item.enabled ? 'tap-active' : ''}}"
+      aria-role="button"
+      aria-label="{{item.question}}，{{item.answer}}"
+    >
+      <view class="answer-copy">
+        <text class="answer-q">{{item.question}}</text>
+        <text class="answer-a">{{item.answer}}</text>
+        <text wx:if="{{item.names}}" class="answer-names">{{item.names}}</text>
+      </view>
+      <text wx:if="{{item.enabled}}" class="arrow">›</text>
+      <text wx:else class="group-empty-hint">—</text>
+    </view>
+  </view>
+
   <view wx:if="{{deepLinks.length}}" class="deep-panel">
     <view
       wx:for="{{deepLinks}}"

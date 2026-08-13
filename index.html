@@ -272,6 +272,19 @@ img,svg,canvas{max-width:100%}
 
 /* ---------- four-level information hierarchy ---------- */
 .level-menu{display:grid;grid-template-columns:1fr;gap:11px;margin-top:16px}
+.daily-answers{margin:16px 0 4px;padding:14px 16px 6px;border:1px solid var(--line);border-radius:18px;background:rgba(255,253,249,.92);box-shadow:var(--shadow)}
+.daily-answers-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px}
+.daily-answers-head b{font-size:15px}
+.daily-answers-head span{color:var(--ink3);font-size:11px;font-weight:650}
+.daily-answer-row{display:flex;align-items:center;gap:10px;padding:10px 2px;border-top:1px solid var(--line2);color:inherit}
+.daily-answer-row.is-empty{opacity:.72}
+.daily-answer-copy{min-width:0;flex:1}
+.daily-answer-copy strong{display:block;font-size:12px;color:var(--ink3);font-weight:760}
+.daily-answer-copy span{display:block;margin-top:2px;font-size:14px;font-weight:720;line-height:1.4}
+.daily-answer-copy em{display:block;margin-top:2px;font-style:normal;color:var(--ink2);font-size:12px}
+.daily-answer-row .arrow{color:var(--accent);font-size:20px}
+.daily-answer-row.tone-good span{color:var(--down)}
+.daily-answer-row.tone-bad span{color:var(--up)}
 .level-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;min-height:78px;padding:14px 16px;border:1px solid var(--line);border-radius:17px;background:var(--card);color:var(--ink);box-shadow:var(--shadow);transition:transform .16s,border-color .16s,box-shadow .16s}
 .level-entry:hover{transform:translateY(-2px);border-color:#D3C8B2;box-shadow:0 20px 38px -28px rgba(31,43,42,.5)}
 .level-entry:active{transform:scale(.988)}
@@ -1323,6 +1336,7 @@ const LIVE={
   hasInvestors:false,
   hasGold:false,
   gold:null,
+  digest:null,
   liveInvestorIds:new Set(),
   error:null
 };
@@ -1848,6 +1862,7 @@ function applyLiveData(payload){
   LIVE.actionsFresh=isSnapshotActionFresh(payload.updatedAt);
   LIVE.sources=payload.sources||[];
   LIVE.error=null;
+  LIVE.digest=null;
   LIVE.hasUS=Boolean(payload.us?.stocks?.length&&payload.us?.fundamentals?.length);
   LIVE.hasHK=Boolean(payload.hk?.listings?.length||payload.hk?.history?.length||payload.hk?.backtest?.recent?.length);
   LIVE.hasAShare=Boolean(payload.aShare?.quotes?.length);
@@ -2076,6 +2091,19 @@ function applyLiveData(payload){
     LIVE.liveInvestorIds=new Set();
   }
 }
+async function loadDailyDigest(updatedAt){
+  try{
+    const publicBase=location.hostname.endsWith('.github.io')?'/aurumer/':'/';
+    const response=await fetch(`${publicBase}data/daily-digest.json`,{cache:'no-store'});
+    if(!response.ok)return null;
+    const digest=await response.json();
+    if(!digest?.markets?.hk)return null;
+    if(updatedAt && digest.updatedAt && digest.updatedAt!==updatedAt)return digest;
+    return digest;
+  }catch{
+    return null;
+  }
+}
 async function loadLiveData(){
   const publicBase=location.hostname.endsWith('.github.io')?'/aurumer/':'/';
   const isStaticHost=location.hostname.endsWith('.github.io')||location.hostname==='localhost'||location.hostname==='127.0.0.1';
@@ -2091,6 +2119,7 @@ async function loadLiveData(){
       clearTimeout(timeout);
       if(!response.ok)throw new Error(`数据服务 ${response.status}`);
       applyLiveData(await response.json());
+      LIVE.digest=await loadDailyDigest(LIVE.updatedAt);
       if(DEMO_MODE){
         const demoHKListings=await loadDemoHKListings();
         if(demoHKListings.length){
@@ -2480,18 +2509,18 @@ function renderEntry(){
     ||null;
   const usLead=LIVE.hasUS?([...MAGNIFICENT_SEVEN.map(symbol=>US_STOCKS.find(stock=>stock.t===symbol)).filter(Boolean),...hotQualityPool(US_STOCKS,3)][0]||US_STOCKS[0]||null):null;
   const waitingText=LIVE.status==='loading'?'正在同步最新答案':'最新数据暂不可用';
-  const hkToday=hkLead
+  const hkToday=digestHomePoint('hk')||(hkLead
     ?hkLead.vc==='pending'
       ?`${hkLead.name} · 资料待核验，暂不参与`
       :`${hkLead.name} · ${hkLead.verdict}`
-    :waitingText;
-  const usToday=usLead?`${usLead.t} · ${stockAction(usLead)}`:waitingText;
+    :waitingText);
+  const usToday=digestHomePoint('us')||(usLead?`${usLead.t} · ${stockAction(usLead)}`:waitingText);
   const aLead=LIVE.hasAShare?([...A_SHARES].sort((left,right)=>(right.score||0)-(left.score||0))[0]||null):null;
-  const aToday=aLead?`${aLead.name} · ${aLead.currentAdvice||'暂无建议'}`:waitingText;
-  const guruToday='港股 3 · 美股 5 · A股 3';
-  const goldToday=LIVE.hasGold
+  const aToday=digestHomePoint('a')||(aLead?`${aLead.name} · ${aLead.currentAdvice||'暂无建议'}`:waitingText);
+  const guruToday=LIVE.digest?.home?.cardLines?.find(line=>line.startsWith('机构：'))?.replace(/^机构：/,'')||'港股 3 · 美股 5 · A股 3';
+  const goldToday=digestHomePoint('gold')||(LIVE.hasGold
     ?`${LIVE.gold.answer.action} · ${LIVE.gold.quotes.international.price} 美元/盎司`
-    :waitingText;
+    :waitingText);
   $('#app').innerHTML=header()+dataStateNotice()+`
   <section class="home-section" id="home-entrances" style="margin-top:18px">
     <div class="home-core-grid">
@@ -2693,6 +2722,24 @@ function ipoHistoryContext(x){
     <div class="t2" style="margin-top:10px">历史回看只用于辅助判断，不等于未来收益承诺。</div>
   </div></div>`;
 }
+function dailyAnswerBoard(market){
+  const cards=LIVE.digest?.markets?.[market]||[];
+  if(!cards.length)return '';
+  return `<section class="daily-answers" aria-label="今日答案">
+    <div class="daily-answers-head"><b>今日答案</b><span>研究观察，不是买卖指令</span></div>
+    ${cards.map(card=>{
+      const href=card.href||'';
+      const enabled=Boolean(card.enabled&&href);
+      const body=`<div class="daily-answer-copy"><strong>${card.question||''}</strong><span>${card.answer||''}</span>${card.names?`<em>${card.names}</em>`:''}</div><span class="arrow">${enabled?'›':'—'}</span>`;
+      return enabled
+        ? `<a class="daily-answer-row tone-${card.tone||'wait'}" href="${href}">${body}</a>`
+        : `<div class="daily-answer-row tone-${card.tone||'wait'} is-empty">${body}</div>`;
+    }).join('')}
+  </section>`;
+}
+function digestHomePoint(id){
+  return (LIVE.digest?.home?.points||[]).find(item=>item.id===id)?.value||'';
+}
 function levelEntryCard({title,count,copy,href,tone=''}){
   return `<a class="level-entry ${tone}" href="${href}">
     <div class="level-entry-main">
@@ -2721,6 +2768,7 @@ function renderHK(){
   const groups=getHKGroups();
   $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
   <div class="simple-page-title"><h1>港股打新：先选结论</h1></div>
+  ${dailyAnswerBoard('hk')}
   <div class="level-menu">${groups.map(group=>levelEntryCard({title:group.label,count:group.items.length,copy:group.copy,href:`#/hk/${group.id}`,tone:group.tone})).join('')}</div>
   `+footer()+mobileNav('hk');
 }
@@ -2865,6 +2913,7 @@ function renderUSStocks(){
   const groups=getUSGroups();
   $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
   <div class="simple-page-title"><h1>美股投资：先选方向</h1></div>
+  ${dailyAnswerBoard('us')}
   <div class="level-menu">${groups.map(group=>levelEntryCard({title:group.label,count:group.items.length,copy:group.copy,href:`#/us/${group.id}`,tone:'us'})).join('')}</div>
   `+footer()+mobileNav('us');
 }
@@ -2936,6 +2985,7 @@ function renderAShares(){
   const groups=getAShareGroups();
   $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
   <div class="simple-page-title"><h1>A股收息：先看观察分档</h1></div>
+  ${dailyAnswerBoard('a')}
   <div class="level-menu">${groups.map(group=>levelEntryCard({title:group.label,count:group.items.length,copy:group.copy,href:`#/a-shares/${group.id}`,tone:'a'})).join('')}</div>
   `+footer()+mobileNav('a');
 }
@@ -2992,6 +3042,7 @@ function renderGold(){
   ];
   $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
   <div class="simple-page-title"><h1>黄金追踪：先看结论</h1></div>
+  ${dailyAnswerBoard('gold')}
   <div class="level-menu">${groups.map(group=>levelEntryCard({title:group.title,count:'查看',copy:group.copy,href:group.href,tone:'gold'})).join('')}</div>
   ${marketUpdateLine('黄金')}
   ${specialDisclaimer('以上为公开资料研究结论，供参考；不是强制下单指令，决策自负。')}`+footer()+mobileNav('home');
@@ -3301,6 +3352,7 @@ function renderGurus(){
   const managers=getSmartMoneyManagers(guruFilter);
   $('#app').innerHTML=`${pageNav('', '返回首页')}${dataStateNotice()}
   <div class="simple-page-title"><h1>聪明人持仓怎么学？</h1><span>${managers.length} 个</span></div>
+  ${dailyAnswerBoard('guru')}
   <div class="smart-selection-note"><b>筛选口径：</b>从长期公开业绩可核验、当前持仓可持续披露的候选中，按表观长期年化收益排序。不同起止区间、币种、份额和风险不可直接横比，因此这是研究名单，不是全球绝对收益榜。</div>
   <div class="market-tabs">${Object.entries(guruGroups).map(([key,group])=>`<button class="market-tab ${guruFilter===key?'on':''}" onclick="setGuruFilter('${key}')">${group.name}<em>${group.count}</em></button>`).join('')}</div>
   <div class="market-summary"><div><b>${selectedGroup.name} · ${managers.length} 个</b><span>${selectedGroup.summary}</span></div></div>

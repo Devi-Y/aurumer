@@ -97,15 +97,15 @@ const aShareGroupIdBody = html.match(/function aShareGroupIdFor\(item\)\{([\s\S]
 assert(aShareGroupsBody.includes("重点观察") && aShareGroupsBody.includes("aShareObservationBand"), "A股重点观察组缺少观察分档");
 assert(aShareGroupsBody.includes("继续观察") && aShareGroupsBody.includes("谨慎观察"), "A股观察分档未覆盖继续/谨慎");
 assert(aShareGroupIdBody.includes("aShareObservationBand"), "A股详情返回分组口径不一致");
-assert(dailyHtml.includes("五个栏目今天直接看见的答案"), "每日驾驶舱没有把五个栏目答案作为首屏主标题");
+assert(dailyHtml.includes("今天先看五个答案") && dailyHtml.includes("daily-head"), "每日驾驶舱没有把五个答案作为精简首屏主标题");
 assert(dailyHtml.includes("我的持仓"), "每日驾驶舱缺少本地持仓入口");
 assert(dailyHtml.includes("assets/dashboard.js"), "每日驾驶舱缺少交互脚本");
-assert(dailyHtml.includes("五个投资入口"), "每日驾驶舱入口应覆盖港股、美股、A股、黄金与机构");
-assert(dailyHtml.includes("id=\"gold-channel-copy\""), "每日驾驶舱缺少黄金入口");
+assert(!dailyHtml.includes("五个投资入口") && !dailyHtml.includes("member-card"), "每日驾驶舱不应在答案后重复入口或营销介绍");
 assert(html.includes("function dailyAnswerBoard") && html.includes("今日答案"), "网页栏目页应展示今日答案");
 assert(html.includes("data/daily-digest.json"), "网页应读取与小程序同一套今日答案摘要");
 assert(!dailyHtml.includes("legacy.html"), "每日驾驶舱不应把今日答案链接到旧版页面");
 assert(dashboardJs.includes("cards.filter") && dashboardJs.includes(".map((item)"), "每日驾驶舱不能只呈现每栏前三条答案");
+assert(dashboardJs.includes("DAILY_FACT_IDS"), "每日驾驶舱应按用户问题精简答案行");
 assert(dashboardJs.includes("state.digestSyncing"), "摘要与公开快照时间不一致时必须阻止旧答案混用");
 assert(miniIndexWxml.includes("item.performanceText") && holdingObserve.includes("performanceFor"), "小程序持仓缺少基于本地成本的浮盈展示");
 

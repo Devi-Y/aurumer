@@ -45,6 +45,21 @@ function costHint(cost, current) {
   return { text: "相对成本小幅浮亏，继续观察", tone: "wait", triggered: false };
 }
 
+function performanceFor(cost, current, quantity) {
+  if (!hasNumber(cost) || Number(cost) <= 0 || !hasNumber(current)) {
+    return { performanceText: "", performanceTone: "" };
+  }
+  const delta = (Number(current) / Number(cost) - 1) * 100;
+  const sign = delta >= 0 ? "+" : "";
+  const amount = hasNumber(quantity) && Number(quantity) > 0
+    ? ` · 金额 ${Number(current - cost) * Number(quantity) >= 0 ? "+" : ""}${(Number(current - cost) * Number(quantity)).toFixed(2)}`
+    : " · 填数量后计算金额";
+  return {
+    performanceText: `相对成本 ${sign}${delta.toFixed(1)}%${amount}（未计费用税费）`,
+    performanceTone: delta >= 0 ? "up" : "down",
+  };
+}
+
 function currentPriceOf(item, market) {
   const raw = item?.raw || {};
   if (market === "us") return Number(raw.price);
@@ -83,8 +98,10 @@ function deriveGoldAction(holding, snapshot) {
 
 function packing(base) {
   const currentText = base.currentText || "";
+  const performance = performanceFor(base.cost, base.current, base.quantity);
   return {
     ...base,
+    ...performance,
     displayMeta: [base.meta, currentText].filter(Boolean).join(" · "),
     currentText,
   };
@@ -113,6 +130,9 @@ function deriveHoldingView(holding, snapshot) {
       actionText: action.text,
       actionTone: action.tone,
       triggered: Boolean(action.triggered),
+      cost,
+      quantity,
+      current: action.current,
       hasDetail: true,
       detailMarket: "gold",
       detailId: "track",
@@ -130,6 +150,9 @@ function deriveHoldingView(holding, snapshot) {
       actionText: "本机记录，未匹配公开研究样本",
       actionTone: "wait",
       triggered: false,
+      cost,
+      quantity,
+      current: null,
       hasDetail: false,
       detailMarket: "",
       detailId: "",
@@ -148,6 +171,9 @@ function deriveHoldingView(holding, snapshot) {
       actionText: "未匹配到当前公开样本，请核对代码",
       actionTone: "wait",
       triggered: false,
+      cost,
+      quantity,
+      current: null,
       hasDetail: false,
       detailMarket: market,
       detailId: code,
@@ -197,6 +223,9 @@ function deriveHoldingView(holding, snapshot) {
     actionText: action.text,
     actionTone: action.tone,
     triggered: Boolean(action.triggered),
+    cost,
+    quantity,
+    current,
     hasDetail: true,
     detailMarket: market,
     detailId: String(item.id || code),

@@ -252,10 +252,17 @@ function buildHkAnswers(snapshot) {
 function buildUsAnswers(snapshot) {
   const items = allItems(snapshot, "us");
   const seven = items.filter((item) => item.group === "seven");
-  const cheap = seven.filter((item) => matchesGroup(item, "cheap7"));
-  const risk = seven.filter((item) => matchesGroup(item, "risk7"));
+  const byCode = new Map();
+  for (const item of items) {
+    const code = String(item.code || item.id || "").toUpperCase();
+    if (!code || !byCode.has(code) || item.group === "industry") byCode.set(code, item);
+  }
+  // 截图要求的每日重点不是把所有模型分档都塞进首屏，而是固定回答两只低估、特斯拉风险和两只行业对照；
+  // 是否进入这些重点仍由七姐妹质量/估值分档与公开价格决定，未通过时保持空白。
+  const cheap = seven.filter((item) => ["GOOGL", "META"].includes(item.code) && matchesGroup(item, "cheap7"));
+  const risk = seven.filter((item) => item.code === "TSLA" && matchesGroup(item, "risk7"));
   const hold = seven.filter((item) => matchesGroup(item, "hold7"));
-  const industry = items.filter((item) => item.group === "industry");
+  const industry = ["MA", "UBER"].map((code) => byCode.get(code)).filter(Boolean);
   const extraPool = [];
   const seen = new Set(seven.map((item) => item.code));
   for (const item of items) {
@@ -270,6 +277,12 @@ function buildUsAnswers(snapshot) {
     return `${shortCompanyName(item.name, item.code || "周期", 4)}${price ? ` ${price}` : ""}`;
   }).filter(Boolean);
   const pickNames = cycleBits.join("、") || namesOf(sleeve.picks, 2);
+  const quoteLine = (item) => {
+    if (!item) return "";
+    const price = usd(item.raw?.price);
+    const score = item.score != null ? ` ${item.score}分` : "";
+    return `${shortCompanyName(item.name, item.code || "标的", 6)}${price ? ` ${price}` : ""}${score}`;
+  };
   const incomeSymbol = sleeve.income;
   const sleeveLine = [
     `VOO ${sleeve.weights.VOO}%${sleevePrice(snapshot, "VOO") ? ` ${sleevePrice(snapshot, "VOO")}` : ""}`,
@@ -292,24 +305,26 @@ function buildUsAnswers(snapshot) {
     card({
       id: "us-cheap",
       question: "低估的七姐妹",
-      answer: cheap.length ? `${cheap.length} 只相对不贵` : "没有同时满足质量与估值的低估样本",
+      answer: cheap.length ? cheap.map(quoteLine).join(" · ") : "谷歌-A、Meta 暂未同时满足质量与估值门槛",
       names: namesOf(cheap),
       tone: cheap.length ? "good" : "warn",
       action: "group",
       group: "cheap7",
       targetId: cheap[0]?.id || "",
       enabled: cheap.length > 0,
+      hint: "每日重点固定看谷歌-A、Meta；相对不贵不是买入指令。",
     }),
     card({
       id: "us-risk",
       question: "风险升高要减",
-      answer: risk.length ? `${risk.length} 只估值/位置/质量冲突` : "七姐妹暂未触发重大风险分档",
+      answer: risk.length ? risk.map(quoteLine).join(" · ") : "特斯拉暂未触发重大风险分档",
       names: namesOf(risk),
       tone: risk.length ? "bad" : "muted",
       action: "group",
       group: "risk7",
       targetId: risk[0]?.id || "",
       enabled: risk.length > 0,
+      hint: "每日风险重点固定看特斯拉；其它七姐妹风险仍在详情中保留。",
     }),
     card({
       id: "us-hold",
@@ -337,7 +352,7 @@ function buildUsAnswers(snapshot) {
       group: "industry",
       targetId: industry[0]?.id || "",
       enabled: industry.length > 0,
-      hint: "非七姐妹里质量与分数同时过关，只作行业对照，不是买入指令。",
+      hint: "行业对照固定看万事达、优步；价格与分数只用于研究比较，不是买入指令。",
     }),
     card({
       id: "us-sleeve",
@@ -534,8 +549,14 @@ function buildGuruAnswers(snapshot) {
   const holdingLine = holdings
     .map((row) => `${row.ticker || row.name}${Number.isFinite(Number(row.weight)) ? ` ${Number(row.weight).toFixed(1)}%` : ""}`)
     .join(" · ");
-  const why = leaders.map((item) => `${shortCompanyName(item.name, "机构", 6)}：${String(item.raw?.profile?.why || "").slice(0, 28)}`).filter((line) => !line.endsWith("："));
-  const how = leaders.map((item) => `${shortCompanyName(item.name, "机构", 6)}：${String(item.raw?.profile?.how || "").slice(0, 28)}`).filter((line) => !line.endsWith("："));
+  const firstSentence = (value) => {
+    const text = String(value || "").replace(/\s+/gu, " ").trim();
+    if (!text) return "";
+    const end = text.search(/[。！？]/u);
+    return end >= 0 ? text.slice(0, end + 1) : text;
+  };
+  const why = leaders.map((item) => `${item.name}：${firstSentence(item.raw?.profile?.why)}`).filter((line) => !line.endsWith("："));
+  const how = leaders.map((item) => `${item.name}：${firstSentence(item.raw?.profile?.how)}`).filter((line) => !line.endsWith("："));
   const avoid = MASTER_PLAYBOOKS.slice(0, 3).map((book) => `${book.name}：${book.doNot}`);
 
   return [
@@ -543,7 +564,7 @@ function buildGuruAnswers(snapshot) {
       id: "guru-holdings",
       question: "业绩靠前持仓",
       answer: top
-        ? `${shortCompanyName(top.name, "机构", 8)} ${top.badge || ""}`.trim()
+        ? `${top.name || "机构"} ${top.badge || ""}`.trim()
         : "机构样本待更新",
       names: holdingLine || namesOf(leaders),
       tone: top ? "good" : "muted",

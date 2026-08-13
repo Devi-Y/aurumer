@@ -71,7 +71,7 @@ function publicCard(market, card) {
     enabled: Boolean(card.enabled),
     hint: card.hint || "",
     href,
-    dailyHref: `legacy.html${href}`,
+    dailyHref: `index.html${href}`,
   };
 }
 

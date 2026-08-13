@@ -89,6 +89,7 @@
           </view>
           <text class="holding-meta">{{item.displayMeta}}</text>
           <text class="holding-action {{item.actionTone}}">{{item.actionText}}</text>
+          <text wx:if="{{item.performanceText}}" class="holding-performance {{item.performanceTone}}">{{item.performanceText}}</text>
         </view>
         <text
           class="holding-delete"

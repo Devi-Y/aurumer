@@ -182,6 +182,14 @@ function digestTone(tone) {
   return 'wait';
 }
 
+const DAILY_FACT_IDS = {
+  hk: ['hk-new', 'hk-avoid', 'hk-grey', 'hk-first', 'hk-week'],
+  us: ['us-risk', 'us-industry', 'us-sleeve'],
+  a: ['a-cycle', 'a-add', 'a-trim'],
+  gold: ['gold-usd-sell', 'gold-cny-hold', 'gold-cny-sell'],
+  guru: ['guru-why', 'guru-learn', 'guru-avoid'],
+};
+
 function digestMarketCard(market, type, href, source) {
   const cards = state.digest?.markets?.[market] || [];
   const leadId = {
@@ -193,10 +201,14 @@ function digestMarketCard(market, type, href, source) {
   }[market];
   const lead = cards.find((item) => item.id === leadId) || cards.find((item) => item.enabled) || cards[0];
   if (!lead) return '';
-  const facts = cards.filter((item) => item !== lead).map((item) => {
+  const selectedIds = new Set(DAILY_FACT_IDS[market] || []);
+  const factNameIds = new Set(['hk-new', 'hk-avoid']);
+  const facts = cards.filter((item) => item !== lead && selectedIds.has(item.id)).map((item) => {
     const answer = item.answer || '—';
     const names = item.names || '';
-    const nameParts = names.split(/[·、]/u).map((value) => value.trim()).filter(Boolean);
+    const nameParts = factNameIds.has(item.id)
+      ? names.split(/[·、]/u).map((value) => value.trim()).filter(Boolean)
+      : [];
     const value = names && !nameParts.every((name) => answer.includes(name)) ? `${answer} · ${names}` : answer;
     return [item.question, value];
   });
@@ -311,6 +323,7 @@ function renderHoldings() {
 
 function renderReminder() {
   const box = $('#reminder');
+  if (!box) return;
   if (!state.holdings.length) {
     box.hidden = false;
     box.innerHTML = '<b>今日下一步：</b>添加至少一只真实持仓，首页才能开始给你个人化的观察提示。';
@@ -402,8 +415,8 @@ async function loadData() {
 
 function renderSession() {
   const session = localSession();
-  $('#session-badge').textContent = session.label;
-  $('#session-copy').textContent = session.copy;
+  if ($('#session-badge')) $('#session-badge').textContent = session.label;
+  if ($('#session-copy')) $('#session-copy').textContent = session.copy;
 }
 
 async function init() {

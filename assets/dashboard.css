@@ -36,3 +36,17 @@ footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);color:v
 @media(max-width:960px){.conclusion-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.conclusion-grid{grid-template-columns:1fr}.conclusion-card{min-height:0}.skeleton-card{height:260px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+/* 精简首屏：只保留更新时间、五个答案和本地持仓，不把入口与营销说明挤到答案前面。 */
+.daily-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-top:18px;padding:0 2px 14px;border-bottom:1px solid var(--line)}
+.daily-head h1{margin:4px 0 0;font-size:27px;line-height:1.2;letter-spacing:-.6px}
+.daily-answer-section{margin-top:18px}
+.daily-answer-section .section-head{margin-bottom:9px}
+.daily-answer-section .section-head h2{font-size:16px;color:var(--ink2);font-weight:650}
+.daily-answer-section .conclusion-card{min-height:0;padding:13px 12px}
+.daily-answer-section .conclusion-card h3{margin-top:10px;font-size:16px}
+.daily-answer-section .conclusion-card .answer{font-size:12px}
+.daily-answer-section .fact-list{gap:5px;margin-top:10px;font-size:11px}
+.daily-answer-section .fact-list li{padding-bottom:5px}
+.daily-answer-section .conclusion-foot{padding-top:10px;font-size:10px}
+.daily-answer-section .conclusion-foot a{font-size:11px}
+@media(max-width:760px){.daily-head{align-items:flex-start;flex-direction:column;gap:5px}.daily-head h1{font-size:24px}.daily-answer-section .section-head h2{font-size:15px}}

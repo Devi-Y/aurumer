@@ -1,14 +1,14 @@
 # 望潮小程序上线验收证据清单
 
-更新日期：2026-08-12
+更新日期：2026-08-13
 
 本清单把「代码已就绪」与「必须人工留证」分开。产品模块与多端同步以最新开发版为准；**运营方确认本期不做退款验收**。
 
-## 最新版本快照（2026-08-12）
+## 最新版本快照（2026-08-13）
 
 | 项 | 状态 |
 | --- | --- |
-| 微信开发版 | **0.2.46**（440.7 KB）已 CLI 上传 |
+| 微信开发版 | **0.2.49**（约 479.0 KB）已 CLI 上传；日志 `.tmp-preview/upload-0.2.49.log` |
 | 本地 / 随包 / Pages / 云 warm | `updatedAt=2026-08-12T09:42:31.815Z` 四端一致 |
 | GitHub `main` | 已推送；Pages 源分支 `main` |
 | 云函数 revision | `2026-08-11-multisource-strategy-signals-b4` |
@@ -25,7 +25,7 @@
 - [x] 购买须知保留人工退款说明（代码能力保留；**本期不做退款真机验收**）
 - [x] 提审复制稿见 `MINIPROGRAM_REVIEW_COPY.txt`
 - [x] 隐私补充说明见 `MINIPROGRAM_PRIVACY_SUPPLEMENT.txt`
-- [x] 开发版 **0.2.46** 已 CLI 上传（说明见 `MINIPROGRAM_LAUNCH_GUIDE.md`）
+- [x] 开发版 **0.2.49** 已 CLI 上传（说明见 `MINIPROGRAM_LAUNCH_GUIDE.md`）
 - [x] 首页今日重点、持仓闭环、群卡片复制、栏目深度入口
 - [x] 港股历史样本 / 保荐人·行业档案；美股热度前十 / 性价比观察
 - [x] 机构 WHY·HOW 披露边界 + 交叉重叠研究工具
@@ -59,10 +59,10 @@
 ## D. 提审与发布（必须在微信公众平台完成；CLI 无法代发）
 
 操作卡：[docs/FORMAL_RELEASE_STEPS.md](docs/FORMAL_RELEASE_STEPS.md)  
-提审复制稿：[MINIPROGRAM_REVIEW_COPY.txt](MINIPROGRAM_REVIEW_COPY.txt)（已对齐 **0.2.46**）
+提审复制稿：[MINIPROGRAM_REVIEW_COPY.txt](MINIPROGRAM_REVIEW_COPY.txt)（已对齐 **0.2.49**）
 
 - [ ] 体验版已分发给审核与内部验收账号（可选）
-- [ ] 在「版本管理」对开发版 **0.2.46** 提交审核
+- [ ] 在「版本管理」对开发版 **0.2.49** 提交审核
 - [ ] 审核通过
 - [ ] 正式发布
 - [ ] 发布后抽查：首页数据、会员购买入口、工作台只读/可写

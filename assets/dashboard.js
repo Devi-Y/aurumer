@@ -1,7 +1,7 @@
 'use strict';
 
 const STORAGE_KEY = 'aurumHoldingsV1';
-const state = { data: null, holdings: loadHoldings() };
+const state = { data: null, digest: null, holdings: loadHoldings() };
 const $ = (selector) => document.querySelector(selector);
 
 function escapeHTML(value='') {
@@ -128,10 +128,45 @@ function conclusionCard({type, title, status, tone='wait', answer, facts, href, 
   </article>`;
 }
 
+function digestTone(tone) {
+  if (tone === 'good') return 'good';
+  if (tone === 'bad') return 'risk';
+  return 'wait';
+}
+
+function digestMarketCard(market, type, href, source) {
+  const cards = state.digest?.markets?.[market] || [];
+  const lead = cards.find((item) => item.enabled) || cards[0];
+  if (!lead) return '';
+  const facts = cards.slice(0, 3).map((item) => [item.question, item.names || item.answer || '—']);
+  return conclusionCard({
+    type,
+    title: lead.question || type,
+    status: lead.names || (lead.enabled ? '有观察结论' : '暂无'),
+    tone: digestTone(lead.tone),
+    answer: lead.answer || '没有满足资料完整性要求时，望潮不使用虚拟样本补位。',
+    facts: facts.length ? facts : [['原则', '只展示已核验公开资料']],
+    href: lead.dailyHref || href,
+    source,
+  });
+}
+
 function renderConclusions() {
   const box = $('#daily-conclusions');
   const data = state.data;
   if (!data) return;
+  const digestCards = ['hk','us','a','gold','guru']
+    .map((market, index) => digestMarketCard(
+      market,
+      ['港股打新','美股投资','A股收息','黄金追踪','聪明人持仓'][index],
+      ['legacy.html#/hk','legacy.html#/us','legacy.html#/a-shares','legacy.html#/gold','legacy.html#/gurus'][index],
+      sourceText(data, ['港交所公开资料','公开行情','A股公开行情','黄金公开行情','SEC 13F / 基金季报'][index]),
+    ))
+    .filter(Boolean);
+  if (digestCards.length) {
+    box.innerHTML = digestCards.join('');
+    return;
+  }
   const cards = [];
   const us = getUSFocus(data);
   if (us) {
@@ -225,14 +260,18 @@ function renderReminder() {
 
 function renderChannels() {
   const data = state.data || {};
+  const digest = state.digest?.home?.points || [];
+  const point = (id) => digest.find((item) => item.id === id)?.value;
   const usCount = data.us?.stocks?.length || 0;
   const hkOpen = (data.hk?.listings || []).filter(item => !item.historical && item.listingStatus !== 'ended').length;
   const guruCount = data.investors?.length || 0;
   const aCount = data.aShare?.quotes?.length || 0;
-  $('#us-channel-copy').textContent = usCount ? `${usCount} 只美股 · 机会、估值与价格纪律` : '美股数据待核验';
-  $('#hk-channel-copy').textContent = hkOpen ? `${hkOpen} 只在途新股 · 申购到卖出闭环` : '当前无在途新股，保留历史回溯';
-  $('#guru-channel-copy').textContent = guruCount ? `${guruCount} 位投资人 · SEC 13F 公开披露` : '机构披露数据待核验';
-  $('#a-channel-copy').textContent = aCount ? `${aCount} 只收息资产 · 股息与现金流` : 'A股收息数据待核验';
+  const goldPrice = data.gold?.quotes?.international?.price;
+  if ($('#hk-channel-copy')) $('#hk-channel-copy').textContent = point('hk') ? `今日：${point('hk')}` : (hkOpen ? `${hkOpen} 只在途新股 · 申购到卖出闭环` : '当前无在途新股，保留历史回溯');
+  if ($('#us-channel-copy')) $('#us-channel-copy').textContent = point('us') ? `今日：${point('us')}` : (usCount ? `${usCount} 只美股 · 机会、估值与价格纪律` : '美股数据待核验');
+  if ($('#a-channel-copy')) $('#a-channel-copy').textContent = point('a') ? `今日：${point('a')}` : (aCount ? `${aCount} 只收息资产 · 股息与现金流` : 'A股收息数据待核验');
+  if ($('#gold-channel-copy')) $('#gold-channel-copy').textContent = point('gold') ? `今日：${point('gold')}` : (Number.isFinite(Number(goldPrice)) ? `国际金 ${formatNumber(goldPrice,0)} 美元/盎司` : '黄金数据待核验');
+  if ($('#guru-channel-copy')) $('#guru-channel-copy').textContent = guruCount ? `${guruCount} 位投资人 · 只对照公开持仓` : '机构披露数据待核验';
 }
 
 function openDialog() {
@@ -264,12 +303,26 @@ function bindEvents() {
   });
 }
 
+async function loadDailyDigest(updatedAt) {
+  try {
+    const response = await fetch('data/daily-digest.json', {cache:'no-store'});
+    if (!response.ok) return null;
+    const digest = await response.json();
+    if (!digest?.markets?.hk) return null;
+    if (updatedAt && digest.updatedAt && digest.updatedAt !== updatedAt) return digest;
+    return digest;
+  } catch {
+    return null;
+  }
+}
+
 async function loadData() {
   const response = await fetch('data/live-snapshot.json', {cache:'no-store'});
   if (!response.ok) throw new Error(`数据服务 ${response.status}`);
   const data = await response.json();
   if (!data || !data.updatedAt) throw new Error('数据快照缺少更新时间');
   state.data = data;
+  state.digest = await loadDailyDigest(data.updatedAt);
   $('#updated-at').textContent = `更新 ${formatDateTime(data.updatedAt)}`;
   renderConclusions(); renderHoldings(); renderChannels();
 }

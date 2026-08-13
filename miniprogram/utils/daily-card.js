@@ -1,18 +1,23 @@
 /**
  * 微信群每日卡片文案：结论 + 风险边界，不含买卖指令。
  */
-function buildDailyCard({ points = [], asOf = "", holdingsReminder = null } = {}) {
+function buildDailyCard({ points = [], extraLines = [], asOf = "", holdingsReminder = null } = {}) {
   const lines = [
     "【望潮今日重点】",
     asOf ? `数据 ${asOf.replace(/^数据截至\s*/, "")}` : null,
     "",
   ];
-  (points || []).forEach((point) => {
-    const label = String(point.label || "").trim();
-    const value = String(point.value || "—").trim();
-    if (!label) return;
-    lines.push(`${label}：${value}`);
-  });
+  const extras = (extraLines || []).map((line) => String(line || "").trim()).filter(Boolean);
+  if (extras.length) {
+    extras.forEach((line) => lines.push(line));
+  } else {
+    (points || []).forEach((point) => {
+      const label = String(point.label || "").trim();
+      const value = String(point.value || "—").trim();
+      if (!label) return;
+      lines.push(`${label}：${value}`);
+    });
+  }
   if (holdingsReminder && holdingsReminder.triggered && holdingsReminder.text) {
     lines.push("");
     lines.push(`持仓对照：${String(holdingsReminder.text).slice(0, 48)}`);

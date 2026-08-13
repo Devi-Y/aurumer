@@ -4,6 +4,7 @@
 const { allItems, shortCompanyName } = require("./answers");
 const { scoreForItem } = require("./strategy-score");
 const { playbookTickerLines } = require("./master-playbooks");
+const { buildHomeDigest } = require("./daily-answers");
 
 function hasNumber(value) {
   return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
@@ -18,14 +19,15 @@ function bestByScore(items) {
     || null;
 }
 
-function buildThesisTicker(snapshot = {}) {
-  const lines = [];
+function buildThesisTicker(snapshot = {}, holdings = []) {
+  const digest = buildHomeDigest(snapshot, { holdings });
+  const lines = [...(digest.ticker || [])];
 
   const hkLive = allItems(snapshot, "hk").filter((item) => item.group !== "ended" && item.group !== "cancelled");
   const hkLead = bestByScore(hkLive.filter((item) => item.group === "worth").length
     ? hkLive.filter((item) => item.group === "worth")
     : hkLive);
-  if (hkLead) {
+  if (hkLead && !lines.some((line) => line.market === "hk" && line.targetId === String(hkLead.id || ""))) {
     lines.push({
       id: `hk-${hkLead.id}`,
       kind: "market",
@@ -34,18 +36,9 @@ function buildThesisTicker(snapshot = {}) {
       market: "hk",
       targetId: String(hkLead.id || ""),
     });
-  } else {
-    lines.push({
-      id: "hk-empty",
-      kind: "market",
-      title: "港股打新",
-      text: "暂无可核验在售新股，保持空白不强行补位",
-      market: "hk",
-      targetId: "",
-    });
   }
 
-  const usLead = bestByScore(allItems(snapshot, "us"));
+  const usLead = bestByScore(allItems(snapshot, "us").filter((item) => item.group === "seven"));
   if (usLead) {
     lines.push({
       id: `us-${usLead.id}`,
@@ -84,22 +77,15 @@ function buildThesisTicker(snapshot = {}) {
     targetId: "track",
   });
 
-  const gurus = allItems(snapshot, "guru").slice(0, 3);
-  gurus.forEach((item) => {
-    const why = String(item.raw?.profile?.why || item.one || "").slice(0, 26);
-    lines.push({
-      id: `guru-${item.id}`,
-      kind: "guru",
-      title: shortCompanyName(item.name, "机构", 8),
-      text: why || "先学 WHY/HOW，再对照公开持仓",
-      market: "guru",
-      targetId: String(item.id || ""),
-    });
-  });
+  playbookTickerLines().slice(0, 3).forEach((item) => lines.push(item));
 
-  playbookTickerLines().slice(0, 4).forEach((item) => lines.push(item));
-
-  return lines.slice(0, 12);
+  const seen = new Set();
+  return lines.filter((line) => {
+    const key = `${line.market}-${line.targetId || line.id}-${line.title}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 12);
 }
 
 module.exports = { buildThesisTicker };

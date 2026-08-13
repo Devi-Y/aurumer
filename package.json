@@ -7,6 +7,8 @@
     "start": "python3 -m http.server 8000",
     "routes": "node scripts/write-route-adapters.mjs",
     "sync:mini": "node scripts/sync-miniprogram-data.mjs",
+    "build:digest": "node scripts/build-daily-digest.mjs",
+    "fetch:sleeve": "node scripts/fetch-sleeve-quotes.mjs",
     "sync:latest": "node scripts/sync-latest-public.mjs && npm run sync:mini",
     "build:evidence": "node scripts/build-strategy-evidence.mjs",
     "check:public": "node scripts/audit-public-data.mjs",

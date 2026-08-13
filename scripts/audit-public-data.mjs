@@ -119,5 +119,30 @@ assert(!/LIVE\.hasUS=Boolean\(US_STOCKS|LIVE\.hasAShare=Boolean\(A_SHARES|LIVE\.
 assert(indexHtml.includes("function investorRankInfo"), "聪明人持仓缺少分数排名");
 assert(indexHtml.includes("function aShareCashFlowFacts"), "A股详情缺少自由现金流事实");
 assert(indexHtml.includes("function renderLoadingApp"), "缺少首页加载状态");
+assert(dashboardJs.includes("data/daily-digest.json"), "每日驾驶舱应读取今日答案摘要，而不是随机挑一只股票");
+assert(indexHtml.includes("data/daily-digest.json") && indexHtml.includes("function dailyAnswerBoard"), "完整工具栏目页应接入今日答案摘要");
+
+const digest = JSON.parse(await readFile(resolve(root, "data/daily-digest.json"), "utf8"));
+assert(digest.updatedAt === snapshot.updatedAt, "今日答案摘要与公开快照 updatedAt 不一致");
+assert(["hk", "us", "a", "gold", "guru"].every((market) => Array.isArray(digest.markets?.[market]) && digest.markets[market].length >= 3), "今日答案摘要五个栏目不完整");
+assert(digest.markets.hk.some((card) => card.question === "哪些值得打"), "今日答案摘要缺少港股值得打");
+assert(digest.markets.us.some((card) => card.question === "低估的七姐妹"), "今日答案摘要缺少低估七姐妹");
+assert(digest.markets.a.some((card) => card.question === "什么价可加大"), "今日答案摘要缺少A股加大观察价");
+assert(digest.markets.gold.some((card) => card.question === "人民币金卖出观察"), "今日答案摘要缺少人民币金卖出观察");
+assert(digest.markets.guru.some((card) => card.question === "应该避免什么"), "今日答案摘要缺少机构边界");
+assert(!/strategyAssessment|modelEstimate|breakProbability/.test(JSON.stringify(digest)), "今日答案摘要泄露内部字段");
+
+try {
+  const sleeveQuotes = JSON.parse(await readFile(resolve(root, "data/sleeve-quotes.json"), "utf8"));
+  for (const symbol of ["VOO", "JEPQ", "SCHD", "O", "SGOV"]) {
+    const row = (sleeveQuotes.quotes || []).find((item) => item.symbol === symbol);
+    if (!row) continue;
+    assert(Number.isFinite(Number(row.price)) && row.source === "Yahoo Finance", `底仓 ETF ${symbol} 缺少可核验 Yahoo 报价`);
+  }
+} catch (error) {
+  if (error && error.code !== "ENOENT" && !String(error.message || "").includes("ENOENT")) {
+    throw error;
+  }
+}
 
 console.log("公开数据与页面边界检查通过");

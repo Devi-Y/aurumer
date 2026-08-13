@@ -1,9 +1,7 @@
 const { loadSnapshot } = require("../../data/store");
 const { track, trackHomeVisit } = require("../../utils/analytics");
 const { openPage } = require("../../utils/nav");
-const { shortCompanyName, allItems } = require("../../utils/answers");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
-const { scoreForItem } = require("../../utils/strategy-score");
 const { loadWorkspace } = require("../../services/member");
 const { homeMemberSummary } = require("../../utils/change-center");
 const { listHoldings, upsertHolding, removeHolding } = require("../../utils/local-holdings");
@@ -11,6 +9,7 @@ const { viewHoldings, holdingsReminder } = require("../../utils/holding-observe"
 const { buildThesisTicker } = require("../../utils/thesis-ticker");
 const { findPlaybook } = require("../../utils/master-playbooks");
 const { buildDailyCard } = require("../../utils/daily-card");
+const { buildHomeDigest } = require("../../utils/daily-answers");
 
 const CORE_ENTRIES = [
   {
@@ -18,7 +17,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/hk.svg",
     title: "港股打新",
-    help: "值不值得打·中签",
+    help: "上新·值不值得·卖点",
     detail: "申购结论",
     tone: "hk",
   },
@@ -27,7 +26,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/us.svg",
     title: "美股投资",
-    help: "价格与财报对照",
+    help: "七姐妹·底仓配置",
     detail: "公开资料",
     tone: "us",
   },
@@ -36,7 +35,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/a.svg",
     title: "A股收息",
-    help: "股息与现金流",
+    help: "底仓·周期·价位",
     detail: "股息清单",
     tone: "a",
   },
@@ -45,7 +44,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/gold.svg",
     title: "黄金追踪",
-    help: "价格位置观察",
+    help: "人民币金·美元金",
     detail: "买卖观察区",
     tone: "gold",
   },
@@ -64,7 +63,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/guru.svg",
     title: "机构持仓",
-    help: "学思路对照仓",
+    help: "持仓·思路·边界",
     detail: "港3 · 美5 · A3",
     tone: "guru",
   },
@@ -77,96 +76,16 @@ const MARKET_OPTIONS = [
   { id: "gold", label: "黄金" },
 ];
 
-function hasNumber(value) {
-  return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
-}
-
-function bestByScore(items) {
-  return [...items]
-    .map((item) => ({ item, scored: scoreForItem(item) }))
-    .filter((entry) => entry.scored.score != null)
-    .sort((left, right) => Number(right.scored.score) - Number(left.scored.score))[0]?.item
-    || items[0]
-    || null;
-}
-
-function buildToday(data) {
-  // 今日重点按研究观察分排序，仅作资料对照，不是收益预测。
-  const hkLive = allItems(data, "hk").filter((item) => (
-    item.group !== "ended" && item.group !== "cancelled"
-  ));
-  const hkPrefer = hkLive.filter((item) => item.group === "worth");
-  const hkLead = bestByScore(hkPrefer.length ? hkPrefer : hkLive);
-
-  const usItems = allItems(data, "us");
-  const usLead = bestByScore(usItems);
-
-  const aItems = allItems(data, "a");
-  const aLead = bestByScore(aItems);
-
-  const gold = data.gold || {};
-  const internationalGold = gold.quotes?.international || {};
-  const goldPrice = hasNumber(internationalGold.price)
-    ? Math.round(Number(internationalGold.price))
-    : null;
-
-  const hkId = hkLead
-    ? String(hkLead.id || hkLead.code || "").replace(/\.HK$/i, "")
-    : "";
-  const hkName = hkLead
-    ? shortCompanyName(hkLead.name, "新股", 4)
-    : "暂无";
-  const usId = usLead ? String(usLead.code || usLead.id || "") : "";
-  const aId = aLead
-    ? String(aLead.id || aLead.code || "").replace(/\.(SH|SZ)$/i, "")
-    : "";
-  const aName = aLead
-    ? shortCompanyName(aLead.name, "收息", 4)
-    : "待更新";
-
+function buildToday(data, holdings = []) {
+  const digest = buildHomeDigest(data, { holdings });
   return {
-    points: [
-      {
-        id: "hk",
-        label: "港股",
-        value: hkName,
-        targetId: hkId,
-        hasTarget: Boolean(hkId),
-        ariaCategory: "打开港股打新栏目",
-        ariaTarget: hkId ? `打开港股标的 ${hkName}` : "港股暂无标的",
-      },
-      {
-        id: "us",
-        label: "美股",
-        value: usId || "—",
-        targetId: usId,
-        hasTarget: Boolean(usId),
-        ariaCategory: "打开美股投资栏目",
-        ariaTarget: usId ? `打开美股标的 ${usId}` : "美股暂无标的",
-      },
-      {
-        id: "a",
-        label: "A股",
-        value: aName,
-        targetId: aId,
-        hasTarget: Boolean(aId),
-        ariaCategory: "打开A股收息栏目",
-        ariaTarget: aId ? `打开A股标的 ${aName}` : "A股暂无标的",
-      },
-      {
-        id: "gold",
-        label: "黄金",
-        value: goldPrice != null ? String(goldPrice) : "—",
-        targetId: "track",
-        hasTarget: true,
-        ariaCategory: "打开黄金追踪栏目",
-        ariaTarget: goldPrice != null ? `打开黄金观察 ${goldPrice}` : "打开黄金追踪",
-      },
-    ],
+    points: digest.points,
+    cardLines: digest.cardLines,
+    help: digest.help,
   };
 }
 
-const TODAY_HELP_FRESH = "今天重点关注标的";
+const TODAY_HELP_FRESH = "先看结论再进栏目";
 const EMPTY_HOLDING_FORM = { name: "", code: "", cost: "", quantity: "", market: "us" };
 
 Page({
@@ -226,6 +145,7 @@ Page({
       holdingsReminder: reminder,
       dailyCardPreview: buildDailyCard({
         points,
+        extraLines: this.data.today?.cardLines || [],
         asOf: this.data.dataAsOf,
         holdingsReminder: reminder,
       }),
@@ -237,13 +157,14 @@ Page({
         const kind = meta.kind || "aging";
         const asOf = this.formatAsOf(data.updatedAt, kind);
         this._snapshot = data;
-        const thesisLines = buildThesisTicker(data);
-        const today = buildToday(data);
+        const holdings = listHoldings();
+        const thesisLines = buildThesisTicker(data, holdings);
+        const today = buildToday(data, holdings);
         this.setData({
           today,
           dataAsOf: asOf,
           freshnessKind: kind,
-          todayHelp: TODAY_HELP_FRESH,
+          todayHelp: today.help || TODAY_HELP_FRESH,
           thesisLines,
           thesisIndex: 0,
         });
@@ -300,7 +221,22 @@ Page({
     const line = (this.data.thesisLines || [])[this.data.thesisIndex || 0];
     if (!line) return;
     track("detail_open", { market: String(line.market || ""), from: "thesis_ticker" });
-    if (line.kind === "playbook") {
+    if (line.kind === "playbook" || (line.kind === "answer" && line.modal)) {
+      if (line.kind === "answer" && line.modal) {
+        wx.showModal({
+          title: line.title,
+          content: line.modal,
+          showCancel: Boolean(line.market),
+          cancelText: "关闭",
+          confirmText: "打开栏目",
+          success: (result) => {
+            if (result.confirm && line.market) {
+              wx.navigateTo({ url: `/pages/section/index?market=${line.market}` });
+            }
+          },
+        });
+        return;
+      }
       const book = findPlaybook(line.targetId || line.id);
       if (!book) {
         wx.navigateTo({ url: "/pages/section/index?market=guru" });
@@ -437,6 +373,7 @@ Page({
     const text = this.data.dailyCardPreview
       || buildDailyCard({
         points: this.data.today?.points || [],
+        extraLines: this.data.today?.cardLines || [],
         asOf: this.data.dataAsOf,
         holdingsReminder: this.data.holdingsReminder,
       });

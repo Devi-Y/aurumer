@@ -6,40 +6,42 @@ const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { MASTER_PLAYBOOKS } = require("../../utils/master-playbooks");
-const { buildHkHistoryStats, buildHkIndustryStats, buildHkSponsorStats } = require("../../utils/hk-history-stats");
+const { buildHkHistoryStats } = require("../../utils/hk-history-stats");
+const { buildDailyAnswers } = require("../../utils/daily-answers");
+const { listHoldings } = require("../../utils/local-holdings");
 
 const META = {
   hk: {
     title: "港股打新",
-    one: "申购结论与中签",
+    one: "上新、值不值得打、打中后观察卖点",
     tone: "hk",
     icon: "/assets/home/hk.svg",
     kicker: "新股申购",
   },
   us: {
     title: "美股投资",
-    one: "价格与财报",
+    one: "七姐妹分档与底仓配置",
     tone: "us",
     icon: "/assets/home/us.svg",
     kicker: "全球公司",
   },
   a: {
     title: "A股收息",
-    one: "股息与现金流",
+    one: "底仓、周期与加减观察价",
     tone: "a",
     icon: "/assets/home/a.svg",
     kicker: "分红清单",
   },
   gold: {
     title: "黄金追踪",
-    one: "价格位置",
+    one: "人民币金与美元金持有/卖出观察",
     tone: "gold",
     icon: "/assets/home/gold.svg",
     kicker: "买卖观察",
   },
   guru: {
     title: "机构持仓",
-    one: "对照公开持仓",
+    one: "持仓、思路、借鉴与边界",
     tone: "guru",
     icon: "/assets/home/guru.svg",
     kicker: "学习与对照",
@@ -261,6 +263,7 @@ Page({
     freshness: freshnessBanner("正在读取同步数据", "fresh"),
     disclaimer: RESEARCH_DISCLAIMER,
     playbooks: [],
+    answers: [],
     deepLinks: [],
   },
   onLoad(options) {
@@ -329,7 +332,7 @@ Page({
   refresh(done, force = false) {
     loadSnapshot((snapshot, source, meta = {}) => {
       const groups = groupDefinitions(snapshot, this.data.market)
-        .filter((item) => item.count > 0)
+        .filter((item) => item.count > 0 && item.catalog !== false)
         .map((item, index) => ({
           ...item,
           indexLabel: String(index + 1).padStart(2, "0"),
@@ -337,6 +340,7 @@ Page({
       this.setData({
         groups,
         overview: buildOverview(snapshot, this.data.market),
+        answers: buildDailyAnswers(snapshot, this.data.market, { holdings: listHoldings() }),
         deepLinks: this.buildDeepLinks(snapshot, this.data.market),
         source,
         freshness: freshnessBanner(source, meta.kind),
@@ -422,6 +426,38 @@ Page({
       return;
     }
     this.openGroupById(group, "section_deep");
+  },
+  openAnswer(event) {
+    const id = event.currentTarget.dataset.id;
+    const item = (this.data.answers || []).find((row) => row.id === id);
+    if (!item) return;
+    track("section_answer", { market: this.data.market, id: String(id) });
+    if (item.modal) {
+      wx.showModal({
+        title: item.question,
+        content: item.modal,
+        showCancel: item.action === "detail" || item.action === "group",
+        cancelText: "关闭",
+        confirmText: item.action === "detail" || item.action === "group" ? "查看" : "知道了",
+        success: (result) => {
+          if (!result.confirm || item.action === "none") return;
+          if (item.action === "detail" && item.targetId) this.openDetail(item.targetId, "section_answer");
+          else if (item.action === "group" && item.group) this.openGroupById(item.group, "section_answer");
+        },
+      });
+      return;
+    }
+    if (!item.enabled) {
+      wx.showToast({ title: item.answer || "这一项暂时没有内容", icon: "none" });
+      return;
+    }
+    if (item.action === "detail" && item.targetId) {
+      this.openDetail(item.targetId, "section_answer");
+      return;
+    }
+    if (item.action === "group" && item.group) {
+      this.openGroupById(item.group, "section_answer");
+    }
   },
   goBack() {
     wx.navigateBack({ fail: () => goHome() });

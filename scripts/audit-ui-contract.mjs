@@ -97,6 +97,10 @@ assert(aShareGroupIdBody.includes("aShareObservationBand"), "A股详情返回分
 assert(dailyHtml.includes("今日结论"), "每日驾驶舱缺少今日结论");
 assert(dailyHtml.includes("我的持仓"), "每日驾驶舱缺少本地持仓入口");
 assert(dailyHtml.includes("assets/dashboard.js"), "每日驾驶舱缺少交互脚本");
+assert(dailyHtml.includes("五个投资入口"), "每日驾驶舱入口应覆盖港股、美股、A股、黄金与机构");
+assert(dailyHtml.includes("id=\"gold-channel-copy\""), "每日驾驶舱缺少黄金入口");
+assert(html.includes("function dailyAnswerBoard") && html.includes("今日答案"), "网页栏目页应展示今日答案");
+assert(html.includes("data/daily-digest.json"), "网页应读取与小程序同一套今日答案摘要");
 
 for (const forbidden of ["策略权重", "模型公式", "评分公式", "保证赚钱", "必然上涨"]) {
   assert(!html.includes(forbidden), `公开页面出现不应展示的内容：${forbidden}`);

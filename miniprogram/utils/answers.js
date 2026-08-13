@@ -1,8 +1,15 @@
 const { guruOverlapItems } = require("./guru-overlap");
 const { SMART_MONEY_PROFILES } = require("./smart-money");
 const { usScore } = require("./strategy-score");
-
-const MAGNIFICENT_SEVEN = ["NVDA", "MSFT", "AAPL", "GOOGL", "AMZN", "META", "TSLA"];
+const {
+  MAGNIFICENT_SEVEN,
+  mag7Context,
+  mag7Lenses,
+  hkLeverageEligible,
+  aShareLenses,
+  industryWatchEligible,
+  matchesGroup,
+} = require("./market-lenses");
 
 // 前台只保留 10 个收息研究样本：用户指定的 5 只股票 + 1 只 ETF，另 4 只由当前快照自动筛选。
 const A_SHARE_FIXED_ORDER = [
@@ -138,6 +145,9 @@ function hkExtractionNote(item) {
 }
 
 function hkActionFromItem(item) {
+  if (item.withdrawn || item.researchView?.state === "withdrawn") {
+    return { group: "cancelled", badge: "发行已取消", tone: "ended", action: "这次发行取消了，不用再申购。", score: null };
+  }
   const answer = item.publicAnswer || {};
   const mapped = HK_VERDICT_MAP[answer.verdict];
   if (mapped) {
@@ -146,9 +156,6 @@ function hkActionFromItem(item) {
       action: answer.action || mapped.badge,
       score: Number.isFinite(Number(answer.score)) ? Number(answer.score) : null,
     };
-  }
-  if (item.withdrawn || item.researchView?.state === "withdrawn") {
-    return { group: "cancelled", badge: "发行已取消", tone: "ended", action: "这次发行取消了，不用再申购。", score: null };
   }
   const state = item.researchView?.state;
   if (state === "complete") {
@@ -185,8 +192,12 @@ function hkItems(snapshot) {
       extractionNote,
       one: extractionNote
         || [action.badge, ...offerBits].filter(Boolean).join(" · "),
+      lenses: [],
       raw: item,
     };
+  });
+  current.forEach((item) => {
+    if (hkLeverageEligible(item)) item.lenses = ["leverage"];
   });
   const ended = (snapshot.hk && snapshot.hk.history ? snapshot.hk.history : []).map((item) => {
     const outcome = hkOutcome(item);
@@ -246,6 +257,10 @@ function usItems(snapshot) {
     };
   };  const bySymbol = new Map(stocks.map((item) => [item.symbol, item]));
   const seven = MAGNIFICENT_SEVEN.map((symbol) => bySymbol.get(symbol)).filter(Boolean).map((item) => make(item, "seven", "七姐妹"));
+  const mag7 = mag7Context(seven);
+  seven.forEach((item) => {
+    item.lenses = mag7Lenses(item, mag7);
+  });
   const nonSeven = stocks
     .filter((item) => !MAGNIFICENT_SEVEN.includes(item.symbol))
     .sort((left, right) => number(right.heatScore) - number(left.heatScore));
@@ -292,7 +307,29 @@ function usItems(snapshot) {
       ].filter(Boolean).join(" · ");
       return row;
     });
-  return [...seven, ...hot, ...hot10, ...value];
+  const industry = stocks
+    .filter((item) => !MAGNIFICENT_SEVEN.includes(item.symbol))
+    .map((item) => make(item, "industry", "行业观察"))
+    .filter((item) => industryWatchEligible(item))
+    .map((item) => ({ item, score: usScore(item).score }))
+    .filter((entry) => entry.score != null)
+    .sort((left, right) => Number(right.score) - Number(left.score))
+    .slice(0, 5)
+    .map((entry, index) => {
+      const row = entry.item;
+      row.rank = index + 1;
+      row.score = entry.score;
+      row.badge = `行业 ${entry.score}`;
+      row.rankText = `行业观察第 ${index + 1}`;
+      row.one = [
+        `${entry.score} 分`,
+        signedPercent(row.raw.changePercent) || null,
+        Number.isFinite(Number(row.raw.price)) ? money(row.raw.price) : null,
+        "行业观察，非买入信号",
+      ].filter(Boolean).join(" · ");
+      return row;
+    });
+  return [...seven, ...hot, ...hot10, ...value, ...industry];
 }
 
 function smartMoneyItems(snapshot) {
@@ -375,9 +412,10 @@ function goldItems(snapshot) {
       "买点与卖点",
       "价格观察",
       [
-        buyIntl ? `观察低位 ${buyIntl}` : null,
-        sellIntl ? `观察上沿 ${sellIntl}` : null,
-        riskIntl ? `风险下沿 ${riskIntl}` : null,
+        buyIntl ? `美元金持有 ${buyIntl}` : null,
+        sellIntl ? `美元金卖出 ${sellIntl}` : null,
+        buyCny ? `人民币金持有 ${buyCny}` : null,
+        sellCny ? `人民币金卖出 ${sellCny}` : null,
       ].filter(Boolean).join(" · ") || quoteLine,
     ],
   ];
@@ -513,7 +551,7 @@ function aShareItems(snapshot) {
     const sustainText = hasSustain ? `可持续 ${yieldSustain.toFixed(1)}%` : null;
     const scoreText = score != null ? `观察分 ${score}` : null;
 
-    return {
+    const row = {
       id: String(item.code).replace(/\.(SH|SZ)$/i, ""),
       market: "a",
       group,
@@ -527,6 +565,8 @@ function aShareItems(snapshot) {
       one: [yieldText, sustainText, scoreText].filter(Boolean).join(" · "),
       raw,
     };
+    row.lenses = aShareLenses(row);
+    return row;
   };
 
   const makeFundItem = (source = {}) => {
@@ -561,6 +601,7 @@ function aShareItems(snapshot) {
       scoreText: "红利ETF",
       rankText: "指数化收息",
       one: `${priceText} · 指数化收息 · 分红看公告`,
+      lenses: ["core"],
       raw,
     };
   };
@@ -607,6 +648,7 @@ function groupDefinitions(snapshot, market) {
       ["worth", "建议申购", "先核一手与风险"],
       ["caution", "暂缓观察", "先看热度"],
       ["avoid", "暂不建议", "风险偏多"],
+      ["leverage", "高杠杆观察", "建议申购且拥挤度不高，默认仍是一手", false],
       ["cancelled", "发行已取消", "无法申购"],
       ["ended", "已结束", "历史样本对照：暗盘·首日·五日"],
       // 旧完整度字面保留给审计兼容，count 为 0。
@@ -617,15 +659,23 @@ function groupDefinitions(snapshot, market) {
   } else if (market === "us") {
     definitions = [
       ["seven", "七姐妹", "长期关注七巨头"],
+      ["cheap7", "低估七姐妹", "质量过关且估值相对不贵", false],
+      ["risk7", "风险七姐妹", "估值/位置/质量冲突", false],
+      ["hold7", "长期观察", "质量门通过，可作长期样本", false],
       ["hot", "热度前三", "近期热度最高"],
       ["hot10", "热度前十", "公开热度横向比较，热度≠买入信号"],
       ["value", "性价比观察", "质量·估值·热度综合排序，非收益承诺"],
+      ["industry", "行业观察", "非七姐妹里质量与分数同时过关"],
     ];
   } else if (market === "a") {
     definitions = [
       ["prime", "优等收息", "股息可持续+现金支撑"],
       ["steady", "稳健收息", "综合观察分中等"],
       ["watch", "高息待核", "高息但现金/可持续偏弱"],
+      ["core", "底仓长期", "水电/银行/通信等现金流角色", false],
+      ["cycle", "周期短持", "煤炭/油气/钢铁等景气角色", false],
+      ["add", "加大观察", "股息回推价已到加大区", false],
+      ["trim", "兑现观察", "股息被价格压缩后的兑现区", false],
       // 保留旧组名字符串供审计/兼容路由，count 恒为 0，前端会显示暂无。
       ["payout", "收息清单", "已拆为优等/稳健/待核"],
       ["complete", "资料较完整", "后端完整度分组，已并入收息清单。"],
@@ -649,7 +699,13 @@ function groupDefinitions(snapshot, market) {
       ["overlap", "交叉重叠", "多机构共同持有，研究对照非推荐"],
     ];
   }
-  return definitions.map(([id, title, one]) => ({ id, title, one, count: items.filter((item) => item.group === id).length }));
+  return definitions.map(([id, title, one, catalog]) => ({
+    id,
+    title,
+    one,
+    catalog: catalog !== false,
+    count: items.filter((item) => matchesGroup(item, id)).length,
+  }));
 }
 
 function findItem(snapshot, market, id) {
@@ -686,6 +742,7 @@ module.exports = {
   allItems,
   findItem,
   groupDefinitions,
+  matchesGroup,
   money,
   formatRange,
   shortCompanyName,

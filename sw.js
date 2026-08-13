@@ -1,4 +1,4 @@
-const CACHE_NAME = "aurum-shell-v8";
+const CACHE_NAME = "aurum-shell-v9";
 const BASE = new URL(self.registration.scope).pathname;
 const SHELL = [
   BASE,
@@ -33,7 +33,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || !url.pathname.startsWith(BASE)) return;
 
-  if (url.pathname.endsWith("/data/live-snapshot.json")) {
+  if (url.pathname.endsWith("/data/live-snapshot.json") || url.pathname.endsWith("/data/daily-digest.json")) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {

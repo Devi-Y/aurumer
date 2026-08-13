@@ -100,11 +100,25 @@ assert(snapshot.investors.length >= 8, "小程序聪明人持仓不足 8 位");
 const sectionSource = await readFile(path.join(miniRoot, "utils", "answers.js"), "utf8");
 const smartMoneySource = await readFile(path.join(miniRoot, "utils", "smart-money.js"), "utf8");
 const strategyScoreSource = await readFile(path.join(miniRoot, "utils", "strategy-score.js"), "utf8");
+const strategySignalsSource = await readFile(path.join(miniRoot, "utils", "strategy-signals.js"), "utf8");
+const marketLensesSource = await readFile(path.join(miniRoot, "utils", "market-lenses.js"), "utf8");
 const guruOverlapSource = await readFile(path.join(miniRoot, "utils", "guru-overlap.js"), "utf8");
 const smartMoneyModule = { exports: {} };
 vm.runInNewContext(smartMoneySource, { module: smartMoneyModule, exports: smartMoneyModule.exports });
 const strategyScoreModule = { exports: {} };
 vm.runInNewContext(strategyScoreSource, { module: strategyScoreModule, exports: strategyScoreModule.exports });
+const strategySignalsModule = { exports: {} };
+vm.runInNewContext(strategySignalsSource, { module: strategySignalsModule, exports: strategySignalsModule.exports });
+const marketLensesModule = { exports: {} };
+vm.runInNewContext(marketLensesSource, {
+  module: marketLensesModule,
+  exports: marketLensesModule.exports,
+  require(request) {
+    if (request === "./strategy-score") return strategyScoreModule.exports;
+    if (request === "./strategy-signals") return strategySignalsModule.exports;
+    throw new Error(`分档透镜出现未知依赖：${request}`);
+  },
+});
 const guruOverlapModule = { exports: {} };
 vm.runInNewContext(guruOverlapSource, {
   module: guruOverlapModule,
@@ -122,6 +136,7 @@ vm.runInNewContext(sectionSource, {
     if (request === "./smart-money") return smartMoneyModule.exports;
     if (request === "./strategy-score") return strategyScoreModule.exports;
     if (request === "./guru-overlap") return guruOverlapModule.exports;
+    if (request === "./market-lenses") return marketLensesModule.exports;
     throw new Error(`小程序答案模块出现未知依赖：${request}`);
   },
 });
@@ -377,7 +392,7 @@ assert(
   "今日重点应支持点击跳转标的详情，无标的时回退品类",
 );
 assert(!indexSource.includes("pages/workspace/index"), "首页不应再挂研究记录入口");
-for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "七姐妹", "热度前三", "热度前十", "性价比观察", "交叉重叠", "收息清单", "优等收息", "稳健收息", "高息待核", "现在怎么做", "买点与卖点", "资料较完整", "重点核验", "资料不足", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "公开长期年化排序"]) {
+for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "高杠杆观察", "七姐妹", "低估七姐妹", "风险七姐妹", "长期观察", "热度前三", "热度前十", "性价比观察", "行业观察", "交叉重叠", "收息清单", "优等收息", "稳健收息", "高息待核", "底仓长期", "周期短持", "加大观察", "兑现观察", "现在怎么做", "买点与卖点", "资料较完整", "重点核验", "资料不足", "现金流待核验", "资料待补充", "资料结论", "价格位置", "驱动与风险", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "公开长期年化排序"]) {
   assert(sectionSource.includes(label), `小程序缺少二级入口：${label}`);
 }
 assert(
@@ -391,6 +406,37 @@ assert(
     && (pageTemplatesByPath.get("pages/section/index") || "").includes("deepLinks"),
   "栏目页应提供历史样本 / 热度前十 / 性价比深度入口",
 );
+assert(
+  (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes("buildDailyAnswers")
+    && (pageTemplatesByPath.get("pages/section/index") || "").includes("answer-panel")
+    && (pageTemplatesByPath.get("pages/section/index") || "").includes("今日答案"),
+  "栏目页应直接回答今日答案问题",
+);
+assert(
+  indexSource.includes("buildHomeDigest")
+    && (await readFile(path.join(miniRoot, "utils", "daily-card.js"), "utf8")).includes("extraLines")
+    && (await readFile(path.join(miniRoot, "utils", "thesis-ticker.js"), "utf8")).includes("buildHomeDigest"),
+  "首页今日重点、群卡片和思路条应接入栏目今日答案",
+);
+assert(await access(path.join(miniRoot, "utils", "daily-answers.js")).then(() => true).catch(() => false), "缺少今日答案模块");
+assert(await access(path.join(miniRoot, "utils", "market-lenses.js")).then(() => true).catch(() => false), "缺少分档透镜模块");
+assert(marketLensesSource.includes("hkHistoricalCrowdEligible"), "十倍融资应能回看历史拥挤度对照样本");
+const dailyAnswerSource = await readFile(path.join(miniRoot, "utils", "daily-answers.js"), "utf8");
+assert(dailyAnswerSource.includes("sleevePrice") && dailyAnswerSource.includes("sleeveQuotes"), "美股底仓配置应读取已核验 ETF 报价");
+for (const question of [
+  "近期上新", "哪些值得打", "哪些要避雷", "十倍融资观察", "打中后暗盘", "打中后首日", "打中后首周",
+  "低估的七姐妹", "风险升高要减", "可长期观察", "行业公司观察", "底仓如何配置",
+  "底仓长期持有", "周期短持", "什么价可加大", "什么价可兑现",
+  "美元金可持有", "美元金卖出观察", "人民币金可持有", "人民币金卖出观察",
+  "业绩靠前持仓", "他们怎么想", "我们如何借鉴", "应该避免什么",
+]) {
+  assert(dailyAnswerSource.includes(question), `今日答案缺少问题：${question}`);
+}
+assert(miniUsItems.filter((item) => item.group === "industry").length >= 1, "美股行业观察榜不能为空");
+assert(miniAShareItems.some((item) => (item.lenses || []).includes("core")), "A 股收息样本应能分出底仓角色");
+assert(detailSource.includes("加大观察价") && detailSource.includes("兑现观察价"), "A 股详情应展示加大/兑现观察价");
+assert(detailSource.includes("美元金") && detailSource.includes("人民币金"), "黄金详情应分美元金与人民币金");
+assert(detailSource.includes("应该避免"), "机构详情应说明应该避免什么");
 assert(
   detailSource.includes("公开事实")
     && detailSource.includes("跟随边界")

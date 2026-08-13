@@ -8,6 +8,7 @@
 .section-hero,
 .insight-panel,
 .group-panel,
+.answer-panel,
 .deep-panel,
 .playbook-panel,
 .freshness-banner {
@@ -165,6 +166,82 @@
 .deep-panel {
   margin-top: 14rpx;
 }
+
+.answer-panel {
+  margin-top: 14rpx;
+}
+
+.answer-head {
+  display: flex;
+  min-height: 76rpx;
+  padding: 0 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.answer-title {
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.answer-meta {
+  color: #8a918c;
+  font-size: 22rpx;
+}
+
+.answer-row {
+  display: flex;
+  min-height: 118rpx;
+  padding: 18rpx 24rpx;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.answer-row + .answer-row {
+  border-top: 1rpx solid #edf0ee;
+}
+
+.answer-row.is-empty {
+  opacity: 0.55;
+}
+
+.answer-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.answer-q,
+.answer-a,
+.answer-names {
+  display: block;
+}
+
+.answer-q {
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 720;
+}
+
+.answer-a {
+  margin-top: 6rpx;
+  color: #3a433d;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.answer-names {
+  margin-top: 4rpx;
+  color: #66706a;
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.answer-row.tone-good .answer-q { color: #0b7a53; }
+.answer-row.tone-bad .answer-q { color: #a33b2b; }
+.answer-row.tone-warn .answer-q { color: #8b5b20; }
 
 .deep-row {
   display: flex;
@@ -438,5 +515,6 @@
   .section-shell { padding-right: 32px; padding-left: 32px; }
   .section-hero,
   .insight-panel,
+  .answer-panel,
   .group-panel { border-radius: 20px; }
 }

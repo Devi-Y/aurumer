@@ -1,13 +1,13 @@
 const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { allItems, groupDefinitions, shortCompanyName } = require("../../utils/answers");
+const { allItems, groupDefinitions, shortCompanyName, matchesGroup } = require("../../utils/answers");
 const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
-const { buildHkHistoryStats } = require("../../utils/hk-history-stats");
+const { buildHkHistoryStats, buildHkIndustryStats, buildHkSponsorStats } = require("../../utils/hk-history-stats");
 
 const MARKET_META = {
   hk: { label: "港股打新", icon: "/assets/home/hk.svg", tone: "hk" },
@@ -133,7 +133,7 @@ Page({
       const definitions = groupDefinitions(snapshot, this.data.market).filter((item) => item.count > 0);
       const group = definitions.find((item) => item.id === this.data.group) || definitions[0];
       const activeGroup = group ? group.id : this.data.group;
-      const rawItems = allItems(snapshot, this.data.market).filter((item) => item.group === activeGroup);
+      const rawItems = allItems(snapshot, this.data.market).filter((item) => matchesGroup(item, activeGroup));
       const comparable = rawItems.map((item) => comparisonMetric(item, this.data.market));
       const maxValue = barScaleMax(comparable);
       const items = rawItems.map((item, index) => {
@@ -199,6 +199,60 @@ Page({
           title: "交叉重叠研究工具",
           body: "统计 11 个可核验机构组合中共同出现的标的；重叠只表示公开披露一致，不是买入推荐。",
           note: "报告期存在滞后，不构成实时交易信号。",
+        };
+      } else if (activeGroup === "cheap7") {
+        statsBanner = {
+          title: "低估七姐妹",
+          body: "质量门通过，且市盈率不高于七姐妹中位、近60日位置未过热。",
+          note: "相对不便宜不等于低估到该买；研究观察，不是买入信号。",
+        };
+      } else if (activeGroup === "risk7") {
+        statsBanner = {
+          title: "风险七姐妹",
+          body: "估值过高、近60日位置过热，或盈利质量与价格冲突。",
+          note: "风险升高是观察分档，不是自动卖出指令。",
+        };
+      } else if (activeGroup === "hold7") {
+        statsBanner = {
+          title: "长期观察七姐妹",
+          body: "营收、利润率、股东回报或经营现金流等质量门通过，且未触发重大风险分档。",
+          note: "可作长期样本，不等于现在加仓。",
+        };
+      } else if (activeGroup === "industry") {
+        statsBanner = {
+          title: "行业公司观察",
+          body: "从非七姐妹样本里筛质量与研究观察分同时过关的公司。",
+          note: "行业观察榜不是买入清单。",
+        };
+      } else if (activeGroup === "core") {
+        statsBanner = {
+          title: "底仓长期",
+          body: "水电、银行、通信、家电、红利ETF 等现金流角色，适合作为收息底仓样本。",
+          note: "角色分类来自行业与质量，不是保证分红。",
+        };
+      } else if (activeGroup === "cycle") {
+        statsBanner = {
+          title: "周期短持",
+          body: "煤炭、油气、钢铁、建材、火电等景气敏感样本，只作短持观察。",
+          note: "高息往往来自商品价格，股息可能随景气消失。",
+        };
+      } else if (activeGroup === "add") {
+        statsBanner = {
+          title: "加大观察",
+          body: "按当前每股分红回推到更高股息率后的价格区；现价已进入该区才出现在本列表。",
+          note: "观察价不是保证买点。",
+        };
+      } else if (activeGroup === "trim") {
+        statsBanner = {
+          title: "兑现观察",
+          body: "价格上涨把股息率压到可持续股息之下时，进入兑现观察。",
+          note: "观察价不是自动卖出指令。",
+        };
+      } else if (activeGroup === "leverage") {
+        statsBanner = {
+          title: "高杠杆观察",
+          body: "仅建议申购、研究分≥80、认购拥挤度不高且一手资料齐全时出现。",
+          note: "默认仍是一手；十倍融资会放大破发亏损，不是指令。",
         };
       }
       this.setData({

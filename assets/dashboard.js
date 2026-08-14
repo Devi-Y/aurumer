@@ -23,6 +23,30 @@ function formatDateTime(value) {
   return new Intl.DateTimeFormat('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(date);
 }
 
+function renderFreshness(data) {
+  const box = $('#freshness-state');
+  if (!box) return;
+  const timestamp = Date.parse(data?.updatedAt || '');
+  if (!Number.isFinite(timestamp)) {
+    box.className = 'freshness-state stale';
+    box.textContent = '更新时间待核验';
+    return;
+  }
+  const ageMinutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
+  const partial = data?.status === 'partial';
+  const stale = partial || ageMinutes > 90;
+  box.className = `freshness-state ${stale ? 'stale' : 'fresh'}`;
+  if (partial) {
+    box.textContent = `部分来源失败 · 约 ${ageMinutes} 分钟前`;
+  } else if (ageMinutes > 90) {
+    box.textContent = `更新延迟 · 约 ${ageMinutes} 分钟前`;
+  } else if (ageMinutes < 1) {
+    box.textContent = '自动抓取 · 刚刚';
+  } else {
+    box.textContent = `自动抓取 · 约 ${ageMinutes} 分钟前`;
+  }
+}
+
 function formatNumber(value, digits = 2) {
   return Number.isFinite(Number(value)) ? Number(value).toLocaleString('zh-CN', {maximumFractionDigits:digits}) : '—';
 }
@@ -166,12 +190,18 @@ function sourceText(data, fallback) {
   return data.updatedAt ? `${fallback} · ${formatDateTime(data.updatedAt)}` : fallback;
 }
 
-function conclusionCard({type, title, status, tone='wait', answer, facts, href, source}) {
+function conclusionCard({type, title, status, tone='wait', answer, facts=[], nextStep='', href, source}) {
+  const factMarkup = facts.length
+    ? `<ul class="fact-list">${facts.map(([key,value]) => `<li><span>${escapeHTML(key)}</span><b>${escapeHTML(value)}</b></li>`).join('')}</ul>`
+    : '';
+  const nextMarkup = nextStep
+    ? `<p class="strategy-next"><span>下一步</span>${escapeHTML(nextStep)}</p>`
+    : '';
   return `<article class="conclusion-card">
     <div class="conclusion-top"><span class="conclusion-type">${escapeHTML(type)}</span><span class="status-chip ${tone}">${escapeHTML(status)}</span></div>
     <h3>${escapeHTML(title)}</h3>
     <p class="answer">${escapeHTML(answer)}</p>
-    <ul class="fact-list">${facts.map(([key,value]) => `<li><span>${escapeHTML(key)}</span><b>${escapeHTML(value)}</b></li>`).join('')}</ul>
+    ${factMarkup}${nextMarkup}
     <div class="conclusion-foot"><span>${escapeHTML(source)}</span><a href="${href}">深入查看 →</a></div>
   </article>`;
 }
@@ -183,45 +213,100 @@ function digestTone(tone) {
 }
 
 const DAILY_FACT_IDS = {
-  hk: ['hk-new', 'hk-avoid', 'hk-grey', 'hk-first', 'hk-week'],
-  us: ['us-risk', 'us-industry', 'us-sleeve'],
-  a: ['a-cycle', 'a-add', 'a-trim'],
-  gold: ['gold-usd-sell', 'gold-cny-hold', 'gold-cny-sell'],
+  hk: ['hk-new', 'hk-avoid'],
+  us: ['us-cheap', 'us-risk'],
+  a: ['a-core', 'a-cycle', 'a-add', 'a-trim'],
+  gold: ['gold-usd-hold', 'gold-usd-sell', 'gold-cny-hold', 'gold-cny-sell'],
   guru: ['guru-why', 'guru-learn', 'guru-avoid'],
 };
 
-function digestMarketCard(market, type, href, source) {
+function digestItem(cards, id) {
+  return cards.find((item) => item.id === id) || null;
+}
+
+function digestValue(cards, id, includeNames=false) {
+  const item = digestItem(cards, id);
+  if (!item) return '待核验';
+  const answer = item.answer || '待核验';
+  if (!includeNames || !item.names) return answer;
+  const names = item.names.split(/[·、]/u).map((value) => value.trim()).filter(Boolean);
+  return names.every((name) => answer.includes(name)) ? answer : `${answer} · ${item.names}`;
+}
+
+function compactPriceSignal(value) {
+  return String(value || '待核验')
+    .replace(/现价[¥$]?[\d.,]+[，,]\s*/gu, '')
+    .split(' · ')[0]
+    .trim();
+}
+
+function compactGoldSignal(cards, holdId, sellId, label, prefix) {
+  const hold = digestValue(cards, holdId);
+  const sell = digestValue(cards, sellId);
+  const current = hold.match(/现价\s*([\d.,]+)/u)?.[1] || '待核验';
+  const lower = hold.match(/≤\s*([\d.,]+)/u)?.[1] || '—';
+  const upper = sell.match(/≥\s*([\d.,]+)/u)?.[1] || '—';
+  const state = hold.includes('进入') ? '持有观察' : sell.includes('进入') ? '卖出观察' : hold.includes('未到') && sell.includes('未到') ? '区间外' : '待核验';
+  return {answer:`${label} ${prefix}${current}：${state}`, threshold:`${label} ≤${lower} / ≥${upper}`};
+}
+
+function dailyStrategyCard(market, type, href, source) {
   const cards = state.digest?.markets?.[market] || [];
-  const leadId = {
-    hk: 'hk-worth',
-    us: 'us-cheap',
-    a: 'a-core',
-    gold: 'gold-usd-hold',
-    guru: 'guru-holdings',
-  }[market];
-  const lead = cards.find((item) => item.id === leadId) || cards.find((item) => item.enabled) || cards[0];
-  if (!lead) return '';
-  const selectedIds = new Set(DAILY_FACT_IDS[market] || []);
-  const factNameIds = new Set(['hk-new', 'hk-avoid']);
-  const facts = cards.filter((item) => item !== lead && selectedIds.has(item.id)).map((item) => {
-    const answer = item.answer || '—';
-    const names = item.names || '';
-    const nameParts = factNameIds.has(item.id)
-      ? names.split(/[·、]/u).map((value) => value.trim()).filter(Boolean)
-      : [];
-    const value = names && !nameParts.every((name) => answer.includes(name)) ? `${answer} · ${names}` : answer;
-    return [item.question, value];
-  });
-  return conclusionCard({
-    type,
-    title: lead.question || type,
-    status: lead.names || (lead.enabled ? '有观察结论' : '暂无'),
-    tone: digestTone(lead.tone),
-    answer: lead.answer || '没有满足资料完整性要求时，望潮不使用虚拟样本补位。',
-    facts: facts.length ? facts : [['原则', '只展示已核验公开资料']],
-    href: lead.dailyHref || href,
-    source,
-  });
+  if (!cards.length) return '';
+  // 固定证据池仍由摘要提供，但每日页只渲染一条结论和一个下一步。
+  const evidence = cards.filter((item) => DAILY_FACT_IDS[market]?.includes(item.id)).map((item) => item.id);
+  if (!evidence.length) return '';
+  let config;
+  if (market === 'hk') {
+    const worth = digestItem(cards, 'hk-worth');
+    const hasCandidate = Boolean(worth?.enabled && worth.names);
+    config = {
+      status: hasCandidate ? '可研究' : '不申购',
+      tone: hasCandidate ? digestTone(worth.tone) : 'risk',
+      title: hasCandidate ? `研究 ${worth.names}` : '当前没有合格新股',
+      answer: hasCandidate ? digestValue(cards, 'hk-worth', true) : '暂无满足完整资料要求的在售标的，不用历史样本替代。',
+      nextStep: hasCandidate ? '先核验招股价、一手股数和招股期，再决定是否申购。' : `等待真实招股资料齐全；${digestValue(cards, 'hk-avoid')}`,
+    };
+  } else if (market === 'us') {
+    const cheap = digestItem(cards, 'us-cheap');
+    const risk = digestItem(cards, 'us-risk');
+    config = {
+      status: cheap?.enabled ? '低估研究' : risk?.enabled ? '风险观察' : '观望',
+      tone: cheap?.enabled ? 'good' : risk?.enabled ? 'risk' : 'wait',
+      title: '低估研究，不追高',
+      answer: `研究池：${digestValue(cards, 'us-cheap', true)}；风险观察：${digestValue(cards, 'us-risk', true)}。`,
+      nextStep: '低估标的分批研究；风险升高标的只做减仓观察。',
+    };
+  } else if (market === 'a') {
+    const addSignal = compactPriceSignal(digestValue(cards, 'a-add'));
+    const trimSignal = compactPriceSignal(digestValue(cards, 'a-trim'));
+    config = {
+      status: '底仓 + 周期',
+      tone: 'good',
+      title: '底仓长期，周期短持',
+      answer: `${digestValue(cards, 'a-core')}；${digestValue(cards, 'a-cycle')}。`,
+      nextStep: `价格纪律：${addSignal}；${trimSignal}`,
+    };
+  } else if (market === 'gold') {
+    const international = compactGoldSignal(cards, 'gold-usd-hold', 'gold-usd-sell', '美元金', '$');
+    const domestic = compactGoldSignal(cards, 'gold-cny-hold', 'gold-cny-sell', '人民币金', '¥');
+    config = {
+      status: international.answer.includes('观察') || domestic.answer.includes('观察') ? '进入观察' : '区间外',
+      tone: international.answer.includes('卖出') || domestic.answer.includes('卖出') ? 'risk' : 'wait',
+      title: '美元金 + 人民币金',
+      answer: `${international.answer}；${domestic.answer}。`,
+      nextStep: `阈值：${international.threshold}；${domestic.threshold}。`,
+    };
+  } else {
+    config = {
+      status: '只学方法',
+      tone: 'wait',
+      title: '不抄 13F 仓位',
+      answer: '只参考宏观判断与降仓纪律，不把滞后披露当实时单。',
+      nextStep: '看方法，不复制机构仓位或杠杆。',
+    };
+  }
+  return conclusionCard({...config, type, href, source});
 }
 
 function renderConclusions() {
@@ -233,7 +318,7 @@ function renderConclusions() {
     return;
   }
   const digestCards = ['hk','us','a','gold','guru']
-    .map((market, index) => digestMarketCard(
+    .map((market, index) => dailyStrategyCard(
       market,
       ['港股打新','美股投资','A股收息','黄金追踪','聪明人持仓'][index],
       ['index.html#/hk','index.html#/us','index.html#/a-shares','index.html#/gold','index.html#/gurus'][index],
@@ -387,7 +472,7 @@ function bindEvents() {
 
 async function loadDailyDigest(updatedAt) {
   try {
-    const response = await fetch('data/daily-digest.json', {cache:'no-store'});
+    const response = await fetch(`data/daily-digest.json?t=${Date.now()}`, {cache:'no-store'});
     if (!response.ok) return null;
     const digest = await response.json();
     if (!digest?.markets?.hk) return null;
@@ -403,14 +488,34 @@ async function loadDailyDigest(updatedAt) {
 }
 
 async function loadData() {
-  const response = await fetch('data/live-snapshot.json', {cache:'no-store'});
+  const response = await fetch(`data/live-snapshot.json?t=${Date.now()}`, {cache:'no-store'});
   if (!response.ok) throw new Error(`数据服务 ${response.status}`);
   const data = await response.json();
   if (!data || !data.updatedAt) throw new Error('数据快照缺少更新时间');
   state.data = data;
   state.digest = await loadDailyDigest(data.updatedAt);
   $('#updated-at').textContent = `更新 ${formatDateTime(data.updatedAt)}`;
+  renderFreshness(data);
   renderConclusions(); renderHoldings(); renderChannels();
+}
+
+let refreshTimer;
+function scheduleDataRefresh() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(async () => {
+    if (document.visibilityState === 'visible') {
+      try {
+        await loadData();
+      } catch {
+        const box = $('#freshness-state');
+        if (box) {
+          box.className = 'freshness-state stale';
+          box.textContent = '自动刷新失败 · 保留上次数据';
+        }
+      }
+    }
+    scheduleDataRefresh();
+  }, 15 * 60 * 1000);
 }
 
 function renderSession() {
@@ -421,11 +526,17 @@ function renderSession() {
 
 async function init() {
   renderSession(); bindEvents(); renderHoldings();
-  try { await loadData(); }
+  try { await loadData(); scheduleDataRefresh(); }
   catch (error) {
     $('#updated-at').textContent = '数据暂不可用';
+    const freshness = $('#freshness-state');
+    if (freshness) {
+      freshness.className = 'freshness-state stale';
+      freshness.textContent = '自动抓取暂不可用';
+    }
     $('#daily-conclusions').innerHTML = conclusionCard({type:'数据状态',title:'当前无法读取最新数据',status:'不输出替代答案',tone:'risk',answer:'望潮不会用静态价格或虚拟样本补位，请稍后刷新。',facts:[['错误',error.message],['原则','数据必须有日期和来源'],['持仓','本地记录仍可查看']],href:'index.html',source:'数据服务'});
     renderChannels(); renderReminder();
+    scheduleDataRefresh();
   }
 }
 

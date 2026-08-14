@@ -44,7 +44,7 @@ const GROUP_HREF = {
 };
 
 function spaHref(market, card) {
-  if (market === "gold") return "#/gold/answer";
+  if (market === "gold") return "#/gold";
   if (market === "guru" && card?.targetId) return `#/investor/${card.targetId}`;
   if (card?.action === "detail" && card.targetId) {
     if (market === "hk") return `#/ipo/${card.targetId}`;

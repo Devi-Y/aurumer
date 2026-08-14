@@ -158,7 +158,7 @@ function deriveHoldingView(holding, maps) {
           ? `进入卖出观察区：现价 ${formatNumber(current, 1)}`
           : `继续观察：现价 ${formatNumber(current, 1)}`;
     const tone = Number.isFinite(high) && current >= high ? 'risk' : Number.isFinite(low) && current <= low ? 'good' : 'wait';
-    return { name:useUSD ? '美元金' : '人民币金', current, change:Number(quote?.changePercent), action:{text,tone}, detail:'index.html#/gold/answer', shares, cost, source:quote?.asOf ? `${quote.currency || '公开行情'} · ${formatDateTime(quote.asOf)}` : '数据待核验' };
+    return { name:useUSD ? '美元金' : '人民币金', current, change:Number(quote?.changePercent), action:{text,tone}, detail:'index.html#/gold', shares, cost, source:quote?.asOf ? `${quote.currency || '公开行情'} · ${formatDateTime(quote.asOf)}` : '数据待核验' };
   }
   const item = maps.hk.get(code);
   const assessment = item?.publicAnswer || {};

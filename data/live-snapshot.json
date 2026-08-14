@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-08-14T19:56:13.032Z",
-  "durationMs": 14702,
+  "updatedAt": "2026-08-14T20:45:41.340Z",
+  "durationMs": 26457,
   "sources": [
     {
       "id": "yahoo",
@@ -94,15 +94,15 @@
     "stocks": [
       {
         "symbol": "NVDA",
-        "price": 225.1,
-        "changePercent": -0.1,
-        "weeklyChange": 0.5,
-        "volumeRatio": 0.49,
-        "heatScore": 19,
+        "price": 225.2,
+        "changePercent": -0.06,
+        "weeklyChange": 0.54,
+        "volumeRatio": 0.61,
+        "heatScore": 23,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:00.000Z",
         "history": [
           223.5,
           219.5,
@@ -163,29 +163,29 @@
           217.5,
           224.1,
           225.3,
-          225.1
+          225.2
         ],
         "technicalPlan": {
           "atr": 7.22,
           "buy": 199.4,
           "stop": 191.1,
           "tp": [
-            239.5,
-            248.2
+            239.6,
+            248.3
           ]
         }
       },
       {
         "symbol": "MSFT",
-        "price": 495.3,
-        "changePercent": -0.32,
-        "weeklyChange": -0.94,
-        "volumeRatio": 0.27,
-        "heatScore": 13,
+        "price": 495.4,
+        "changePercent": -0.3,
+        "weeklyChange": -0.92,
+        "volumeRatio": 0.37,
+        "heatScore": 17,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           421.1,
           419.1,
@@ -246,29 +246,29 @@
           503.8,
           492.4,
           496.9,
-          495.3
+          495.4
         ],
         "technicalPlan": {
           "atr": 15.4,
           "buy": 480.4,
           "stop": 462.7,
           "tp": [
-            526.1,
-            544.6
+            526.2,
+            544.7
           ]
         }
       },
       {
         "symbol": "AAPL",
         "price": 305.9,
-        "changePercent": 0.2,
-        "weeklyChange": -2.38,
-        "volumeRatio": 0.35,
-        "heatScore": 18,
+        "changePercent": 0.22,
+        "weeklyChange": -2.36,
+        "volumeRatio": 0.48,
+        "heatScore": 23,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           302.3,
           305,
@@ -336,22 +336,22 @@
           "buy": 301.3,
           "stop": 293.9,
           "tp": [
-            322.6,
+            322.7,
             332.7
           ]
         }
       },
       {
         "symbol": "GOOGL",
-        "price": 345.6,
-        "changePercent": -0.23,
-        "weeklyChange": -2.46,
-        "volumeRatio": 0.43,
-        "heatScore": 22,
+        "price": 345.9,
+        "changePercent": -0.13,
+        "weeklyChange": -2.37,
+        "volumeRatio": 0.53,
+        "heatScore": 24,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           388.9,
           387.7,
@@ -412,29 +412,29 @@
           343.8,
           343.5,
           346.4,
-          345.6
+          345.9
         ],
         "technicalPlan": {
           "atr": 11.59,
-          "buy": 339.2,
+          "buy": 339.5,
           "stop": 331.6,
           "tp": [
-            368.8,
-            382.7
+            369.1,
+            383
           ]
         }
       },
       {
         "symbol": "AMZN",
-        "price": 262.7,
-        "changePercent": -0.93,
+        "price": 262.6,
+        "changePercent": -0.94,
         "weeklyChange": -4.31,
-        "volumeRatio": 0.43,
-        "heatScore": 29,
+        "volumeRatio": 0.53,
+        "heatScore": 33,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           265,
           268.5,
@@ -495,7 +495,7 @@
           272.3,
           267.3,
           265.1,
-          262.7
+          262.6
         ],
         "technicalPlan": {
           "atr": 8.87,
@@ -512,12 +512,12 @@
         "price": 589.9,
         "changePercent": -0.86,
         "weeklyChange": -0.38,
-        "volumeRatio": 0.43,
-        "heatScore": 21,
+        "volumeRatio": 0.51,
+        "heatScore": 24,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           605.1,
           607.4,
@@ -581,26 +581,26 @@
           589.8
         ],
         "technicalPlan": {
-          "atr": 21.2,
+          "atr": 21.22,
           "buy": 566.8,
           "stop": 542.4,
           "tp": [
-            632.2,
-            657.7
+            632.3,
+            657.8
           ]
         }
       },
       {
         "symbol": "TSLA",
-        "price": 342.5,
-        "changePercent": 0.74,
-        "weeklyChange": 4.23,
-        "volumeRatio": 1.08,
-        "heatScore": 51,
+        "price": 342.3,
+        "changePercent": 0.68,
+        "weeklyChange": 4.17,
+        "volumeRatio": 1.14,
+        "heatScore": 52,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:00.000Z",
         "history": [
           417.3,
           417.9,
@@ -661,29 +661,29 @@
           332.8,
           327.5,
           340,
-          342.5
+          342.3
         ],
         "technicalPlan": {
           "atr": 14,
           "buy": 315.3,
           "stop": 299.2,
           "tp": [
-            370.5,
-            387.3
+            370.3,
+            387.1
           ]
         }
       },
       {
         "symbol": "AMD",
-        "price": 513,
-        "changePercent": 6.2,
-        "weeklyChange": 6.12,
-        "volumeRatio": 0.78,
-        "heatScore": 77,
+        "price": 514.4,
+        "changePercent": 6.5,
+        "weeklyChange": 6.42,
+        "volumeRatio": 0.86,
+        "heatScore": 82,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           447.6,
           449.6,
@@ -744,29 +744,29 @@
           474.3,
           482.9,
           483,
-          513
+          514.4
         ],
         "technicalPlan": {
-          "atr": 34.24,
+          "atr": 34.31,
           "buy": 467.3,
           "stop": 427.9,
           "tp": [
-            581.4,
-            622.5
+            583,
+            624.2
           ]
         }
       },
       {
         "symbol": "AVGO",
-        "price": 392.6,
-        "changePercent": -6.03,
-        "weeklyChange": -8.22,
-        "volumeRatio": 1.34,
-        "heatScore": 99,
+        "price": 393,
+        "changePercent": -5.94,
+        "weeklyChange": -8.13,
+        "volumeRatio": 1.64,
+        "heatScore": 100,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           417.8,
           414.6,
@@ -827,29 +827,29 @@
           416.1,
           416,
           417.8,
-          392.6
+          393
         ],
         "technicalPlan": {
           "atr": 16.19,
           "buy": 380.3,
           "stop": 361.7,
           "tp": [
-            425,
-            444.4
+            425.4,
+            444.8
           ]
         }
       },
       {
         "symbol": "PLTR",
-        "price": 174.2,
-        "changePercent": -2.69,
-        "weeklyChange": 1.27,
-        "volumeRatio": 0.44,
-        "heatScore": 34,
+        "price": 174,
+        "changePercent": -2.78,
+        "weeklyChange": 1.18,
+        "volumeRatio": 0.5,
+        "heatScore": 37,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:00.000Z",
         "history": [
           137.1,
           137.4,
@@ -910,29 +910,29 @@
           174.9,
           171,
           179,
-          174.2
+          174
         ],
         "technicalPlan": {
           "atr": 8.72,
           "buy": 126.7,
           "stop": 116.7,
           "tp": [
-            191.6,
-            202.1
+            191.5,
+            201.9
           ]
         }
       },
       {
         "symbol": "SMCI",
-        "price": 39.91,
-        "changePercent": 1.92,
-        "weeklyChange": 28.2,
-        "volumeRatio": 0.91,
+        "price": 39.84,
+        "changePercent": 1.74,
+        "weeklyChange": 27.98,
+        "volumeRatio": 1.01,
         "heatScore": 100,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:00.000Z",
         "history": [
           33.46,
           33.46,
@@ -993,29 +993,29 @@
           31.6,
           37.61,
           39.16,
-          39.91
+          39.84
         ],
         "technicalPlan": {
           "atr": 2.74,
           "buy": 28.4,
           "stop": 25.25,
           "tp": [
-            45.38,
-            48.66
+            45.31,
+            48.59
           ]
         }
       },
       {
         "symbol": "ARM",
-        "price": 279,
-        "changePercent": 0.13,
-        "weeklyChange": -1.26,
-        "volumeRatio": 0.3,
-        "heatScore": 14,
+        "price": 279.4,
+        "changePercent": 0.28,
+        "weeklyChange": -1.11,
+        "volumeRatio": 0.37,
+        "heatScore": 17,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:55.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           256.7,
           298.2,
@@ -1076,29 +1076,29 @@
           268.9,
           271.9,
           278.6,
-          279
+          279.4
         ],
         "technicalPlan": {
           "atr": 21.38,
           "buy": 226.9,
           "stop": 202.3,
           "tp": [
-            321.8,
-            347.4
+            322.2,
+            347.9
           ]
         }
       },
       {
         "symbol": "TSM",
-        "price": 426.3,
+        "price": 426.4,
         "changePercent": -0.96,
         "weeklyChange": 1.5,
-        "volumeRatio": 0.4,
-        "heatScore": 23,
+        "volumeRatio": 0.46,
+        "heatScore": 25,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:03.000Z",
         "history": [
           401.6,
           407.1,
@@ -1159,7 +1159,7 @@
           422.1,
           429.1,
           430.5,
-          426.3
+          426.4
         ],
         "technicalPlan": {
           "atr": 14.39,
@@ -1173,15 +1173,15 @@
       },
       {
         "symbol": "ASML",
-        "price": 1835.7,
-        "changePercent": -0.66,
-        "weeklyChange": 5.44,
-        "volumeRatio": 0.43,
-        "heatScore": 30,
+        "price": 1844.1,
+        "changePercent": -0.21,
+        "weeklyChange": 5.92,
+        "volumeRatio": 0.51,
+        "heatScore": 31,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           1550.1,
           1592,
@@ -1242,29 +1242,29 @@
           1799.4,
           1810.1,
           1847.9,
-          1835.7
+          1844.1
         ],
         "technicalPlan": {
           "atr": 73,
           "buy": 1607.6,
           "stop": 1523.6,
           "tp": [
-            1981.7,
-            2069.3
+            1990.1,
+            2077.7
           ]
         }
       },
       {
         "symbol": "COIN",
-        "price": 149,
-        "changePercent": -3.2,
-        "weeklyChange": -3.01,
-        "volumeRatio": 0.73,
-        "heatScore": 51,
+        "price": 148.5,
+        "changePercent": -3.53,
+        "weeklyChange": -3.34,
+        "volumeRatio": 0.91,
+        "heatScore": 60,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           191.3,
           193.6,
@@ -1325,29 +1325,29 @@
           148.6,
           149,
           153.9,
-          149
+          148.5
         ],
         "technicalPlan": {
           "atr": 9.27,
-          "buy": 143.9,
+          "buy": 143.4,
           "stop": 133.6,
           "tp": [
-            167.5,
-            178.6
+            167,
+            178.1
           ]
         }
       },
       {
         "symbol": "MSTR",
-        "price": 93.19,
-        "changePercent": -4.03,
-        "weeklyChange": -6.82,
-        "volumeRatio": 1.11,
-        "heatScore": 77,
+        "price": 93.04,
+        "changePercent": -4.18,
+        "weeklyChange": -6.97,
+        "volumeRatio": 1.25,
+        "heatScore": 83,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           165.8,
           164.9,
@@ -1408,29 +1408,29 @@
           96.09,
           94.83,
           97.1,
-          93.19
+          93.04
         ],
         "technicalPlan": {
           "atr": 5.36,
-          "buy": 90.24,
+          "buy": 90.09,
           "stop": 86.64,
           "tp": [
-            103.9,
-            110.3
+            103.8,
+            110.2
           ]
         }
       },
       {
         "symbol": "CRWD",
-        "price": 216.8,
-        "changePercent": -3.85,
-        "weeklyChange": 1.13,
-        "volumeRatio": 0.64,
-        "heatScore": 48,
+        "price": 216.9,
+        "changePercent": -3.8,
+        "weeklyChange": 1.18,
+        "volumeRatio": 0.87,
+        "heatScore": 56,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           162.5,
           162.1,
@@ -1491,29 +1491,29 @@
           221.9,
           221.8,
           225.5,
-          216.8
+          216.9
         ],
         "technicalPlan": {
           "atr": 8.88,
           "buy": 195.7,
           "stop": 185.5,
           "tp": [
-            234.6,
-            245.2
+            234.7,
+            245.4
           ]
         }
       },
       {
         "symbol": "NOW",
-        "price": 124.5,
-        "changePercent": -2.19,
-        "weeklyChange": -0.34,
-        "volumeRatio": 0.5,
-        "heatScore": 31,
+        "price": 124,
+        "changePercent": -2.55,
+        "weeklyChange": -0.7,
+        "volumeRatio": 0.53,
+        "heatScore": 35,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:03.000Z",
         "history": [
           103.3,
           99.69,
@@ -1574,29 +1574,29 @@
           127.5,
           124.9,
           127.3,
-          124.5
+          124
         ],
         "technicalPlan": {
           "atr": 6.82,
           "buy": 114.2,
           "stop": 106.3,
           "tp": [
-            138.1,
-            146.3
+            137.6,
+            145.8
           ]
         }
       },
       {
         "symbol": "V",
         "price": 364.1,
-        "changePercent": -0.37,
-        "weeklyChange": 0.44,
-        "volumeRatio": 0.49,
-        "heatScore": 20,
+        "changePercent": -0.36,
+        "weeklyChange": 0.46,
+        "volumeRatio": 0.57,
+        "heatScore": 23,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:55.000Z",
+        "asOf": "2026-08-14T20:00:02.000Z",
         "history": [
           330.8,
           331.1,
@@ -1665,21 +1665,21 @@
           "stop": 352.6,
           "tp": [
             378.4,
-            386.9
+            387
           ]
         }
       },
       {
         "symbol": "MA",
-        "price": 567.3,
-        "changePercent": 0.05,
-        "weeklyChange": 0.77,
-        "volumeRatio": 0.57,
-        "heatScore": 22,
+        "price": 569.3,
+        "changePercent": 0.4,
+        "weeklyChange": 1.13,
+        "volumeRatio": 0.65,
+        "heatScore": 27,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:03.000Z",
         "history": [
           498,
           499.6,
@@ -1740,29 +1740,29 @@
           561.4,
           559.7,
           567,
-          567.3
+          569.3
         ],
         "technicalPlan": {
           "atr": 11.03,
           "buy": 559.9,
           "stop": 547.2,
           "tp": [
-            589.4,
-            602.6
+            591.3,
+            604.6
           ]
         }
       },
       {
         "symbol": "NFLX",
-        "price": 78.17,
-        "changePercent": -0.08,
-        "weeklyChange": 5.44,
-        "volumeRatio": 0.49,
-        "heatScore": 28,
+        "price": 78.16,
+        "changePercent": -0.1,
+        "weeklyChange": 5.42,
+        "volumeRatio": 0.58,
+        "heatScore": 32,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:00.000Z",
         "history": [
           88.09,
           89.3,
@@ -1823,29 +1823,29 @@
           74.79,
           74.21,
           78.24,
-          78.18
+          78.16
         ],
         "technicalPlan": {
           "atr": 2.2,
           "buy": 72.95,
           "stop": 70.42,
           "tp": [
-            82.58,
-            85.22
+            82.56,
+            85.21
           ]
         }
       },
       {
         "symbol": "ORCL",
-        "price": 149.8,
-        "changePercent": -4.08,
-        "weeklyChange": 1.92,
-        "volumeRatio": 0.56,
+        "price": 150.5,
+        "changePercent": -3.65,
+        "weeklyChange": 2.38,
+        "volumeRatio": 0.6,
         "heatScore": 48,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:54.000Z",
+        "asOf": "2026-08-14T20:04:44.000Z",
         "history": [
           188.2,
           189.8,
@@ -1906,29 +1906,29 @@
           145.5,
           153.3,
           156.2,
-          149.8
+          150.5
         ],
         "technicalPlan": {
           "atr": 7.25,
           "buy": 132.7,
           "stop": 124.4,
           "tp": [
-            164.3,
-            173
+            165,
+            173.7
           ]
         }
       },
       {
         "symbol": "CRM",
-        "price": 196.3,
-        "changePercent": -2.5,
-        "weeklyChange": 1.87,
-        "volumeRatio": 0.48,
-        "heatScore": 35,
+        "price": 196.2,
+        "changePercent": -2.56,
+        "weeklyChange": 1.8,
+        "volumeRatio": 0.51,
+        "heatScore": 37,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:02.000Z",
         "history": [
           180.1,
           176.3,
@@ -1989,29 +1989,29 @@
           197.5,
           193.3,
           201.4,
-          196.3
+          196.2
         ],
         "technicalPlan": {
           "atr": 8.66,
           "buy": 186,
           "stop": 176.1,
           "tp": [
-            213.7,
-            224.1
+            213.5,
+            223.9
           ]
         }
       },
       {
         "symbol": "SNOW",
-        "price": 328.8,
-        "changePercent": -2.55,
-        "weeklyChange": -0.52,
-        "volumeRatio": 0.4,
-        "heatScore": 30,
+        "price": 328.9,
+        "changePercent": -2.51,
+        "weeklyChange": -0.48,
+        "volumeRatio": 0.45,
+        "heatScore": 32,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:00:02.000Z",
         "history": [
           167,
           165.5,
@@ -2072,29 +2072,29 @@
           334.1,
           332.3,
           337.4,
-          328.8
+          328.9
         ],
         "technicalPlan": {
           "atr": 14.24,
           "buy": 297.9,
           "stop": 281.6,
           "tp": [
-            357.2,
-            374.3
+            357.4,
+            374.5
           ]
         }
       },
       {
         "symbol": "SHOP",
-        "price": 154.4,
-        "changePercent": -2.57,
-        "weeklyChange": 1.9,
-        "volumeRatio": 0.4,
-        "heatScore": 33,
+        "price": 154.3,
+        "changePercent": -2.66,
+        "weeklyChange": 1.81,
+        "volumeRatio": 0.46,
+        "heatScore": 36,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:00.000Z",
         "history": [
           105,
           104.9,
@@ -2155,29 +2155,29 @@
           152.6,
           150.4,
           158.5,
-          154.4
+          154.3
         ],
         "technicalPlan": {
           "atr": 7.74,
           "buy": 119.3,
           "stop": 110.4,
           "tp": [
-            169.9,
-            179.2
+            169.8,
+            179.1
           ]
         }
       },
       {
         "symbol": "UBER",
-        "price": 75.92,
-        "changePercent": 0.05,
-        "weeklyChange": 1.19,
-        "volumeRatio": 0.39,
-        "heatScore": 16,
+        "price": 75.95,
+        "changePercent": 0.09,
+        "weeklyChange": 1.24,
+        "volumeRatio": 0.42,
+        "heatScore": 18,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:56.000Z",
+        "asOf": "2026-08-14T20:00:03.000Z",
         "history": [
           74.6,
           73.61,
@@ -2238,29 +2238,29 @@
           78.54,
           75.36,
           75.88,
-          75.92
+          75.95
         ],
         "technicalPlan": {
           "atr": 2.61,
           "buy": 67.65,
           "stop": 64.64,
           "tp": [
-            81.14,
-            84.28
+            81.18,
+            84.32
           ]
         }
       },
       {
         "symbol": "JPM",
-        "price": 362.6,
-        "changePercent": -0.15,
-        "weeklyChange": 1.41,
-        "volumeRatio": 0.48,
-        "heatScore": 21,
+        "price": 362.8,
+        "changePercent": -0.07,
+        "weeklyChange": 1.49,
+        "volumeRatio": 0.52,
+        "heatScore": 22,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:00:02.000Z",
         "history": [
           302,
           303,
@@ -2321,29 +2321,29 @@
           362,
           365.2,
           363.1,
-          362.6
+          362.8
         ],
         "technicalPlan": {
           "atr": 6.13,
           "buy": 353,
           "stop": 345.9,
           "tp": [
-            374.8,
-            382.2
+            375.1,
+            382.5
           ]
         }
       },
       {
         "symbol": "BRK.B",
-        "price": 504.7,
-        "changePercent": -0.45,
-        "weeklyChange": -3.28,
-        "volumeRatio": 0.59,
-        "heatScore": 30,
+        "price": 504,
+        "changePercent": -0.57,
+        "weeklyChange": -3.41,
+        "volumeRatio": 0.66,
+        "heatScore": 33,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:57.000Z",
+        "asOf": "2026-08-14T20:03:18.000Z",
         "history": [
           480.9,
           480,
@@ -2404,29 +2404,29 @@
           516.4,
           510,
           506.9,
-          504.7
+          504
         ],
         "technicalPlan": {
-          "atr": 8.14,
-          "buy": 500.2,
-          "stop": 497.8,
+          "atr": 8.17,
+          "buy": 499.5,
+          "stop": 497.2,
           "tp": [
-            521,
-            530.7
+            520.4,
+            530.2
           ]
         }
       },
       {
         "symbol": "LLY",
-        "price": 1182.4,
-        "changePercent": -2.2,
-        "weeklyChange": -0.28,
-        "volumeRatio": 0.59,
-        "heatScore": 35,
+        "price": 1180.2,
+        "changePercent": -2.39,
+        "weeklyChange": -0.47,
+        "volumeRatio": 0.66,
+        "heatScore": 38,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:58.000Z",
+        "asOf": "2026-08-14T20:02:06.000Z",
         "history": [
           1018.9,
           1041.7,
@@ -2487,29 +2487,29 @@
           1215,
           1220.3,
           1209,
-          1182.4
+          1180.2
         ],
         "technicalPlan": {
           "atr": 40.18,
           "buy": 1123.2,
           "stop": 1077,
           "tp": [
-            1262.8,
-            1311
+            1260.5,
+            1308.7
           ]
         }
       },
       {
         "symbol": "COST",
-        "price": 961.3,
-        "changePercent": -0.06,
-        "weeklyChange": 1.42,
-        "volumeRatio": 0.35,
-        "heatScore": 16,
+        "price": 961.1,
+        "changePercent": -0.08,
+        "weeklyChange": 1.4,
+        "volumeRatio": 0.54,
+        "heatScore": 22,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-08-14T19:55:56.000Z",
+        "asOf": "2026-08-14T20:00:01.000Z",
         "history": [
           1074,
           1050.4,
@@ -2570,15 +2570,15 @@
           944.3,
           949.6,
           961.8,
-          961.3
+          961.1
         ],
         "technicalPlan": {
           "atr": 17.18,
           "buy": 941.1,
           "stop": 921.3,
           "tp": [
-            995.7,
-            1016.3
+            995.5,
+            1016.1
           ]
         }
       }
@@ -2597,10 +2597,10 @@
         "shortTermInvestments": 51951000,
         "liquidAssets": 62556000,
         "netIncome": 120067000,
-        "marketCap": 5446452000000,
+        "marketCap": 5448872000000,
         "pe": 45.4,
         "targetPrice": 300,
-        "targetUpside": 33.3,
+        "targetUpside": 33.2,
         "revenueHistory": [
           215938000,
           130497000,
@@ -2632,7 +2632,7 @@
         "shortTermInvestments": 55908000,
         "liquidAssets": 76843000,
         "netIncome": 133749000,
-        "marketCap": 3677798426237,
+        "marketCap": 3678615236241,
         "pe": 27.5,
         "targetPrice": 550,
         "targetUpside": 11,
@@ -2667,7 +2667,7 @@
         "shortTermInvestments": 18763000,
         "liquidAssets": 54697000,
         "netIncome": 112010000,
-        "marketCap": 4463775894800,
+        "marketCap": 4464797487400,
         "pe": 39.9,
         "targetPrice": 330,
         "targetUpside": 7.9,
@@ -2702,10 +2702,10 @@
         "shortTermInvestments": 96135000,
         "liquidAssets": 126843000,
         "netIncome": 132170000,
-        "marketCap": 4226382250000,
+        "marketCap": 4230357000000,
         "pe": 32,
         "targetPrice": 429,
-        "targetUpside": 24.1,
+        "targetUpside": 24,
         "revenueHistory": [
           402836000,
           350018000,
@@ -2737,10 +2737,10 @@
         "shortTermInvestments": 36219000,
         "liquidAssets": 123029000,
         "netIncome": 77670000,
-        "marketCap": 2833133122822,
+        "marketCap": 2833025259686,
         "pe": 36.5,
         "targetPrice": 325,
-        "targetUpside": 23.7,
+        "targetUpside": 23.8,
         "revenueHistory": [
           716924000,
           637959000,
@@ -2807,10 +2807,10 @@
         "shortTermInvestments": 27546000,
         "liquidAssets": 44059000,
         "netIncome": 3794000,
-        "marketCap": 1352680486971,
-        "pe": 356.5,
+        "marketCap": 1351811586544,
+        "pe": 356.3,
         "targetPrice": 400,
-        "targetUpside": 16.8,
+        "targetUpside": 16.9,
         "revenueHistory": [
           94827000,
           97690000,
@@ -2842,10 +2842,10 @@
         "shortTermInvestments": 5013000,
         "liquidAssets": 10552000,
         "netIncome": 4335000,
-        "marketCap": 837386235169,
-        "pe": 193.2,
+        "marketCap": 839728836854,
+        "pe": 193.7,
         "targetPrice": 620,
-        "targetUpside": 20.9,
+        "targetUpside": 20.5,
         "revenueHistory": [
           34639000,
           25785000,
@@ -2877,10 +2877,10 @@
         "shortTermInvestments": 0,
         "liquidAssets": 16178000,
         "netIncome": 23126000,
-        "marketCap": 1868016288943,
+        "marketCap": 1869681442012,
         "pe": 80.8,
         "targetPrice": 525,
-        "targetUpside": 33.7,
+        "targetUpside": 33.6,
         "revenueHistory": [
           63887000,
           51574000,
@@ -2912,10 +2912,10 @@
         "shortTermInvestments": 5753247,
         "liquidAssets": 7177043,
         "netIncome": 1625033,
-        "marketCap": 418413695681,
-        "pe": 257.5,
+        "marketCap": 418053387659,
+        "pe": 257.3,
         "targetPrice": 205,
-        "targetUpside": 17.7,
+        "targetUpside": 17.8,
         "revenueHistory": [
           4475446,
           2865507,
@@ -2947,10 +2947,10 @@
         "shortTermInvestments": 0,
         "liquidAssets": 5169911,
         "netIncome": 1048854,
-        "marketCap": 24002611617,
-        "pe": 22.9,
+        "marketCap": 23960512323,
+        "pe": 22.8,
         "targetPrice": 41,
-        "targetUpside": 2.7,
+        "targetUpside": 2.9,
         "revenueHistory": [
           21972042,
           14989251,
@@ -2982,10 +2982,10 @@
         "shortTermInvestments": 850000,
         "liquidAssets": 3601000,
         "netIncome": 904000,
-        "marketCap": 296871415308,
-        "pe": 328.4,
+        "marketCap": 297339599619,
+        "pe": 328.9,
         "targetPrice": 260,
-        "targetUpside": -6.8,
+        "targetUpside": -6.9,
         "revenueHistory": [
           4920000,
           4007000,
@@ -3017,7 +3017,7 @@
         "shortTermInvestments": 0,
         "liquidAssets": 88090800,
         "netIncome": 53949600,
-        "marketCap": 2211058905624,
+        "marketCap": 2211214500771,
         "pe": 41,
         "targetPrice": 500,
         "targetUpside": 17.3,
@@ -3052,10 +3052,10 @@
         "shortTermInvestments": 476700,
         "liquidAssets": 15645900,
         "netIncome": 11285800,
-        "marketCap": 707491936757,
-        "pe": 62.7,
+        "marketCap": 710741007673,
+        "pe": 63,
         "targetPrice": 2400,
-        "targetUpside": 30.7,
+        "targetUpside": 30.1,
         "revenueHistory": [
           38366200,
           29266400,
@@ -3087,10 +3087,10 @@
         "shortTermInvestments": 309765,
         "liquidAssets": 11929535,
         "netIncome": 1260327,
-        "marketCap": 39305105604,
-        "pe": 31.2,
+        "marketCap": 39171867958,
+        "pe": 31.1,
         "targetPrice": 190.5,
-        "targetUpside": 27.9,
+        "targetUpside": 28.3,
         "revenueHistory": [
           7181325,
           6564028,
@@ -3122,10 +3122,10 @@
         "shortTermInvestments": 0,
         "liquidAssets": 2303343,
         "netIncome": -3848152,
-        "marketCap": 35794470963,
+        "marketCap": 35748363873,
         "pe": null,
         "targetPrice": 200.5,
-        "targetUpside": 115.2,
+        "targetUpside": 115.5,
         "revenueHistory": [
           477233,
           463456,
@@ -3157,10 +3157,10 @@
         "shortTermInvestments": 99591,
         "liquidAssets": 5329716,
         "netIncome": -162502,
-        "marketCap": 220799342275,
+        "marketCap": 220911350796,
         "pe": null,
         "targetPrice": 189.38,
-        "targetUpside": -12.6,
+        "targetUpside": -12.7,
         "revenueHistory": [
           4812005,
           3953624,
@@ -3192,10 +3192,10 @@
         "shortTermInvestments": 2558000,
         "liquidAssets": 6284000,
         "netIncome": 1748000,
-        "marketCap": 128691640000,
-        "pe": 73.6,
+        "marketCap": 128236680000,
+        "pe": 73.4,
         "targetPrice": 140,
-        "targetUpside": 12.4,
+        "targetUpside": 12.9,
         "revenueHistory": [
           13278000,
           10984000,
@@ -3210,7 +3210,7 @@
         ],
         "growthScore": 79,
         "profitScore": 66,
-        "valueScore": 13,
+        "valueScore": 14,
         "finalScore": 54,
         "qualityEligible": false
       },
@@ -3227,7 +3227,7 @@
         "shortTermInvestments": 1833000,
         "liquidAssets": 21987000,
         "netIncome": 20058000,
-        "marketCap": 650539709870,
+        "marketCap": 650521842318,
         "pe": 32.4,
         "targetPrice": 420,
         "targetUpside": 15.4,
@@ -3262,10 +3262,10 @@
         "shortTermInvestments": 332000,
         "liquidAssets": 13580000,
         "netIncome": 14968000,
-        "marketCap": 496929778614,
-        "pe": 33.2,
+        "marketCap": 498668658345,
+        "pe": 33.3,
         "targetPrice": 666,
-        "targetUpside": 17.4,
+        "targetUpside": 17,
         "revenueHistory": [
           32791000,
           28167000,
@@ -3297,7 +3297,7 @@
         "shortTermInvestments": 28678,
         "liquidAssets": 9062359,
         "netIncome": 10981201,
-        "marketCap": 325515984171,
+        "marketCap": 325453525076,
         "pe": 29.6,
         "targetPrice": 94,
         "targetUpside": 20.3,
@@ -3332,10 +3332,10 @@
         "shortTermInvestments": 605000,
         "liquidAssets": 31894000,
         "netIncome": 17087000,
-        "marketCap": 431624176995,
+        "marketCap": 433006803075,
         "pe": 25.3,
         "targetPrice": 245,
-        "targetUpside": 63.6,
+        "targetUpside": 62.8,
         "revenueHistory": [
           67357000,
           57399000,
@@ -3367,8 +3367,8 @@
         "shortTermInvestments": 2238000,
         "liquidAssets": 9565000,
         "netIncome": 7457000,
-        "marketCap": 160806555000,
-        "pe": 21.6,
+        "marketCap": 160679610000,
+        "pe": 21.5,
         "targetPrice": 240,
         "targetUpside": 22.3,
         "revenueHistory": [
@@ -3402,7 +3402,7 @@
         "shortTermInvestments": 1201523,
         "liquidAssets": 4029686,
         "netIncome": -1331616,
-        "marketCap": 113948216000,
+        "marketCap": 114045264000,
         "pe": null,
         "targetPrice": 300,
         "targetUpside": -8.8,
@@ -3437,10 +3437,10 @@
         "shortTermInvestments": 4233000,
         "liquidAssets": 5778000,
         "netIncome": 1231000,
-        "marketCap": 200138012811,
-        "pe": 162.6,
+        "marketCap": 199969557378,
+        "pe": 162.4,
         "targetPrice": 179,
-        "targetUpside": 15.9,
+        "targetUpside": 16,
         "revenueHistory": [
           11556000,
           8880000,
@@ -3472,10 +3472,10 @@
         "shortTermInvestments": 528000,
         "liquidAssets": 8264000,
         "netIncome": 10053000,
-        "marketCap": 155060951586,
+        "marketCap": 155091589988,
         "pe": 15.4,
         "targetPrice": 105,
-        "targetUpside": 38.3,
+        "targetUpside": 38.2,
         "revenueHistory": [
           52017000,
           43978000,
@@ -3507,7 +3507,7 @@
         "shortTermInvestments": 0,
         "liquidAssets": 679764000,
         "netIncome": 57048000,
-        "marketCap": 963778568721,
+        "marketCap": 964469697132,
         "pe": 16.9,
         "targetPrice": 370,
         "targetUpside": 2,
@@ -3545,7 +3545,7 @@
         "marketCap": 1115412293042,
         "pe": 16.7,
         "targetPrice": 735000,
-        "targetUpside": 145531.1,
+        "targetUpside": 145733.3,
         "revenueHistory": [
           410522000,
           424232000,
@@ -3577,10 +3577,10 @@
         "shortTermInvestments": 109100,
         "liquidAssets": 7377100,
         "netIncome": 20640000,
-        "marketCap": 1113074714012,
-        "pe": 53.9,
+        "marketCap": 1111173172741,
+        "pe": 53.8,
         "targetPrice": 1347.5,
-        "targetUpside": 14,
+        "targetUpside": 14.2,
         "revenueHistory": [
           65179000,
           45043000,
@@ -3612,10 +3612,10 @@
         "shortTermInvestments": 1123000,
         "liquidAssets": 15284000,
         "netIncome": 8099000,
-        "marketCap": 426316174285,
+        "marketCap": 426227478524,
         "pe": 52.6,
         "targetPrice": 1100,
-        "targetUpside": 14.4,
+        "targetUpside": 14.5,
         "revenueHistory": [
           275235000,
           254453000,
@@ -3638,7 +3638,7 @@
     "temperature": {
       "value": 64,
       "label": "偏乐观",
-      "hint": "VIX 14.28，标普500相对近60日均线 +3.6%——该温度由真实行情计算，不是官方指数"
+      "hint": "VIX 14.25，标普500相对近60日均线 +3.6%——该温度由真实行情计算，不是官方指数"
     }
   },
   "hk": {
@@ -3728,7 +3728,7 @@
           "oneLotRate": 0.69,
           "greyMarketChange": -4.64,
           "firstDayChange": 4.69,
-          "fiveDayChange": 2.89,
+          "fiveDayChange": -9.77,
           "oneLotPnl": 475.15,
           "industry": "电子陶瓷 / 先进材料",
           "sponsors": "",
@@ -3738,12 +3738,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 234414378215.5,
-          "fiveDayClose": 103.2,
-          "fiveDayDate": "2026-07-15",
-          "fiveDayHighChange": 21.83,
-          "fiveDayHigh": 122.2,
-          "fiveDayHighDate": "2026-07-10",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 90.5,
+          "fiveDayDate": "2026-07-17",
+          "fiveDayHighChange": 14.26,
+          "fiveDayHigh": 114.6,
+          "fiveDayHighDate": "2026-07-15",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "00537",
@@ -3759,7 +3759,7 @@
           "oneLotRate": 8,
           "greyMarketChange": -17.36,
           "firstDayChange": -37.36,
-          "fiveDayChange": -41.24,
+          "fiveDayChange": -47.89,
           "oneLotPnl": -1735.14,
           "industry": "电子测量仪器",
           "sponsors": "",
@@ -3769,12 +3769,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 40697811070.840004,
-          "fiveDayClose": 27.02,
-          "fiveDayDate": "2026-07-15",
-          "fiveDayHighChange": -17.36,
-          "fiveDayHigh": 38,
-          "fiveDayHighDate": "2026-07-09",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 23.96,
+          "fiveDayDate": "2026-07-17",
+          "fiveDayHighChange": -39.8,
+          "fiveDayHigh": 27.68,
+          "fiveDayHighDate": "2026-07-13",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "03752",
@@ -3790,7 +3790,7 @@
           "oneLotRate": 10,
           "greyMarketChange": -1.84,
           "firstDayChange": 15.21,
-          "fiveDayChange": 28.42,
+          "fiveDayChange": 28.11,
           "oneLotPnl": 583.81,
           "industry": "工业机器人",
           "sponsors": "",
@@ -3800,12 +3800,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 13704132128.000002,
-          "fiveDayClose": 48.8,
-          "fiveDayDate": "2026-07-15",
+          "fiveDayClose": 48.68,
+          "fiveDayDate": "2026-07-17",
           "fiveDayHighChange": 86.84,
           "fiveDayHigh": 71,
           "fiveDayHighDate": "2026-07-13",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "02797",
@@ -3821,7 +3821,7 @@
           "oneLotRate": 0.09,
           "greyMarketChange": 93.75,
           "firstDayChange": 162.5,
-          "fiveDayChange": 168.5,
+          "fiveDayChange": 251.25,
           "oneLotPnl": 6565.57,
           "industry": "休闲食品 / 果类零食",
           "sponsors": "中泰国际融资有限公司",
@@ -3840,12 +3840,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 33762000000,
-          "fiveDayClose": 21.48,
-          "fiveDayDate": "2026-07-15",
-          "fiveDayHighChange": 250,
-          "fiveDayHigh": 28,
-          "fiveDayHighDate": "2026-07-13",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 28.1,
+          "fiveDayDate": "2026-07-17",
+          "fiveDayHighChange": 375,
+          "fiveDayHigh": 38,
+          "fiveDayHighDate": "2026-07-16",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "02475",
@@ -3861,7 +3861,7 @@
           "oneLotRate": 100,
           "greyMarketChange": -4.95,
           "firstDayChange": -1.55,
-          "fiveDayChange": -0.44,
+          "fiveDayChange": -15.53,
           "oneLotPnl": -99.07,
           "industry": "消费电子 / 精密制造",
           "sponsors": "",
@@ -3871,12 +3871,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 9172612804.32,
-          "fiveDayClose": 63,
-          "fiveDayDate": "2026-07-15",
-          "fiveDayHighChange": 0.74,
-          "fiveDayHigh": 63.75,
-          "fiveDayHighDate": "2026-07-10",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 53.45,
+          "fiveDayDate": "2026-07-17",
+          "fiveDayHighChange": 1.14,
+          "fiveDayHigh": 64,
+          "fiveDayHighDate": "2026-07-16",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "01770",
@@ -3892,7 +3892,7 @@
           "oneLotRate": 3,
           "greyMarketChange": 3.38,
           "firstDayChange": 1.73,
-          "fiveDayChange": -1.77,
+          "fiveDayChange": -0.81,
           "oneLotPnl": 68.71,
           "industry": "电子纸显示",
           "sponsors": "",
@@ -3902,12 +3902,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 42974693812.64,
-          "fiveDayClose": 77.25,
-          "fiveDayDate": "2026-07-15",
-          "fiveDayHighChange": 10.38,
-          "fiveDayHigh": 86.8,
-          "fiveDayHighDate": "2026-07-09",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 78,
+          "fiveDayDate": "2026-07-17",
+          "fiveDayHighChange": 4.27,
+          "fiveDayHigh": 82,
+          "fiveDayHighDate": "2026-07-16",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "01377",
@@ -3923,7 +3923,7 @@
           "oneLotRate": 3,
           "greyMarketChange": -10.53,
           "firstDayChange": -1.79,
-          "fiveDayChange": 9.63,
+          "fiveDayChange": -7.89,
           "oneLotPnl": -687.06,
           "industry": "PCB / 精密制造",
           "sponsors": "",
@@ -3933,12 +3933,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 170232874240,
-          "fiveDayClose": 416.6,
-          "fiveDayDate": "2026-07-15",
+          "fiveDayClose": 350,
+          "fiveDayDate": "2026-07-17",
           "fiveDayHighChange": 19.89,
           "fiveDayHigh": 455.6,
           "fiveDayHighDate": "2026-07-15",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "09971",
@@ -3954,7 +3954,7 @@
           "oneLotRate": 0.17,
           "greyMarketChange": 9.93,
           "firstDayChange": 5.06,
-          "fiveDayChange": 33.46,
+          "fiveDayChange": 21.13,
           "oneLotPnl": 323.22,
           "industry": "碳化硅半导体",
           "sponsors": "",
@@ -3964,12 +3964,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 833540907735.36,
-          "fiveDayClose": 42.2,
-          "fiveDayDate": "2026-07-14",
-          "fiveDayHighChange": 35.1,
-          "fiveDayHigh": 42.72,
-          "fiveDayHighDate": "2026-07-13",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 38.3,
+          "fiveDayDate": "2026-07-17",
+          "fiveDayHighChange": 38.2,
+          "fiveDayHigh": 43.7,
+          "fiveDayHighDate": "2026-07-15",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "08090",
@@ -3985,7 +3985,7 @@
           "oneLotRate": 0.5,
           "greyMarketChange": 7.23,
           "firstDayChange": 3.38,
-          "fiveDayChange": -11.41,
+          "fiveDayChange": -8.36,
           "oneLotPnl": 106.18,
           "industry": "复合材料 / 基建材料",
           "sponsors": "",
@@ -3995,12 +3995,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 27142235334.600002,
-          "fiveDayClose": 5.51,
-          "fiveDayDate": "2026-07-14",
-          "fiveDayHighChange": 12.54,
-          "fiveDayHigh": 7,
-          "fiveDayHighDate": "2026-07-08",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 5.7,
+          "fiveDayDate": "2026-07-17",
+          "fiveDayHighChange": 4.34,
+          "fiveDayHigh": 6.49,
+          "fiveDayHighDate": "2026-07-16",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "07687",
@@ -4016,7 +4016,7 @@
           "oneLotRate": 10,
           "greyMarketChange": 4.07,
           "firstDayChange": 9.99,
-          "fiveDayChange": 1.63,
+          "fiveDayChange": -0.02,
           "oneLotPnl": 443.59,
           "industry": "自动驾驶 / 智慧矿山",
           "sponsors": "",
@@ -4026,12 +4026,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 36259546494.08,
-          "fiveDayClose": 89.35,
-          "fiveDayDate": "2026-07-14",
-          "fiveDayHighChange": 15.1,
-          "fiveDayHigh": 101.2,
-          "fiveDayHighDate": "2026-07-08",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 87.9,
+          "fiveDayDate": "2026-07-17",
+          "fiveDayHighChange": 4.58,
+          "fiveDayHigh": 91.95,
+          "fiveDayHighDate": "2026-07-15",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "07656",
@@ -4047,7 +4047,7 @@
           "oneLotRate": 3,
           "greyMarketChange": -16.94,
           "firstDayChange": -3.05,
-          "fiveDayChange": 33.33,
+          "fiveDayChange": 17.82,
           "oneLotPnl": -133.46,
           "industry": "视觉人工智能",
           "sponsors": "",
@@ -4057,12 +4057,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 443626635437.04004,
-          "fiveDayClose": 28.88,
-          "fiveDayDate": "2026-07-14",
+          "fiveDayClose": 25.52,
+          "fiveDayDate": "2026-07-17",
           "fiveDayHighChange": 36.2,
           "fiveDayHigh": 29.5,
           "fiveDayHighDate": "2026-07-14",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "06880",
@@ -4078,7 +4078,7 @@
           "oneLotRate": 5,
           "greyMarketChange": -0.34,
           "firstDayChange": 0,
-          "fiveDayChange": 0,
+          "fiveDayChange": -12.72,
           "oneLotPnl": 0,
           "industry": "自动驾驶软件",
           "sponsors": "",
@@ -4088,12 +4088,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": 243784878787.52,
-          "fiveDayClose": 295.6,
-          "fiveDayDate": "2026-07-14",
-          "fiveDayHighChange": 6.5,
-          "fiveDayHigh": 314.8,
-          "fiveDayHighDate": "2026-07-08",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 258,
+          "fiveDayDate": "2026-07-17",
+          "fiveDayHighChange": 0.81,
+          "fiveDayHigh": 298,
+          "fiveDayHighDate": "2026-07-14",
+          "fiveDaySource": "腾讯港股日线"
         }
       ]
     },
@@ -4129,7 +4129,7 @@
           "verdict": "已结束",
           "greyMarketChange": -4.64,
           "firstDayChange": 4.69,
-          "fiveDayChange": 2.89,
+          "fiveDayChange": -9.77,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4177,7 +4177,7 @@
           "verdict": "已结束",
           "greyMarketChange": -17.36,
           "firstDayChange": -37.36,
-          "fiveDayChange": -41.24,
+          "fiveDayChange": -47.89,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4225,7 +4225,7 @@
           "verdict": "已结束",
           "greyMarketChange": -1.84,
           "firstDayChange": 15.21,
-          "fiveDayChange": 28.42,
+          "fiveDayChange": 28.11,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4279,7 +4279,7 @@
           "verdict": "已结束",
           "greyMarketChange": 93.75,
           "firstDayChange": 162.5,
-          "fiveDayChange": 168.5,
+          "fiveDayChange": 251.25,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4327,7 +4327,7 @@
           "verdict": "已结束",
           "greyMarketChange": -4.95,
           "firstDayChange": -1.55,
-          "fiveDayChange": -0.44,
+          "fiveDayChange": -15.53,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4375,7 +4375,7 @@
           "verdict": "已结束",
           "greyMarketChange": 3.38,
           "firstDayChange": 1.73,
-          "fiveDayChange": -1.77,
+          "fiveDayChange": -0.81,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4423,7 +4423,7 @@
           "verdict": "已结束",
           "greyMarketChange": -10.53,
           "firstDayChange": -1.79,
-          "fiveDayChange": 9.63,
+          "fiveDayChange": -7.89,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4471,7 +4471,7 @@
           "verdict": "已结束",
           "greyMarketChange": 9.93,
           "firstDayChange": 5.06,
-          "fiveDayChange": 33.46,
+          "fiveDayChange": 21.13,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4519,7 +4519,7 @@
           "verdict": "已结束",
           "greyMarketChange": 7.23,
           "firstDayChange": 3.38,
-          "fiveDayChange": -11.41,
+          "fiveDayChange": -8.36,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4567,7 +4567,7 @@
           "verdict": "已结束",
           "greyMarketChange": 4.07,
           "firstDayChange": 9.99,
-          "fiveDayChange": 1.63,
+          "fiveDayChange": -0.02,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4615,7 +4615,7 @@
           "verdict": "已结束",
           "greyMarketChange": -16.94,
           "firstDayChange": -3.05,
-          "fiveDayChange": 33.33,
+          "fiveDayChange": 17.82,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -4663,7 +4663,7 @@
           "verdict": "已结束",
           "greyMarketChange": -0.34,
           "firstDayChange": 0,
-          "fiveDayChange": 0,
+          "fiveDayChange": -12.72,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -6093,7 +6093,7 @@
             "close": 1.408
           }
         ],
-        "retrievedAt": "2026-08-14T19:56:02.777Z",
+        "retrievedAt": "2026-08-14T20:45:20.105Z",
         "dataStatus": "live",
         "historyStatus": "live",
         "historyFallbackReason": null
@@ -6104,19 +6104,19 @@
   },
   "gold": {
     "status": "live",
-    "updatedAt": "2026-08-14T19:56:00.043Z",
+    "updatedAt": "2026-08-14T20:45:17.463Z",
     "quotes": {
       "international": {
         "symbol": "GC=F",
         "name": "COMEX 黄金",
-        "price": 4431.9,
+        "price": 4429.1,
         "currency": "USD/oz",
-        "changePercent": 1.57,
-        "asOf": "2026-08-14T19:45:54.000Z",
+        "changePercent": 1.5,
+        "asOf": "2026-08-14T20:35:07.000Z",
         "returns": {
           "day20": 10.4,
           "day60": -1.7,
-          "day180": 8.3
+          "day180": 8.2
         },
         "percentile180": 41
       },
@@ -6131,24 +6131,24 @@
       },
       "etf": {
         "symbol": "GLD",
-        "price": 401.3,
-        "changePercent": 0.58,
-        "asOf": "2026-08-14T19:55:57.000Z"
+        "price": 401.5,
+        "changePercent": 0.63,
+        "asOf": "2026-08-14T20:00:00.000Z"
       },
       "usdCny": {
         "symbol": "USD/CNY",
         "price": 6.74,
-        "changePercent": -0.02,
-        "asOf": "2026-08-14T19:20:23.000Z"
+        "changePercent": -0.04,
+        "asOf": "2026-08-14T20:12:51.000Z"
       }
     },
     "indicators": [
       {
         "id": "realYield",
         "label": "10年实际利率",
-        "value": 2.42,
+        "value": 2.39,
         "unit": "%",
-        "asOf": "2026-08-12",
+        "asOf": "2026-08-13",
         "note": "越高，持有黄金的机会成本通常越高。"
       },
       {
@@ -6231,8 +6231,8 @@
           "currency": "USD/oz"
         },
         "internationalUpper": {
-          "low": 4577,
-          "high": 4663,
+          "low": 4574,
+          "high": 4660,
           "currency": "USD/oz"
         },
         "internationalRisk": {
@@ -6246,8 +6246,8 @@
           "currency": "CNY/g"
         },
         "domesticUpper": {
-          "low": 972,
-          "high": 990.2,
+          "low": 971.3,
+          "high": 989.6,
           "currency": "CNY/g"
         },
         "domesticRisk": {
@@ -6977,7 +6977,7 @@
         },
         {
           "date": "2026-08-14",
-          "close": 4431.9
+          "close": 4429.1
         }
       ],
       "domestic": [
@@ -7027,16 +7027,16 @@
     {
       "id": "buffett",
       "name": "Berkshire Hathaway",
-      "reportDate": "2026-03-31",
-      "filingDate": "2026-05-15",
-      "previousReportDate": "2025-12-31",
-      "portfolioValue": 263095703570,
+      "reportDate": "2026-06-30",
+      "filingDate": "2026-08-14",
+      "previousReportDate": "2026-03-31",
+      "portfolioValue": 299253556246,
       "holdings": [
         {
           "ticker": "AAPL",
           "issuer": "APPLE INC",
-          "weight": 21.985634774005366,
-          "value": 57843260493,
+          "weight": 22.038266729497398,
+          "value": 65950296923,
           "shares": 227917808,
           "putCall": null,
           "changeType": "same",
@@ -7045,8 +7045,8 @@
         {
           "ticker": "AXP",
           "issuer": "AMERICAN EXPRESS CO",
-          "weight": 17.430617039247302,
-          "value": 45859204536,
+          "weight": 17.136745146261052,
+          "value": 51282319275,
           "shares": 151610700,
           "putCall": null,
           "changeType": "same",
@@ -7055,39 +7055,9 @@
         {
           "ticker": "KO",
           "issuer": "COCA COLA CO",
-          "weight": 11.562332484804855,
-          "value": 30420000000,
+          "weight": 10.863028799990918,
+          "value": 32508000000,
           "shares": 400000000,
-          "putCall": null,
-          "changeType": "same",
-          "changeLabel": "基本不变"
-        },
-        {
-          "ticker": "BAC",
-          "issuer": "BANK AMERICA CORP",
-          "weight": 9.51713680772366,
-          "value": 25039178044,
-          "shares": 513624165,
-          "putCall": null,
-          "changeType": "same",
-          "changeLabel": "基本不变"
-        },
-        {
-          "ticker": "CVX",
-          "issuer": "CHEVRON CORPORATION",
-          "weight": 6.635366662821706,
-          "value": 17457364606,
-          "shares": 84375856,
-          "putCall": null,
-          "changeType": "down",
-          "changeLabel": "减持 -35%"
-        },
-        {
-          "ticker": "OXY",
-          "issuer": "OCCIDENTAL PETE CORP",
-          "weight": 6.545600244064069,
-          "value": 17221193015,
-          "shares": 264941431,
           "putCall": null,
           "changeType": "same",
           "changeLabel": "基本不变"
@@ -7095,18 +7065,48 @@
         {
           "ticker": "GOOGL",
           "issuer": "ALPHABET INC",
-          "weight": 5.929428607658505,
-          "value": 15600071913,
-          "shares": 54249798,
+          "weight": 9.40927810657434,
+          "value": 28157599351,
+          "shares": 78791167,
           "putCall": null,
           "changeType": "up",
-          "changeLabel": "增持 +204%"
+          "changeLabel": "增持 +45%"
         },
         {
-          "ticker": "CHUBB LTD SWITZ",
-          "issuer": "CHUBB LTD SWITZ",
-          "weight": 4.242880466510539,
-          "value": 11162836215,
+          "ticker": "BAC",
+          "issuer": "BANK OF AMER CORP",
+          "weight": 9.204164963158451,
+          "value": 27543790975,
+          "shares": 483394015,
+          "putCall": null,
+          "changeType": "down",
+          "changeLabel": "减持 -6%"
+        },
+        {
+          "ticker": "CVX",
+          "issuer": "CHEVRON CORPORATION",
+          "weight": 4.673676084404744,
+          "value": 13986141890,
+          "shares": 84375856,
+          "putCall": null,
+          "changeType": "same",
+          "changeLabel": "基本不变"
+        },
+        {
+          "ticker": "OXY",
+          "issuer": "OCCIDENTAL PETE CORP",
+          "weight": 4.300101046559243,
+          "value": 12868205304,
+          "shares": 264941431,
+          "putCall": null,
+          "changeType": "same",
+          "changeLabel": "基本不变"
+        },
+        {
+          "ticker": "CHUBB LIMITED",
+          "issuer": "CHUBB LIMITED",
+          "weight": 3.8997252902841617,
+          "value": 11670066615,
           "shares": 34249183,
           "putCall": null,
           "changeType": "same",
@@ -7115,47 +7115,31 @@
         {
           "ticker": "MCO",
           "issuer": "MOODYS CORP",
-          "weight": 4.090599164853553,
-          "value": 10762190653,
+          "weight": 3.7337687786122506,
+          "value": 11173435852,
           "shares": 24669778,
           "putCall": null,
           "changeType": "same",
           "changeLabel": "基本不变"
         },
         {
-          "ticker": "KHC",
-          "issuer": "KRAFT HEINZ CO",
-          "weight": 2.783598119477265,
-          "value": 7323527057,
-          "shares": 325634818,
+          "ticker": "GOOG",
+          "issuer": "ALPHABET INC",
+          "weight": 3.2101503328846093,
+          "value": 9606489032,
+          "shares": 27188433,
           "putCall": null,
-          "changeType": "same",
-          "changeLabel": "基本不变"
+          "changeType": "up",
+          "changeLabel": "增持 +658%"
         }
       ],
       "sold": [
         {
-          "ticker": "V",
-          "issuer": "VISA INC"
-        },
-        {
-          "ticker": "MA",
-          "issuer": "MASTERCARD INCORPORATED"
-        },
-        {
-          "ticker": "UNITEDHEALTH GROUP INC",
-          "issuer": "UNITEDHEALTH GROUP INC"
-        },
-        {
-          "ticker": "DOMINOS PIZZA INC",
-          "issuer": "DOMINOS PIZZA INC"
-        },
-        {
-          "ticker": "AON PLC",
-          "issuer": "AON PLC"
+          "ticker": "CONSTELLATION BRANDS INC",
+          "issuer": "CONSTELLATION BRANDS INC"
         }
       ],
-      "trackingScore": 99,
+      "trackingScore": 97,
       "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1067983",
@@ -7656,57 +7640,77 @@
     {
       "id": "druckenmiller",
       "name": "Duquesne Family Office",
-      "reportDate": "2026-03-31",
-      "filingDate": "2026-05-15",
-      "previousReportDate": "2025-12-31",
-      "portfolioValue": 3376828,
+      "reportDate": "2026-06-30",
+      "filingDate": "2026-08-14",
+      "previousReportDate": "2026-03-31",
+      "portfolioValue": 5210856,
       "holdings": [
         {
           "ticker": "Natera Inc",
           "issuer": "Natera Inc",
-          "weight": 18.14398009019115,
-          "value": 612691,
-          "shares": 3063606,
+          "weight": 16.598482092001774,
+          "value": 864923,
+          "shares": 3186306,
           "putCall": null,
           "changeType": "up",
-          "changeLabel": "增持 +22%"
-        },
-        {
-          "ticker": "Insmed Inc",
-          "issuer": "Insmed Inc",
-          "weight": 5.588587870036614,
-          "value": 188717,
-          "shares": 1154090,
-          "putCall": null,
-          "changeType": "down",
-          "changeLabel": "减持 -22%"
+          "changeLabel": "增持 +4%"
         },
         {
           "ticker": "TSM",
           "issuer": "Taiwan Semiconductor Manufac",
-          "weight": 4.956722699527486,
-          "value": 167380,
-          "shares": 495280,
+          "weight": 5.404351991304308,
+          "value": 281613,
+          "shares": 589680,
           "putCall": null,
-          "changeType": "down",
-          "changeLabel": "减持 -9%"
+          "changeType": "up",
+          "changeLabel": "增持 +19%"
+        },
+        {
+          "ticker": "Stmicroelectronics N V",
+          "issuer": "Stmicroelectronics N V",
+          "weight": 4.459440061287435,
+          "value": 232375,
+          "shares": 3102880,
+          "putCall": null,
+          "changeType": "up",
+          "changeLabel": "增持 +19%"
+        },
+        {
+          "ticker": "Invesco Exchange Traded Fd T",
+          "issuer": "Invesco Exchange Traded Fd T",
+          "weight": 3.352309102381643,
+          "value": 174684,
+          "shares": 821000,
+          "putCall": "Call",
+          "changeType": "same",
+          "changeLabel": "基本不变"
+        },
+        {
+          "ticker": "Insmed Inc",
+          "issuer": "Insmed Inc",
+          "weight": 2.915068080944858,
+          "value": 151900,
+          "shares": 1424690,
+          "putCall": null,
+          "changeType": "up",
+          "changeLabel": "增持 +23%"
         },
         {
           "ticker": "Ishares Inc",
           "issuer": "Ishares Inc",
-          "weight": 4.806670638836209,
-          "value": 162313,
+          "weight": 2.7992713673146987,
+          "value": 145866,
           "shares": 4228000,
           "putCall": "Call",
           "changeType": "same",
           "changeLabel": "基本不变"
         },
         {
-          "ticker": "Invesco Exchange Traded Fd T",
-          "issuer": "Invesco Exchange Traded Fd T",
-          "weight": 4.666094926955119,
-          "value": 157566,
-          "shares": 821000,
+          "ticker": "Insmed Inc",
+          "issuer": "Insmed Inc",
+          "weight": 2.7622524974783413,
+          "value": 143937,
+          "shares": 1350000,
           "putCall": "Call",
           "changeType": "new",
           "changeLabel": "新进"
@@ -7714,77 +7718,57 @@
         {
           "ticker": "Ypf Sociedad Anonima",
           "issuer": "Ypf Sociedad Anonima",
-          "weight": 4.429186206700489,
-          "value": 149566,
-          "shares": 3235962,
-          "putCall": null,
-          "changeType": "up",
-          "changeLabel": "增持 +433%"
-        },
-        {
-          "ticker": "Ishares Inc",
-          "issuer": "Ishares Inc",
-          "weight": 3.906476729048681,
-          "value": 131915,
-          "shares": 3436170,
+          "weight": 2.739012553791546,
+          "value": 142726,
+          "shares": 3138897,
           "putCall": null,
           "changeType": "down",
           "changeLabel": "减持 -3%"
         },
         {
+          "ticker": "AMZN",
+          "issuer": "Amazon Com Inc",
+          "weight": 2.477232147654819,
+          "value": 129085,
+          "shares": 541600,
+          "putCall": null,
+          "changeType": "up",
+          "changeLabel": "增持 +1083%"
+        },
+        {
           "ticker": "Bbb Foods Inc",
           "issuer": "Bbb Foods Inc",
-          "weight": 3.256665722980264,
-          "value": 109972,
-          "shares": 3109202,
+          "weight": 2.3204440882649604,
+          "value": 120915,
+          "shares": 2901733,
           "putCall": null,
-          "changeType": "up",
-          "changeLabel": "增持 +16%"
-        },
-        {
-          "ticker": "Alcoa Corp",
-          "issuer": "Alcoa Corp",
-          "weight": 2.9334333877828542,
-          "value": 99057,
-          "shares": 1493390,
-          "putCall": null,
-          "changeType": "up",
-          "changeLabel": "增持 +9%"
-        },
-        {
-          "ticker": "Newamsterdam Pharma Company",
-          "issuer": "Newamsterdam Pharma Company",
-          "weight": 2.910275560377964,
-          "value": 98275,
-          "shares": 3070146,
-          "putCall": null,
-          "changeType": "same",
-          "changeLabel": "基本不变"
+          "changeType": "down",
+          "changeLabel": "减持 -7%"
         }
       ],
       "sold": [
         {
-          "ticker": "Select Sector Spdr Tr",
-          "issuer": "Select Sector Spdr Tr"
+          "ticker": "AVGO",
+          "issuer": "Broadcom Inc"
         },
         {
-          "ticker": "Invesco Exchange Traded Fd T",
-          "issuer": "Invesco Exchange Traded Fd T"
+          "ticker": "Option Care Health Inc",
+          "issuer": "Option Care Health Inc"
         },
         {
-          "ticker": "GOOGL",
-          "issuer": "Alphabet Inc"
+          "ticker": "Figure Technology Solutio",
+          "issuer": "Figure Technology Solutio"
         },
         {
-          "ticker": "Cogent Biosciences Inc",
-          "issuer": "Cogent Biosciences Inc"
+          "ticker": "QSR",
+          "issuer": "Restaurant Brands Intl Inc"
         },
         {
-          "ticker": "Entegris Inc",
-          "issuer": "Entegris Inc"
+          "ticker": "Lattice Semiconductor Corp",
+          "issuer": "Lattice Semiconductor Corp"
         }
       ],
-      "trackingScore": 91,
+      "trackingScore": 92,
       "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1536411",
@@ -7793,135 +7777,135 @@
     {
       "id": "dalio",
       "name": "Bridgewater Associates",
-      "reportDate": "2026-03-31",
-      "filingDate": "2026-05-15",
-      "previousReportDate": "2025-12-31",
-      "portfolioValue": 22404547213,
+      "reportDate": "2026-06-30",
+      "filingDate": "2026-08-14",
+      "previousReportDate": "2026-03-31",
+      "portfolioValue": 24376086530,
       "holdings": [
         {
           "ticker": "STATE STR SPDR S&P 500 ETF T",
           "issuer": "STATE STR SPDR S&P 500 ETF T",
-          "weight": 12.669947426355069,
-          "value": 2838644353,
-          "shares": 4364862,
+          "weight": 16.29895102362028,
+          "value": 3973046405,
+          "shares": 5320308,
           "putCall": null,
-          "changeType": "down",
-          "changeLabel": "减持 -2%"
+          "changeType": "up",
+          "changeLabel": "增持 +22%"
         },
         {
           "ticker": "ISHARES TR",
           "issuer": "ISHARES TR",
-          "weight": 7.8109342865209905,
-          "value": 1750004460,
-          "shares": 2679084,
-          "putCall": null,
-          "changeType": "down",
-          "changeLabel": "减持 -36%"
-        },
-        {
-          "ticker": "AMZN",
-          "issuer": "AMAZON COM INC",
-          "weight": 4.079693427009495,
-          "value": 914036840,
-          "shares": 4388711,
+          "weight": 9.223719977498783,
+          "value": 2248381963,
+          "shares": 3002286,
           "putCall": null,
           "changeType": "up",
-          "changeLabel": "增持 +125%"
+          "changeLabel": "增持 +12%"
         },
         {
           "ticker": "NVDA",
           "issuer": "NVIDIA CORPORATION",
-          "weight": 3.653096468403956,
-          "value": 818459723,
-          "shares": 4693003,
+          "weight": 3.1735486213011894,
+          "value": 773586958,
+          "shares": 3866195,
           "putCall": null,
-          "changeType": "up",
-          "changeLabel": "增持 +21%"
-        },
-        {
-          "ticker": "GOOGL",
-          "issuer": "ALPHABET INC",
-          "weight": 2.563993503366499,
-          "value": 574451135,
-          "shares": 1997674,
-          "putCall": null,
-          "changeType": "up",
-          "changeLabel": "增持 +26%"
+          "changeType": "down",
+          "changeLabel": "减持 -18%"
         },
         {
           "ticker": "AVGO",
           "issuer": "BROADCOM INC",
-          "weight": 2.5355052195403633,
-          "value": 568068464,
-          "shares": 1835380,
-          "putCall": null,
-          "changeType": "up",
-          "changeLabel": "增持 +57%"
-        },
-        {
-          "ticker": "MU",
-          "issuer": "MICRON TECHNOLOGY INC",
-          "weight": 2.2252261304826577,
-          "value": 498551839,
-          "shares": 1475704,
-          "putCall": null,
-          "changeType": "up",
-          "changeLabel": "增持 +66%"
-        },
-        {
-          "ticker": "MSFT",
-          "issuer": "MICROSOFT CORP",
-          "weight": 1.7926123307993493,
-          "value": 401626676,
-          "shares": 1084979,
-          "putCall": null,
-          "changeType": "up",
-          "changeLabel": "增持 +10%"
-        },
-        {
-          "ticker": "GE VERNOVA INC",
-          "issuer": "GE VERNOVA INC",
-          "weight": 1.694395282310051,
-          "value": 379621591,
-          "shares": 434897,
+          "weight": 2.042351680969357,
+          "value": 497845413,
+          "shares": 1317923,
           "putCall": null,
           "changeType": "down",
-          "changeLabel": "减持 -35%"
+          "changeLabel": "减持 -28%"
         },
         {
-          "ticker": "TSM",
-          "issuer": "TAIWAN SEMICONDUCTOR MANUFAC",
-          "weight": 1.6246650491949848,
-          "value": 363998848,
-          "shares": 1077079,
+          "ticker": "AMZN",
+          "issuer": "AMAZON COM INC",
+          "weight": 1.9804374316027669,
+          "value": 482753142,
+          "shares": 2025481,
           "putCall": null,
-          "changeType": "new",
-          "changeLabel": "新进"
+          "changeType": "down",
+          "changeLabel": "减持 -54%"
+        },
+        {
+          "ticker": "GOOGL",
+          "issuer": "ALPHABET INC",
+          "weight": 1.9383999003223098,
+          "value": 472506037,
+          "shares": 1322176,
+          "putCall": null,
+          "changeType": "down",
+          "changeLabel": "减持 -34%"
+        },
+        {
+          "ticker": "LAM RESEARCH CORP",
+          "issuer": "LAM RESEARCH CORP",
+          "weight": 1.6678666015549297,
+          "value": 406560606,
+          "shares": 938224,
+          "putCall": null,
+          "changeType": "down",
+          "changeLabel": "减持 -40%"
+        },
+        {
+          "ticker": "VANGUARD INDEX FDS",
+          "issuer": "VANGUARD INDEX FDS",
+          "weight": 1.2915143479349964,
+          "value": 314820655,
+          "shares": 458381,
+          "putCall": null,
+          "changeType": "up",
+          "changeLabel": "增持 +189%"
+        },
+        {
+          "ticker": "AMD",
+          "issuer": "ADVANCED MICRO DEVICES INC",
+          "weight": 1.2836216125788424,
+          "value": 312896715,
+          "shares": 538632,
+          "putCall": null,
+          "changeType": "down",
+          "changeLabel": "减持 -58%"
+        },
+        {
+          "ticker": "ISHARES INC",
+          "issuer": "ISHARES INC",
+          "weight": 1.1469661738192065,
+          "value": 279585467,
+          "shares": 1384772,
+          "putCall": null,
+          "changeType": "down",
+          "changeLabel": "减持 -22%"
         }
       ],
       "sold": [
         {
-          "ticker": "SALESFORCE INC",
-          "issuer": "SALESFORCE INC"
+          "ticker": "CISCO SYS INC",
+          "issuer": "CISCO SYS INC"
         },
         {
-          "ticker": "WORKDAY INC",
-          "issuer": "WORKDAY INC"
+          "ticker": "ASE TECHNOLOGY HLDG CO LTD",
+          "issuer": "ASE TECHNOLOGY HLDG CO LTD"
         },
         {
-          "ticker": "SERVICENOW INC",
-          "issuer": "SERVICENOW INC"
+          "ticker": "CRWV",
+          "issuer": "COREWEAVE INC"
         },
         {
-          "ticker": "GLOBAL PMTS INC",
-          "issuer": "GLOBAL PMTS INC"
+          "ticker": "PRIMORIS SVCS CORP",
+          "issuer": "PRIMORIS SVCS CORP"
         },
         {
-          "ticker": "GODADDY INC",
-          "issuer": "GODADDY INC"
+          "ticker": "BN",
+          "issuer": "BROOKFIELD CORP"
         }
       ],
-      "trackingScore": 97,
+      "trackingScore": 95,
       "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=1350694",
@@ -7986,135 +7970,135 @@
     {
       "id": "leopold",
       "name": "Situational Awareness LP",
-      "reportDate": "2026-03-31",
-      "filingDate": "2026-05-18",
-      "previousReportDate": "2025-12-31",
-      "portfolioValue": 13676657577,
+      "reportDate": "2026-06-30",
+      "filingDate": "2026-08-14",
+      "previousReportDate": "2026-03-31",
+      "portfolioValue": 20242292228,
       "holdings": [
-        {
-          "ticker": "SMH",
-          "issuer": "VANECK ETF TRUST",
-          "weight": 14.935790038607324,
-          "value": 2042716860,
-          "shares": 5327900,
-          "putCall": "Put",
-          "changeType": "new",
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "NVDA",
-          "issuer": "NVIDIA CORPORATION",
-          "weight": 11.466669478055325,
-          "value": 1568257120,
-          "shares": 8992300,
-          "putCall": "Put",
-          "changeType": "new",
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "ORCL",
-          "issuer": "ORACLE CORP",
-          "weight": 7.844557224304922,
-          "value": 1072873230,
-          "shares": 7293000,
-          "putCall": "Put",
-          "changeType": "new",
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "AVGO",
-          "issuer": "BROADCOM INC",
-          "weight": 7.357411380191346,
-          "value": 1006247961,
-          "shares": 3251100,
-          "putCall": "Put",
-          "changeType": "new",
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "AMD",
-          "issuer": "ADVANCED MICRO DEVICES INC",
-          "weight": 7.086240607718623,
-          "value": 969160863,
-          "shares": 4764100,
-          "putCall": "Put",
-          "changeType": "new",
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "BE",
-          "issuer": "BLOOM ENERGY CORP",
-          "weight": 6.424873365826757,
-          "value": 878707930,
-          "shares": 6485408,
-          "putCall": null,
-          "changeType": "down",
-          "changeLabel": "减持 -36%"
-        },
         {
           "ticker": "SNDK",
           "issuer": "SANDISK CORP",
-          "weight": 5.296346720109157,
-          "value": 724363205,
-          "shares": 1140119,
+          "weight": 28.02913054062051,
+          "value": 5673738513,
+          "shares": 2495344,
           "putCall": null,
           "changeType": "up",
-          "changeLabel": "增持 +8%"
+          "changeLabel": "增持 +119%"
         },
         {
           "ticker": "MU",
           "issuer": "MICRON TECHNOLOGY INC",
-          "weight": 4.267754491284358,
-          "value": 583686168,
-          "shares": 1727700,
-          "putCall": "Put",
+          "weight": 27.535514897320056,
+          "value": 5573819392,
+          "shares": 4828786,
+          "putCall": null,
+          "changeType": "up",
+          "changeLabel": "增持 +27712%"
+        },
+        {
+          "ticker": "BE",
+          "issuer": "BLOOM ENERGY CORP",
+          "weight": 9.380256744705662,
+          "value": 1898778982,
+          "shares": 6272808,
+          "putCall": null,
+          "changeType": "down",
+          "changeLabel": "减持 -3%"
+        },
+        {
+          "ticker": "TSM",
+          "issuer": "TAIWAN SEMICONDUCTOR MANUFAC",
+          "weight": 6.24978451427581,
+          "value": 1265099645,
+          "shares": 2649035,
+          "putCall": null,
+          "changeType": "up",
+          "changeLabel": "增持 +11714%"
+        },
+        {
+          "ticker": "NEBIUS GROUP N.V.",
+          "issuer": "NEBIUS GROUP N.V.",
+          "weight": 6.090687112473397,
+          "value": 1232894684,
+          "shares": 4464260,
+          "putCall": null,
           "changeType": "new",
           "changeLabel": "新进"
         },
         {
           "ticker": "CRWV",
           "issuer": "COREWEAVE INC",
-          "weight": 4.065857332972548,
-          "value": 556073385,
-          "shares": 7177919,
+          "weight": 3.6780182531410888,
+          "value": 744515203,
+          "shares": 7479558,
           "putCall": null,
           "changeType": "up",
-          "changeLabel": "增持 +18%"
+          "changeLabel": "增持 +4%"
         },
         {
-          "ticker": "TSM",
-          "issuer": "TAIWAN SEMICONDUCTOR MANUFAC",
-          "weight": 3.9125789834783404,
-          "value": 535110030,
-          "shares": 1583400,
-          "putCall": "Put",
+          "ticker": "CORZ",
+          "issuer": "CORE SCIENTIFIC INC NEW",
+          "weight": 3.28795186090325,
+          "value": 665556824,
+          "shares": 26008473,
+          "putCall": null,
+          "changeType": "same",
+          "changeLabel": "基本不变"
+        },
+        {
+          "ticker": "STMICROELECTRONICS",
+          "issuer": "STMICROELECTRONICS",
+          "weight": 2.8867491705890416,
+          "value": 584344203,
+          "shares": 7802700,
+          "putCall": null,
           "changeType": "new",
           "changeLabel": "新进"
+        },
+        {
+          "ticker": "APPLIED DIGITAL CORP",
+          "issuer": "APPLIED DIGITAL CORP",
+          "weight": 2.3170439479735783,
+          "value": 469022807,
+          "shares": 15384616,
+          "putCall": null,
+          "changeType": "up",
+          "changeLabel": "增持 +14%"
+        },
+        {
+          "ticker": "RIOT PLATFORMS INC",
+          "issuer": "RIOT PLATFORMS INC",
+          "weight": 2.3129692760406284,
+          "value": 468198000,
+          "shares": 17100000,
+          "putCall": null,
+          "changeType": "up",
+          "changeLabel": "增持 +49%"
         }
       ],
       "sold": [
         {
-          "ticker": "INTEL CORP",
-          "issuer": "INTEL CORP"
+          "ticker": "SMH",
+          "issuer": "VANECK ETF TRUST"
         },
         {
-          "ticker": "LUMENTUM HLDGS INC",
-          "issuer": "LUMENTUM HLDGS INC"
+          "ticker": "NVDA",
+          "issuer": "NVIDIA CORPORATION"
         },
         {
-          "ticker": "CIPHER MINING INC",
-          "issuer": "CIPHER MINING INC"
+          "ticker": "ORCL",
+          "issuer": "ORACLE CORP"
         },
         {
-          "ticker": "EQT CORP",
-          "issuer": "EQT CORP"
+          "ticker": "AVGO",
+          "issuer": "BROADCOM INC"
         },
         {
-          "ticker": "COHERENT CORP",
-          "issuer": "COHERENT CORP"
+          "ticker": "AMD",
+          "issuer": "ADVANCED MICRO DEVICES INC"
         }
       ],
-      "trackingScore": 100,
+      "trackingScore": 96,
       "trackingSummary": "公开申报完整，适合跟踪方向变化。",
       "source": "SEC EDGAR 13F",
       "sourceUrl": "https://www.sec.gov/edgar/browse/?CIK=2045724",

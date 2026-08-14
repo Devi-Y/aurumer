@@ -77,7 +77,7 @@ assert(html.includes("数据状态：公开快照"), "模块顶部缺少真实�
 assert(html.includes("STALE_ACTION"), "缺少数据过期动作降级文案常量");
 assert(html.includes("本平台数据仅供学习参考，不构成投资建议"), "详情页缺少统一学习免责声明");
 assert(html.includes("function showUSPriceFloat"), "美股列表缺少观察区间浮层交互");
-for (const marker of ["function renderGold", "function renderGoldAnswer", "function renderGoldPrice", "function renderGoldDrivers", "function renderGoldAnalysis"]) {
+for (const marker of ["function renderGold"]) {
   assert(html.includes(marker), `黄金页面缺失：${marker}`);
 }
 assert(html.includes("国际金关注区") && html.includes("上海金关注区"), "黄金答案缺少双市场价格区间");

@@ -651,10 +651,6 @@ function groupDefinitions(snapshot, market) {
       ["leverage", "高杠杆观察", "建议申购且拥挤度不高，默认仍是一手", false],
       ["cancelled", "发行已取消", "无法申购"],
       ["ended", "已结束", "历史样本对照：暗盘·首日·五日"],
-      // 旧完整度字面保留给审计兼容，count 为 0。
-      ["legacy-complete", "资料较完整", "已改名为建议申购等动作结论。"],
-      ["legacy-review", "重点核验", "已改名为暂缓观察。"],
-      ["legacy-limited", "资料不足", "已改名为暂不建议 / 资料不够。"],
     ];
   } else if (market === "us") {
     definitions = [
@@ -676,20 +672,11 @@ function groupDefinitions(snapshot, market) {
       ["cycle", "周期短持", "煤炭/油气/钢铁等景气角色", false],
       ["add", "加大观察", "股息回推价已到加大区", false],
       ["trim", "兑现观察", "股息被价格压缩后的兑现区", false],
-      // 保留旧组名字符串供审计/兼容路由，count 恒为 0，前端会显示暂无。
-      ["payout", "收息清单", "已拆为优等/稳健/待核"],
-      ["complete", "资料较完整", "后端完整度分组，已并入收息清单。"],
-      ["review", "现金流待核验", "后端完整度分组，已并入收息清单。"],
-      ["limited", "资料待补充", "后端完整度分组，已并入收息清单。"],
     ];
   } else if (market === "gold") {
     definitions = [
       ["track", "现在怎么做", "偏买 / 观望 / 回避"],
       ["plan", "买点与卖点", "观察低位 / 观察上沿 / 风险下沿"],
-      // 旧四入口字面保留给审计兼容，count 为 0。
-      ["answer", "资料结论", "已并入「现在怎么做」。"],
-      ["price", "价格位置", "已并入「买点与卖点」。"],
-      ["drivers", "驱动与风险", "已并入「现在怎么做」的原因与风险。"],
     ];
   } else {
     definitions = [

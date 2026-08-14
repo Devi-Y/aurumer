@@ -122,7 +122,7 @@ Page({
   },
   onLoad(options) {
     const market = MARKET_META[options.market] ? options.market : "hk";
-    const defaultGroup = market === "a" ? "payout" : market === "gold" ? "track" : market === "us" ? "seven" : "worth";
+    const defaultGroup = market === "a" ? "prime" : market === "gold" ? "track" : market === "us" ? "seven" : "worth";
     this.setData({ market, group: options.group || defaultGroup, meta: MARKET_META[market] });
     this.refresh();
   },

@@ -4,7 +4,6 @@ const SHELL = [
   BASE,
   `${BASE}index.html`,
   `${BASE}daily.html`,
-  `${BASE}legacy.html`,
   `${BASE}manifest.webmanifest`,
   `${BASE}icons/aurum-192.png`,
   `${BASE}icons/aurum-512.png`,

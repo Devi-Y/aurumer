@@ -8,7 +8,6 @@
 
 - 首页：https://devi-y.github.io/aurumer/
 - 每日驾驶舱：https://devi-y.github.io/aurumer/daily.html
-- 投资驾驶舱说明页：https://devi-y.github.io/aurumer/cockpit.html
 - 港股打新：https://devi-y.github.io/aurumer/#/hk
 - 美股投资：https://devi-y.github.io/aurumer/#/us
 - A股收息：https://devi-y.github.io/aurumer/#/a-shares
@@ -37,7 +36,6 @@
 
 - 一级：首页以 Bento 布局依次展示港股打新、美股投资、A股收息、黄金投资和聪明人持仓五个入口；黄金固定第 4，聪明人持仓固定最后。
 - 每日驾驶舱：独立展示今日结论和仅保存在当前浏览器的个人持仓，不改变主站三级入口结构。
-- 驾驶舱页：解释产品结构、免费/付费边界和后续升级方向。
 - 二级：港股按值得打、谨慎打、不建议、已结束分类；美股展示七姐妹和热度前三；A股按重点观察、继续观察、谨慎观察分档；聪明人持仓独立分为港股 3、美股 5、A股 3。
 - 三级：只展示具体标的和一句话结论，点击后再进入完整答案。
 - 四级：港股展示申购结论、暗盘、首日、五日卖出答案和站内资料；美股展示观察低位、观察上沿、风险下沿和基本面；A股展示收息评级、价格和分红测算；聪明人详情展示业绩口径、WHY、HOW 与具体持仓。

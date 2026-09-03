@@ -6,8 +6,6 @@ const { loadWorkspace } = require("../../services/member");
 const { homeMemberSummary } = require("../../utils/change-center");
 const { listHoldings, upsertHolding, removeHolding } = require("../../utils/local-holdings");
 const { viewHoldings, holdingsReminder } = require("../../utils/holding-observe");
-const { buildThesisTicker } = require("../../utils/thesis-ticker");
-const { findPlaybook } = require("../../utils/master-playbooks");
 const { buildDailyCard } = require("../../utils/daily-card");
 const { buildHomeDigest } = require("../../utils/daily-answers");
 
@@ -57,6 +55,16 @@ const CORE_ENTRIES = [
     detail: "港3 · 美5 · A3",
     tone: "guru",
   },
+  {
+    id: "news",
+    action: "page",
+    url: "/pages/news/index",
+    icon: "/assets/home/news.svg",
+    title: "新闻资讯",
+    help: "披露·公告·节点",
+    detail: "变化提醒",
+    tone: "news",
+  },
 ];
 
 const MEMBER_ENTRY = {
@@ -98,8 +106,6 @@ Page({
     footerDisclaimer: FOOTER_DISCLAIMER,
     holdings: [],
     holdingsReminder: holdingsReminder([]),
-    thesisLines: [],
-    thesisIndex: 0,
     showHoldingForm: false,
     marketOptions: MARKET_OPTIONS,
     marketIndex: 0,
@@ -156,18 +162,14 @@ Page({
         const asOf = this.formatAsOf(data.updatedAt, kind);
         this._snapshot = data;
         const holdings = listHoldings();
-        const thesisLines = buildThesisTicker(data, holdings);
         const today = buildToday(data, holdings);
         this.setData({
           today,
           dataAsOf: asOf,
           freshnessKind: kind,
           todayHelp: today.help || TODAY_HELP_FRESH,
-          thesisLines,
-          thesisIndex: 0,
         });
         this.refreshHoldings(data, today.points);
-        this.startThesisRotate(thesisLines.length);
       },
       done,
       { force },
@@ -185,88 +187,9 @@ Page({
     if (kind === "stale") return `数据截至 ${stamp} · 已偏旧`;
     return `数据截至 ${stamp}`;
   },
-  startThesisRotate(count) {
-    if (this._thesisTimer) {
-      clearInterval(this._thesisTimer);
-      this._thesisTimer = null;
-    }
-    if (!count || count < 2) return;
-    this._thesisTimer = setInterval(() => {
-      const next = ((this.data.thesisIndex || 0) + 1) % count;
-      this.setData({ thesisIndex: next });
-    }, 3800);
-  },
-  onUnload() {
-    if (this._thesisTimer) {
-      clearInterval(this._thesisTimer);
-      this._thesisTimer = null;
-    }
-  },
-  onHide() {
-    if (this._thesisTimer) {
-      clearInterval(this._thesisTimer);
-      this._thesisTimer = null;
-    }
-  },
   onShow() {
     this.refreshHoldings();
     this.refreshMemberCard();
-    if ((this.data.thesisLines || []).length > 1) {
-      this.startThesisRotate(this.data.thesisLines.length);
-    }
-  },
-  openThesisLine() {
-    const line = (this.data.thesisLines || [])[this.data.thesisIndex || 0];
-    if (!line) return;
-    track("detail_open", { market: String(line.market || ""), from: "thesis_ticker" });
-    if (line.kind === "playbook" || (line.kind === "answer" && line.modal)) {
-      if (line.kind === "answer" && line.modal) {
-        wx.showModal({
-          title: line.title,
-          content: line.modal,
-          showCancel: Boolean(line.market),
-          cancelText: "关闭",
-          confirmText: "打开栏目",
-          success: (result) => {
-            if (result.confirm && line.market) {
-              wx.navigateTo({ url: `/pages/section/index?market=${line.market}` });
-            }
-          },
-        });
-        return;
-      }
-      const book = findPlaybook(line.targetId || line.id);
-      if (!book) {
-        wx.navigateTo({ url: "/pages/section/index?market=guru" });
-        return;
-      }
-      wx.showModal({
-        title: `${book.name} · 策略摘要`,
-        content: [
-          book.principle,
-          `敏感度：${book.sensitivity}`,
-          `价值透镜：${book.valueLens}`,
-          `边界：${book.doNot}`,
-          `来源：${book.sourceNote}`,
-        ].join("\n"),
-        showCancel: true,
-        cancelText: "关闭",
-        confirmText: "机构持仓",
-        success: (result) => {
-          if (result.confirm) wx.navigateTo({ url: "/pages/section/index?market=guru" });
-        },
-      });
-      return;
-    }
-    if (line.targetId && line.market) {
-      wx.navigateTo({
-        url: `/pages/detail/index?market=${encodeURIComponent(line.market)}&id=${encodeURIComponent(line.targetId)}`,
-      });
-      return;
-    }
-    if (line.market) {
-      wx.navigateTo({ url: `/pages/section/index?market=${line.market}` });
-    }
   },
   openTodayCategory(event) {
     const market = event.currentTarget.dataset.market;
@@ -294,6 +217,11 @@ Page({
     if (entry.action === "section") {
       track("section_open", { market: String(entry.id), from: "grid" });
       wx.navigateTo({ url: `/pages/section/index?market=${entry.id}` });
+      return;
+    }
+    // 新闻资讯不是行情栏目，走自己的页面。
+    if (entry.action === "page" && entry.url) {
+      openPage(entry.url);
     }
   },
   openMemberBanner() {

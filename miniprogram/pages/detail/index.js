@@ -700,6 +700,23 @@ function buildUSView(base, item, snapshot) {
         mag7tags.includes("cheap7") ? "相对低估" : null,
         mag7tags.includes("hold7") ? "长期观察" : null,
       ].filter(Boolean).join(" · ") || (item.group === "industry" ? "行业观察" : (item.group === "seven" ? "七姐妹跟踪" : ""));
+
+  // 「先看答案」要给一句独立的结论。默认值 item.one 是列表行的副标题（形如
+  // 「+0.54% · $225.30」），而这两个数字在上方核心数据条里已经各占一格，
+  // 照搬过来等于把同一组数字念两遍。这里换成两个已经算好的公开事实：
+  // 研究分档，以及现价落在近 60 日区间的哪个位置——都不新增任何判断。
+  const pricePosition = range && hasNumber(raw.price) && range.high > range.low
+    ? Math.max(0, Math.min(100, Math.round(((Number(raw.price) - range.low) / (range.high - range.low)) * 100)))
+    : null;
+  base.answer = [
+    // 分档和徽章相同时不重复念一遍（热度榜、性价比观察这类分组的 mag7Label 是空的，
+    // 兜底会取到 item.badge，而 badge 就挂在上面那颗结论药丸上）。
+    mag7Label && mag7Label !== base.badge ? mag7Label : null,
+    pricePosition != null
+      ? `近 60 日 ${money(range.low)}–${money(range.high)}，现价在 ${pricePosition}% 位置`
+      : null,
+  ].filter(Boolean).join(" · ") || item.one;
+
   setCharts(
     base,
     scoreMeter(scoredUS.score, "研究观察分", item.badge),
@@ -1025,7 +1042,19 @@ function buildGuruView(base, item) {
   base.badge = profile.performanceValue || profile.marketLabel || base.badge;
   base.score = profile.performanceValue || "业绩待核";
   base.rank = profile.order ? `第 ${profile.order}/${groupCounts[profile.group]}` : "";
-  base.answer = profile.marketLabel || item.badge;
+  // 「先看答案」原本只填 profile.marketLabel，渲染出来就是孤零零一个「美股」——
+  // 既不是答案，也不是新信息（市场在关键数据里已经单独占了一格）。改成这期 13F
+  // 到底说了什么：报告期、第一大持仓、本期有多少项仓位变化，全部取自已算好的字段。
+  const topHolding = holdings
+    .filter((row) => row && row.ticker)
+    .reduce((best, row) => (best && Number(best.weight) >= Number(row.weight) ? best : row), null);
+  base.answer = [
+    (raw.reportDate || profile.report) ? `${raw.reportDate || profile.report} 报告期` : null,
+    topHolding
+      ? `第一大持仓 ${topHolding.ticker}${hasNumber(topHolding.weight) ? ` ${formatNumber(topHolding.weight, "%")}` : ""}`
+      : null,
+    changed.length ? `本期 ${changed.length} 项仓位变化` : null,
+  ].filter(Boolean).join(" · ") || profile.marketLabel || item.badge;
   base.metrics = [
     ["表观年化", profile.performanceValue || "待核"],
     ["市场", profile.marketLabel || "待核"],

@@ -5,7 +5,11 @@
  * 当前状态、为什么这样判断、什么变化会触发重新评估。
  */
 
+// null / undefined / 空串要当成「没有这个数」，不能交给 Number()：
+// Number(null) 是 0 且有限，会让「一手中签率未公布」之类的缺失字段
+// 变成一个真实的 0，然后被下游的 !== null 判断当成有效信号用。
 function number(value) {
+  if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }

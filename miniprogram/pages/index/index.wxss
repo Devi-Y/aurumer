@@ -95,59 +95,6 @@
   background: rgba(255, 255, 255, 0.18);
 }
 
-.thesis-ticker {
-  display: flex;
-  margin-top: 16rpx;
-  min-height: 88rpx;
-  padding: 14rpx 16rpx;
-  align-items: center;
-  gap: 12rpx;
-  border-radius: 16rpx;
-  background: rgba(255, 255, 255, 0.16);
-}
-
-.thesis-kicker {
-  flex: none;
-  padding: 6rpx 12rpx;
-  border-radius: 10rpx;
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-  font-size: 22rpx;
-  font-weight: 700;
-}
-
-.thesis-copy {
-  min-width: 0;
-  flex: 1;
-}
-
-.thesis-title,
-.thesis-text {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.thesis-title {
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 21rpx;
-  font-weight: 520;
-}
-
-.thesis-text {
-  margin-top: 4rpx;
-  color: #ffffff;
-  font-size: 25rpx;
-  font-weight: 660;
-}
-
-.thesis-arrow {
-  flex: none;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 28rpx;
-}
-
 .daily-card-row {
   display: flex;
   margin-top: 12rpx;
@@ -194,10 +141,6 @@
 
 .home-panel + .home-panel {
   margin-top: 16rpx;
-}
-
-.holdings-panel {
-  margin-top: -24rpx;
 }
 
 .panel-head {
@@ -425,13 +368,13 @@
   position: relative;
   box-sizing: border-box;
   display: flex;
-  width: 20%;
+  width: 33.333%;
   min-width: 0;
   min-height: 200rpx;
   /* 底部 30rpx 是给绝对定位的 .entry-arrow 留的专用带：
      说明文字放开成两行后，若沿用 14rpx，第二行会压到箭头上。 */
-  padding: 18rpx 6rpx 30rpx;
-  flex: 0 0 20%;
+  padding: 18rpx 12rpx 30rpx;
+  flex: 0 0 33.333%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -441,7 +384,10 @@
   text-align: center;
 }
 
-.grid-card:nth-child(5n) { border-right: 0; }
+/* 六个入口排成 3 列 × 2 行：每行最后一格不画右边线，
+   第二行（第 4 格起）不画下边线，否则会在卡片底边上方多出一条横线。 */
+.grid-card:nth-child(3n) { border-right: 0; }
+.grid-card:nth-child(n + 4) { border-bottom: 0; }
 
 .entry-icon {
   width: 64rpx;
@@ -466,9 +412,9 @@
   margin-top: 6rpx;
   overflow: hidden;
   color: #7a847e;
-  font-size: 20rpx;
+  font-size: 22rpx;
   font-weight: 520;
-  line-height: 1.25;
+  line-height: 1.3;
   white-space: normal;
   word-break: break-all;
   -webkit-box-orient: vertical;
@@ -499,12 +445,11 @@
 
 .member-banner {
   display: flex;
-  min-height: 92rpx;
-  padding: 16rpx 20rpx;
+  min-height: 104rpx;
+  padding: 18rpx 24rpx;
   align-items: center;
   gap: 14rpx;
-  border-top: 1rpx solid #edf0ee;
-  background: #f8faf9;
+  background: #ffffff;
 }
 
 .member-banner-icon {
@@ -528,7 +473,7 @@
 
 .member-banner-title {
   color: #1b211d;
-  font-size: 26rpx;
+  font-size: 28rpx;
   font-weight: 650;
 }
 
@@ -570,16 +515,15 @@
 @media (max-width: 340px) {
   .home-hero { padding: 12rpx 16rpx 22rpx; }
   .home-panel { margin-left: 12rpx; margin-right: 12rpx; }
-  .holdings-panel { margin-top: -18rpx; }
   .home-panel + .home-panel { margin-top: 12rpx; }
   .hero-title { font-size: 38rpx; }
   .hero-cell { min-height: 108rpx; padding: 12rpx 4rpx; gap: 6rpx; }
   .hero-label { font-size: 20rpx; }
   .hero-value { font-size: 28rpx; }
-  .grid-card { min-height: 176rpx; padding: 14rpx 4rpx 12rpx; }
+  .grid-card { min-height: 176rpx; padding: 14rpx 8rpx 26rpx; }
   .entry-icon { width: 52rpx; height: 52rpx; }
   .card-title { font-size: 24rpx; margin-top: 10rpx; }
-  .card-help { font-size: 18rpx; }
+  .card-help { font-size: 20rpx; }
   .page-footer { padding-top: 12rpx; }
 }
 

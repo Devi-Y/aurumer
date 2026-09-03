@@ -1,17 +1,7 @@
 {
-  "updatedAt": "2026-09-02T20:00:00.000Z",
+  "updatedAt": "2026-09-02T20:00:01.000Z",
   "source": "Yahoo Finance",
   "quotes": [
-    {
-      "symbol": "VOO",
-      "price": 703.41,
-      "previousClose": 704.2,
-      "changePercent": -0.11218403862540693,
-      "currency": "USD",
-      "asOf": "2026-09-02T20:00:00.000Z",
-      "source": "Yahoo Finance",
-      "name": "Vanguard 标普500 ETF"
-    },
     {
       "symbol": "JEPQ",
       "price": 59.15,
@@ -53,5 +43,7 @@
       "name": "iShares 短债 ETF"
     }
   ],
-  "errors": []
+  "errors": [
+    "VOO: fetch failed"
+  ]
 }

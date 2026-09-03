@@ -1,0 +1,123 @@
+name: Public snapshot freshness watchdog
+
+# 为什么这条看门狗住在公开仓，而不是跟刷新逻辑一起放在私有引擎仓：
+#
+# 2026-08-15 到 08-31 那次停更躺了 17 天没人发现。根因不是没有告警，而是
+# 告警自己跟着一起死了——引擎仓的 refresh 和 notify 两个 job 都因为账号计费
+# 问题「not started」，所以「任务失败就开 Issue」这条链路从第一环就断了，
+# 而且失败记录是零条，任何只盯失败的监控都抓不到。
+#
+# 公开仓的 Actions 分钟数免费、不受私有仓计费状态影响，所以引擎仓整个趴下时
+# 这条还能喊。它检的也是「有没有成功过」（对外快照的 updatedAt 有多旧），
+# 而不是「有没有失败过」。
+
+on:
+  schedule:
+    # 每 3 小时一趟。门槛是 36 小时，3 小时的巡检间隔足够，且公开仓不计费。
+    - cron: "40 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      max_age_hours:
+        description: "过期门槛（小时）。填 0.001 可做实弹演练，验证告警链路真的会响。"
+        type: string
+        default: "36"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: aurum-snapshot-watchdog
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      # 刻意不装依赖：脚本只用内置 fetch。少一个能把看门狗自己搞挂的环节。
+      - name: Check public snapshot freshness
+        id: check
+        continue-on-error: true
+        env:
+          MAX_AGE_HOURS: ${{ inputs.max_age_hours || '36' }}
+        run: node scripts/check-snapshot-freshness.mjs
+
+      - name: Open or close the alert issue
+        uses: actions/github-script@v7
+        env:
+          STALE: ${{ steps.check.outputs.stale }}
+          AGE_HOURS: ${{ steps.check.outputs.age_hours }}
+          DETAIL: ${{ steps.check.outputs.detail }}
+        with:
+          script: |
+            const title = '【望潮运维】对外快照停止更新';
+            const stale = process.env.STALE === 'true' || '${{ steps.check.outcome }}' !== 'success';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const detail = process.env.DETAIL || '看门狗脚本本身执行失败，详见运行日志。';
+            const ageHours = process.env.AGE_HOURS || 'unknown';
+
+            const { owner, repo } = context.repo;
+            const issues = await github.rest.issues.listForRepo({
+              owner, repo, state: 'open', per_page: 50,
+            });
+            const existing = issues.data.find((item) => item.title === title);
+
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: 'ops-alert' });
+            } catch (error) {
+              if (error.status === 404) {
+                await github.rest.issues.createLabel({
+                  owner, repo, name: 'ops-alert', color: 'B60205',
+                  description: '免费 GitHub Actions 运维告警',
+                });
+              } else {
+                throw error;
+              }
+            }
+
+            if (stale) {
+              const body = [
+                '对外快照的新鲜度检查没通过。',
+                '',
+                '```',
+                detail,
+                '```',
+                '',
+                `距上次更新：${ageHours} 小时`,
+                `检查运行：${runUrl}`,
+                '',
+                '排查顺序（按这次 2026-08 停更的经验）：',
+                '1. 私有引擎仓 `Devi-Y/aurum-engine` 的 Actions 有没有在跑。',
+                '   如果 job 显示 “not started”，先看账号的 Billing & plans——',
+                '   计费卡住时连告警 job 都不会启动，仓库内告警会一起哑掉。',
+                '2. 如果 job 跑了但失败，看 `Refresh market data` 这一步的 errors 数组。',
+                '   注意它跑在 `bash -e` 下，失败会让后面的“发布公开快照”整步跳过。',
+                '3. 如果 job 成功但快照没变新，看 `Publish sanitized snapshot` 一步的部署密钥。',
+              ].join('\n');
+
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: existing.number, body,
+                });
+                core.setFailed(`对外快照仍未恢复，已在 Issue #${existing.number} 追加记录`);
+              } else {
+                const created = await github.rest.issues.create({
+                  owner, repo, title, body, labels: ['ops-alert'],
+                });
+                core.setFailed(`对外快照停止更新，已开 Issue #${created.data.number}`);
+              }
+            } else if (existing) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: existing.number,
+                body: `对外快照已恢复更新（距今 ${ageHours} 小时）。自动关闭。\n\n${runUrl}`,
+              });
+              await github.rest.issues.update({
+                owner, repo, issue_number: existing.number, state: 'closed',
+              });
+            }

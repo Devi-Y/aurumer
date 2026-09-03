@@ -17,6 +17,15 @@ const MARKET_META = {
   guru: { label: "机构持仓", icon: "/assets/home/guru.svg", tone: "guru" },
 };
 
+const HK_BADGE_SENTIMENT = { worth: "good", caution: "warn", avoid: "bad", ended: "muted", cancelled: "muted" };
+const A_BADGE_SENTIMENT = { prime: "good", watch: "warn" };
+
+function badgeSentimentFor(market, group) {
+  if (market === "hk") return HK_BADGE_SENTIMENT[group] || "";
+  if (market === "a") return A_BADGE_SENTIMENT[group] || "";
+  return "";
+}
+
 function hasNumber(value) {
   return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
 }
@@ -147,6 +156,7 @@ Page({
           code: item.code,
           badge: item.badge,
           badgeTone: this.data.market,
+          badgeSentiment: badgeSentimentFor(this.data.market, item.group),
           position: index + 1,
           positionLabel: String(index + 1).padStart(2, "0"),
           scoreText: item.scoreText || (item.score > 0 ? `${item.score} 分` : "资料待核验"),
@@ -251,21 +261,21 @@ Page({
       } else if (activeGroup === "leverage") {
         statsBanner = {
           title: "高杠杆观察",
-          body: "仅建议申购、研究分≥80、认购拥挤度不高且一手资料齐全时出现。",
+          body: "仅值得打、研究分≥80、认购拥挤度不高且一手资料齐全时出现。",
           note: "默认仍是一手；十倍融资会放大破发亏损，不是指令。",
         };
       }
       this.setData({
         group: activeGroup,
         groups: definitions,
-        title: group ? group.title : "建议明细",
+        title: group ? group.title : "研究明细",
         groupHelp,
         statsBanner,
         items,
         source,
         freshness: freshnessBanner(source, meta.kind),
       });
-      wx.setNavigationBarTitle({ title: group ? group.title : "建议明细" });
+      wx.setNavigationBarTitle({ title: group ? group.title : "研究明细" });
     }, done, { force });
   },
   openItem(event) {

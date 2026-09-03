@@ -113,7 +113,7 @@ function hkSignal(item, evidence = {}) {
     label: "继续观察",
     tone: "warn",
     action: "结论没有形成优势，先等关键字段和市场热度稳定。",
-    trigger: "结论转为建议申购且资料完整，才进入研究申购；否则不追。",
+    trigger: "结论转为值得打且资料完整，才进入研究申购；否则不追。",
     basis: "不确定性优先",
   };
 }
@@ -269,7 +269,7 @@ function goldSignal(item) {
       label: "接近上沿",
       tone: "warn",
       action: "不追高；等价格回到观察区，或等宏观驱动再次确认。",
-      trigger: "任一维度接近卖出观察区后，先锁定观察，不把上涨外推。",
+      trigger: "任一维度接近观察上沿后，先锁定观察，不把上涨外推。",
       basis: "价格区间优先于单一观察分",
     };
   }

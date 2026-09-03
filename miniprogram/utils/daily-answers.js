@@ -199,7 +199,7 @@ function buildHkAnswers(snapshot) {
     card({
       id: "hk-worth",
       question: "哪些值得打",
-      answer: worth.length ? `建议申购 ${worth.length} 只` : "暂无建议申购",
+      answer: worth.length ? `值得打 ${worth.length} 只` : "暂无值得打的新股",
       names: namesOf(worth),
       tone: worth.length ? "good" : "warn",
       action: "group",
@@ -224,23 +224,23 @@ function buildHkAnswers(snapshot) {
       answer: leverage.length
         ? `高杠杆观察 ${leverage.length} 只，仍须能承受一手亏损`
         : (histLev.length
-          ? `今天没有建议申购。历史拥挤度对照 ${histLev.length} 只，不能追认当时该打`
-          : `今天没有建议申购；近${items.filter((item) => item.group === "ended").length}只历史样本也都不满足拥挤度门槛`),
+          ? `今天没有值得打的新股。历史拥挤度对照 ${histLev.length} 只，不能追认当时该打`
+          : `今天没有值得打的新股；近${items.filter((item) => item.group === "ended").length}只历史样本也都不满足拥挤度门槛`),
       names: namesOf(leverage.length ? leverage : histLev),
       tone: leverage.length ? "warn" : "muted",
       action: leverage.length ? "group" : (histLev.length ? "group" : "none"),
       group: leverage.length ? "leverage" : "ended",
       targetId: (leverage[0] || histLev[0])?.id || "",
       enabled: true,
-      hint: "只在建议申购且拥挤度不高时出现；默认仍是一手，不是加杠杆指令。",
+      hint: "只在值得打且拥挤度不高时出现；默认仍是一手，不是加杠杆指令。",
       modal: leverage.length
         ? "达到门槛仍须能承受一手亏损；默认一手，融资会放大破发。不是加杠杆指令。"
         : [
-          "门槛：建议申购、研究分≥80、招股价与一手金额齐全、超购倍数<200。默认仍是一手。",
+          "门槛：值得打、研究分≥80、招股价与一手金额齐全、超购倍数<200。默认仍是一手。",
           histLev.length
-            ? `历史拥挤度对照：${histLev.map((item) => `${shortCompanyName(item.name, "新股", 4)} 超购 ${Number(item.raw?.publicOversubscription).toFixed(1)} 倍`).join("、")}。当时没有望潮研究分，不能追认建议申购或十倍融资。`
+            ? `历史拥挤度对照：${histLev.map((item) => `${shortCompanyName(item.name, "新股", 4)} 超购 ${Number(item.raw?.publicOversubscription).toFixed(1)} 倍`).join("、")}。当时没有望潮研究分，不能追认值得打或十倍融资。`
             : `近${items.filter((item) => item.group === "ended").length}只历史样本超购倍数普遍≥200或一手中签过低，按规则不会标十倍融资。`,
-          "没有在售建议申购时不补虚拟新股。",
+          "没有在售值得打新股时不补虚拟新股。",
         ].join("\n"),
     }),
     exitCard("hk-grey", "打中后暗盘", bands.grey, "greyMarketChange"),
@@ -478,8 +478,8 @@ function goldNextLine(priceText, holdRange, sellRange, zone, digits, kind) {
     if (Number.isFinite(holdHigh)) return `现价 ${priceText}，未到持有观察区（≤${holdHigh.toFixed(digits)}）`;
   }
   if (kind === "sell") {
-    if (zone?.sell) return `现价 ${priceText}，进入卖出观察区（${formatGoldRange(sellRange, digits)}）`;
-    if (Number.isFinite(sellLow)) return `现价 ${priceText}，未到卖出观察区（≥${sellLow.toFixed(digits)}）`;
+    if (zone?.sell) return `现价 ${priceText}，进入观察上沿（${formatGoldRange(sellRange, digits)}）`;
+    if (Number.isFinite(sellLow)) return `现价 ${priceText}，未到观察上沿（≥${sellLow.toFixed(digits)}）`;
   }
   return `现价 ${priceText} · ${zone?.label || "继续观察"}`;
 }
@@ -511,7 +511,7 @@ function buildGoldAnswers(snapshot) {
     }),
     card({
       id: "gold-usd-sell",
-      question: "美元金卖出观察",
+      question: "美元金观察上沿",
       answer: sellIntl ? goldNextLine(intlPrice, plan.internationalWatch, plan.internationalUpper, intlZone, 0, "sell") : "美元金卖出区待核验",
       tone: intlZone.sell ? "warn" : "muted",
       action: "detail",
@@ -529,7 +529,7 @@ function buildGoldAnswers(snapshot) {
     }),
     card({
       id: "gold-cny-sell",
-      question: "人民币金卖出观察",
+      question: "人民币金观察上沿",
       answer: sellCny ? goldNextLine(cnyPrice, plan.domesticWatch, plan.domesticUpper, cnyZone, 1, "sell") : "人民币金卖出区待核验",
       tone: cnyZone.sell ? "warn" : "muted",
       action: "detail",
@@ -678,7 +678,7 @@ function buildHomeDigest(snapshot, options = {}) {
   const guruLead = pickCard(guru, ["guru-holdings"]);
 
   const hkValue = hkWorth?.enabled
-    ? clip(hkWorth.names || "建议申购", 4)
+    ? clip(hkWorth.names || "值得打", 4)
     : (hkAvoid?.id === "hk-avoid" && hkAvoid.enabled ? "已取消" : "暂无");
   const usValue = usCheap?.enabled
     ? clip(usCheap.names || usCheap.answer, 4)
@@ -687,14 +687,14 @@ function buildHomeDigest(snapshot, options = {}) {
     ? clip(aAdd.names || "加大", 4)
     : clip(aCore?.names || "收息", 4);
   const cnyPrice = Number(snapshot?.gold?.quotes?.domestic?.price);
-  const goldValue = /进入卖出观察区/.test(goldLead?.answer || "")
+  const goldValue = /进入观察上沿/.test(goldLead?.answer || "")
     ? "偏高"
     : (/仍在持有观察区/.test(goldLead?.answer || "")
       ? "可持有"
       : (Number.isFinite(cnyPrice) ? `${Math.round(cnyPrice)}` : "观望"));
 
   const cardLines = [
-    `港股：${hkWorth?.enabled ? `建议申购 ${hkWorth.names}` : (hkAvoid?.id === "hk-avoid" ? (hkAvoid.answer || "避雷样本") : "暂无在售新股")}`,
+    `港股：${hkWorth?.enabled ? `值得打 ${hkWorth.names}` : (hkAvoid?.id === "hk-avoid" ? (hkAvoid.answer || "避雷样本") : "暂无在售新股")}`,
     `美股：${[
       usCheap?.enabled ? `低估 ${usCheap.names}` : null,
       usRisk?.enabled ? `风险 ${usRisk.names}` : null,

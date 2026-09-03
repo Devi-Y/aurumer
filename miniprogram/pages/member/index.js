@@ -196,8 +196,9 @@ Page({
       }))
       .finally(() => this.setData({ querying: false }));
   },
-  openWorkspace() {
-    openPage("/pages/workspace/index");
+  openWorkspace(event) {
+    const tab = (event && event.currentTarget && event.currentTarget.dataset && event.currentTarget.dataset.tab) || "";
+    openPage(`/pages/workspace/index${tab ? `?focus=${encodeURIComponent(tab)}` : ""}`);
   },
   openLegal() {
     wx.navigateTo({

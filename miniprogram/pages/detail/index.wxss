@@ -375,6 +375,13 @@
   font-weight: 760;
 }
 
+.strategy-card-head-right {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10rpx;
+}
+
 .strategy-card-label {
   padding: 5rpx 12rpx;
   border-radius: 999rpx;
@@ -400,6 +407,12 @@
 
 .strategy-card-trigger { color: #66746b; }
 .strategy-card-basis { color: #8a948d; font-size: 21rpx; }
+
+.strategy-card .collapsed-hint {
+  margin: 10rpx 0 0;
+  padding: 0;
+  font-size: 23rpx;
+}
 
 .exit-plan.is-locked {
   background: #f4f6f5;

@@ -1,5 +1,5 @@
 <view class="page-shell section-shell">
-  <view class="section-hero {{meta.tone}}">
+  <view class="page-card section-hero {{meta.tone}}">
     <view class="hero-top">
       <text class="hero-title">{{meta.title}}</text>
       <view class="hero-image-wrap">
@@ -7,6 +7,27 @@
       </view>
     </view>
     <text class="hero-help">{{meta.one}}</text>
+
+    <view class="insight-panel" wx:if="{{overview.target || overview.grade}}">
+      <view class="insight-line">
+        <text class="insight-label">结论</text>
+        <text
+          class="insight-target {{overview.canOpenTarget ? 'is-link' : ''}}"
+          bindtap="openInsightTarget"
+          hover-class="{{overview.canOpenTarget ? 'insight-tap' : ''}}"
+          aria-role="button"
+          aria-label="打开标的 {{overview.target}}"
+        >{{overview.target || '—'}}</text>
+        <text
+          class="insight-grade {{overview.canOpenGrade ? 'is-link' : ''}}"
+          bindtap="openInsightGrade"
+          hover-class="{{overview.canOpenGrade ? 'insight-tap' : ''}}"
+          aria-role="button"
+          aria-label="打开 {{overview.grade}}"
+        >{{overview.grade || '—'}}</text>
+      </view>
+    </view>
+
     <view class="hero-metrics">
       <view
         wx:for="{{overview.metrics}}"
@@ -28,27 +49,7 @@
     </view>
   </view>
 
-  <view class="insight-panel" wx:if="{{overview.target || overview.grade}}">
-    <view class="insight-line">
-      <text class="insight-label">结论</text>
-      <text
-        class="insight-target {{overview.canOpenTarget ? 'is-link' : ''}}"
-        bindtap="openInsightTarget"
-        hover-class="{{overview.canOpenTarget ? 'insight-tap' : ''}}"
-        aria-role="button"
-        aria-label="打开标的 {{overview.target}}"
-      >{{overview.target || '—'}}</text>
-      <text
-        class="insight-grade {{overview.canOpenGrade ? 'is-link' : ''}}"
-        bindtap="openInsightGrade"
-        hover-class="{{overview.canOpenGrade ? 'insight-tap' : ''}}"
-        aria-role="button"
-        aria-label="打开 {{overview.grade}}"
-      >{{overview.grade || '—'}}</text>
-    </view>
-  </view>
-
-  <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
+  <view wx:if="{{freshness.show}}" class="page-card freshness-banner tone-{{freshness.tone}}">
     <view class="freshness-head">
       <text class="freshness-label">{{freshness.label}}</text>
       <view wx:if="{{freshness.showRetry}}" class="freshness-action" bindtap="retryFreshness" aria-role="button">重试</view>
@@ -56,7 +57,7 @@
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
-  <view wx:if="{{answers.length}}" class="answer-panel">
+  <view wx:if="{{answers.length}}" class="page-card answer-panel">
     <view class="answer-head">
       <text class="answer-title">今日答案</text>
       <text class="answer-meta">研究观察，不是买卖指令</text>
@@ -81,7 +82,7 @@
     </view>
   </view>
 
-  <view wx:if="{{deepLinks.length}}" class="deep-panel">
+  <view wx:if="{{deepLinks.length}}" class="page-card deep-panel">
     <view
       wx:for="{{deepLinks}}"
       wx:key="id"
@@ -103,7 +104,7 @@
     </view>
   </view>
 
-  <view class="group-panel">
+  <view class="page-card group-panel">
     <view
       wx:for="{{groups}}"
       wx:key="id"
@@ -126,7 +127,7 @@
     </view>
   </view>
 
-  <view wx:if="{{playbooks.length}}" class="playbook-panel">
+  <view wx:if="{{playbooks.length}}" class="page-card playbook-panel">
     <view class="playbook-head">
       <text class="playbook-title">大师策略摘要</text>
       <text class="playbook-meta">只学方法，不照抄仓位</text>

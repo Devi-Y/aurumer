@@ -265,7 +265,7 @@ function scoreMeter(score, title, badge, hint) {
     highLabel: "100",
     stats: [
       { label: "研究分", value: `${value}` },
-      ...(badge ? [{ label: "建议", value: String(badge) }] : []),
+      ...(badge ? [{ label: "结论", value: String(badge) }] : []),
     ],
   }, "");
 }
@@ -421,7 +421,7 @@ function buildHKView(base, item) {
   const prospectus = raw.prospectusExtraction || {};
 
   base.badge = item.badge || answer.verdict || base.badge;
-  base.answer = item.badge || answer.action || item.one;
+  base.answer = answer.action || item.one || item.badge;
   base.metrics = ended
     ? compactFacts([
         ["是否申购", item.badge || answer.verdict || "已结束"],
@@ -583,25 +583,42 @@ function buildHKView(base, item) {
     ["资料来源", raw.source || "港交所公开文件"],
   ]);
 
+  const hkPublicFacts = [
+    offer != null ? `招股价 ${offer.toFixed(2)}港元` : null,
+    raw.listingDate ? `上市日 ${raw.listingDate}` : null,
+    hasNumber(raw.oneLotRate) ? `一手中签率 ${Number(raw.oneLotRate).toFixed(1)}%` : null,
+    hasNumber(raw.publicOversubscription) ? `公开认购 ${Number(raw.publicOversubscription).toFixed(2)}倍` : null,
+    !ended && daysToDeadline != null ? `距截止 ${daysToDeadline}天` : null,
+    ended && hasNumber(review.firstDayChange) ? `首日涨跌 ${formatPercent(review.firstDayChange)}` : null,
+  ].filter(Boolean).join(" · ");
+
   base.analysis = ended
     ? [
-        { title: "结果", body: `暗盘 ${formatPercent(review.greyMarketChange)} · 首日 ${formatPercent(review.firstDayChange)} · 五日 ${formatPercent(review.fiveDayChange)}` },
-        { title: "用途", body: "只复盘学习，不作当前申购依据。" },
+        { title: "公开事实", body: hkPublicFacts || "公开资料整理中。" },
+        { title: "结果", body: `【望潮研究归纳】暗盘 ${formatPercent(review.greyMarketChange)} · 首日 ${formatPercent(review.firstDayChange)} · 五日 ${formatPercent(review.fiveDayChange)}` },
+        { title: "用途", body: "【望潮研究归纳】只复盘学习，不作当前申购依据。" },
       ]
     : [
-        { title: item.badge || "结论", body: "先核一手金额与截止日；建议≠保证赚钱。" },
+        { title: "公开事实", body: hkPublicFacts || "公开资料整理中。" },
+        { title: item.badge || "结论", body: "【望潮研究归纳】先核一手金额与截止日；结论≠保证赚钱。" },
         {
           title: "高杠杆观察",
           body: hkLeverageEligible(item)
-            ? "达到十倍融资观察门槛，仍须能承受一手亏损；默认一手，融资会放大破发。"
-            : "未达十倍融资观察门槛；结论不是建议申购、拥挤度高或资料不全时不加杠杆。",
+            ? "【望潮研究归纳】达到十倍融资观察门槛，仍须能承受一手亏损；默认一手，融资会放大破发。"
+            : "【望潮研究归纳】未达十倍融资观察门槛；结论不是值得打、拥挤度高或资料不全时不加杠杆。",
         },
-        { title: "风险", body: "可能破发或中签极低，盈亏自负。" },
       ];
   base.actions = [];
-  base.risk = ended
-    ? "历史表现只用于复盘，不能倒推当时必然值得申购。"
-    : "公开资料研究观察，供参考；不是买卖指令。";
+  base.riskItems = ended
+    ? [
+        { title: "历史结果仅供复盘", body: "历史表现只用于复盘，不能倒推当时必然值得申购。" },
+        { title: "研究性质说明", body: "公开资料研究观察，供参考；不是买卖指令。" },
+      ]
+    : [
+        { title: "破发/中签风险", body: "可能破发或中签极低，盈亏自负。" },
+        { title: "研究性质说明", body: "公开资料研究观察，供参考；不是买卖指令。" },
+      ];
+  base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   if (ended && item.rank) base.score = `首日涨幅第 ${item.rank} 名`;
   base.sourceNote = raw.source || "港交所公开文件与历史结果整理";
 }
@@ -720,28 +737,40 @@ function buildUSView(base, item, snapshot) {
     ["财报期", fund.period],
   ]);
   base.holdings = holders;
+  const usPublicFacts = [
+    hasNumber(raw.price) ? `现价 ${money(raw.price)}` : null,
+    raw.exchange ? `交易所 ${raw.exchange}` : null,
+    hasNumber(fund.marketCap) ? `市值 ${formatLarge(fund.marketCap)}` : null,
+    hasNumber(fund.pe) ? `市盈率 ${Number(fund.pe).toFixed(1)}倍` : null,
+    (raw.asOf || fund.period) ? `数据截至 ${raw.asOf || fund.period}` : null,
+  ].filter(Boolean).join(" · ");
   base.analysis = [
-    { title: "位置", body: stockRange(raw.history, raw.price) },
-    mag7Label ? { title: "七姐妹/行业分档", body: mag7Label } : null,
+    { title: "公开事实", body: usPublicFacts || "公开资料整理中。" },
+    { title: "位置", body: `【望潮研究归纳】${stockRange(raw.history, raw.price)}` },
+    mag7Label ? { title: "七姐妹/行业分档", body: `【望潮研究归纳】${mag7Label}` } : null,
     {
       title: "怎么用",
-      body: item.group === "seven" || mag7tags.length
+      body: `【望潮研究归纳】${item.group === "seven" || mag7tags.length
         ? "分档来自质量、估值和近60日位置，不是买卖指令。"
         : item.group === "value"
           ? "性价比观察分用于横向比较，不是买入信号或收益承诺。"
           : item.group === "industry"
             ? "非七姐妹里质量与分数同时过关，只作行业对照。"
-            : "热度高只说明关注多，不等于马上买。",
+            : "热度高只说明关注多，不等于马上买。"}`,
     },
     {
       title: "研究观察分",
       body: scoredUS.score != null
-        ? `${scoredUS.score} 分 · ${scoredUS.basis}`
-        : "公开行情/财务不足，暂不排序。",
+        ? `【望潮研究归纳】${scoredUS.score} 分 · ${scoredUS.basis}`
+        : "【望潮研究归纳】公开行情/财务不足，暂不排序。",
     },
   ].filter(Boolean);
   base.actions = [];
-  base.risk = "历史价格不预测未来；财报与事件可能造成跳空。";
+  base.riskItems = [
+    { title: "价格风险", body: "历史价格不预测未来。" },
+    { title: "事件风险", body: "财报与事件可能造成跳空。" },
+  ];
+  base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   base.sourceNote = `公开行情与财务资料 · ${raw.asOf || fund.period || "日期待核验"}`;
 }
 
@@ -1128,7 +1157,7 @@ function buildGoldView(base, item) {
   const riskCny = compactRangeText(plan.domesticRisk, 1);
   const action = answer.action || answer.researchLabel || "继续观察";
 
-  base.title = gold.view === "plan" ? "买点与卖点" : "现在怎么做";
+  base.title = gold.view === "plan" ? "观察区参考" : "现在怎么做";
   base.badge = action;
   base.answer = item.one;
   base.metrics = [
@@ -1151,7 +1180,6 @@ function buildGoldView(base, item) {
     { label: "人民币金", value: hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(1)}` : "—" },
     { label: "国际分", value: Number.isFinite(internationalScore) ? `${internationalScore}` : "—" },
     { label: "人民币分", value: Number.isFinite(domesticScore) ? `${domesticScore}` : "—" },
-    { label: "20日", value: formatPercent(returns.day20) },
   ];
   base.pageHelp = "";
 
@@ -1222,8 +1250,8 @@ function buildGoldView(base, item) {
   ]);
   base.analysis = [
     { title: "双分怎么看", body: `国际金 ${Number.isFinite(internationalScore) ? internationalScore : "待核"} 分 · 人民币金 ${Number.isFinite(domesticScore) ? domesticScore : "待核"} 分；前者看国际宏观与美元，后者看上海金、汇率和国内折溢价。` },
-    { title: "美元金", body: `持有观察 ${buyIntl || "暂缺"} · 卖出观察 ${sellIntl || "暂缺"} · 现价 ${hasNumber(international.price) ? Number(international.price).toFixed(0) : "暂缺"}` },
-    { title: "人民币金", body: `持有观察 ${buyCny || "暂缺"} · 卖出观察 ${sellCny || "暂缺"} · 现价 ${hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "暂缺"}` },
+    { title: "美元金", body: `持有观察 ${buyIntl || "暂缺"} · 观察上沿 ${sellIntl || "暂缺"} · 现价 ${hasNumber(international.price) ? Number(international.price).toFixed(0) : "暂缺"}` },
+    { title: "人民币金", body: `持有观察 ${buyCny || "暂缺"} · 观察上沿 ${sellCny || "暂缺"} · 现价 ${hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "暂缺"}` },
   ];
   base.actions = [];
   base.riskItems = [
@@ -1375,6 +1403,7 @@ Page({
     loading: true,
     loadError: "",
     detailsExpanded: false,
+    strategyExpanded: false,
     activeModule: "summary",
     activeCharts: [],
     view: {},
@@ -1501,6 +1530,9 @@ Page({
   goHome() { goHome(); },
   toggleDetails() {
     this.setData({ detailsExpanded: !this.data.detailsExpanded });
+  },
+  toggleStrategy() {
+    this.setData({ strategyExpanded: !this.data.strategyExpanded });
   },
   switchModule(event) {
     const moduleId = String(event.currentTarget.dataset.module || "summary");

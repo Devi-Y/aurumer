@@ -1,3 +1,61 @@
+<template name="chart-visual">
+  <view class="visual-card">
+    <text class="visual-title">{{item.title}}</text>
+    <text wx:if="{{item.hint}}" class="visual-hint">{{item.hint}}</text>
+
+    <view wx:if="{{item.stats && item.stats.length}}" class="chart-stats">
+      <view wx:for="{{item.stats}}" wx:for-item="stat" wx:key="label" class="chart-stat">
+        <text>{{stat.label}}</text>
+        <text>{{stat.value}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{item.kind == 'columns'}}" class="column-chart">
+      <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="column-slot">
+        <view class="column-bar {{col.tone}}" style="height: {{col.height}}%;"></view>
+      </view>
+    </view>
+
+    <view wx:if="{{item.kind == 'solid'}}" class="solid-chart">
+      <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="solid-slot">
+        <text class="solid-value">{{col.valueText}}</text>
+        <view class="solid-pillar-wrap">
+          <view class="solid-bar {{col.tone}} tone-{{col.colorIndex}}" style="height: {{col.height}}%;"></view>
+        </view>
+        <text class="solid-label">{{col.label}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{item.kind == 'bars'}}" class="bar-chart">
+      <view wx:for="{{item.items}}" wx:for-item="bar" wx:key="id" class="bar-row">
+        <view class="bar-copy"><text>{{bar.label}}</text><text>{{bar.valueText}}</text></view>
+        <view class="bar-track">
+          <view class="bar-value {{bar.tone}} tone-{{bar.colorIndex}}" style="width: {{bar.width}}%;"></view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{item.kind == 'meter'}}" class="meter-chart">
+      <view class="meter-track">
+        <view class="meter-fill" style="width: {{item.percent}}%;"></view>
+        <view class="meter-dot" style="left: {{item.percent}}%;"></view>
+      </view>
+      <view class="meter-labels">
+        <text>{{item.lowLabel}}</text>
+        <text>{{item.midLabel}}</text>
+        <text>{{item.highLabel}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{item.kind == 'tiles'}}" class="tile-chart">
+      <view wx:for="{{item.items}}" wx:for-item="tile" wx:key="id" class="tile-cell">
+        <text>{{tile.label}}</text>
+        <text>{{tile.valueText}}</text>
+      </view>
+    </view>
+  </view>
+</template>
+
 <view class="page-shell detail-shell">
   <view wx:if="{{ready}}" class="detail-content">
     <view class="detail-summary {{view.tone}}">
@@ -63,73 +121,28 @@
         <view wx:if="{{view.strategy}}" class="strategy-card tone-{{view.strategy.tone}}">
           <view class="strategy-card-head">
             <text class="strategy-card-title">策略信号</text>
-            <text class="strategy-card-label">{{view.strategy.label}}</text>
+            <view class="strategy-card-head-right">
+              <text class="strategy-card-label">{{view.strategy.label}}</text>
+              <view class="details-toggle-inline" bindtap="toggleStrategy" hover-class="tap-active">
+                <text>{{strategyExpanded ? '收起' : '展开'}}</text>
+              </view>
+            </view>
           </view>
-          <text class="strategy-card-action">{{view.strategy.action}}</text>
-          <text class="strategy-card-trigger">触发：{{view.strategy.trigger}}</text>
-          <text class="strategy-card-basis">口径：{{view.strategy.basis}}</text>
+          <view wx:if="{{strategyExpanded}}">
+            <text class="strategy-card-action">{{view.strategy.action}}</text>
+            <text class="strategy-card-trigger">触发：{{view.strategy.trigger}}</text>
+            <text class="strategy-card-basis">口径：{{view.strategy.basis}}</text>
+          </view>
+          <text wx:else class="collapsed-hint">点击"展开"查看触发条件与口径。</text>
         </view>
+        <template wx:if="{{view.visual}}" is="chart-visual" data="{{item: view.visual}}" />
         <view wx:if="{{!view.answer && !view.exitPlan}}" class="module-empty">当前没有可展示的结论。</view>
       </view>
 
       <view wx:if="{{activeModule == 'price' || activeModule == 'finance' || activeModule == 'research'}}" class="module-content">
         <text class="module-title">{{activeModule == 'price' ? '价格与位置' : (activeModule == 'finance' ? '数据与质量' : '研究图表')}}</text>
         <block wx:if="{{activeCharts.length}}">
-          <view wx:for="{{activeCharts}}" wx:key="title" class="visual-card">
-            <text class="visual-title">{{item.title}}</text>
-            <text wx:if="{{item.hint}}" class="visual-hint">{{item.hint}}</text>
-
-            <view wx:if="{{item.stats && item.stats.length}}" class="chart-stats">
-              <view wx:for="{{item.stats}}" wx:for-item="stat" wx:key="label" class="chart-stat">
-                <text>{{stat.label}}</text>
-                <text>{{stat.value}}</text>
-              </view>
-            </view>
-
-            <view wx:if="{{item.kind == 'columns'}}" class="column-chart">
-              <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="column-slot">
-                <view class="column-bar {{col.tone}}" style="height: {{col.height}}%;"></view>
-              </view>
-            </view>
-
-            <view wx:if="{{item.kind == 'solid'}}" class="solid-chart">
-              <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="solid-slot">
-                <text class="solid-value">{{col.valueText}}</text>
-                <view class="solid-pillar-wrap">
-                  <view class="solid-bar {{col.tone}} tone-{{col.colorIndex}}" style="height: {{col.height}}%;"></view>
-                </view>
-                <text class="solid-label">{{col.label}}</text>
-              </view>
-            </view>
-
-            <view wx:if="{{item.kind == 'bars'}}" class="bar-chart">
-              <view wx:for="{{item.items}}" wx:for-item="bar" wx:key="id" class="bar-row">
-                <view class="bar-copy"><text>{{bar.label}}</text><text>{{bar.valueText}}</text></view>
-                <view class="bar-track">
-                  <view class="bar-value {{bar.tone}} tone-{{bar.colorIndex}}" style="width: {{bar.width}}%;"></view>
-                </view>
-              </view>
-            </view>
-
-            <view wx:if="{{item.kind == 'meter'}}" class="meter-chart">
-              <view class="meter-track">
-                <view class="meter-fill" style="width: {{item.percent}}%;"></view>
-                <view class="meter-dot" style="left: {{item.percent}}%;"></view>
-              </view>
-              <view class="meter-labels">
-                <text>{{item.lowLabel}}</text>
-                <text>{{item.midLabel}}</text>
-                <text>{{item.highLabel}}</text>
-              </view>
-            </view>
-
-            <view wx:if="{{item.kind == 'tiles'}}" class="tile-chart">
-              <view wx:for="{{item.items}}" wx:for-item="tile" wx:key="id" class="tile-cell">
-                <text>{{tile.label}}</text>
-                <text>{{tile.valueText}}</text>
-              </view>
-            </view>
-          </view>
+          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
         </block>
         <view wx:else class="module-empty">当前模块暂无足够数据。</view>
 
@@ -207,7 +220,7 @@
           <button class="member-cta" data-addon="snapshot" bindtap="openWorkspaceAction" aria-label="{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}">
             <view class="cta-copy">
               <text>{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}</text>
-              <text class="cta-sub">{{snapshotSaved ? '对比当时与现在的变化' : '记录当前结论、数据与风险'}}</text>
+              <text class="cta-sub">{{snapshotSaved ? '对比当时与现在的变化' : '记录当前结论、数据与风险，之后看相对上次哪里变了'}}</text>
             </view>
             <text class="cta-arrow">›</text>
           </button>
@@ -215,13 +228,6 @@
             <view class="cta-copy">
               <text>提醒我相关事件</text>
               <text class="cta-sub">进入工作台设置复核节点</text>
-            </view>
-            <text class="cta-arrow">›</text>
-          </button>
-          <button class="member-cta secondary-cta" data-addon="track" bindtap="openWorkspaceAction" aria-label="追踪此标的变化">
-            <view class="cta-copy">
-              <text>追踪此标的变化</text>
-              <text class="cta-sub">保存基线，之后看相对上次哪里变了</text>
             </view>
             <text class="cta-arrow">›</text>
           </button>

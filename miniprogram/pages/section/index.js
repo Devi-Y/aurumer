@@ -34,7 +34,7 @@ const META = {
   },
   gold: {
     title: "黄金追踪",
-    one: "人民币金与美元金持有/卖出观察",
+    one: "人民币金与美元金持有/观察上沿",
     tone: "gold",
     icon: "/assets/home/gold.svg",
     kicker: "买卖观察",
@@ -70,7 +70,7 @@ function buildOverview(snapshot, market) {
           enabled: live.length > 0,
         },
         {
-          label: "建议申购",
+          label: "值得打",
           value: `${suggest.length}`,
           action: "group",
           group: "worth",

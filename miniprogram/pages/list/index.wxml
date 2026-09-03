@@ -1,5 +1,5 @@
 <view class="page-shell list-shell">
-  <view class="list-summary {{meta.tone}}">
+  <view class="page-card list-summary {{meta.tone}}">
     <view class="summary-copy">
       <text class="title">{{title}}</text>
       <text class="item-count">{{items.length}}</text>
@@ -9,13 +9,13 @@
     </view>
   </view>
   <text wx:if="{{groupHelp}}" class="list-help">{{groupHelp}}</text>
-  <view wx:if="{{statsBanner}}" class="stats-banner">
+  <view wx:if="{{statsBanner}}" class="page-card stats-banner">
     <text class="stats-title">{{statsBanner.title}}</text>
     <text class="stats-body">{{statsBanner.body}}</text>
     <text class="stats-note">{{statsBanner.note}}</text>
   </view>
 
-  <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
+  <view wx:if="{{freshness.show}}" class="page-card freshness-banner tone-{{freshness.tone}}">
     <view class="freshness-head">
       <text class="freshness-label">{{freshness.label}}</text>
       <view wx:if="{{freshness.showRetry}}" class="freshness-action" bindtap="retryFreshness" aria-role="button">重试</view>
@@ -23,7 +23,7 @@
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
-  <view wx:if="{{items.length}}" class="item-panel">
+  <view wx:if="{{items.length}}" class="page-card item-panel">
     <view
       wx:for="{{items}}"
       wx:key="id"
@@ -43,7 +43,7 @@
           </view>
           <view class="item-tags">
             <text wx:if="{{item.researchScoreLabel}}" class="score-chip">{{item.researchScoreLabel}}</text>
-            <text class="badge badge-{{item.badgeTone}}">{{item.badge}}</text>
+            <text class="badge badge-{{item.badgeTone}} {{item.badgeSentiment ? 'badge-sentiment-' + item.badgeSentiment : ''}}">{{item.badge}}</text>
           </view>
         </view>
         <view wx:if="{{item.strategyLabel}}" class="item-strategy">
@@ -60,7 +60,7 @@
     </view>
   </view>
 
-  <view wx:else class="empty">
+  <view wx:else class="page-card empty">
     <image src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
     <text class="empty-title">暂无资料</text>
   </view>

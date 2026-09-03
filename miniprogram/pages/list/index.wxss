@@ -5,11 +5,7 @@
   background: #f5f7f6;
 }
 
-.list-summary,
-.list-insight,
-.item-panel,
-.freshness-banner,
-.empty {
+.list-insight {
   overflow: hidden;
   border: 1rpx solid #e7ece9;
   border-radius: 24rpx;
@@ -85,9 +81,6 @@
 .stats-banner {
   margin-top: 14rpx;
   padding: 18rpx 20rpx;
-  border: 1rpx solid #e7ece9;
-  border-radius: 24rpx;
-  background: #ffffff;
 }
 
 .stats-title,
@@ -342,6 +335,11 @@
   color: #6650a6;
 }
 
+.badge-sentiment-good { background: #eaf8f0; color: #0b7a53; }
+.badge-sentiment-warn { background: #fff7ec; color: #93621d; }
+.badge-sentiment-bad { background: #fdf0ee; color: #a34b3e; }
+.badge-sentiment-muted { background: #f0f2f1; color: #778079; }
+
 .item-strategy {
   display: flex;
   margin-top: 10rpx;
@@ -441,15 +439,6 @@
 /* 港股历史表现按境内习惯着色：上涨用红，下跌用绿。 */
 .data-bar-value.up { background: #d4452c; }
 .data-bar-value.down { background: #20ad68; }
-
-.arrow {
-  margin-top: 4rpx;
-  flex: none;
-  color: #adb4af;
-  font-size: 37rpx;
-  font-weight: 300;
-  line-height: 1;
-}
 
 .tap-active { background: #eef8f2; }
 

@@ -5,19 +5,6 @@
   background: #f5f7f6;
 }
 
-.section-hero,
-.insight-panel,
-.group-panel,
-.answer-panel,
-.deep-panel,
-.playbook-panel,
-.freshness-banner {
-  overflow: hidden;
-  border: 1rpx solid #e7ece9;
-  border-radius: 24rpx;
-  background: #ffffff;
-}
-
 .freshness-banner {
   margin-top: 16rpx;
   padding: 16rpx 20rpx;
@@ -160,7 +147,8 @@
 
 .insight-panel {
   margin-top: 14rpx;
-  padding: 22rpx 24rpx;
+  padding-top: 14rpx;
+  border-top: 1rpx solid #edf0ee;
 }
 
 .deep-panel {
@@ -220,16 +208,17 @@
 }
 
 .answer-q {
-  color: #1b211d;
-  font-size: 28rpx;
-  font-weight: 720;
+  color: #66706a;
+  font-size: 23rpx;
+  font-weight: 560;
 }
 
 .answer-a {
   margin-top: 6rpx;
-  color: #3a433d;
-  font-size: 24rpx;
-  line-height: 1.45;
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .answer-names {
@@ -239,9 +228,9 @@
   line-height: 1.4;
 }
 
-.answer-row.tone-good .answer-q { color: #0b7a53; }
-.answer-row.tone-bad .answer-q { color: #a33b2b; }
-.answer-row.tone-warn .answer-q { color: #8b5b20; }
+.answer-row.tone-good .answer-a { color: #0b7a53; }
+.answer-row.tone-bad .answer-a { color: #a33b2b; }
+.answer-row.tone-warn .answer-a { color: #8b5b20; }
 
 .deep-row {
   display: flex;
@@ -482,13 +471,6 @@
   font-size: 24rpx;
 }
 
-.arrow {
-  flex: none;
-  color: #adb4af;
-  font-size: 38rpx;
-  font-weight: 300;
-  line-height: 1;
-}
 
 .tap-active { background: #eef8f2; }
 
@@ -514,7 +496,6 @@
 @media (min-width: 700px) {
   .section-shell { padding-right: 32px; padding-left: 32px; }
   .section-hero,
-  .insight-panel,
   .answer-panel,
   .group-panel { border-radius: 20px; }
 }

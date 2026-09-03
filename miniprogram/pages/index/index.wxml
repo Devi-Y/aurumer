@@ -57,7 +57,7 @@
     </view>
   </view>
 
-  <view class="home-panel holdings-panel">
+  <view class="page-card home-panel holdings-panel">
     <view class="panel-head">
       <text class="panel-title">我的持仓</text>
       <text
@@ -91,6 +91,7 @@
           <text class="holding-action {{item.actionTone}}">{{item.actionText}}</text>
           <text wx:if="{{item.performanceText}}" class="holding-performance {{item.performanceTone}}">{{item.performanceText}}</text>
         </view>
+        <text wx:if="{{item.hasDetail}}" class="arrow">›</text>
         <text
           class="holding-delete"
           data-id="{{item.id}}"
@@ -122,7 +123,7 @@
     </view>
   </view>
 
-  <view class="home-panel">
+  <view class="page-card home-panel">
     <view class="panel-head">
       <text class="panel-title">核心研究</text>
       <text class="panel-meta">{{dataAsOf || '同步中'}}</text>
@@ -143,7 +144,23 @@
         <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
         <text class="card-title">{{item.title}}</text>
         <text class="card-help">{{item.help}}</text>
+        <text class="entry-arrow">›</text>
       </view>
+    </view>
+    <view
+      class="member-banner"
+      bindtap="openMemberBanner"
+      hover-class="tap-active"
+      aria-role="button"
+      aria-label="{{member.title}}，{{member.help}}"
+    >
+      <image class="member-banner-icon" src="{{member.icon}}" mode="aspectFit" aria-hidden="true"></image>
+      <view class="member-banner-copy">
+        <text class="member-banner-title">{{member.title}}</text>
+        <text class="member-banner-help">{{member.help}}</text>
+      </view>
+      <text wx:if="{{member.badge}}" class="member-banner-badge">{{member.badge}}</text>
+      <text class="arrow">›</text>
     </view>
   </view>
 

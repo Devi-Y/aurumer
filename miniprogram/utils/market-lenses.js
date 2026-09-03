@@ -199,7 +199,7 @@ function goldZoneForPrice(price, watch, upper, risk) {
     return { label: "触及风险下沿", tone: "bad", hold: false, sell: false };
   }
   if (upperLow !== null && current >= upperLow) {
-    return { label: "进入卖出观察区", tone: "warn", hold: false, sell: true };
+    return { label: "进入观察上沿", tone: "warn", hold: false, sell: true };
   }
   if (watchHigh !== null && current <= watchHigh) {
     return { label: "仍在持有观察区", tone: "good", hold: true, sell: false };

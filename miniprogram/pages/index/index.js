@@ -49,16 +49,6 @@ const CORE_ENTRIES = [
     tone: "gold",
   },
   {
-    id: "member",
-    action: "member",
-    icon: "/assets/home/member.svg",
-    title: "年费会员",
-    help: "关注·变化·复盘",
-    detail: "365天 · ¥1288",
-    badge: "¥1288/年",
-    tone: "member",
-  },
-  {
     id: "guru",
     action: "section",
     icon: "/assets/home/guru.svg",
@@ -68,6 +58,15 @@ const CORE_ENTRIES = [
     tone: "guru",
   },
 ];
+
+const MEMBER_ENTRY = {
+  id: "member",
+  icon: "/assets/home/member.svg",
+  title: "年费会员",
+  help: "关注·变化·复盘",
+  detail: "365天 · ¥1288",
+  badge: "¥1288/年",
+};
 
 const MARKET_OPTIONS = [
   { id: "us", label: "美股" },
@@ -91,6 +90,7 @@ const EMPTY_HOLDING_FORM = { name: "", code: "", cost: "", quantity: "", market:
 Page({
   data: {
     entries: CORE_ENTRIES.map((item) => ({ ...item })),
+    member: { ...MEMBER_ENTRY },
     today: { points: [] },
     dataAsOf: "",
     freshnessKind: "offline",
@@ -124,15 +124,13 @@ Page({
           todayBrief: workspace.todayBrief,
           reviewTasks: workspace.reviewTasks,
         });
-        const entries = this.data.entries.map((item) => {
-          if (item.id !== "member") return item;
-          return {
-            ...item,
+        this.setData({
+          member: {
+            ...this.data.member,
             help: summary.help,
             detail: summary.detail,
-          };
+          },
         });
-        this.setData({ entries });
       })
       .catch(() => {});
   },
@@ -296,9 +294,11 @@ Page({
     if (entry.action === "section") {
       track("section_open", { market: String(entry.id), from: "grid" });
       wx.navigateTo({ url: `/pages/section/index?market=${entry.id}` });
-      return;
     }
-    if (entry.action === "member") openPage("/pages/member/index");
+  },
+  openMemberBanner() {
+    track("member_open", { from: "home_banner" });
+    openPage("/pages/member/index");
   },
   toggleHoldingForm() {
     this.setData({ showHoldingForm: !this.data.showHoldingForm });

@@ -38,7 +38,7 @@ const INVESTOR_NAMES = {
 };
 
 const HK_VERDICT_MAP = {
-  值得打: { group: "worth", badge: "建议申购", tone: "suggest" },
+  值得打: { group: "worth", badge: "值得打", tone: "suggest" },
   谨慎打: { group: "caution", badge: "暂缓观察", tone: "wait" },
   不建议: { group: "avoid", badge: "暂不建议", tone: "skip" },
   申购已结束: { group: "ended", badge: "申购已结束", tone: "ended" },
@@ -409,7 +409,7 @@ function goldItems(snapshot) {
     [
       "plan",
       "plan",
-      "买点与卖点",
+      "观察区参考",
       "价格观察",
       [
         buyIntl ? `美元金持有 ${buyIntl}` : null,
@@ -645,10 +645,10 @@ function groupDefinitions(snapshot, market) {
   let definitions;
   if (market === "hk") {
     definitions = [
-      ["worth", "建议申购", "先核一手与风险"],
+      ["worth", "值得打", "先核一手与风险"],
       ["caution", "暂缓观察", "先看热度"],
       ["avoid", "暂不建议", "风险偏多"],
-      ["leverage", "高杠杆观察", "建议申购且拥挤度不高，默认仍是一手", false],
+      ["leverage", "高杠杆观察", "值得打且拥挤度不高，默认仍是一手", false],
       ["cancelled", "发行已取消", "无法申购"],
       ["ended", "已结束", "历史样本对照：暗盘·首日·五日"],
     ];
@@ -676,7 +676,7 @@ function groupDefinitions(snapshot, market) {
   } else if (market === "gold") {
     definitions = [
       ["track", "现在怎么做", "偏买 / 观望 / 回避"],
-      ["plan", "买点与卖点", "观察低位 / 观察上沿 / 风险下沿"],
+      ["plan", "观察区参考", "观察低位 / 观察上沿 / 风险下沿"],
     ];
   } else {
     definitions = [

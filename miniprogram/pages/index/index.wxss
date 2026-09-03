@@ -3,7 +3,7 @@
   box-sizing: border-box;
   padding: 0 0 calc(28rpx + env(safe-area-inset-bottom));
   overflow-x: hidden;
-  background: #f3f6f4;
+  background: #f5f7f6;
 }
 
 .home-hero {
@@ -77,18 +77,18 @@
 }
 
 .hero-label {
-  color: #ffffff;
-  font-size: 34rpx;
-  font-weight: 780;
-  line-height: 1.15;
-  letter-spacing: 1rpx;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 24rpx;
+  font-weight: 560;
+  line-height: 1.2;
 }
 
 .hero-value {
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 26rpx;
-  font-weight: 640;
-  line-height: 1.2;
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: 760;
+  line-height: 1.18;
+  letter-spacing: 1rpx;
 }
 
 .hero-tap {
@@ -130,16 +130,16 @@
 }
 
 .thesis-title {
-  color: #ffffff;
-  font-size: 24rpx;
-  font-weight: 680;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 21rpx;
+  font-weight: 520;
 }
 
 .thesis-text {
   margin-top: 4rpx;
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 22rpx;
-  font-weight: 520;
+  color: #ffffff;
+  font-size: 25rpx;
+  font-weight: 660;
 }
 
 .thesis-arrow {
@@ -190,10 +190,6 @@
   position: relative;
   z-index: 1;
   margin: -24rpx 20rpx 0;
-  overflow: hidden;
-  border: 1rpx solid #e7ece9;
-  border-radius: 24rpx;
-  background: #ffffff;
 }
 
 .home-panel + .home-panel {
@@ -429,11 +425,11 @@
   position: relative;
   box-sizing: border-box;
   display: flex;
-  width: 33.333333%;
+  width: 20%;
   min-width: 0;
   min-height: 176rpx;
   padding: 18rpx 8rpx 14rpx;
-  flex: 0 0 33.333333%;
+  flex: 0 0 20%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -443,8 +439,7 @@
   text-align: center;
 }
 
-.grid-card:nth-child(3n) { border-right: 0; }
-.grid-card:nth-child(n + 4) { border-bottom: 0; }
+.grid-card:nth-child(5n) { border-right: 0; }
 
 .entry-icon {
   width: 64rpx;
@@ -488,6 +483,67 @@
   font-weight: 620;
 }
 
+.entry-arrow {
+  position: absolute;
+  right: 10rpx;
+  bottom: 6rpx;
+  color: #c3c9c5;
+  font-size: 28rpx;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.member-banner {
+  display: flex;
+  min-height: 92rpx;
+  padding: 16rpx 20rpx;
+  align-items: center;
+  gap: 14rpx;
+  border-top: 1rpx solid #edf0ee;
+  background: #f8faf9;
+}
+
+.member-banner-icon {
+  width: 44rpx;
+  height: 44rpx;
+  flex: none;
+}
+
+.member-banner-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.member-banner-title,
+.member-banner-help {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-banner-title {
+  color: #1b211d;
+  font-size: 26rpx;
+  font-weight: 650;
+}
+
+.member-banner-help {
+  margin-top: 4rpx;
+  color: #7a847e;
+  font-size: 22rpx;
+}
+
+.member-banner-badge {
+  flex: none;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  background: #eef5f1;
+  color: #0b7a53;
+  font-size: 21rpx;
+  font-weight: 620;
+}
+
 .tap-active {
   background: #eef8f2;
 }
@@ -514,8 +570,8 @@
   .home-panel + .home-panel { margin-top: 12rpx; }
   .hero-title { font-size: 38rpx; }
   .hero-cell { min-height: 108rpx; padding: 12rpx 4rpx; gap: 6rpx; }
-  .hero-label { font-size: 28rpx; }
-  .hero-value { font-size: 20rpx; }
+  .hero-label { font-size: 20rpx; }
+  .hero-value { font-size: 28rpx; }
   .grid-card { min-height: 176rpx; padding: 14rpx 4rpx 12rpx; }
   .entry-icon { width: 52rpx; height: 52rpx; }
   .card-title { font-size: 24rpx; margin-top: 10rpx; }

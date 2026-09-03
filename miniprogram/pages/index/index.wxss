@@ -427,8 +427,10 @@
   display: flex;
   width: 20%;
   min-width: 0;
-  min-height: 176rpx;
-  padding: 18rpx 8rpx 14rpx;
+  min-height: 200rpx;
+  /* 底部 30rpx 是给绝对定位的 .entry-arrow 留的专用带：
+     说明文字放开成两行后，若沿用 14rpx，第二行会压到箭头上。 */
+  padding: 18rpx 6rpx 30rpx;
   flex: 0 0 20%;
   flex-direction: column;
   align-items: center;
@@ -459,16 +461,18 @@
 }
 
 .card-help {
-  display: block;
-  max-width: 92%;
+  display: -webkit-box;
+  max-width: 100%;
   margin-top: 6rpx;
   overflow: hidden;
   color: #7a847e;
   font-size: 20rpx;
   font-weight: 520;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  white-space: normal;
+  word-break: break-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .entry-badge {
@@ -486,9 +490,9 @@
 .entry-arrow {
   position: absolute;
   right: 10rpx;
-  bottom: 6rpx;
+  bottom: 4rpx;
   color: #c3c9c5;
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 300;
   line-height: 1;
 }

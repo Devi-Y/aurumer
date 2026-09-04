@@ -4,6 +4,7 @@
  * 这里不预测确定收益，而是把公开数据翻译成三件用户真正能用的事：
  * 当前状态、为什么这样判断、什么变化会触发重新评估。
  */
+const { isPositionChange } = require("./guru-changes");
 
 // null / undefined / 空串要当成「没有这个数」，不能交给 Number()：
 // Number(null) 是 0 且有限，会让「一手中签率未公布」之类的缺失字段
@@ -314,23 +315,28 @@ function guruSignal(item) {
   const raw = item?.raw || {};
   const profile = raw.profile || {};
   const holdings = Array.isArray(raw.holdings) ? raw.holdings : [];
-  const changed = holdings.filter((holding) => holding.changeLabel && !/待核|不变|持平/u.test(String(holding.changeLabel)));
+  const changed = holdings.filter(isPositionChange);
   const filingTime = Date.parse(raw.filingDate || "");
   const lagDays = Number.isNaN(filingTime) ? null : Math.max(0, Math.round((Date.now() - filingTime) / 86400000));
   if (lagDays !== null && lagDays > 180) {
     return {
       label: "披露滞后",
       tone: "bad",
-      action: "只当历史研究样本，不能把旧持仓当成当前买入信号。",
+      action: `披露已滞后 ${lagDays} 天，只当历史研究样本，不能把旧持仓当成当前买入信号。`,
       trigger: "等新的 13F/季报披露，且结合现价与公司基本面重新核验。",
       basis: `${lagDays} 天披露滞后`,
     };
   }
+  const top = holdings
+    .filter((holding) => holding && Number.isFinite(Number(holding.weight)))
+    .reduce((best, holding) => (best && Number(best.weight) >= Number(holding.weight) ? best : holding), null);
   if (!changed.length) {
     return {
       label: "观察持仓",
       tone: "warn",
-      action: "持仓变化不足，先学习组合结构，不照抄静态名单。",
+      // 这一档以前每家机构一模一样，列表上分不出谁是谁。补一句本来就在
+      // 页面别处展示的披露事实：披露了几只、其中权重最高的是谁。
+      action: `${top ? `已披露 ${holdings.length} 只，权重最高 ${top.name || top.ticker} ${Number(top.weight).toFixed(1)}%；` : ""}持仓变化不足，先学习组合结构，不照抄静态名单。`,
       trigger: "新增、增持、减持或退出出现后，再看变化是否有持续逻辑。",
       basis: `${profile.name || "公开机构"} · ${holdings.length} 只持仓`,
     };
@@ -338,7 +344,9 @@ function guruSignal(item) {
   return {
     label: "跟踪变化",
     tone: "good",
-    action: `本期有 ${changed.length} 项仓位变化，先研究变化原因，再决定是否纳入自己的观察池。`,
+    // 同上：只报一个数字时，同一档的机构在列表里完全同文。把已经算好的
+    // 前两项变化点出来，读者一眼能看出这家和那家变的不是同一批仓位。
+    action: `本期 ${changed.length} 项仓位变化：${changed.slice(0, 2).map((holding) => `${holding.ticker || holding.name} ${holding.changeLabel}`).join("、")}${changed.length > 2 ? " 等" : ""}；先研究变化原因，再决定是否纳入自己的观察池。`,
     trigger: "下一期披露若方向反转，或公司基本面无法印证机构逻辑，取消跟踪。",
     basis: `${profile.name || "公开机构"} · 仅供对照学习`,
   };

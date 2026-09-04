@@ -522,7 +522,7 @@ function buildGoldAnswers(snapshot) {
     card({
       id: "gold-usd-sell",
       question: "美元金观察上沿",
-      answer: sellIntl ? goldNextLine(intlPrice, plan.internationalWatch, plan.internationalUpper, intlZone, 0, "sell") : "美元金卖出区待核验",
+      answer: sellIntl ? goldNextLine(intlPrice, plan.internationalWatch, plan.internationalUpper, intlZone, 0, "sell") : "美元金观察上沿待核验",
       tone: intlZone.sell ? "warn" : "muted",
       action: "detail",
       targetId: "plan",
@@ -540,7 +540,7 @@ function buildGoldAnswers(snapshot) {
     card({
       id: "gold-cny-sell",
       question: "人民币金观察上沿",
-      answer: sellCny ? goldNextLine(cnyPrice, plan.domesticWatch, plan.domesticUpper, cnyZone, 1, "sell") : "人民币金卖出区待核验",
+      answer: sellCny ? goldNextLine(cnyPrice, plan.domesticWatch, plan.domesticUpper, cnyZone, 1, "sell") : "人民币金观察上沿待核验",
       tone: cnyZone.sell ? "warn" : "muted",
       action: "detail",
       targetId: "plan",

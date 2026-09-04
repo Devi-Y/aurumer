@@ -144,6 +144,18 @@ function hkExtractionNote(item) {
     : "招股文件解析失败，字段暂时取不到；已记录待修复，不是公司未披露。";
 }
 
+// 上游快照里这句公开结论写着「可关注申购，但卖点与涨幅答案暂不发布。」：「卖点」
+// 是产品已经退掉的词（打新没有卖出价这回事），而详情页下面那张「打中后观察分位」
+// 就摆着历史涨幅分位，「暂不发布」当场被自己推翻。上游在 aurum-engine 里改不到，
+// 这里只在命中这个词时按产品已有口径改口，不改变结论本身，也不新增任何数据。
+function normalizeHkAction(text, fallback) {
+  const line = String(text || "");
+  if (!line) return fallback;
+  if (!/卖点/.test(line)) return line;
+  const positive = /可关注|可研究|值得/.test(line);
+  return `${positive ? "可关注申购；" : ""}打中后的涨幅以历史样本分位为参考口径，不预测本股。`;
+}
+
 function hkActionFromItem(item) {
   if (item.withdrawn || item.researchView?.state === "withdrawn") {
     return { group: "cancelled", badge: "发行已取消", tone: "ended", action: "这次发行取消了，不用再申购。", score: null };
@@ -153,7 +165,7 @@ function hkActionFromItem(item) {
   if (mapped) {
     return {
       ...mapped,
-      action: answer.action || mapped.badge,
+      action: normalizeHkAction(answer.action, mapped.badge),
       score: Number.isFinite(Number(answer.score)) ? Number(answer.score) : null,
     };
   }
@@ -412,10 +424,12 @@ function goldItems(snapshot) {
       "观察区参考",
       "价格观察",
       [
-        buyIntl ? `美元金持有 ${buyIntl}` : null,
-        sellIntl ? `美元金卖出 ${sellIntl}` : null,
-        buyCny ? `人民币金持有 ${buyCny}` : null,
-        sellCny ? `人民币金卖出 ${sellCny}` : null,
+        // 这四段取的是 pricePlan 的 watch / upper，产品别处一律叫「观察低位」
+        // 「观察上沿」，只有这一行写成了「持有 / 卖出」，读起来像在给买卖指令。
+        buyIntl ? `美元金观察低位 ${buyIntl}` : null,
+        sellIntl ? `美元金观察上沿 ${sellIntl}` : null,
+        buyCny ? `人民币金观察低位 ${buyCny}` : null,
+        sellCny ? `人民币金观察上沿 ${sellCny}` : null,
       ].filter(Boolean).join(" · ") || quoteLine,
     ],
   ];
@@ -735,5 +749,6 @@ module.exports = {
   shortCompanyName,
   shortOrgName,
   shortOrgList,
+  normalizeHkAction,
   HK_VERDICT_MAP,
 };

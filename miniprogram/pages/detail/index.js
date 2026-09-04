@@ -3,10 +3,11 @@ const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER, RISK_LABEL } = require("../../utils/disclaimer");
 const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList } = require("../../utils/answers");
+const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction } = require("../../utils/answers");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const { buildHkExitPlan } = require("../../utils/hk-exit-plan");
+const { isPositionChange } = require("../../utils/guru-changes");
 const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lenses, MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
@@ -268,16 +269,16 @@ function scoreMeter(score, title, badge, hint) {
   const value = Math.max(0, Math.min(100, Math.round(Number(score))));
   return withChartMeta({
     kind: "meter",
-    title,
+    // 卡片标题写的是「国际金观察分」「收息观察分」，里面那一格却统一硬编成
+    // 「研究分」——五类资产里四类的分名和自己的标题对不上。分值连同满分口径
+    // 一起并进标题，格子里只留真正是另一码事的「结论」。
+    title: `${title} ${value}/100`,
     percent: value,
     lowLabel: "0",
     midLabel: "",
     highLabel: "100",
-    stats: [
-      { label: "研究分", value: `${value}` },
-      ...(badge ? [{ label: "结论", value: String(badge) }] : []),
-    ],
-  }, "");
+    stats: badge ? [{ label: "结论", value: String(badge) }] : [],
+  }, hint || "");
 }
 
 function meterVisual(history, currentPrice, title, formatter = money, hint) {
@@ -431,7 +432,9 @@ function buildHKView(base, item) {
   const prospectus = raw.prospectusExtraction || {};
 
   base.badge = item.badge || answer.verdict || base.badge;
-  base.answer = answer.action || item.one || item.badge;
+  // 详情页读的是 raw.publicAnswer，绕过了 hkActionFromItem，所以退掉的措辞要在
+  // 这里再过一次同一个归一化，否则首页改好了详情页还留着「卖点」。
+  base.answer = normalizeHkAction(answer.action, "") || item.one || item.badge;
   base.metrics = ended
     ? compactFacts([
         ["是否申购", item.badge || answer.verdict || "已结束"],
@@ -472,10 +475,25 @@ function buildHKView(base, item) {
         { label: "中签", value: hasNumber(raw.oneLotRate) ? `${Number(raw.oneLotRate).toFixed(1)}%` : "—" },
       ]
     : [
-        { label: "结论", value: item.badge || "待定" },
-        { label: "一手", value: hasNumber(raw.entryFee) ? `${Number(raw.entryFee).toFixed(0)}` : "—" },
-        { label: "招股", value: offer != null ? offer.toFixed(2) : "—" },
-        { label: "截止", value: daysToDeadline != null ? `${daysToDeadline}天` : (raw.offerDeadline || "—") },
+        // 第一格原本又写一遍 item.badge，和正上方那条绿色「结论」条一字不差；
+        // 退成「研究分」又会和标题下那枚「研究分 77」胶囊在同一屏撞第二次。
+        // 中签率、公开认购倍数要等配售结果才有，有就优先显示；都没有时改放上市
+        // 日——打新的人这一屏真正缺的是钱要锁到哪天，而它只躺在「资料」里。
+        // 另外「一手 3949」「招股 19.55」都没有单位，把口径写进标签。
+        hasNumber(raw.oneLotRate)
+          ? { label: "一手中签", value: `${Number(raw.oneLotRate).toFixed(1)}%` }
+          : (hasNumber(raw.publicOversubscription)
+            ? { label: "公开认购·倍", value: `${Number(raw.publicOversubscription).toFixed(1)}` }
+            : { label: "上市日", value: raw.listingDate ? String(raw.listingDate).slice(5) : "—" }),
+        { label: "一手·港元", value: hasNumber(raw.entryFee) ? `${Number(raw.entryFee).toFixed(0)}` : "—" },
+        { label: "招股·港元", value: offer != null ? offer.toFixed(2) : "—" },
+        // 「截止 0天」读起来像已经结束了，其实是今天最后一天。
+        {
+          label: "截止",
+          value: daysToDeadline == null
+            ? (raw.offerDeadline || "—")
+            : (daysToDeadline === 0 ? "今天" : `${daysToDeadline}天`),
+        },
       ];
 
   const scheduleTiles = metricTilesVisual([
@@ -661,8 +679,10 @@ function buildUSView(base, item, snapshot) {
   base.highlights = [
     { label: "现价", value: money(raw.price) },
     { label: "今日", value: formatPercent(raw.changePercent) },
-    { label: "PE", value: hasNumber(fund.pe) ? Number(fund.pe).toFixed(1) : "—" },
-    { label: "热度", value: hasNumber(raw.heatScore) ? `${Number(raw.heatScore)}` : "—" },
+    // 「PE 45.9」「热度 48」都是裸数字，而同样两项在「财务」里写的是「45.9 倍」
+    // 「48 分」。口径提到标签上，值这一行才不至于被当成价格或百分比。
+    { label: "PE·倍", value: hasNumber(fund.pe) ? Number(fund.pe).toFixed(1) : "—" },
+    { label: "热度·分", value: hasNumber(raw.heatScore) ? `${Number(raw.heatScore)}` : "—" },
   ];
 
   const marginBars = solidVisual([
@@ -984,7 +1004,11 @@ function buildAShareView(base, item, snapshot) {
     ["资料状态", advice],
   ];
   base.highlights = [
-    { label: "分级", value: item.badge || "—" },
+    // 「分级」这一格和正上方绿色「结论」条是同一个 item.badge，同屏重复；
+    // 换成这一页别处才有的现价（拿不到就退到 10 万元一年的估算利息）。
+    hasNumber(raw.currentPrice)
+      ? { label: "现价·元", value: Number(raw.currentPrice).toFixed(2) }
+      : { label: "10万年息", value: hasNumber(annualDividend) ? `${Math.round(annualDividend)}元` : "—" },
     { label: "观察分", value: scoredPreview != null ? `${scoredPreview}` : "—" },
     { label: "股息", value: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "—" },
     { label: "可持续", value: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "—" },
@@ -1118,13 +1142,21 @@ function buildGuruView(base, item) {
   const groupCounts = { hk: 3, us: 5, a: 3 };
   const holdings = raw.holdings || [];
   const sold = raw.sold || [];
+  // 13F 有真正的披露日；港股/A 股这六只基金只有月报、半年报、季报的报告期，
+  // answers.js 把报告期一并塞进了 filingDate（「2026-05-29 月报」），Date.parse
+  // 直接 NaN，于是「滞后」这一格和「披露滞后」这一行对它们永远是「待核」。
+  // 先把日期从字符串里取出来；两者口径不同，不能混成一个词——有披露日就说披露
+  // 滞后，只有报告期就说报告期距今；连日期都取不到（「2026Q1 季报」）才留空。
   const filingDate = raw.filingDate || "";
-  const filingTime = Date.parse(filingDate);
+  const filingDay = (String(filingDate).match(/\d{4}-\d{2}-\d{2}/) || [])[0] || "";
+  const filingTime = Date.parse(filingDay);
   const lagDays = Number.isNaN(filingTime)
     ? null
     : Math.max(0, Math.round((Date.now() - filingTime) / (24 * 60 * 60 * 1000)));
-  const perfNum = Number(String(profile.performanceValue || "").match(/\d+(?:\.\d+)?/)?.[0] || 0);
-  const changed = holdings.filter((row) => row.changeLabel && !/待核|不变|持平/u.test(String(row.changeLabel)));
+  const lagLabel = raw.isLive ? "披露滞后" : "报告期距今";
+  // 港股三只基金的持仓标注是「月报持有」，以前的反向判断会把它当成一次仓位
+  // 变化，于是详情页写「本期 3 项仓位变化」——月报根本没说有变化。
+  const changed = holdings.filter(isPositionChange);
 
   base.title = profile.name || base.title;
   base.code = profile.org || base.code;
@@ -1137,26 +1169,34 @@ function buildGuruView(base, item) {
   const topHolding = holdings
     .filter((row) => row && row.ticker)
     .reduce((best, row) => (best && Number(best.weight) >= Number(row.weight) ? best : row), null);
+  // 港股/A 股基金的 reportDate 本身就带文体（「2026-05-29 月报」），后面再缀一个
+  // 「报告期」就成了「月报 报告期」。前缀式两种写法都读得通。
   base.answer = [
-    (raw.reportDate || profile.report) ? `${raw.reportDate || profile.report} 报告期` : null,
+    (raw.reportDate || profile.report) ? `报告期 ${raw.reportDate || profile.report}` : null,
     topHolding
       ? `第一大持仓 ${topHolding.ticker}${hasNumber(topHolding.weight) ? ` ${formatNumber(topHolding.weight, "%")}` : ""}`
       : null,
     changed.length ? `本期 ${changed.length} 项仓位变化` : null,
   ].filter(Boolean).join(" · ") || profile.marketLabel || item.badge;
   base.metrics = [
-    ["表观年化", profile.performanceValue || "待核"],
+    // performanceValue 自带「年化」二字，标签再写一遍就是「表观年化：13.2% 年化」。
+    ["表观年化", String(profile.performanceValue || "待核").replace(/\s*年化$/u, "")],
     ["市场", profile.marketLabel || "待核"],
-    ["持仓", `${holdings.length}`],
-    ["退出", `${sold.length}`],
-    ["披露滞后", lagDays == null ? "待核" : `${lagDays}天`],
+    ["持仓", `${holdings.length} 只`],
+    // 和上面的核心数据同一口径：月报、季报没披露过退出，不能写成「0」。
+    ["退出", raw.isLive ? `${sold.length} 只` : "未披露"],
+    [lagLabel, lagDays == null ? "待核" : `${lagDays}天`],
     ["报告期", dayText(raw.reportDate || profile.report) || "待核"],
   ];
   base.highlights = [
-    { label: "年化", value: profile.performanceValue || "—" },
-    { label: "排名", value: profile.order ? `${profile.order}/${groupCounts[profile.group]}` : "—" },
-    { label: "持仓", value: `${holdings.length}` },
-    { label: "滞后", value: lagDays == null ? "—" : `${lagDays}天` },
+    // 第一格原本是 profile.performanceValue，而徽章就是同一个字段，渲染出来是
+    // 「年化：13.2% 年化」——同一屏印两遍，「年化」两个字还印了三遍。排名本来
+    // 就是按表观年化在同组内排的，把口径写进标签，年化这一格便不必再留一次。
+    { label: "年化排名", value: profile.order ? `${profile.order}/${groupCounts[profile.group]}` : "—" },
+    { label: "持仓·只", value: `${holdings.length}` },
+    // 退出数只有 13F 真正披露；月报、季报没说过，写「0」会被读成「一只都没卖」。
+    { label: "退出·只", value: raw.isLive ? `${sold.length}` : "未披露" },
+    { label: lagLabel, value: lagDays == null ? "—" : `${lagDays}天` },
   ];
   base.holdings = holdings.slice(0, 8).map((holding) => ({
     name: holding.ticker,
@@ -1174,12 +1214,12 @@ function buildGuruView(base, item) {
 
   setCharts(
     base,
-    perfNum > 0
-      ? scoreMeter(Math.min(100, Math.round(perfNum * 3)), "表观业绩刻度", profile.performanceValue)
-      : null,
+    // 这里原来把表观年化 ×3 截到 100 当成分数画进 0–100 刻度条，格子里还写着
+    // 「研究分 23」——聪明人持仓根本没有研究分，这个 3 倍也没有任何口径依据。
+    // 同组年化名次已经在核心数据里，下面几张图又全是真实披露，直接去掉。
     metricTilesVisual([
       ["持仓只数", `${holdings.length}`],
-      ["退出只数", `${sold.length}`],
+      ["退出只数", raw.isLive ? `${sold.length}` : "未披露"],
       ["披露滞后", lagDays == null ? null : `${lagDays}天`],
       ["有变化标注", `${changed.length}`],
     ].filter((row) => row[1]), "本期摘要"),
@@ -1277,7 +1317,19 @@ function buildGoldView(base, item) {
 
   base.title = gold.view === "plan" ? "观察区参考" : "现在怎么做";
   base.badge = action;
-  base.answer = item.one;
+  // 「先看答案」原本直接用 item.one，而它那一行六项里有五项就是正上方结论条和
+  // 四格核心数据的原样重排（继续观察／国际金 4473／人民币金 938／两个观察分），
+  // 真正新的只有「半年位」一项。列表页没有那四格，item.one 保持不动，只在详情
+  // 页换成同屏还没说过的位置与动能。
+  base.answer = gold.view === "plan"
+    ? item.one
+    : ([
+      hasNumber(international.percentile180) ? `半年位 ${Number(international.percentile180)}%` : null,
+      hasNumber(returns.day20) ? `20日 ${formatPercent(returns.day20)}` : null,
+      hasNumber(returns.day60) ? `60日 ${formatPercent(returns.day60)}` : null,
+      buyIntl ? `观察低位 ${buyIntl}` : null,
+      riskIntl ? `风险下沿 ${riskIntl}` : null,
+    ].filter(Boolean).join(" · ") || item.one);
   base.metrics = [
     ["现在动作", action],
     ["国际观察分", Number.isFinite(internationalScore) ? `${internationalScore}` : "暂缺"],
@@ -1294,8 +1346,9 @@ function buildGoldView(base, item) {
     ["风险下沿", riskIntl || riskCny || "暂缺"],
   ];
   base.highlights = [
-    { label: "国际金", value: hasNumber(international.price) ? `${Number(international.price).toFixed(0)}` : "—" },
-    { label: "人民币金", value: hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(1)}` : "—" },
+    // 这两个价一个是美元/盎司、一个是元/克，差三个数量级，原来都只有裸数字。
+    { label: "国际金/盎司", value: hasNumber(international.price) ? `$${Number(international.price).toFixed(0)}` : "—" },
+    { label: "人民币金/克", value: hasNumber(domestic.price) ? `¥${Number(domestic.price).toFixed(1)}` : "—" },
     { label: "国际分", value: Number.isFinite(internationalScore) ? `${internationalScore}` : "—" },
     { label: "人民币分", value: Number.isFinite(domesticScore) ? `${domesticScore}` : "—" },
   ];
@@ -1677,7 +1730,7 @@ Page({
         }
         const view = buildDetailModules(detailView(item, snapshot), item.market);
         if (item.market === "hk") {
-        view.exitPlan = buildHkExitPlan(item, { evidence: strategyEvidence, snapshot });
+          view.exitPlan = buildHkExitPlan(item, { evidence: strategyEvidence, snapshot });
         } else {
           view.exitPlan = null;
         }

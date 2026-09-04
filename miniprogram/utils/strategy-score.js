@@ -21,7 +21,7 @@ function hkScore(item) {
       basis: "公开招股研究分（单一口径）",
     };
   }
-  if (item?.badge === "建议申购") return { score: 82, label: "研究分", basis: "按结论档位" };
+  if (item?.badge === "值得打") return { score: 82, label: "研究分", basis: "按结论档位" };
   if (item?.badge === "暂缓观察") return { score: 55, label: "研究分", basis: "按结论档位" };
   if (item?.badge === "暂不建议" || item?.badge === "资料不够") {
     return { score: 28, label: "研究分", basis: "按结论档位" };

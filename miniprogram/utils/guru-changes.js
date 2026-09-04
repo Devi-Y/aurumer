@@ -1,6 +1,16 @@
 /**
  * 聪明人持仓：季度变化与披露滞后（公开资料，不构成跟仓信号）。
  */
+// 「本期有几项仓位变化」以前是反向判断：只要 changeLabel 不是「不变/持平/待核」
+// 就算一次变化。港股三只基金的持仓来自月报，标注是「月报持有」「半年报持有」，
+// 于是三只都被算成「本期有 3 项仓位变化」——月报根本没说有变化。改成正向匹配
+// 真正表示变动的标注（13F 侧是「新进 / 增持 +X% / 减持 -X%」）。
+const POSITION_CHANGE_RE = /新进|新建|增持|加仓|减持|减仓|清仓|退出/u;
+
+function isPositionChange(holding) {
+  return POSITION_CHANGE_RE.test(String((holding && holding.changeLabel) || ""));
+}
+
 function lagDays(filingDate) {
   const time = Date.parse(filingDate);
   if (Number.isNaN(time)) return null;
@@ -55,4 +65,4 @@ function simplifyHolding(row) {
   };
 }
 
-module.exports = { buildGuruChanges, lagDays };
+module.exports = { buildGuruChanges, isPositionChange, lagDays };

@@ -5,19 +5,6 @@
   background: #f5f7f6;
 }
 
-.section-hero,
-.insight-panel,
-.group-panel,
-.answer-panel,
-.deep-panel,
-.playbook-panel,
-.freshness-banner {
-  overflow: hidden;
-  border: 1rpx solid #e7ece9;
-  border-radius: 24rpx;
-  background: #ffffff;
-}
-
 .freshness-banner {
   margin-top: 16rpx;
   padding: 16rpx 20rpx;
@@ -55,63 +42,79 @@
 .freshness-banner.tone-warn { background: #fff7ec; border-color: #f0e0c8; }
 .freshness-banner.tone-bad { background: #fdf0ee; border-color: #f0d5cf; }
 
+/* 页头绿带。和新闻资讯页同一套：负的左右外边距把带子顶到屏宽，
+   .section-shell 自己那 20rpx 的边留给下面的卡片继续用。 */
 .section-hero {
-  padding: 22rpx 24rpx;
-  border-color: #e3ebe6;
-  background: #ffffff;
-}
-
-.section-hero.us,
-.section-hero.a,
-.section-hero.gold,
-.section-hero.guru {
-  background: #ffffff;
-  border-color: #e3ebe6;
+  margin: -20rpx -20rpx 0;
+  padding: 18rpx 24rpx 40rpx;
+  background: linear-gradient(165deg, #0d8a5c 0%, #0b7a53 55%, #096844 100%);
 }
 
 .hero-top {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .hero-title {
-  color: #172019;
-  font-size: 36rpx;
-  font-weight: 650;
+  flex: none;
+  color: #ffffff;
+  font-size: 40rpx;
+  font-weight: 720;
 }
 
-.hero-help {
-  display: block;
-  margin-top: 12rpx;
+.hero-meta {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
-  color: #5a645e;
-  font-size: 24rpx;
-  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 22rpx;
+  text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.hero-image-wrap {
-  display: flex;
-  width: 56rpx;
-  height: 56rpx;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16rpx;
-  background: #f3f7f4;
+.hero-help {
+  display: block;
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 23rpx;
+  line-height: 1.45;
 }
 
-.hero-image {
-  width: 34rpx;
-  height: 34rpx;
+.hero-stats {
+  display: flex;
+  margin-top: 14rpx;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.hero-stat {
+  padding: 5rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+}
+
+/* 结论与关键数值那张卡向上压住绿带下沿。 */
+.hero-body {
+  position: relative;
+  z-index: 1;
+  margin-top: -22rpx;
 }
 
 .hero-metrics {
   display: flex;
-  margin-top: 18rpx;
+  padding: 16rpx 18rpx 18rpx;
+}
+
+/* 结论行在的时候，两块之间才需要那道分隔线。 */
+.insight-panel + .hero-metrics {
   padding-top: 16rpx;
   border-top: 1rpx solid #edf0ee;
 }
@@ -159,8 +162,7 @@
 }
 
 .insight-panel {
-  margin-top: 14rpx;
-  padding: 22rpx 24rpx;
+  padding: 18rpx 24rpx 0;
 }
 
 .deep-panel {
@@ -220,16 +222,17 @@
 }
 
 .answer-q {
-  color: #1b211d;
-  font-size: 28rpx;
-  font-weight: 720;
+  color: #66706a;
+  font-size: 23rpx;
+  font-weight: 560;
 }
 
 .answer-a {
   margin-top: 6rpx;
-  color: #3a433d;
-  font-size: 24rpx;
-  line-height: 1.45;
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .answer-names {
@@ -239,9 +242,21 @@
   line-height: 1.4;
 }
 
-.answer-row.tone-good .answer-q { color: #0b7a53; }
-.answer-row.tone-bad .answer-q { color: #a33b2b; }
-.answer-row.tone-warn .answer-q { color: #8b5b20; }
+/* 边界那一行：比副行再轻一档，但要能和副行分开——副行说的是「有哪些」，
+   这一行说的是「这句话不能当成什么」。带具体价格的卡才在这里出现，
+   方法论说明留在展开层。 */
+.answer-hint {
+  margin-top: 6rpx;
+  padding-left: 14rpx;
+  border-left: 3rpx solid #d6ded8;
+  color: #8a938d;
+  font-size: 21rpx;
+  line-height: 1.45;
+}
+
+.answer-row.tone-good .answer-a { color: #0b7a53; }
+.answer-row.tone-bad .answer-a { color: #a33b2b; }
+.answer-row.tone-warn .answer-a { color: #8b5b20; }
 
 .deep-row {
   display: flex;
@@ -482,13 +497,6 @@
   font-size: 24rpx;
 }
 
-.arrow {
-  flex: none;
-  color: #adb4af;
-  font-size: 38rpx;
-  font-weight: 300;
-  line-height: 1;
-}
 
 .tap-active { background: #eef8f2; }
 
@@ -506,7 +514,8 @@
 
 @media (max-width: 340px) {
   .section-shell { padding-right: 14rpx; padding-left: 14rpx; }
-  .hero-title { font-size: 37rpx; }
+  .section-hero { margin-right: -14rpx; margin-left: -14rpx; }
+  .hero-title { font-size: 36rpx; }
   .hero-metric { padding-right: 6rpx; padding-left: 6rpx; }
   .hero-metric text:last-child { font-size: 28rpx; }
 }
@@ -514,7 +523,169 @@
 @media (min-width: 700px) {
   .section-shell { padding-right: 32px; padding-left: 32px; }
   .section-hero,
-  .insight-panel,
   .answer-panel,
   .group-panel { border-radius: 20px; }
+}
+
+/* 数据出处。和新闻资讯页每条下面那行"来源 X · 复制链接"是同一件事，
+   只是栏目页一次列全栏目的官方入口，不必每行重复一遍。 */
+.source-panel {
+  padding: 20rpx 0 4rpx;
+}
+
+.source-head {
+  display: flex;
+  padding: 0 24rpx 12rpx;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.source-title {
+  color: #1f2621;
+  font-size: 28rpx;
+  font-weight: 680;
+}
+
+.source-meta {
+  color: #9aa19c;
+  font-size: 22rpx;
+}
+
+.source-link-row {
+  display: flex;
+  min-height: 76rpx;
+  padding: 14rpx 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  border-top: 1rpx solid #edf0ee;
+  font-size: 27rpx;
+}
+
+.source-link-name {
+  min-width: 0;
+  flex: 1;
+  color: #1b211d;
+}
+
+.source-link-action {
+  flex: none;
+  color: #0b7a53;
+  font-size: 24rpx;
+  font-weight: 620;
+}
+
+/* 四口径 · 同一块金子。
+   四个报价原本散在指标列表里，谁也不挨着谁；这块卡把它们并排放好，
+   最上面一行直接写出那条唯一有人真的在算的结论，最下面一行写出换算式本身——
+   数字给结论，式子给复算，中间四格给出处。只有黄金栏目页会渲染它。 */
+.parity-panel {
+  padding: 20rpx 0 16rpx;
+}
+
+.parity-head {
+  display: flex;
+  padding: 0 24rpx 12rpx;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.parity-title {
+  color: #1f2621;
+  font-size: 28rpx;
+  font-weight: 680;
+}
+
+.parity-meta {
+  flex: none;
+  color: #9aa19c;
+  font-size: 22rpx;
+}
+
+/* 结论比标签重：这一句才是读的人来这一屏要的东西。 */
+.parity-headline {
+  display: block;
+  padding: 0 24rpx 16rpx;
+  color: #123a28;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.parity-grid {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.parity-cell {
+  box-sizing: border-box;
+  width: 50%;
+  min-width: 0;
+  padding: 16rpx 24rpx;
+  border-right: 1rpx solid #edf0ee;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.parity-cell:nth-child(2n) { border-right: 0; }
+.parity-cell:nth-last-child(-n + 2) { border-bottom: 0; }
+
+.parity-cell-label {
+  display: block;
+  overflow: hidden;
+  color: #7e8781;
+  font-size: 23rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 数字和单位分开排：单位小一号，一列列下来数字的起点才对得齐。 */
+.parity-cell-value {
+  display: flex;
+  margin-top: 6rpx;
+  align-items: baseline;
+  gap: 6rpx;
+}
+
+.parity-cell-number {
+  color: #171b18;
+  font-size: 32rpx;
+  font-weight: 740;
+  line-height: 1.15;
+}
+
+.parity-cell-unit {
+  flex: none;
+  color: #8a918c;
+  font-size: 22rpx;
+}
+
+.parity-cell-meta {
+  display: block;
+  margin-top: 4rpx;
+  color: #7e8781;
+  font-size: 22rpx;
+}
+
+/* 换算式。放在最下面是因为它不是结论，是让人自己复算的凭据。 */
+.parity-formula {
+  display: block;
+  padding: 14rpx 24rpx 0;
+  color: #8a918c;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+/* 这两块要放在 .parity-* 之后：同优先级下后写的赢，写在上面那两个
+   @media 里会被下面的常规规则盖掉。 */
+@media (max-width: 340px) {
+  .parity-cell { padding-right: 16rpx; padding-left: 16rpx; }
+  .parity-cell-number { font-size: 30rpx; }
+  .parity-headline { font-size: 28rpx; }
+}
+
+@media (min-width: 700px) {
+  .parity-panel { border-radius: 20px; }
 }

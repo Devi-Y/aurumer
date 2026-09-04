@@ -3,20 +3,7 @@
   box-sizing: border-box;
   padding: 20rpx 20rpx calc(28rpx + env(safe-area-inset-bottom));
   background: #f5f7f6;
-}
-
-.list-summary,
-.list-insight,
-.item-panel,
-.freshness-banner,
-.empty {
-  overflow: hidden;
-  border: 1rpx solid #e7ece9;
-  border-radius: 24rpx;
-  background: #ffffff;
-}
-
-.freshness-banner {
+}.freshness-banner {
   margin-top: 16rpx;
   padding: 16rpx 20rpx;
 }
@@ -53,41 +40,107 @@
 .freshness-banner.tone-warn { background: #fff7ec; border-color: #f0e0c8; }
 .freshness-banner.tone-bad { background: #fdf0ee; border-color: #f0d5cf; }
 
-.list-summary {
+/* 页头。和新闻资讯页共用一套写法：绿带里放标题、数据截至、一句说明、范围标签。
+   负的左右外边距是为了让绿带顶满屏宽——.list-shell 自己留了 20rpx 的边，
+   下面的卡片还要靠它，所以只有这一块把边退回去。 */
+.list-hero {
+  margin: -20rpx -20rpx 0;
+  padding: 18rpx 24rpx 34rpx;
+  background: linear-gradient(165deg, #0d8a5c 0%, #0b7a53 55%, #096844 100%);
+}
+
+.list-hero-top {
   display: flex;
-  min-height: 96rpx;
-  padding: 18rpx 20rpx 18rpx 24rpx;
-  align-items: center;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 16rpx;
-  border-color: #e3ebe6;
-  background: #ffffff;
 }
 
-.list-summary.us,
-.list-summary.a,
-.list-summary.gold,
-.list-summary.guru {
-  background: #ffffff;
-  border-color: #e3ebe6;
+.list-hero-title {
+  flex: none;
+  color: #ffffff;
+  font-size: 40rpx;
+  font-weight: 720;
 }
 
-.list-help {
-  display: block;
-  margin: 14rpx 4rpx 0;
+.list-hero-meta {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
-  color: #5a645e;
-  font-size: 24rpx;
-  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 22rpx;
+  text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.list-hero-help {
+  display: block;
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 23rpx;
+  line-height: 1.45;
+}
+
+.list-hero-stats {
+  display: flex;
+  margin-top: 14rpx;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.list-stat {
+  padding: 5rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+}
+
+/* 筛选条压在绿带下沿上，和新闻资讯页一个位置关系。 */
+.list-filters {
+  position: relative;
+  z-index: 1;
+  margin: -24rpx -20rpx 0;
+  padding: 4rpx 0;
+  white-space: nowrap;
+}
+
+.list-filters-inner {
+  display: inline-flex;
+  padding: 0 20rpx;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.list-filter {
+  padding: 10rpx 20rpx;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  border: 1rpx solid #e2e8e5;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #5a645e;
+  font-size: 24rpx;
+  font-weight: 560;
+  line-height: 1.25;
+}
+
+.list-filter.active {
+  border-color: #0b7a53;
+  background: #0b7a53;
+  color: #ffffff;
+  font-weight: 660;
+}
+
+.list-filter-tap { opacity: 0.78; }
+
 .stats-banner {
   margin-top: 14rpx;
   padding: 18rpx 20rpx;
-  border: 1rpx solid #e7ece9;
-  border-radius: 24rpx;
-  background: #ffffff;
 }
 
 .stats-title,
@@ -116,248 +169,165 @@
   line-height: 1.4;
 }
 
-.summary-copy { min-width: 0; flex: 1; }
+.item-panel,
+.empty { margin-top: 16rpx; }
 
-.title,
-.item-count { display: block; }
-
-.title {
-  color: #172019;
-  font-size: 36rpx;
-  font-weight: 650;
-  line-height: 1.35;
+/* 一行的节奏和新闻资讯页的条目一致：头行 / 标题 / 正文 / 脚行，四段。
+   原来是并排两列再在右列里竖着堆六块，看不出哪句是结论、哪句是数据。 */
+.item-row {
+  padding: 22rpx 24rpx;
 }
 
-.item-count {
-  margin-top: 4rpx;
-  color: #7f8781;
-  font-size: 24rpx;
-}
+.item-row + .item-row { border-top: 1rpx solid #edf0ee; }
 
-.summary-image-wrap {
+.item-head {
   display: flex;
-  width: 56rpx;
-  height: 56rpx;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+/* 结论徽章。底色只用来区分资产类别和好坏档位，不表示涨跌——所以和新闻资讯页
+   的分类标签一样，刻意避开涨跌那套高饱和红绿，全部用低饱和底色。 */
+.item-kind {
+  max-width: 220rpx;
+  padding: 4rpx 14rpx;
+  overflow: hidden;
   flex: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16rpx;
-  background: #f3f7f4;
-}
-
-.summary-image { width: 34rpx; height: 34rpx; }
-
-.group-chips {
-  display: flex;
-  width: 100%;
-  margin-top: 12rpx;
+  border-radius: 999rpx;
+  background: #eef2f0;
+  color: #4a5550;
+  font-size: 21rpx;
+  font-weight: 650;
+  line-height: 1.45;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.group-chip {
-  display: inline-flex;
-  min-height: 64rpx;
-  margin-right: 12rpx;
-  padding: 0 22rpx;
-  align-items: center;
-  border: 1rpx solid #dce4df;
-  border-radius: 999rpx;
-  background: #ffffff;
-  color: #3a433d;
-  font-size: 26rpx;
-  font-weight: 600;
-}
+.item-kind.hk { background: #e9f4ee; color: #2c6b4c; }
+.item-kind.us { background: #eaf1fb; color: #2c5a94; }
+.item-kind.a { background: #f6eeee; color: #8a4b4b; }
+.item-kind.gold { background: #f8f1e2; color: #866223; }
+.item-kind.guru { background: #eeeff9; color: #45509a; }
 
-.group-chip.is-active {
-  border-color: #0b7a53;
-  background: #eef8f2;
-  color: #0b7a53;
-}
+/* 港股和A股的分组自带好坏语义，这几档用好坏色压过类别色。 */
+.item-kind.is-good { background: #eaf8f0; color: #0b7a53; }
+.item-kind.is-warn { background: #fff7ec; color: #93621d; }
+.item-kind.is-bad { background: #fdf0ee; color: #a34b3e; }
+.item-kind.is-muted { background: #f0f2f1; color: #778079; }
 
-.list-insight {
-  margin-top: 12rpx;
-  padding: 20rpx 24rpx 22rpx;
-}
-
-.insight-label {
-  display: block;
-  color: #6a756e;
-  font-size: 24rpx;
-  font-weight: 600;
-}
-
-.insight-conclusion {
-  display: -webkit-box;
-  overflow: hidden;
-  margin-top: 8rpx;
-  color: #2a322c;
-  font-size: 30rpx;
-  font-weight: 600;
-  line-height: 1.4;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.list-chart {
-  margin-top: 16rpx;
-  padding-top: 14rpx;
-  border-top: 1rpx solid #edf0ee;
-}
-
-.chart-row + .chart-row { margin-top: 12rpx; }
-
-.chart-copy {
+.item-meta {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12rpx;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  /* 徽章和当前分组同名被收起时，这一列是行首唯一的孩子，space-between 会把它
+     甩到左边。推回右边，行与行的数字才对得齐。 */
+  margin-left: auto;
+  gap: 8rpx;
+}
+
+.item-meta-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 10rpx;
+}
+
+.item-score {
+  flex: none;
+  color: #9aa19c;
+  font-size: 22rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.item-metric {
+  flex: none;
   color: #3a433d;
   font-size: 24rpx;
+  font-weight: 660;
+  font-variant-numeric: tabular-nums;
 }
 
-.chart-copy text:last-child {
-  flex: none;
-  color: #0b7a53;
-  font-weight: 650;
-}
+/* 涨跌按境内习惯着色：上涨红、下跌绿。 */
+.item-metric.up { color: #c4473a; }
+.item-metric.down { color: #0b7a53; }
 
-.chart-track {
+/* 对比条画的是正上方那个数在本组里的相对高低，所以它紧贴着那行数字、
+   宽度固定，不再自带一行文字标签把同一个数说第二遍。 */
+.item-bar {
   overflow: hidden;
-  height: 12rpx;
-  margin-top: 8rpx;
+  width: 150rpx;
+  height: 6rpx;
   border-radius: 999rpx;
   background: #eef2ef;
 }
 
-.chart-value {
+.item-bar-value {
   height: 100%;
   border-radius: 999rpx;
   background: #0b7a53;
 }
 
-.chart-value.up { background: #0b7a53; }
-.chart-value.down { background: #c4473a; }
+.item-bar-value.up { background: #d4452c; }
+.item-bar-value.down { background: #20ad68; }
 
-.section-heading {
+.item-title-row {
   display: flex;
-  padding: 24rpx 4rpx 12rpx;
-  align-items: center;
-  justify-content: space-between;
+  margin-top: 12rpx;
+  align-items: baseline;
+  gap: 10rpx;
 }
 
-.section-heading text:first-child {
-  color: #3a433d;
-  font-size: 28rpx;
-  font-weight: 650;
-}
-
-.section-heading text:last-child {
-  color: #8a918c;
-  font-size: 22rpx;
-}
-
-.item-row {
-  display: flex;
-  min-height: 0;
-  padding: 18rpx 17rpx 18rpx 19rpx;
-  align-items: flex-start;
-  gap: 14rpx;
-}
-
-.item-row + .item-row { border-top: 1rpx solid #edf0ee; }
-
-.item-number {
-  display: flex;
-  width: 42rpx;
-  height: 42rpx;
-  margin-top: 2rpx;
+.item-rank {
   flex: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14rpx;
-  background: #f0f5f2;
-  color: #0b7a53;
+  color: #b3b9b5;
   font-size: 22rpx;
-  font-weight: 650;
+  font-variant-numeric: tabular-nums;
 }
-
-.item-main { min-width: 0; flex: 1; }
-
-.item-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12rpx;
-}
-
-.item-identity { min-width: 0; flex: 1; }
-
-.item-name,
-.item-code,
-.answer { display: block; }
 
 .item-name {
-  color: #1a201c;
-  font-size: 29rpx;
-  font-weight: 620;
-  line-height: 1.38;
+  min-width: 0;
+  overflow: hidden;
+  color: #1b211d;
+  font-size: 30rpx;
+  font-weight: 650;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .item-code {
-  margin-top: 2rpx;
-  color: #8a918c;
-  font-size: 22rpx;
-}
-
-.badge {
-  max-width: 164rpx;
-  padding: 4rpx 9rpx;
   flex: none;
-  border-radius: 999rpx;
-  background: #fff1e6;
-  color: #b95723;
+  color: #9aa19c;
   font-size: 22rpx;
-  font-weight: 700;
-  line-height: 1.4;
-  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
-.badge-a {
-  background: #eaf8f0;
-  color: #0b7a53;
+.item-fact {
+  display: block;
+  margin-top: 8rpx;
+  color: #5a645e;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 
-.badge-gold {
-  background: #fff7df;
-  color: #9b6a16;
-}
-
-.badge-us {
-  background: #edf4fb;
-  color: #27658e;
-}
-
-.badge-guru {
-  background: #f0edfb;
-  color: #6650a6;
-}
-
-.item-strategy {
+.item-foot {
   display: flex;
-  margin-top: 10rpx;
+  margin-top: 12rpx;
   align-items: center;
-  gap: 8rpx;
+  gap: 10rpx;
 }
 
 .item-strategy-label {
-  max-width: 150rpx;
-  padding: 3rpx 8rpx;
+  max-width: 180rpx;
+  padding: 3rpx 12rpx;
   overflow: hidden;
   flex: none;
   border-radius: 999rpx;
-  font-size: 20rpx;
-  font-weight: 700;
-  line-height: 1.35;
+  font-size: 21rpx;
+  font-weight: 660;
+  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -367,113 +337,20 @@
 .item-strategy-label.tone-bad { background: #fdf0ee; color: #a34b3e; }
 .item-strategy-label.tone-muted { background: #f0f2f1; color: #778079; }
 
+/* 策略说明是按档位写的，同一档的行会是同一句话。所以它待遇和新闻资讯页脚行的
+   「来源 xxx」一样：压到最轻、单行截断，在那儿备查而不抢戏。 */
 .item-strategy-copy {
   min-width: 0;
+  flex: 1;
   overflow: hidden;
-  color: #68736c;
-  font-size: 21rpx;
+  color: #858c87;
+  font-size: 22rpx;
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.item-tags {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6rpx;
-}
-
-.score-chip {
-  max-width: 164rpx;
-  padding: 4rpx 9rpx;
-  border-radius: 999rpx;
-  background: #eaf8f0;
-  color: #0b7a53;
-  font-size: 20rpx;
-  font-weight: 700;
-  line-height: 1.4;
-  text-align: center;
-}
-
-.answer {
-  display: -webkit-box;
-  overflow: hidden;
-  margin-top: 8rpx;
-  color: #555d58;
-  font-size: 23rpx;
-  line-height: 1.55;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.data-bar-block { margin-top: 11rpx; }
-
-.item-one {
-  display: block;
-  margin-top: 10rpx;
-  color: #6a746d;
-  font-size: 22rpx;
-  line-height: 1.45;
-}
-
-.data-bar-copy {
-  color: #4d6959;
-  font-size: 22rpx;
-  font-weight: 680;
-}
-
-.data-bar-track {
-  overflow: hidden;
-  height: 8rpx;
-  margin-top: 6rpx;
-  border-radius: 999rpx;
-  background: #e8eeea;
-}
-
-.data-bar-value {
-  height: 100%;
-  border-radius: 999rpx;
-  background: #20ad68;
-}
-
-/* 港股历史表现按境内习惯着色：上涨用红，下跌用绿。 */
-.data-bar-value.up { background: #d4452c; }
-.data-bar-value.down { background: #20ad68; }
-
-.arrow {
-  margin-top: 4rpx;
-  flex: none;
-  color: #adb4af;
-  font-size: 37rpx;
-  font-weight: 300;
-  line-height: 1;
-}
-
-.tap-active { background: #eef8f2; }
-
-.link-rail {
-  display: flex;
-  margin-top: 16rpx;
-  gap: 12rpx;
-}
-
-.link-chip {
-  display: flex;
-  min-height: 72rpx;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  border: 1rpx solid #dce4df;
-  border-radius: 14rpx;
-  background: #ffffff;
-  color: #2f4338;
-  font-size: 26rpx;
-  font-weight: 600;
-}
-
-.empty {
+.tap-active { background: #eef8f2; }.empty {
   display: flex;
   min-height: 260rpx;
   padding: 34rpx 24rpx;
@@ -503,16 +380,66 @@
 
 @media (max-width: 340px) {
   .list-shell { padding-right: 14rpx; padding-left: 14rpx; }
-  .title { font-size: 35rpx; }
-  .item-row { padding-right: 13rpx; padding-left: 15rpx; }
-  .badge { max-width: 138rpx; }
-  .item-strategy-label { max-width: 132rpx; }
+  .list-hero { margin-right: -14rpx; margin-left: -14rpx; }
+  .list-filters { margin-right: -14rpx; margin-left: -14rpx; }
+  .list-filters-inner { padding: 0 14rpx; }
+  .list-hero-title { font-size: 36rpx; }
+  .item-row { padding-right: 18rpx; padding-left: 18rpx; }
+  .item-kind { max-width: 176rpx; }
+  .item-bar { width: 120rpx; }
+  .item-strategy-label { max-width: 140rpx; }
 }
 
 @media (min-width: 700px) {
   .list-shell { padding-right: 32px; padding-left: 32px; }
-  .list-summary,
-  .list-insight,
   .item-panel,
   .empty { border-radius: 20px; }
+}
+
+/* 数据出处。与栏目页、详情页「资料」tab 同一套：地址摆出来，点一下复制走。 */
+.source-panel {
+  padding: 20rpx 0 4rpx;
+}
+
+.source-head {
+  display: flex;
+  padding: 0 24rpx 12rpx;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.source-title {
+  color: #1f2621;
+  font-size: 28rpx;
+  font-weight: 680;
+}
+
+.source-meta {
+  color: #9aa19c;
+  font-size: 22rpx;
+}
+
+.source-link-row {
+  display: flex;
+  min-height: 76rpx;
+  padding: 14rpx 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  border-top: 1rpx solid #edf0ee;
+  font-size: 27rpx;
+}
+
+.source-link-name {
+  min-width: 0;
+  flex: 1;
+  color: #1b211d;
+}
+
+.source-link-action {
+  flex: none;
+  color: #0b7a53;
+  font-size: 24rpx;
+  font-weight: 620;
 }

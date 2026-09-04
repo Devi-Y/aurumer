@@ -28,6 +28,6 @@
 随时可运行以下命令检查状态：
 
 ```bash
-cd /Users/y/aurumer-pages
+cd '/Users/y/Documents/问岳/06_关联项目/望岳（望潮）/01_代码与项目/02_公开镜像（权威）'
 npm run check:domain
 ```

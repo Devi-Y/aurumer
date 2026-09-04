@@ -8,10 +8,22 @@
     <view class="member-hero-image-wrap"><image src="/assets/home/member.svg" mode="aspectFit" aria-hidden="true"></image></view>
   </view>
 
+  <!-- 原来是「写／理由」「盯／变化」「复／盘」，第三格把「复盘」拆成两行，
+       而且三格都不告诉会员里面现在有什么。第二行换成真实计数，读完再决定点哪个。 -->
   <view wx:if="{{state.active}}" class="member-shortcuts">
-    <view class="member-shortcut" bindtap="openWorkspace" data-tab="watch"><text>写</text><text>理由</text></view>
-    <view class="member-shortcut" bindtap="openWorkspace" data-tab="today"><text>盯</text><text>变化</text></view>
-    <view class="member-shortcut" bindtap="openWorkspace" data-tab="review"><text>复</text><text>盘</text></view>
+    <view
+      wx:for="{{shortcuts}}"
+      wx:key="tab"
+      class="member-shortcut"
+      data-tab="{{item.tab}}"
+      bindtap="openWorkspace"
+      hover-class="tap-active"
+      aria-role="button"
+      aria-label="{{item.title}}，{{item.help}}"
+    >
+      <text>{{item.title}}</text>
+      <text class="shortcut-help">{{item.help}}</text>
+    </view>
   </view>
 
   <view wx:if="{{loading}}" class="state-note">正在读取会员状态…</view>
@@ -35,7 +47,37 @@
 
   <view wx:if="{{!state.active && !state.plans.length}}" class="state-note payment-closed">{{state.paymentReason || '支付通道准备中'}}</view>
 
+  <!-- 订单的状态、金额、单号、有效期云函数一直在返回（publicOrders），页面
+       上却没有任何一处渲染：付过款的人查不到自己的记录，付款没到账的人也只
+       能靠本次会话残留的 lastOrderId 去查单，退出重进就查不了了。 -->
+  <view wx:if="{{state.orders.length}}" class="order-panel">
+    <view class="order-head">
+      <text class="order-title">购买记录</text>
+      <text class="order-meta">最近 {{state.orders.length}} 笔</text>
+    </view>
+    <view wx:for="{{state.orders}}" wx:key="orderId" class="order-row">
+      <view class="order-line">
+        <text class="order-status {{item.inFlight ? 'is-pending' : ''}}">{{item.statusLabel}}</text>
+        <text class="order-amount">{{item.amountLabel}}</text>
+      </view>
+      <text class="order-sub">{{item.paidLabel || item.createdLabel}} · 单号 {{item.orderCode}}</text>
+      <text wx:if="{{item.expiresLabel}}" class="order-sub">权益有效期至 {{item.expiresLabel}}</text>
+      <text wx:if="{{item.refundLabel}}" class="order-sub">{{item.refundLabel}}</text>
+      <button
+        wx:if="{{item.canQuery}}"
+        class="order-query"
+        bindtap="manualQuery"
+        data-order="{{item.orderId}}"
+        loading="{{querying}}"
+        disabled="{{querying}}"
+      >刷新这笔权益</button>
+    </view>
+  </view>
+
   <view class="member-links">
+    <!-- 会员协议与退款规则原来只挂在未开通时的套餐卡里，已开通的人在这个
+         页面上反而没有入口。 -->
+    <button class="legal-link" bindtap="openLegal">会员协议与退款规则 <text>›</text></button>
     <button class="support-link" open-type="contact" show-message-card="true">支付问题联系客服</button>
   </view>
 

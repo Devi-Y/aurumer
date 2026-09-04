@@ -28,9 +28,12 @@
   </view>
 
   <view class="tab-bar tab-bar-wide">
+    <!-- 三个数字要么都跟着内容走，要么都不出现：原来「今日」空了不显示 0、
+         「关注」空了显示 0、「复盘」有内容也不显示。复盘这一格数的是这个 tab
+         自己那张表（weeklyReview），不是「今日」里的待办。 -->
     <button class="tab {{activeTab == 'today' ? 'active' : ''}}" data-tab="today" bindtap="switchTab">今日{{state.todayBrief.unreadCount ? ' ' + state.todayBrief.unreadCount : ''}}</button>
-    <button class="tab {{activeTab == 'watch' ? 'active' : ''}}" data-tab="watch" bindtap="switchTab">关注 {{state.watchItems.length}}</button>
-    <button class="tab {{activeTab == 'review' ? 'active' : ''}}" data-tab="review" bindtap="switchTab">复盘</button>
+    <button class="tab {{activeTab == 'watch' ? 'active' : ''}}" data-tab="watch" bindtap="switchTab">关注{{state.watchItems.length ? ' ' + state.watchItems.length : ''}}</button>
+    <button class="tab {{activeTab == 'review' ? 'active' : ''}}" data-tab="review" bindtap="switchTab">复盘{{weeklyReview.count ? ' ' + weeklyReview.count : ''}}</button>
   </view>
 
   <view wx:if="{{activeTab == 'today'}}" class="tab-content">
@@ -84,7 +87,10 @@
       </view>
     </view>
 
-    <view class="record-panel">
+    <!-- 待办为空时，这一整块（含里面那张空态卡）会横在「今日变化摘要」和
+         「即将到来的事件」中间，把这个 tab 上唯一有内容的板块顶到屏幕外。
+         没有待办、但别处还有东西可看时就不占版面；整屏都空才留下这段指引。 -->
+    <view wx:if="{{taskBoard.openCount || taskBoard.done.length || (!calendarUpcoming.length && !changeFeed.length && !state.inbox.length)}}" class="record-panel">
       <view class="panel-tools"><text>待办与节点</text><text>{{taskBoard.openCount}} 项</text></view>
       <view wx:if="{{taskBoard.overdue.length}}">
         <text class="section-divider">已过期</text>
@@ -182,10 +188,27 @@
         <text class="record-title">{{item.title}}</text>
         <text class="record-note">{{item.detail}}</text>
         <text class="source-line">来源 {{item.source}}</text>
-        <button class="mini-action" data-id="{{item.id}}" bindtap="markEvent">提醒我</button>
+        <button wx:if="{{!item.marked}}" class="mini-action" data-id="{{item.id}}" bindtap="markEvent">提醒我</button>
+        <text wx:else class="evidence-line">已标记提醒 · 可在下方取消</text>
       </view>
     </view>
-    <view wx:if="{{!state.inbox.length && !changeFeed.length && !calendarUpcoming.length && !taskBoard.openCount}}" class="empty-card">
+
+    <!-- 「提醒我」以前只弹一句 toast：标记存进了服务端，页面上却没有任何一处
+         能看到它，也没有取消的入口（handler 早就写好了，只是没有按钮）。 -->
+    <view wx:if="{{state.eventMarks.length}}" class="record-panel">
+      <view class="panel-tools"><text>我标记的提醒</text><text>{{state.eventMarks.length}} 项</text></view>
+      <view wx:for="{{state.eventMarks}}" wx:key="id" class="record-row">
+        <view class="record-top">
+          <text class="record-tag">{{item.marketLabel || item.kind || '提醒'}}</text>
+          <text class="record-date">{{item.dateLabel}}</text>
+        </view>
+        <text class="record-title">{{item.title}}</text>
+        <text wx:if="{{item.detail}}" class="record-note">{{item.detail}}</text>
+        <text class="evidence-line">{{item.notifyLabel}}</text>
+        <button class="mini-action" data-id="{{item.id}}" bindtap="deleteEventMark">取消提醒</button>
+      </view>
+    </view>
+    <view wx:if="{{!state.inbox.length && !changeFeed.length && !calendarUpcoming.length && !taskBoard.openCount && !state.eventMarks.length}}" class="empty-card">
       <text>今日暂无待办</text>
       <text>保存关注与原始理由后，哨兵会在事实变化时写入简报。</text>
     </view>
@@ -412,7 +435,9 @@
 
   <view wx:if="{{activeTab == 'review'}}" class="tab-content">
     <view wx:if="{{state.memberFeatures}}" class="record-panel">
-      <view class="panel-tools"><text>{{weeklyReview.headline}}</text></view>
+      <!-- 没有内容时 headline 本身就是「还没有需要复盘的判断」，下面那张空态卡
+           又说一遍「还没有可复盘内容」。留下带指引的那张。 -->
+      <view wx:if="{{weeklyReview.rows.length}}" class="panel-tools"><text>{{weeklyReview.headline}}</text></view>
       <view wx:if="{{weeklyReview.rows.length}}">
         <view wx:for="{{weeklyReview.rows}}" wx:key="id" class="record-row {{item.changed ? 'is-changed' : ''}}">
           <view class="record-top"><text class="record-tag">{{item.tag || '持续复盘'}}</text><text class="record-date">{{item.dateLabel}}</text></view>

@@ -9,18 +9,25 @@ const { MASTER_PLAYBOOKS } = require("../../utils/master-playbooks");
 const { buildHkHistoryStats } = require("../../utils/hk-history-stats");
 const { buildDailyAnswers } = require("../../utils/daily-answers");
 const { listHoldings } = require("../../utils/local-holdings");
+const { marketSources } = require("../../utils/sources");
+// 页头那句「数据截至 …」和新闻资讯页共用同一个写法。
+const { asOfText } = require("../../utils/dates");
+// 黄金栏目页顶部那块「四口径同屏」，和黄金详情页用的是同一份换算。
+const { goldParity } = require("../../utils/gold-parity");
 
 const META = {
   hk: {
     title: "港股打新",
-    one: "上新、值不值得打、打中后观察卖点",
+    // 副标题跟着今日答案那五问走：上新、值得打、避雷、暗盘、首日。
+    one: "上新 / 值得打 / 避雷 / 暗盘 / 首日",
     tone: "hk",
     icon: "/assets/home/hk.svg",
     kicker: "新股申购",
   },
   us: {
     title: "美股投资",
-    one: "七姐妹分档与底仓配置",
+    // 长期观察与行业观察并入七姐妹、底仓两张卡后，副标题只留还在首屏的四件事。
+    one: "七姐妹近况 / 低估 / 高估 / 最热三只",
     tone: "us",
     icon: "/assets/home/us.svg",
     kicker: "全球公司",
@@ -34,14 +41,16 @@ const META = {
   },
   gold: {
     title: "黄金追踪",
-    one: "人民币金与美元金持有/卖出观察",
+    // 这行是栏目页的副标题，要跟今日答案那四问对上：什么价、能不能买、要不要卖、拐点。
+    one: "价格 / 能不能买 / 要不要卖 / 拐点",
     tone: "gold",
     icon: "/assets/home/gold.svg",
-    kicker: "买卖观察",
+    kicker: "价格观察",
   },
   guru: {
     title: "机构持仓",
-    one: "持仓、思路、借鉴与边界",
+    // 思路与借鉴收进了「未来持仓趋势」的展开层，副标题跟着答案卡走。
+    one: "持仓 · 本季加减 · 方向与边界",
     tone: "guru",
     icon: "/assets/home/guru.svg",
     kicker: "学习与对照",
@@ -63,14 +72,16 @@ function buildOverview(snapshot, market) {
     return {
       metrics: [
         {
+          // 格子上写 3、点开却只有 1 只，是因为落地页原本固定在「值得打」。
+          // 在售横跨三档，answers.js 里补了一个同名合集，数和落地页这才对得上。
           label: "在售",
           value: `${live.length}`,
           action: "group",
-          group: suggest.length ? "worth" : (live[0]?.group || "worth"),
+          group: "live",
           enabled: live.length > 0,
         },
         {
-          label: "建议申购",
+          label: "值得打",
           value: `${suggest.length}`,
           action: "group",
           group: "worth",
@@ -152,10 +163,12 @@ function buildOverview(snapshot, market) {
     return {
       metrics: [
         {
+          // 同上：这一格数的是全部 10 只样本，落地页却和右边那格一样固定在
+          // 「优等收息」的 1 只。
           label: "收息样本",
           value: `${items.length}`,
           action: "group",
-          group: "prime",
+          group: "sample",
           enabled: items.length > 0,
         },
         {
@@ -191,8 +204,11 @@ function buildOverview(snapshot, market) {
     return {
       metrics: [
         {
-          label: "国际金",
-          value: hasNumber(international.price) ? Number(international.price).toFixed(0) : "—",
+          // 「国际金 4519」「人民币金 957.5」都是裸数字，一个是美元每盎司、
+          // 一个是人民币每克，同一行摆着看不出是两套口径。详情页那四格已经
+          // 写成「国际金/盎司 $4473」，栏目页跟上同一种写法。
+          label: "国际金/盎司",
+          value: hasNumber(international.price) ? `$${Number(international.price).toFixed(0)}` : "—",
           action: "detail",
           id: "track",
           enabled: true,
@@ -205,16 +221,17 @@ function buildOverview(snapshot, market) {
           enabled: true,
         },
         {
-          label: "人民币金",
-          value: hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "—",
+          label: "人民币金/克",
+          value: hasNumber(domestic.price) ? `¥${Number(domestic.price).toFixed(1)}` : "—",
           action: "detail",
           id: "plan",
           enabled: true,
         },
       ],
-      target: hasNumber(domestic.price)
-        ? `人民币金 ${Number(domestic.price).toFixed(1)}`
-        : (hasNumber(international.price) ? `国际金 ${Number(international.price).toFixed(0)}` : "黄金"),
+      // 结论行原来写「人民币金 957.5」，可这个数字紧接着又在下面的关键数值行
+      // 出现一次、在四口径卡里再出现一次，同一屏印三遍。结论行只说这条结论
+      // 是关于谁的，数字交给下面两块。
+      target: "黄金",
       targetId: "track",
       grade: answer.action || "继续观察",
       gradeGroup: "track",
@@ -224,7 +241,13 @@ function buildOverview(snapshot, market) {
   }
 
   const profiles = allItems(snapshot, "guru");
-  const leader = profiles[0];
+  // leader 原本取 profiles[0]，也就是数组里排头的那条（港股组的价值伙伴经典
+  // 13.2% 年化）；而正下方第一行「业绩靠前持仓」用的是 daily-answers 里
+  // 美股→港股→A股 的取法（德鲁肯米勒 约 30% 年化）。同一屏两处各说一个「领头」，
+  // 数还不一样。这里按 daily-answers 的同一条规则取，两处说的是同一个人。
+  const leader = ["us", "hk", "a"]
+    .map((group) => profiles.find((item) => item.group === group))
+    .find(Boolean) || profiles[0];
   const leaderId = leader ? String(leader.id || "") : "";
   const hkCount = profiles.filter((item) => item.group === "hk").length;
   const usCount = profiles.filter((item) => item.group === "us").length;
@@ -236,7 +259,9 @@ function buildOverview(snapshot, market) {
       { label: "美股", value: `${usCount}`, action: "group", group: "us", enabled: usCount > 0 },
       { label: "A股", value: `${aCount}`, action: "group", group: "a", enabled: aCount > 0 },
     ],
-    target: leader ? shortCompanyName(leader.name, "机构", 6) : "待更新",
+    // 6 个字会把「斯坦利·德鲁肯米勒」削成「斯坦利·德鲁」，看着像个完整名字，
+    // 其实是另一个人。放宽到 10 字，真放不下时交给 CSS 的省略号，至少能看出被截了。
+    target: leader ? shortCompanyName(leader.name, "机构", 10) : "待更新",
     targetId: leaderId,
     grade: topPerf,
     gradeGroup: leader?.group || "hk",
@@ -265,6 +290,10 @@ Page({
     playbooks: [],
     answers: [],
     deepLinks: [],
+    sourceLinks: [],
+    dataAsOf: "",
+    // 只有黄金栏目页会用到；其余四栏恒为 null，wx:if 直接整块不渲染。
+    parity: null,
   },
   onLoad(options) {
     const market = META[options.market] ? options.market : "hk";
@@ -289,6 +318,17 @@ Page({
     this.refresh(() => wx.stopPullDownRefresh(), true);
   },
   retryFreshness() { this.refresh(null, true); },
+  // 和新闻资讯页同一套交互：小程序打不开任意外链，来源只能复制出去自己核对。
+  copySourceLink(event) {
+    const url = String(event.currentTarget.dataset.url || "");
+    if (!url) return;
+    track("news_source_copy", { market: String(this.data.market || "") });
+    wx.setClipboardData({
+      data: url,
+      success: () => wx.showToast({ title: "已复制来源链接", icon: "success" }),
+      fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
+    });
+  },
   buildDeepLinks(snapshot, market) {
     if (market === "hk") {
       const stats = buildHkHistoryStats(snapshot);
@@ -344,6 +384,12 @@ Page({
         deepLinks: this.buildDeepLinks(snapshot, this.data.market),
         source,
         freshness: freshnessBanner(source, meta.kind),
+        // 这一栏的数据是从哪儿来的。新闻资讯页每条都挂了官方出处，
+        // 五个栏目页一直只有一句"公开资料整理"，核对无门。
+        sourceLinks: marketSources(snapshot, this.data.market),
+        dataAsOf: asOfText(snapshot && snapshot.updatedAt, meta.kind),
+        // 四个报价缺一就返回 null，这一块整体不出——不用占位符凑齐一屏。
+        parity: this.data.market === "gold" ? goldParity(snapshot && snapshot.gold) : null,
       });
     }, done, { force });
   },

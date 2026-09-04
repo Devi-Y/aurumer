@@ -10,8 +10,7 @@
   align-items: stretch;
 }
 
-.detail-summary,
-.highlight-panel,
+.detail-hero-body,
 .metric-panel,
 .visual-card,
 .section-card,
@@ -27,80 +26,80 @@
   background: #ffffff;
 }
 
-.detail-summary {
-  padding: 28rpx;
-  background: linear-gradient(145deg, #eaf8f1 0%, #f8fcfa 100%);
+/* 页头通栏。和新闻资讯页、栏目页、明细页是同一条绿带：同一份快照在四个页面
+   上的第一眼必须长得一样，读的人才不会以为自己换了个产品。
+   负边距是因为 .detail-shell 自己留了 20rpx 的左右内边距，通栏要压过它铺满。
+   底部留 40rpx，给下面那张白卡压上来的位置。 */
+.detail-hero {
+  margin: -20rpx -20rpx 0;
+  padding: 18rpx 24rpx 40rpx;
+  background: linear-gradient(165deg, #0d8a5c 0%, #0b7a53 55%, #096844 100%);
 }
 
-.detail-summary.us { background: linear-gradient(145deg, #eaf4fb 0%, #f9fcfe 100%); }
-.detail-summary.a { background: linear-gradient(145deg, #edf8f3 0%, #fbfdfc 100%); }
-.detail-summary.gold { background: linear-gradient(145deg, #fbf2dd 0%, #fffdf7 100%); }
-.detail-summary.guru { background: linear-gradient(145deg, #eaf6ef 0%, #f7fbf8 100%); }
-
-.summary-top {
+.hero-top {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
-.summary-identity {
-  min-width: 0;
-  flex: 1;
-}
-
-.summary-label,
-.title,
-.code {
-  display: block;
-}
-
-.summary-label {
-  color: #0b7a53;
-  font-size: 26rpx;
+.hero-label {
+  flex: none;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 24rpx;
   font-weight: 650;
 }
 
-.title {
-  margin-top: 8rpx;
-  color: #171b18;
-  font-size: 42rpx;
-  font-weight: 700;
-  line-height: 1.32;
+.hero-meta {
+  flex: none;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 22rpx;
+}
+
+.hero-name-row {
+  display: flex;
+  margin-top: 6rpx;
+  align-items: baseline;
+  gap: 12rpx;
+}
+
+.hero-title {
+  min-width: 0;
+  color: #ffffff;
+  font-size: 40rpx;
+  font-weight: 720;
+  line-height: 1.28;
   overflow-wrap: anywhere;
 }
 
-.code {
-  margin-top: 6rpx;
-  color: #7a817c;
-  font-size: 26rpx;
-}
-
-.summary-score {
-  display: flex;
-  width: 112rpx;
-  height: 112rpx;
+.hero-code {
   flex: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 28rpx;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 8rpx 24rpx rgba(11, 122, 83, 0.08);
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 24rpx;
 }
 
-.summary-score-value {
-  color: #0b7a53;
-  font-size: 40rpx;
-  font-weight: 780;
-  line-height: 1;
+.hero-stats {
+  display: flex;
+  margin-top: 12rpx;
+  flex-wrap: wrap;
+  gap: 10rpx;
 }
 
-.summary-score-label {
-  margin-top: 6rpx;
-  color: #6a746e;
-  font-size: 18rpx;
-  font-weight: 620;
+.hero-stat {
+  padding: 5rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 21rpx;
+  font-weight: 600;
+}
+
+/* 结论条和核心数据合成一张白卡，压在通栏下沿上——和栏目页的指标卡同一个做法。 */
+.detail-hero-body {
+  position: relative;
+  z-index: 1;
+  margin-top: -22rpx;
+  padding-bottom: 4rpx;
 }
 
 .score-basis {
@@ -114,9 +113,13 @@
   white-space: nowrap;
 }
 
+/* 结论条下面紧跟核心数据，中间用一条分隔线，而不是再起一张卡。 */
+.conclusion-card + .highlight-panel {
+  border-top: 1rpx solid #edf0ee;
+}
+
 .highlight-panel {
   display: flex;
-  margin-top: 16rpx;
   padding: 8rpx 4rpx;
   background: #ffffff;
 }
@@ -273,26 +276,9 @@
   padding: 8rpx 10rpx 14rpx;
 }
 
-.detail-image-wrap {
-  display: flex;
-  width: 64rpx;
-  height: 64rpx;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 18rpx;
-  background: rgba(255, 255, 255, .9);
-}
-
-.detail-image {
-  width: 40rpx;
-  height: 40rpx;
-}
-
 .conclusion-card {
   display: flex;
-  margin-top: 22rpx;
-  padding: 22rpx 22rpx;
+  padding: 20rpx 22rpx;
   align-items: center;
   gap: 14rpx;
   border-left: 8rpx solid #0b7a53;
@@ -375,6 +361,13 @@
   font-weight: 760;
 }
 
+.strategy-card-head-right {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10rpx;
+}
+
 .strategy-card-label {
   padding: 5rpx 12rpx;
   border-radius: 999rpx;
@@ -400,6 +393,12 @@
 
 .strategy-card-trigger { color: #66746b; }
 .strategy-card-basis { color: #8a948d; font-size: 21rpx; }
+
+.strategy-card .collapsed-hint {
+  margin: 10rpx 0 0;
+  padding: 0;
+  font-size: 23rpx;
+}
 
 .exit-plan.is-locked {
   background: #f4f6f5;
@@ -1012,10 +1011,8 @@
 
 @media (max-width: 340px) {
   .detail-shell { padding-right: 15rpx; padding-left: 15rpx; }
-  .detail-summary { padding: 23rpx; }
-  .detail-image-wrap { width: 82rpx; height: 82rpx; }
-  .detail-image { width: 52rpx; height: 52rpx; }
-  .title { font-size: 37rpx; }
+  .detail-hero { margin-right: -15rpx; margin-left: -15rpx; padding: 16rpx 18rpx 38rpx; }
+  .hero-title { font-size: 36rpx; }
   .conclusion-grade { font-size: 26rpx; }
   .conclusion-target { font-size: 26rpx; }
   .details-toggle,
@@ -1030,7 +1027,7 @@
 
 @media (min-width: 700px) {
   .detail-shell { padding: 24px 32px calc(42px + env(safe-area-inset-bottom)); }
-  .detail-summary { padding: 32px; }
+  .detail-hero { margin-right: -32px; margin-left: -32px; padding: 24px 32px 46px; }
   .metric { width: 25%; border-right: 1rpx solid #edf0ee; border-bottom: 0; }
   .metric:last-child { border-right: 0; }
   .column-chart { height: 220px; }
@@ -1201,3 +1198,38 @@
 }
 
 .primary-button::after { border: 0; }
+
+/* 官方出处区块。沿用新闻资讯页的行式样：名字在左、"复制链接"在右，
+   点整行复制。和 .fact-row 用同一套内距和分隔线，混在资料 tab 里不违和。 */
+.source-help {
+  display: block;
+  padding: 0 22rpx 14rpx;
+  color: #858c87;
+  font-size: 23rpx;
+  line-height: 1.55;
+}
+
+.source-link-row {
+  display: flex;
+  min-height: 78rpx;
+  padding: 16rpx 22rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  border-top: 1rpx solid #edf0ee;
+  font-size: 28rpx;
+  line-height: 1.55;
+}
+
+.source-link-name {
+  min-width: 0;
+  flex: 1;
+  color: #1b211d;
+}
+
+.source-link-action {
+  flex: none;
+  color: #0b7a53;
+  font-size: 24rpx;
+  font-weight: 620;
+}

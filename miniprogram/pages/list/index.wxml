@@ -1,21 +1,49 @@
 <view class="page-shell list-shell">
-  <view class="list-summary {{meta.tone}}">
-    <view class="summary-copy">
-      <text class="title">{{title}}</text>
-      <text class="item-count">{{items.length}}</text>
+  <!-- 页头照新闻资讯页的写法：标题、数据截至、一句说明、范围标签，都在同一块
+       绿带里。原来这里是一张白卡，标题下方孤零零一个没有单位的数字（"7"），
+       分组说明还漂在卡片外面，读的人得自己把它们拼起来。 -->
+  <view class="list-hero">
+    <view class="list-hero-top">
+      <text class="list-hero-title">{{title}}</text>
+      <text class="list-hero-meta">{{dataAsOf || '同步中'}}</text>
     </view>
-    <view class="summary-image-wrap">
-      <image class="summary-image" src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
+    <text wx:if="{{groupHelp}}" class="list-hero-help">{{groupHelp}}</text>
+    <view class="list-hero-stats">
+      <text class="list-stat">{{meta.label}}</text>
+      <text wx:if="{{items.length}}" class="list-stat">共 {{items.length}} 条</text>
     </view>
   </view>
-  <text wx:if="{{groupHelp}}" class="list-help">{{groupHelp}}</text>
-  <view wx:if="{{statsBanner}}" class="stats-banner">
+
+  <!-- 分组筛选条。groups 一直算好放在 data 里但从来没渲染过，换一个分组要退回
+       上一页再点进来。这里和新闻资讯页的筛选条同一套样式、同一套交互。 -->
+  <scroll-view
+    wx:if="{{filters.length > 1}}"
+    class="list-filters"
+    scroll-x="true"
+    enable-flex="true"
+    show-scrollbar="false"
+    enhanced="true"
+  >
+    <view class="list-filters-inner">
+      <text
+        wx:for="{{filters}}"
+        wx:key="id"
+        class="list-filter {{group === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="selectGroup"
+        hover-class="list-filter-tap"
+        aria-role="button"
+        aria-label="切换到 {{item.label}}"
+      >{{item.label}}</text>
+    </view>
+  </scroll-view>
+  <view wx:if="{{statsBanner}}" class="page-card stats-banner">
     <text class="stats-title">{{statsBanner.title}}</text>
     <text class="stats-body">{{statsBanner.body}}</text>
     <text class="stats-note">{{statsBanner.note}}</text>
   </view>
 
-  <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
+  <view wx:if="{{freshness.show}}" class="page-card freshness-banner tone-{{freshness.tone}}">
     <view class="freshness-head">
       <text class="freshness-label">{{freshness.label}}</text>
       <view wx:if="{{freshness.showRetry}}" class="freshness-action" bindtap="retryFreshness" aria-role="button">重试</view>
@@ -23,7 +51,7 @@
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
-  <view wx:if="{{items.length}}" class="item-panel">
+  <view wx:if="{{items.length}}" class="page-card item-panel">
     <view
       wx:for="{{items}}"
       wx:key="id"
@@ -34,35 +62,60 @@
       aria-role="button"
       aria-label="{{item.shortName}}，{{item.badge}}"
     >
-      <text class="item-number">{{item.positionLabel}}</text>
-      <view class="item-main">
-        <view class="item-top">
-          <view class="item-identity">
-            <text class="item-name">{{item.shortName}}</text>
-            <text wx:if="{{item.code}}" class="item-code">{{item.code}}</text>
+      <!-- 一行的节奏和新闻资讯页的条目一致：
+           头行（结论徽章 / 关键数值）→ 标题（名称+代码）→ 正文（这一条独有的事实）
+           → 脚行（策略 + 箭头）。原来是六段平铺，看不出哪句是结论、哪句是数据。 -->
+      <view wx:if="{{item.badge || item.researchScoreLabel || item.metricLabel}}" class="item-head">
+        <text wx:if="{{item.badge}}" class="item-kind {{item.badgeTone}} {{item.badgeSentiment ? 'is-' + item.badgeSentiment : ''}}">{{item.badge}}</text>
+        <view class="item-meta">
+          <view class="item-meta-line">
+            <text wx:if="{{item.researchScoreLabel}}" class="item-score">{{item.researchScoreLabel}}</text>
+            <text wx:if="{{item.metricLabel}}" class="item-metric {{item.metricTone}}">{{item.metricLabel}}</text>
           </view>
-          <view class="item-tags">
-            <text wx:if="{{item.researchScoreLabel}}" class="score-chip">{{item.researchScoreLabel}}</text>
-            <text class="badge badge-{{item.badgeTone}}">{{item.badge}}</text>
+          <!-- 对比条不再自带文字标签：它画的就是正上方那个数在本组里的相对高低，
+               同一个数没必要写两遍。 -->
+          <view wx:if="{{item.showBar}}" class="item-bar">
+            <view class="item-bar-value {{item.barTone}}" style="width: {{item.barWidth}}%;"></view>
           </view>
         </view>
-        <view wx:if="{{item.strategyLabel}}" class="item-strategy">
-          <text class="item-strategy-label tone-{{item.strategyTone}}">策略 {{item.strategyLabel}}</text>
-          <text class="item-strategy-copy">{{item.strategyLine}}</text>
-        </view>
-        <view wx:if="{{item.showBar}}" class="data-bar-block">
-          <view class="data-bar-track"><view class="data-bar-value {{item.barTone}}" style="width: {{item.barWidth}}%;"></view></view>
-          <view class="data-bar-copy"><text>{{item.barLabel}}</text></view>
-        </view>
-        <text wx:if="{{item.showOne}}" class="item-one">{{item.one}}</text>
       </view>
-      <text class="arrow">›</text>
+      <view class="item-title-row">
+        <text class="item-rank">{{item.positionLabel}}</text>
+        <text class="item-name">{{item.shortName}}</text>
+        <text wx:if="{{item.code}}" class="item-code">{{item.code}}</text>
+      </view>
+      <text wx:if="{{item.fact}}" class="item-fact">{{item.fact}}</text>
+      <view class="item-foot">
+        <text wx:if="{{item.strategyLabel}}" class="item-strategy-label tone-{{item.strategyTone}}">策略 {{item.strategyLabel}}</text>
+        <text class="item-strategy-copy">{{item.strategyLine}}</text>
+        <text class="arrow">›</text>
+      </view>
     </view>
   </view>
 
-  <view wx:else class="empty">
+  <view wx:else class="page-card empty">
     <image src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
     <text class="empty-title">暂无资料</text>
+  </view>
+
+  <view wx:if="{{sourceLinks.length}}" class="page-card source-panel">
+    <view class="source-head">
+      <text class="source-title">数据出处</text>
+      <text class="source-meta">点一条复制走自行核对</text>
+    </view>
+    <view
+      wx:for="{{sourceLinks}}"
+      wx:key="url"
+      class="source-link-row"
+      data-url="{{item.url}}"
+      bindtap="copySourceLink"
+      hover-class="tap-active"
+      aria-role="button"
+      aria-label="复制 {{item.name}} 的链接"
+    >
+      <text class="source-link-name">{{item.name}}</text>
+      <text class="source-link-action">复制链接</text>
+    </view>
   </view>
 
   <view class="page-note">

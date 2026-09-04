@@ -4,8 +4,13 @@
  * 这里不预测确定收益，而是把公开数据翻译成三件用户真正能用的事：
  * 当前状态、为什么这样判断、什么变化会触发重新评估。
  */
+const { isPositionChange } = require("./guru-changes");
 
+// null / undefined / 空串要当成「没有这个数」，不能交给 Number()：
+// Number(null) 是 0 且有限，会让「一手中签率未公布」之类的缺失字段
+// 变成一个真实的 0，然后被下游的 !== null 判断当成有效信号用。
 function number(value) {
+  if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -113,7 +118,7 @@ function hkSignal(item, evidence = {}) {
     label: "继续观察",
     tone: "warn",
     action: "结论没有形成优势，先等关键字段和市场热度稳定。",
-    trigger: "结论转为建议申购且资料完整，才进入研究申购；否则不追。",
+    trigger: "结论转为值得打且资料完整，才进入研究申购；否则不追。",
     basis: "不确定性优先",
   };
 }
@@ -152,16 +157,22 @@ function usSignal(item) {
     return {
       label: "风险升高",
       tone: "bad",
-      action: "先停追，优先查财报和估值；价格下跌时不把热度当支撑。",
+      // 列表页只显示 label + action。原来 action 是整段固定话术，于是同一档
+      // 里的每只股票在列表上完全同文，读者分不出谁是因为什么被降级。
+      // 这里把已经算好的 risks 拼进去，不新增任何计算，也不新增结论。
+      action: `${risks.join("、")}；先停追，优先查财报和估值，价格下跌时不把热度当支撑。`,
       trigger: `${risks.join("、")}；任一经营信号继续恶化时降低风险敞口。`,
       basis: "经营质量优先于热度",
     };
   }
   if (risks.length || position >= 72 || pe >= 40) {
+    const why = risks.length
+      ? risks.join("、")
+      : (position >= 72 ? `近60日位置 ${position}%` : `PE ${pe.toFixed(1)} 倍`);
     return {
       label: "等回撤",
       tone: "warn",
-      action: "公司质量尚可但价格/估值不便宜，等位置回落或财报继续验证。",
+      action: `质量尚可，但${why}；等位置回落或财报继续验证，不追高。`,
       trigger: `回到近60日位置 72% 以下且盈利未恶化，再重新观察${pe >= 40 ? "；PE 下降也更重要" : ""}。`,
       basis: "质量通过，估值与位置控回撤",
     };
@@ -169,7 +180,7 @@ function usSignal(item) {
   return {
     label: "可分批观察",
     tone: "good",
-    action: "质量与位置暂未冲突，采用分批观察，不一次性追高。",
+    action: `PE ${pe.toFixed(1)} 倍、近60日位置 ${position}%，质量与位置暂未冲突；分批观察，不一次性追高。`,
     trigger: "PE 快速上升、位置超过 85%，或营收/利润/现金流同时转弱时降级。",
     basis: "质量 + 估值 + 趋势确认",
   };
@@ -211,7 +222,7 @@ function aShareSignal(item) {
     return {
       label: "高息待核",
       tone: "bad",
-      action: "把高股息视为风险信号，先核分红来源和现金流，不急于补仓。",
+      action: `${risks.join("、")}；把高股息当风险信号，先核分红来源和现金流，不急于补仓。`,
       trigger: `${risks.join("、")}；下一期现金流/利润未修复前维持谨慎。`,
       basis: "可持续股息与现金流门禁",
     };
@@ -220,7 +231,7 @@ function aShareSignal(item) {
     return {
       label: "继续观察",
       tone: "warn",
-      action: "现金流暂未完全确认，先观察分红兑现与经营数据是否同步。",
+      action: `${risks.join("、")}；现金流暂未完全确认，先看分红兑现与经营数据是否同步。`,
       trigger: `${risks.join("、")}；若风险线索增加，降级为高息待核。`,
       basis: "股息安全边际尚可但不充分",
     };
@@ -228,7 +239,7 @@ function aShareSignal(item) {
   return {
     label: "现金流支持",
     tone: "good",
-    action: "当前股息与现金流暂未冲突，优先分散配置，不因单一高息集中。",
+    action: `当前股息 ${current.toFixed(1)}%、可持续 ${sustainable.toFixed(1)}% 暂未冲突；优先分散配置，不因单一高息集中。`,
     trigger: "可持续股息明显下修、自由现金流转负或利润连续下滑时重新评估。",
     basis: "股息 + 可持续性 + 自由现金流",
   };
@@ -269,7 +280,7 @@ function goldSignal(item) {
       label: "接近上沿",
       tone: "warn",
       action: "不追高；等价格回到观察区，或等宏观驱动再次确认。",
-      trigger: "任一维度接近卖出观察区后，先锁定观察，不把上涨外推。",
+      trigger: "任一维度接近观察上沿后，先锁定观察，不把上涨外推。",
       basis: "价格区间优先于单一观察分",
     };
   }
@@ -304,23 +315,28 @@ function guruSignal(item) {
   const raw = item?.raw || {};
   const profile = raw.profile || {};
   const holdings = Array.isArray(raw.holdings) ? raw.holdings : [];
-  const changed = holdings.filter((holding) => holding.changeLabel && !/待核|不变|持平/u.test(String(holding.changeLabel)));
+  const changed = holdings.filter(isPositionChange);
   const filingTime = Date.parse(raw.filingDate || "");
   const lagDays = Number.isNaN(filingTime) ? null : Math.max(0, Math.round((Date.now() - filingTime) / 86400000));
   if (lagDays !== null && lagDays > 180) {
     return {
       label: "披露滞后",
       tone: "bad",
-      action: "只当历史研究样本，不能把旧持仓当成当前买入信号。",
+      action: `披露已滞后 ${lagDays} 天，只当历史研究样本，不能把旧持仓当成当前买入信号。`,
       trigger: "等新的 13F/季报披露，且结合现价与公司基本面重新核验。",
       basis: `${lagDays} 天披露滞后`,
     };
   }
+  const top = holdings
+    .filter((holding) => holding && Number.isFinite(Number(holding.weight)))
+    .reduce((best, holding) => (best && Number(best.weight) >= Number(holding.weight) ? best : holding), null);
   if (!changed.length) {
     return {
       label: "观察持仓",
       tone: "warn",
-      action: "持仓变化不足，先学习组合结构，不照抄静态名单。",
+      // 这一档以前每家机构一模一样，列表上分不出谁是谁。补一句本来就在
+      // 页面别处展示的披露事实：披露了几只、其中权重最高的是谁。
+      action: `${top ? `已披露 ${holdings.length} 只，权重最高 ${top.name || top.ticker} ${Number(top.weight).toFixed(1)}%；` : ""}持仓变化不足，先学习组合结构，不照抄静态名单。`,
       trigger: "新增、增持、减持或退出出现后，再看变化是否有持续逻辑。",
       basis: `${profile.name || "公开机构"} · ${holdings.length} 只持仓`,
     };
@@ -328,7 +344,9 @@ function guruSignal(item) {
   return {
     label: "跟踪变化",
     tone: "good",
-    action: `本期有 ${changed.length} 项仓位变化，先研究变化原因，再决定是否纳入自己的观察池。`,
+    // 同上：只报一个数字时，同一档的机构在列表里完全同文。把已经算好的
+    // 前两项变化点出来，读者一眼能看出这家和那家变的不是同一批仓位。
+    action: `本期 ${changed.length} 项仓位变化：${changed.slice(0, 2).map((holding) => `${holding.ticker || holding.name} ${holding.changeLabel}`).join("、")}${changed.length > 2 ? " 等" : ""}；先研究变化原因，再决定是否纳入自己的观察池。`,
     trigger: "下一期披露若方向反转，或公司基本面无法印证机构逻辑，取消跟踪。",
     basis: `${profile.name || "公开机构"} · 仅供对照学习`,
   };

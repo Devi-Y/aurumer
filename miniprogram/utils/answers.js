@@ -7,6 +7,7 @@ const {
   mag7Lenses,
   hkLeverageEligible,
   aShareLenses,
+  yieldImpliedPlan,
   industryWatchEligible,
   matchesGroup,
 } = require("./market-lenses");
@@ -38,7 +39,7 @@ const INVESTOR_NAMES = {
 };
 
 const HK_VERDICT_MAP = {
-  值得打: { group: "worth", badge: "建议申购", tone: "suggest" },
+  值得打: { group: "worth", badge: "值得打", tone: "suggest" },
   谨慎打: { group: "caution", badge: "暂缓观察", tone: "wait" },
   不建议: { group: "avoid", badge: "暂不建议", tone: "skip" },
   申购已结束: { group: "ended", badge: "申购已结束", tone: "ended" },
@@ -89,11 +90,35 @@ function shortCompanyName(value, fallback = "—", max = 8) {
     .replace(/智能$/u, "")
     .replace(/（[^）]*）/gu, "")
     .replace(/\([^)]*\)/g, "")
-    .replace(/\s+/g, "")
+    // 原来是把空格全删掉，中文名没问题，英文名会粘成「BerkshireHathaway」。
+    // 只删中文字之间的空格，拉丁文之间的保留成一个。
+    .replace(/\s+/g, " ")
+    .replace(/([\u2E80-\u9FFF]) ([\u2E80-\u9FFF])/gu, "$1$2")
+    .replace(/([\u2E80-\u9FFF]) ([\u2E80-\u9FFF])/gu, "$1$2")
     .trim();
   if (!name) name = String(value || fallback || "—").replace(/\s+/g, "").trim() || fallback;
   // 首页四格等窄位：直接截短，不用省略号（避免「拿森智能…」难读）
-  return name.length > max ? name.slice(0, max) : name;
+  //
+  // max 数的是字符不是宽度，中文名没问题，英文名会被砍得没法看：
+  // Snowflake 在 max=6 下变成「Snowfl」，CrowdStrike 变成「CrowdS」。
+  // 改成按显示宽度截（中日韩字符算 2、其余算 1），预算就是 max×2 —— 中文名
+  // 每字宽 2，截出来和原来一模一样；英文名才拿得到它本来就该有的位置。
+  const budget = max * 2;
+  let width = 0;
+  let cut = 0;
+  for (const char of name) {
+    const step = /[\u1100-\u115F\u2E80-\uA4CF\uAC00-\uD7A3\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFF60\uFFE0-\uFFE6]/u.test(char) ? 2 : 1;
+    if (width + step > budget) break;
+    width += step;
+    cut += char.length;
+  }
+  if (cut >= name.length) return name;
+  let short = name.slice(0, cut);
+  // 拉丁文名截在词中间很难读（「ARK Investment Manag」）。有空格就退到最后一个词边界，
+  // 退完还剩得下东西才用；中文名没有空格，这一步自然不生效。
+  const lastSpace = short.lastIndexOf(" ");
+  if (lastSpace > 0 && name.charAt(cut) !== " ") short = short.slice(0, lastSpace);
+  return short.trim();
 }
 
 /** 保荐人/承销商等机构名缩短。 */
@@ -144,6 +169,18 @@ function hkExtractionNote(item) {
     : "招股文件解析失败，字段暂时取不到；已记录待修复，不是公司未披露。";
 }
 
+// 上游快照里这句公开结论写着「可关注申购，但卖点与涨幅答案暂不发布。」：「卖点」
+// 是产品已经退掉的词（打新没有卖出价这回事），而详情页下面那张「打中后观察分位」
+// 就摆着历史涨幅分位，「暂不发布」当场被自己推翻。上游在 aurum-engine 里改不到，
+// 这里只在命中这个词时按产品已有口径改口，不改变结论本身，也不新增任何数据。
+function normalizeHkAction(text, fallback) {
+  const line = String(text || "");
+  if (!line) return fallback;
+  if (!/卖点/.test(line)) return line;
+  const positive = /可关注|可研究|值得/.test(line);
+  return `${positive ? "可关注申购；" : ""}打中后的涨幅以历史样本分位为参考口径，不预测本股。`;
+}
+
 function hkActionFromItem(item) {
   if (item.withdrawn || item.researchView?.state === "withdrawn") {
     return { group: "cancelled", badge: "发行已取消", tone: "ended", action: "这次发行取消了，不用再申购。", score: null };
@@ -153,7 +190,7 @@ function hkActionFromItem(item) {
   if (mapped) {
     return {
       ...mapped,
-      action: answer.action || mapped.badge,
+      action: normalizeHkAction(answer.action, mapped.badge),
       score: Number.isFinite(Number(answer.score)) ? Number(answer.score) : null,
     };
   }
@@ -197,7 +234,12 @@ function hkItems(snapshot) {
     };
   });
   current.forEach((item) => {
-    if (hkLeverageEligible(item)) item.lenses = ["leverage"];
+    if (hkLeverageEligible(item)) item.lenses.push("leverage");
+    // 栏目页顶上那格「在售 3」以前点开落在「值得打」，而值得打只有 1 只——
+    // 格子上写 3、点进去是 1。在售本身横跨值得打 / 暂缓观察 / 暂不建议三档，
+    // 没有哪一档装得下，于是这里补一个只用于跳转的合集：不改任何条目的分档，
+    // 只是让那一格点开后看到的就是它自己数的那几只。
+    if (item.group !== "ended" && item.group !== "cancelled") item.lenses.push("live");
   });
   const ended = (snapshot.hk && snapshot.hk.history ? snapshot.hk.history : []).map((item) => {
     const outcome = hkOutcome(item);
@@ -226,6 +268,41 @@ function hkItems(snapshot) {
     .sort((left, right) => right.outcomeValue - left.outcomeValue);
   ranked.forEach((item, index) => { item.rank = index + 1; });
   return items;
+}
+
+// 为什么火热：只用算得出来的驱动——量比、周涨幅、当日涨跌。
+// 快照里 12 个数据源没有一个是新闻源，没有任何事件或公告字段，
+// 写「因为发布了某某产品」这种叙事性归因就是凭空编，所以这里一句都不编。
+// 放量下跌和放量上涨是两回事，热度高本身不代表方向，这条要能从文案里读出来。
+function usHeatDriver(stock) {
+  const ratio = Number(stock && stock.volumeRatio);
+  const week = Number(stock && stock.weeklyChange);
+  const day = Number(stock && stock.changePercent);
+  const bits = [];
+  if (Number.isFinite(ratio) && ratio > 0) {
+    if (ratio >= 2) bits.push(`成交是平时的 ${ratio.toFixed(1)} 倍`);
+    else if (ratio >= 1.5) bits.push(`成交放大到 ${ratio.toFixed(1)} 倍`);
+    else if (ratio >= 1.2) bits.push(`成交略放大（量比 ${ratio.toFixed(2)}）`);
+    else bits.push(`成交没放大（量比 ${ratio.toFixed(2)}）`);
+  }
+  if (Number.isFinite(week) && Math.abs(week) >= 5) {
+    bits.push(`一周${week >= 0 ? "涨" : "跌"} ${Math.abs(week).toFixed(1)}%`);
+  }
+  if (Number.isFinite(day) && Math.abs(day) >= 3) {
+    bits.push(`今日${day >= 0 ? "涨" : "跌"} ${Math.abs(day).toFixed(1)}%`);
+  }
+  return bits.join("、");
+}
+
+// 是否建议关注：质量门是既有的硬门槛，过不了就是过不了，不因为热度高改口。
+function usAttentionNote(stock) {
+  const fund = (stock && stock.fund) || {};
+  if (fund.qualityEligible === true) {
+    const score = Number(fund.finalScore);
+    return Number.isFinite(score) ? `质量门通过 · 综合 ${Math.round(score)} 分` : "质量门通过";
+  }
+  if (fund.qualityEligible === false) return "未过质量门，热度不等于可关注";
+  return "质量数据不足，暂不给关注结论";
 }
 
 function usItems(snapshot) {
@@ -265,7 +342,19 @@ function usItems(snapshot) {
     .filter((item) => !MAGNIFICENT_SEVEN.includes(item.symbol))
     .sort((left, right) => number(right.heatScore) - number(left.heatScore));
   const hot = nonSeven.slice(0, 3)
-    .map((item) => make(item, "hot", "热度前三"));
+    .map((item) => {
+      const row = make(item, "hot", "热度前三");
+      const driver = usHeatDriver(item);
+      // 原来这行只有「-4.37% · 热度 100 · $305.80」，回答不了「为什么火热」。
+      row.heatDriver = driver;
+      row.attentionNote = usAttentionNote(item);
+      row.one = [
+        Number.isFinite(Number(item.heatScore)) ? `热度 ${Math.round(Number(item.heatScore))}` : null,
+        driver || null,
+        row.attentionNote,
+      ].filter(Boolean).join(" · ");
+      return row;
+    });
   // 热度前十 / 性价比观察：同一标的可出现在多个研究榜，列表按 group 过滤。
   const hot10 = [...stocks]
     .sort((left, right) => number(right.heatScore) - number(left.heatScore))
@@ -409,13 +498,15 @@ function goldItems(snapshot) {
     [
       "plan",
       "plan",
-      "买点与卖点",
+      "观察区参考",
       "价格观察",
       [
-        buyIntl ? `美元金持有 ${buyIntl}` : null,
-        sellIntl ? `美元金卖出 ${sellIntl}` : null,
-        buyCny ? `人民币金持有 ${buyCny}` : null,
-        sellCny ? `人民币金卖出 ${sellCny}` : null,
+        // 这四段取的是 pricePlan 的 watch / upper，产品别处一律叫「观察低位」
+        // 「观察上沿」，只有这一行写成了「持有 / 卖出」，读起来像在给买卖指令。
+        buyIntl ? `美元金观察低位 ${buyIntl}` : null,
+        sellIntl ? `美元金观察上沿 ${sellIntl}` : null,
+        buyCny ? `人民币金观察低位 ${buyCny}` : null,
+        sellCny ? `人民币金观察上沿 ${sellCny}` : null,
       ].filter(Boolean).join(" · ") || quoteLine,
     ],
   ];
@@ -476,46 +567,72 @@ function aShareDetailFallback(snapshot, id) {
   };
 }
 
+// 观察分里「分红能不能持续」那几项。抽出来是因为分红稳定性排序要用同一套口径，
+// 不该另立一份权重；每项返回 { score, weight }，权重就是观察分里原本的那个。
+function aShareCoverTerm(raw) {
+  const yieldNow = Number(raw.currentDividendYield);
+  const yieldSustain = Number(raw.sustainableDividendYield);
+  if (!Number.isFinite(yieldNow) || !Number.isFinite(yieldSustain) || yieldNow <= 0) return null;
+  return { score: Math.min(1.2, Math.max(0, yieldSustain / yieldNow)) * 85, weight: 0.14 };
+}
+function aShareCashTerm(financials) {
+  const fcf = Number(financials.freeCashFlow);
+  if (Number.isFinite(fcf)) return { score: fcf > 0 ? 82 : 18, weight: 0.18 };
+  const ocf = Number(financials.operatingCashFlow);
+  if (Number.isFinite(ocf)) return { score: ocf > 0 ? 70 : 25, weight: 0.12 };
+  return null;
+}
+function aShareConversionTerm(financials) {
+  const conversion = Number(financials.cashConversion);
+  if (!Number.isFinite(conversion)) return null;
+  return { score: Math.min(100, Math.max(15, conversion * 38)), weight: 0.14 };
+}
+function aShareRoeTerm(financials) {
+  const roe = Number(financials.roe);
+  if (!Number.isFinite(roe)) return null;
+  return { score: Math.min(100, Math.max(20, roe * 4)), weight: 0.1 };
+}
+function weightedScore(terms) {
+  let total = 0;
+  let weight = 0;
+  terms.filter(Boolean).forEach((term) => {
+    total += term.score * term.weight;
+    weight += term.weight;
+  });
+  if (!weight) return null;
+  return Math.max(0, Math.min(100, Math.round(total / weight)));
+}
+
 function aShareObserveScore(raw = {}) {
   const financials = raw.financials || {};
   const yieldNow = Number(raw.currentDividendYield);
   const yieldSustain = Number(raw.sustainableDividendYield);
-  const fcf = Number(financials.freeCashFlow);
-  const ocf = Number(financials.operatingCashFlow);
-  const conversion = Number(financials.cashConversion);
-  const roe = Number(financials.roe);
-  let total = 0;
-  let weight = 0;
-  if (Number.isFinite(yieldSustain)) {
-    total += Math.min(100, yieldSustain * 11) * 0.22;
-    weight += 0.22;
-  }
-  if (Number.isFinite(yieldNow)) {
-    total += Math.min(100, yieldNow * 10) * 0.16;
-    weight += 0.16;
-  }
-  if (Number.isFinite(yieldNow) && Number.isFinite(yieldSustain) && yieldNow > 0) {
-    const cover = Math.min(1.2, Math.max(0, yieldSustain / yieldNow));
-    total += cover * 85 * 0.14;
-    weight += 0.14;
-  }
-  if (Number.isFinite(fcf)) {
-    total += (fcf > 0 ? 82 : 18) * 0.18;
-    weight += 0.18;
-  } else if (Number.isFinite(ocf)) {
-    total += (ocf > 0 ? 70 : 25) * 0.12;
-    weight += 0.12;
-  }
-  if (Number.isFinite(conversion)) {
-    total += Math.min(100, Math.max(15, conversion * 38)) * 0.14;
-    weight += 0.14;
-  }
-  if (Number.isFinite(roe)) {
-    total += Math.min(100, Math.max(20, roe * 4)) * 0.1;
-    weight += 0.1;
-  }
-  if (!weight) return null;
-  return Math.max(0, Math.min(100, Math.round(total / weight)));
+  return weightedScore([
+    Number.isFinite(yieldSustain) ? { score: Math.min(100, yieldSustain * 11), weight: 0.22 } : null,
+    Number.isFinite(yieldNow) ? { score: Math.min(100, yieldNow * 10), weight: 0.16 } : null,
+    aShareCoverTerm(raw),
+    aShareCashTerm(financials),
+    aShareConversionTerm(financials),
+    aShareRoeTerm(financials),
+  ]);
+}
+
+// 分红稳定性：观察分里去掉「股息高不高」那两项，只留「分红拿不拿得住」这半边——
+// 可持续对当前的覆盖率、自由现金流、现金利润比、股东回报，权重沿用观察分原来的
+// 相对大小再归一，一个新数都没造。
+//
+// 不要改回用快照里的 dividendScore。那个字段在 cloudfunctions/aurum-data/sanitize.js
+// 的 sanitizeAShareFundamental 里被有意剥离，公开链路上永远取不到：本地拿源文件跑
+// 是对的，装进小程序会静默退化成「按可持续股息率排序」，于是稳定性榜和收益性榜
+// 排出同一批股票，两个维度名存实亡。这一版就是这么翻车过一次的。
+function aShareDividendStability(raw = {}) {
+  const financials = raw.financials || {};
+  return weightedScore([
+    aShareCoverTerm(raw),
+    aShareCashTerm(financials),
+    aShareConversionTerm(financials),
+    aShareRoeTerm(financials),
+  ]);
 }
 
 function aShareItems(snapshot) {
@@ -550,6 +667,16 @@ function aShareItems(snapshot) {
     const yieldText = hasYield ? `${yieldNow.toFixed(1)}%` : "股息待更";
     const sustainText = hasSustain ? `可持续 ${yieldSustain.toFixed(1)}%` : null;
     const scoreText = score != null ? `观察分 ${score}` : null;
+    // 参考买入价 / 参考卖出价 一直算得出来（按当前每股分红回推到目标股息率），
+    // 但只在「什么价可加大 / 什么价可兑现」两张卡里露过各两只，列表行里一只都没有。
+    // 排名点进去要能看到自己那只的价，所以每一行都带上。
+    const plan = yieldImpliedPlan(raw);
+    const planText = plan
+      ? [`参考买 ${money(plan.addPrice, "¥")}`, `参考卖 ${money(plan.trimPrice, "¥")}`]
+      : [];
+    // 稳定性榜是按这个数排的，行里就得看得见，否则读的人没法核对排序凭什么。
+    const stability = aShareDividendStability(raw);
+    const stabilityText = stability != null ? `分红稳定性 ${stability}` : null;
 
     const row = {
       id: String(item.code).replace(/\.(SH|SZ)$/i, ""),
@@ -562,7 +689,7 @@ function aShareItems(snapshot) {
       rank: null,
       scoreText: scoreText || badge,
       rankText: yieldText,
-      one: [yieldText, sustainText, scoreText].filter(Boolean).join(" · "),
+      one: [yieldText, sustainText, stabilityText, scoreText, ...planText].filter(Boolean).join(" · "),
       raw,
     };
     row.lenses = aShareLenses(row);
@@ -607,6 +734,25 @@ function aShareItems(snapshot) {
   };
 
   const stockItems = quotes.map(makeStockItem);
+  // 分红稳定性 / 分红收益性 两个维度的前五。同一个池子——股息、可持续股息、现价
+  // 齐全且回推得出参考买卖价的那些——只是排序不同，这就是「不同排序下的前五名」。
+  // 池子取的是全部 20 只实时标的，不是前台那 10 个样本：排名要在完整池子里排才算数。
+  const rankPool = stockItems.filter((item) => yieldImpliedPlan(item.raw));
+  // 名次跟着 lens 一起记下来：列表页给行标了 01–05 的序号，那个序号必须就是
+  // 这个榜单的名次，否则页头写着「前五」、行里却按样本顺序编号，等于编了个假名次。
+  const markTop5 = (score, lens) => [...rankPool]
+    .sort((left, right) => score(right) - score(left))
+    .slice(0, 5)
+    .forEach((item, index) => {
+      item.lenses = [...(item.lenses || []), lens];
+      item.lensRank = { ...(item.lensRank || {}), [lens]: index + 1 };
+    });
+  // 稳定性：分红能不能拿得住，同分再看可持续股息率。
+  markTop5((item) => number(aShareDividendStability(item.raw)) * 1000
+    + number(item.raw.sustainableDividendYield), "stable5");
+  // 收益性就是当前股息率——拿到手的那一个数，不掺可持续性的判断。
+  // 两个榜单谁高谁低本来就该不一样，同时上榜的才是两头都过得去的。
+  markTop5((item) => number(item.raw.currentDividendYield), "yield5");
   const stockByCode = new Map(stockItems.map((item) => [item.code, item]));
   const fundSource = (snapshot.aShare && snapshot.aShare.funds || [])
     .find((item) => String(item.code || "").replace(/\.(SH|SZ)$/i, "") === "515180")
@@ -614,7 +760,12 @@ function aShareItems(snapshot) {
   const fixedItems = A_SHARE_FIXED_ORDER.map((code) => (
     code === "515180.SH" ? makeFundItem(fundSource) : stockByCode.get(code)
   )).filter(Boolean);
-  const selectedCodes = new Set(A_SHARE_FIXED_ORDER);
+  // 上了榜的必须整组进样本，否则点开「分红稳定性 前五」只看到其中三只。
+  const rankedItems = stockItems.filter((item) => (
+    !A_SHARE_FIXED_ORDER.includes(item.code)
+    && (item.lenses || []).some((lens) => lens === "stable5" || lens === "yield5")
+  ));
+  const selectedCodes = new Set([...A_SHARE_FIXED_ORDER, ...rankedItems.map((item) => item.code)]);
   const autoItems = stockItems
     .filter((item) => !selectedCodes.has(item.code))
     .sort((left, right) => {
@@ -625,10 +776,20 @@ function aShareItems(snapshot) {
       if (rightCash !== leftCash) return rightCash - leftCash;
       return number(right.score) - number(left.score);
     });
-  return [
+  // 样本量以 10 为准，但两个榜单占满之后不够放就跟着榜单走——名额让给排名，
+  // 而不是让排名缺人。
+  const mustHave = fixedItems.length + rankedItems.length;
+  const sample = [
     ...fixedItems,
-    ...autoItems.slice(0, Math.max(0, A_SHARE_SAMPLE_COUNT - fixedItems.length)),
-  ].slice(0, A_SHARE_SAMPLE_COUNT);
+    ...rankedItems,
+    ...autoItems.slice(0, Math.max(0, A_SHARE_SAMPLE_COUNT - mustHave)),
+  ].slice(0, Math.max(A_SHARE_SAMPLE_COUNT, mustHave));
+  // 同上：栏目页那格「收息样本 10」点开落在「优等收息」，而优等只有 1 只。
+  // 前台真正在展示的就是这 10 只，补一个合集让格子和落地页对得上。
+  sample.forEach((item) => {
+    item.lenses = [...(item.lenses || []), "sample"];
+  });
+  return sample;
 }
 
 function allItems(snapshot, market) {
@@ -645,10 +806,13 @@ function groupDefinitions(snapshot, market) {
   let definitions;
   if (market === "hk") {
     definitions = [
-      ["worth", "建议申购", "先核一手与风险"],
+      // catalog:false —— 只作为「在售 N」那一格的落地页，不在栏目页的分档卡里
+      // 再占一张，免得和下面三档重复计数。
+      ["live", "在售新股", "值得打 / 暂缓观察 / 暂不建议，全部在售", false],
+      ["worth", "值得打", "先核一手与风险"],
       ["caution", "暂缓观察", "先看热度"],
       ["avoid", "暂不建议", "风险偏多"],
-      ["leverage", "高杠杆观察", "建议申购且拥挤度不高，默认仍是一手", false],
+      ["leverage", "高杠杆观察", "值得打且拥挤度不高，默认仍是一手", false],
       ["cancelled", "发行已取消", "无法申购"],
       ["ended", "已结束", "历史样本对照：暗盘·首日·五日"],
     ];
@@ -665,6 +829,9 @@ function groupDefinitions(snapshot, market) {
     ];
   } else if (market === "a") {
     definitions = [
+      ["stable5", "分红稳定性 前五", "分红分与可持续股息排序，每行带参考买卖价"],
+      ["yield5", "分红收益性 前五", "当前股息率排序，每行带参考买卖价"],
+      ["sample", "收息样本", "前台在展示的全部收息研究样本", false],
       ["prime", "优等收息", "股息可持续+现金支撑"],
       ["steady", "稳健收息", "综合观察分中等"],
       ["watch", "高息待核", "高息但现金/可持续偏弱"],
@@ -676,7 +843,7 @@ function groupDefinitions(snapshot, market) {
   } else if (market === "gold") {
     definitions = [
       ["track", "现在怎么做", "偏买 / 观望 / 回避"],
-      ["plan", "买点与卖点", "观察低位 / 观察上沿 / 风险下沿"],
+      ["plan", "观察区参考", "观察低位 / 观察上沿 / 风险下沿"],
     ];
   } else {
     definitions = [
@@ -725,6 +892,9 @@ function findItem(snapshot, market, id) {
 }
 
 module.exports = {
+  aShareDividendStability,
+  usHeatDriver,
+  usAttentionNote,
   INVESTOR_NAMES,
   allItems,
   findItem,
@@ -735,5 +905,6 @@ module.exports = {
   shortCompanyName,
   shortOrgName,
   shortOrgList,
+  normalizeHkAction,
   HK_VERDICT_MAP,
 };

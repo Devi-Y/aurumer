@@ -1,4 +1,5 @@
-const { loadMemberState, purchase, queryOrder } = require("../../services/member");
+const { loadMemberState, loadWorkspace, purchase, queryOrder } = require("../../services/member");
+const { buildTaskBoard } = require("../../utils/change-center");
 const { openPage, goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { MEMBER_DISCLAIMER } = require("../../utils/disclaimer");
@@ -14,6 +15,36 @@ const ANNUAL_PLAN = {
 };
 
 const PAYMENT_REFRESH_DELAYS = [800, 1600, 2600, 4000, 6000];
+
+// 三个快捷入口原来只有「写／理由」这种两行拆词，既不成词也不告诉会员里面
+// 现在有什么。第二行改成真实计数，数字全部来自 workspace 已有字段，取不到
+// 就直说取不到，不写占位数字。
+const SHORTCUT_TABS = [
+  { tab: "watch", title: "写理由" },
+  { tab: "today", title: "盯变化" },
+  { tab: "review", title: "看复盘" },
+];
+
+function shortcutsOf(workspace) {
+  if (!workspace) {
+    return SHORTCUT_TABS.map((item) => ({ ...item, help: "读取中" }));
+  }
+  const brief = workspace.todayBrief || {};
+  const board = buildTaskBoard(workspace.reviewTasks || []);
+  const watchCount = (workspace.watchItems || []).length;
+  const decisionCount = (workspace.decisions || []).length;
+  const changes = Number(brief.factChangeCount || 0) + Number(brief.thesisCount || 0);
+  // 每一行数的必须是点进去那一屏能看到的东西。待办（reviewTasks）在「今日」里，
+  // 原来却挂在「看复盘」下面——写着待办 3 项，点开的复盘页一条待办也没有。
+  const helps = {
+    watch: watchCount ? `已关注 ${watchCount} 只` : "还没有关注",
+    today: changes
+      ? `${changes} 项新变化`
+      : (board.openCount ? `待办 ${board.openCount} 项` : "今天没有新变化"),
+    review: decisionCount ? `已记 ${decisionCount} 条想法` : "还没有想法记录",
+  };
+  return SHORTCUT_TABS.map((item) => ({ ...item, help: helps[item.tab] }));
+}
 
 function formatDate(value) {
   if (!value) return "";
@@ -53,14 +84,19 @@ function viewState(state) {
           ? (active ? "微信支付续费 1288 元" : "微信支付 1288 元开通")
           : "支付通道准备中",
       })),
-    orders: (state.orders || []).map((order) => ({
-      ...order,
-      createdLabel: formatDate(order.createdAt),
-      paidLabel: formatDate(order.paidAt),
-      expiresLabel: formatDate(order.entitlementExpiresAt),
-      canQuery: ["prepared", "pending", "creating", "fulfillment_review"].includes(order.status)
-        || (!active && Boolean(order.orderId)),
-    })),
+    orders: (state.orders || []).map((order) => {
+      // 「prepared」是下了单没付款，对已开通的人来说就是一笔被放弃的旧单，
+      // 不该在它下面挂一个「刷新这笔权益」。真正在途的只有下面这三种。
+      const inFlight = ["pending", "creating", "fulfillment_review"].includes(order.status);
+      return {
+        ...order,
+        inFlight,
+        createdLabel: formatDate(order.createdAt),
+        paidLabel: formatDate(order.paidAt),
+        expiresLabel: formatDate(order.entitlementExpiresAt),
+        canQuery: inFlight || (!active && Boolean(order.orderId)),
+      };
+    }),
   };
 }
 
@@ -73,6 +109,7 @@ Page({
     legalInfo,
     disclaimer: MEMBER_DISCLAIMER,
     lastOrderId: "",
+    shortcuts: shortcutsOf(null),
     state: viewState({
       paymentReady: false,
       paymentReason: "正在检查会员服务",
@@ -97,7 +134,17 @@ Page({
   refresh(done) {
     this.setData({ loading: true });
     loadMemberState()
-      .then((state) => this.setData({ state: viewState(state) }))
+      .then((state) => {
+        const next = viewState(state);
+        this.setData({ state: next });
+        // 已开通才去读记录区计数；没开通时那三个入口本来就不渲染。
+        if (!next.active) return null;
+        return loadWorkspace()
+          .then((workspace) => this.setData({ shortcuts: shortcutsOf(workspace) }))
+          .catch(() => this.setData({
+            shortcuts: SHORTCUT_TABS.map((item) => ({ ...item, help: "计数暂不可用" })),
+          }));
+      })
       .finally(() => {
         this.setData({ loading: false });
         if (done) done();
@@ -196,8 +243,9 @@ Page({
       }))
       .finally(() => this.setData({ querying: false }));
   },
-  openWorkspace() {
-    openPage("/pages/workspace/index");
+  openWorkspace(event) {
+    const tab = (event && event.currentTarget && event.currentTarget.dataset && event.currentTarget.dataset.tab) || "";
+    openPage(`/pages/workspace/index${tab ? `?focus=${encodeURIComponent(tab)}` : ""}`);
   },
   openLegal() {
     wx.navigateTo({

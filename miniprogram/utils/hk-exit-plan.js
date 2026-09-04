@@ -27,12 +27,15 @@ function collectChanges(history, key) {
 }
 
 function bandFromValues(values) {
-  if (!values.length) return { n: 0, p25: null, p50: null, p75: null };
+  if (!values.length) return { n: 0, p25: null, p50: null, p75: null, positive: 0 };
   return {
     n: values.length,
     p25: percentile(values, 0.25),
     p50: percentile(values, 0.5),
     p75: percentile(values, 0.75),
+    // 只有区间说明不了问题：-1.2%～+57.0% 看着很诱人，可中位数其实是 0。
+    // 收正只数是同一件事的另一种说法，两个一起给，读的人才知道该期待什么。
+    positive: values.filter((value) => value > 0).length,
   };
 }
 
@@ -51,11 +54,32 @@ function formatExitBand(band) {
   return `${percentText(band.p25)}～${percentText(band.p75)}（n=${band.n}）`;
 }
 
+// p50 一直算了却从来没露过面。区间不告诉人中间在哪儿，而中间那个数才是
+// 「多少钱卖合适」真正要看的——首日中位是 0.0%，意思是一半样本首日根本不赚钱。
+function formatExitMedian(band) {
+  if (!band || !band.n || band.p50 == null) return "";
+  return `中位 ${percentText(band.p50)}`;
+}
+
+// 「12 只中 6 只收正」比胜率百分比更好读，也不会被四舍五入糊掉分母。
+function formatExitPositive(band) {
+  if (!band || !band.n || band.positive == null) return "";
+  return `${band.n} 只中 ${band.positive} 只收正`;
+}
+
+// 中位数映射到招股价上的整数对照价，和 mapOfferBand 用同一套取整口径。
+function mapOfferMedian(offer, band) {
+  if (!hasNumber(offer) || !band || band.p50 == null) return null;
+  return `${Math.round(Number(offer) * (1 + Number(band.p50) / 100))} 港元`;
+}
+
 function mapOfferBand(offer, band) {
   if (!hasNumber(offer) || !band || band.p25 == null || band.p75 == null) return null;
   const low = Math.round(Number(offer) * (1 + Number(band.p25) / 100));
   const high = Math.round(Number(offer) * (1 + Number(band.p75) / 100));
-  return `${low}–${high}`;
+  // 这是招股价映射出来的价格区间，页面上一直只写「约 19–31」，没有单位。
+  // 上游 offerPrice 本身就是「19.55 港元」，口径明确，照实带上。
+  return `${low}–${high} 港元`;
 }
 
 function impliedDisclosed(offer, change) {
@@ -118,24 +142,30 @@ function buildHkExitPlan(item, options = {}) {
         {
           label: "暗盘观察分位",
           value: [
-            formatExitBand(bands.grey),
-            mapOfferBand(offer, bands.grey) ? `对照约 ${mapOfferBand(offer, bands.grey)}` : null,
+            formatExitMedian(bands.grey),
+            mapOfferMedian(offer, bands.grey) ? `约 ${mapOfferMedian(offer, bands.grey)}` : null,
+            formatExitPositive(bands.grey),
+            `区间 ${formatExitBand(bands.grey)}`,
           ].filter(Boolean).join(" · "),
           locked: false,
         },
         {
           label: "首日观察分位",
           value: [
-            formatExitBand(bands.firstDay),
-            mapOfferBand(offer, bands.firstDay) ? `对照约 ${mapOfferBand(offer, bands.firstDay)}` : null,
+            formatExitMedian(bands.firstDay),
+            mapOfferMedian(offer, bands.firstDay) ? `约 ${mapOfferMedian(offer, bands.firstDay)}` : null,
+            formatExitPositive(bands.firstDay),
+            `区间 ${formatExitBand(bands.firstDay)}`,
           ].filter(Boolean).join(" · "),
           locked: false,
         },
         {
           label: "首周观察分位",
           value: [
-            formatExitBand(bands.fiveDay),
-            mapOfferBand(offer, bands.fiveDay) ? `对照约 ${mapOfferBand(offer, bands.fiveDay)}` : null,
+            formatExitMedian(bands.fiveDay),
+            mapOfferMedian(offer, bands.fiveDay) ? `约 ${mapOfferMedian(offer, bands.fiveDay)}` : null,
+            formatExitPositive(bands.fiveDay),
+            `区间 ${formatExitBand(bands.fiveDay)}`,
           ].filter(Boolean).join(" · "),
           locked: false,
         },
@@ -158,7 +188,7 @@ function buildHkExitPlan(item, options = {}) {
     basis: ended
       ? "已披露涨跌与招股价对照，不是下一只新股的卖出价。"
       : (bands.sampleCount
-        ? `历史样本 ${bands.sampleCount} 只的 25%–75% 分位；整数对照价不是本股保证卖出价。`
+        ? `历史样本 ${bands.sampleCount} 只的中位数与 25%–75% 分位；整数对照价不是本股保证卖出价。`
         : "历史样本不足"),
     disclaimer: "",
   };
@@ -168,5 +198,8 @@ module.exports = {
   buildHkExitPlan,
   buildHkExitBands,
   formatExitBand,
+  formatExitMedian,
+  formatExitPositive,
   mapOfferBand,
+  mapOfferMedian,
 };

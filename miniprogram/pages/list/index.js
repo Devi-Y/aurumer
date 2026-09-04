@@ -191,7 +191,18 @@ Page({
       const definitions = groupDefinitions(snapshot, this.data.market).filter((item) => item.count > 0);
       const group = definitions.find((item) => item.id === this.data.group) || definitions[0];
       const activeGroup = group ? group.id : this.data.group;
-      const rawItems = allItems(snapshot, this.data.market).filter((item) => matchesGroup(item, activeGroup));
+      const rawItems = allItems(snapshot, this.data.market)
+        .filter((item) => matchesGroup(item, activeGroup))
+        // 分组自带名次时（A股两个「前五」榜）按名次排。行里那个 01–05 的序号
+        // 是照顺序生成的，顺序不对序号就是假的。没名次的分组保持原顺序不动。
+        .sort((left, right) => {
+          const l = left.lensRank && left.lensRank[activeGroup];
+          const r = right.lensRank && right.lensRank[activeGroup];
+          if (l == null && r == null) return 0;
+          if (l == null) return 1;
+          if (r == null) return -1;
+          return l - r;
+        });
       const comparable = rawItems.map((item) => comparisonMetric(item, this.data.market));
       const maxValue = barScaleMax(comparable);
       const market = this.data.market;

@@ -39,14 +39,16 @@ const META = {
   },
   gold: {
     title: "黄金追踪",
-    one: "人民币金与美元金持有/观察上沿",
+    // 这行是栏目页的副标题，要跟今日答案那四问对上：什么价、能不能买、要不要卖、拐点。
+    one: "价格 / 能不能买 / 要不要卖 / 拐点",
     tone: "gold",
     icon: "/assets/home/gold.svg",
     kicker: "价格观察",
   },
   guru: {
     title: "机构持仓",
-    one: "持仓、思路、借鉴与边界",
+    // 思路与借鉴收进了「未来持仓趋势」的展开层，副标题跟着答案卡走。
+    one: "持仓 · 本季加减 · 方向与边界",
     tone: "guru",
     icon: "/assets/home/guru.svg",
     kicker: "学习与对照",

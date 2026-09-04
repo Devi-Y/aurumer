@@ -186,6 +186,58 @@ function industryWatchEligible(item) {
   return true;
 }
 
+// 黄金拐点：只从 history 里真实的收盘价数出来，不平滑、不外推、不补点。
+// 三件事——20日均线在60日均线的哪一侧、最近一次穿越发生在哪天、现价离半年
+// 高低点还有多远。数据不够 60 天就返回 null，让上层如实说算不出，不要拿
+// 20 天的样本冒充半年趋势。
+function goldTurningPoint(history, price) {
+  const closes = (history || [])
+    .map((row) => ({ date: row && row.date, close: number(row && row.close) }))
+    .filter((row) => row.date && row.close !== null);
+  if (closes.length < 60) return null;
+  // 均线按闭区间取，endIndex 那天算在内；样本不足就返回 null 而不是拿短窗口凑。
+  const meanAt = (endIndex, span) => {
+    if (endIndex + 1 < span) return null;
+    let sum = 0;
+    for (let i = endIndex - span + 1; i <= endIndex; i += 1) sum += closes[i].close;
+    return sum / span;
+  };
+  const last = closes.length - 1;
+  const fast = meanAt(last, 20);
+  const slow = meanAt(last, 60);
+  if (fast === null || slow === null) return null;
+  const above = fast >= slow;
+  // 从最新一天往回走，第一处两条均线关系反过来的那天的次日，就是最近一次穿越。
+  // 找不到说明这半年里一直是同一侧，crossDate 留空，别编一个日期出来。
+  let crossDate = "";
+  let crossDays = null;
+  for (let i = last - 1; i >= 59; i -= 1) {
+    const priorFast = meanAt(i, 20);
+    const priorSlow = meanAt(i, 60);
+    if (priorFast === null || priorSlow === null) break;
+    if ((priorFast >= priorSlow) !== above) {
+      crossDate = closes[i + 1].date;
+      crossDays = last - (i + 1);
+      break;
+    }
+  }
+  const peak = closes.reduce((best, row) => (row.close > best.close ? row : best), closes[0]);
+  const trough = closes.reduce((best, row) => (row.close < best.close ? row : best), closes[0]);
+  const current = number(price) !== null ? number(price) : closes[last].close;
+  return {
+    above,
+    fast,
+    slow,
+    crossDate,
+    crossDays,
+    peak,
+    trough,
+    days: closes.length,
+    fromPeak: peak.close ? ((current - peak.close) / peak.close) * 100 : null,
+    fromTrough: trough.close ? ((current - trough.close) / trough.close) * 100 : null,
+  };
+}
+
 function goldZoneForPrice(price, watch, upper, risk) {
   const current = number(price);
   const watchHigh = number(watch?.high ?? watch?.low);
@@ -262,6 +314,7 @@ module.exports = {
   yieldImpliedPlan,
   industryWatchEligible,
   goldZoneForPrice,
+  goldTurningPoint,
   usSleevePlan,
   matchesGroup,
 };

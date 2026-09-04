@@ -938,7 +938,9 @@ function buildDailyAnswers(snapshot, market, options = {}) {
 function clip(text, max = 5) {
   const value = String(text || "").replace(/\s+/g, " ").trim();
   if (!value) return "";
-  return value.length > max ? value.slice(0, max) : value;
+  // 截断要看得出来。原来是无声切一刀，「优地机器人」在首页上就变成了
+  // 「优地机器」——读的人不会知道这不是公司全名。
+  return value.length > max ? `${value.slice(0, max)}…` : value;
 }
 
 function pickCard(cards, ids) {
@@ -960,20 +962,6 @@ function homePoint(id, label, value, targetId, extra = {}) {
     ariaCategory: `打开${label}栏目`,
     ariaTarget: hasTarget ? `打开${label} ${value}` : `${label}暂无标的`,
     ...extra,
-  };
-}
-
-function tickerFromCard(market, card) {
-  if (!card) return null;
-  return {
-    id: `answer-${market}-${card.id}`,
-    kind: "answer",
-    title: card.question,
-    text: [card.answer, card.names].filter(Boolean).join(" · ").slice(0, 42),
-    market,
-    targetId: card.targetId || "",
-    group: card.group || "",
-    modal: card.modal || "",
   };
 }
 
@@ -1002,14 +990,14 @@ function buildHomeDigest(snapshot, options = {}) {
     || pickCard(guru, ["guru-trend"]);
 
   const hkValue = hkWorth?.enabled
-    ? clip(hkWorth.names || "值得打", 4)
+    ? clip(hkWorth.names || "值得打", 8)
     : (hkAvoid?.id === "hk-avoid" && hkAvoid.enabled ? "已取消" : "暂无");
   const usValue = usCheap?.enabled
-    ? clip(usCheap.names || usCheap.answer, 4)
-    : (usRisk?.enabled ? clip(usRisk.names || "风险", 4) : "七姐妹");
+    ? clip(usCheap.names || usCheap.answer, 8)
+    : (usRisk?.enabled ? clip(usRisk.names || "风险", 8) : "七姐妹");
   const aValue = aAdd?.enabled && aAdd.id === "a-add" && /已到加大/.test(aAdd.answer)
-    ? clip(aAdd.names || "加大", 4)
-    : clip(aCore?.names || "收息", 4);
+    ? clip(aAdd.names || "加大", 8)
+    : clip(aCore?.names || "收息", 8);
   const cnyPrice = Number(snapshot?.gold?.quotes?.domestic?.price);
   // 判断改看卡片自己带出来的区名，不再对答案文案做正则——文案是会改的，区名不会。
   const goldBuy = pickCard(gold, ["gold-buy"]);
@@ -1048,19 +1036,6 @@ function buildHomeDigest(snapshot, options = {}) {
     `机构：${[guruLead?.answer || "对照公开持仓", guruMove?.answer].filter(Boolean).join(" · ")}`,
   ];
 
-  const ticker = [
-    tickerFromCard("hk", hkWorth?.enabled ? hkWorth : hkAvoid),
-    // 长期观察与行业观察已并入七姐妹与底仓两张卡，兜底改指还在的卡片，
-    // 否则 pickCard 拿到 undefined，跑马灯会静默少两条。
-    tickerFromCard("us", usCheap?.enabled ? usCheap : pickCard(us, ["us-seven", "us-sleeve"])),
-    tickerFromCard("us", usRisk?.enabled ? usRisk : pickCard(us, ["us-seven", "us-sleeve"])),
-    tickerFromCard("a", aAdd),
-    tickerFromCard("a", pickCard(a, ["a-cycle"])),
-    tickerFromCard("gold", goldLead),
-    tickerFromCard("guru", guruLead),
-    tickerFromCard("guru", pickCard(guru, ["guru-trend", "guru-avoid"])),
-  ].filter(Boolean);
-
   return {
     points: [
       homePoint("hk", "港股", hkValue, hkWorth?.enabled ? hkWorth.targetId : ""),
@@ -1069,7 +1044,6 @@ function buildHomeDigest(snapshot, options = {}) {
       homePoint("gold", "黄金", goldValue, goldLead?.targetId || "track"),
     ],
     cardLines,
-    ticker,
     help: [hkValue, usValue, aValue, goldValue].filter(Boolean).join(" · "),
   };
 }

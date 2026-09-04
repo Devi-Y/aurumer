@@ -16,7 +16,7 @@
 // 另起一套映射——那样迟早会和列表页/详情页对不上。allItems() 找不到的 id 就不
 // 挂详情链接，只落回栏目页。
 
-const { allItems, INVESTOR_NAMES } = require("./answers");
+const { allItems, groupDefinitions, INVESTOR_NAMES } = require("./answers");
 // 官方出处登记表已抬到 utils/sources.js 共用，五个功能模块的详情页现在
 // 和这一页用同一份地址，不会出现"新闻页能核验、详情页核验不了"。
 const { sourceUrlOf, sourceNameOf } = require("./sources");
@@ -96,6 +96,47 @@ function buildNewsFeed(snapshot) {
   const nameOf = (market, id, fallback) => {
     const found = hit(market, id);
     return (found && found.name) || fallback;
+  };
+
+  // 每条披露后面跟一句「这落到标的上是什么结论」。资讯本身是引流，读完要能
+  // 回到市场：内容一律取 allItems() / groupDefinitions() 已经算好的结论档位与
+  // 分组名次——和列表页、详情页是同一个数。找不到对应标的就不写这一行，
+  // 不为凑格式编一句。
+  const groupTitleCache = {};
+  const groupTitles = (market) => {
+    if (!groupTitleCache[market]) {
+      let list = [];
+      try {
+        list = groupDefinitions(data, market) || [];
+      } catch (error) {
+        list = [];
+      }
+      groupTitleCache[market] = new Map(list.map((group) => [group.id, group.title]));
+    }
+    return groupTitleCache[market];
+  };
+  const impactOf = (market, id) => {
+    const found = hit(market, id);
+    if (!found) return "";
+    const titles = groupTitles(market);
+    const lensRank = found.lensRank || {};
+    const lensBits = (found.lenses || [])
+      .map((lens) => {
+        const title = titles.get(lens);
+        if (!title) return "";
+        return lensRank[lens] ? `${title}第 ${lensRank[lens]}` : title;
+      })
+      .filter(Boolean);
+    // 档位徽章和所在分组同名时（美股七姐妹那七只的徽章就是「七姐妹」）只留一个，
+    // 同一个词印两遍不会多出信息。
+    // 徽章优先，它才是结论（「值得打」「优等收息」）。只有当某个分组名已经把
+    // 徽章整个包含进去时才省掉徽章——美股那七只徽章是「七姐妹」、分组是
+    // 「风险七姐妹」，两个都印是同一个词说两遍；「值得打 · 在售新股」不是。
+    const badge = String(found.badge || "");
+    const covered = badge && lensBits.some((title) => title.includes(badge));
+    const bits = [...new Set([covered ? "" : badge, ...lensBits])].filter(Boolean);
+    // 截到三段——这一行是回到市场的指路牌，不是标签墙。
+    return joinBits(bits.length ? bits.slice(0, 3) : [badge]);
   };
 
   const items = [];
@@ -349,7 +390,22 @@ function buildNewsFeed(snapshot) {
       sourceAction: item.sourceUrl ? "复制链接" : "",
       market: item.market,
       targetId: item.targetId || "",
+      impact: item.targetId ? impactOf(item.market, item.targetId) : "",
     }));
+
+  // 黄金那类里五条披露全指向同一个标的，「落到标的」会连着印五遍同一句话——
+  // 那时它已经不是指路牌而是一句水印。同一类下所有结论都一样时整类去掉这一行，
+  // 结论本身在黄金栏目页里说得更全。
+  const impactSeen = {};
+  feed.forEach((item) => {
+    if (!item.impact) return;
+    const seen = impactSeen[item.market] || (impactSeen[item.market] = new Set());
+    seen.add(item.impact);
+  });
+  feed.forEach((item) => {
+    const seen = impactSeen[item.market];
+    if (seen && seen.size === 1) item.impact = "";
+  });
 
   const filters = [{ id: "all", label: "全部", count: feed.length }];
   Object.keys(KIND_LABEL).forEach((kind) => {

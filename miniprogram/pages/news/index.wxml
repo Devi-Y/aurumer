@@ -53,7 +53,7 @@
         bindtap="openItem"
         hover-class="tap-active"
         aria-role="button"
-        aria-label="{{item.isNew ? '新增，' : ''}}{{item.title}}，{{item.dateNote}}{{item.dateLabel}}，{{item.body}}"
+        aria-label="{{item.isNew ? '新增，' : ''}}{{item.title}}，{{item.dateNote}}{{item.dateLabel}}，{{item.body}}{{item.impact ? '，落到标的 ' + item.impact : ''}}"
       >
         <view class="news-row-head">
           <text class="news-kind {{item.kind}}">{{item.kindLabel}}</text>
@@ -65,6 +65,10 @@
         </view>
         <text class="news-row-title">{{item.title}}</text>
         <text wx:if="{{item.body}}" class="news-row-body">{{item.body}}</text>
+        <view wx:if="{{item.impact}}" class="news-impact">
+          <text class="news-impact-label">落到标的</text>
+          <text class="news-impact-text">{{item.impact}}</text>
+        </view>
         <view class="news-row-foot">
           <text
             class="news-source"

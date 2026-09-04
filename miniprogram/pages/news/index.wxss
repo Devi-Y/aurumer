@@ -322,3 +322,29 @@
   .news-filters-inner { padding-right: 32px; padding-left: 32px; }
   .news-list, .news-empty { margin-right: 32px; margin-left: 32px; }
 }
+
+/* 「落到标的」是把这条披露接回五个栏目的那一行：视觉上比正文轻，
+   但要和来源行区分开，否则读起来像出处的一部分。 */
+.news-impact {
+  display: flex;
+  margin-top: 10rpx;
+  align-items: baseline;
+  gap: 10rpx;
+}
+
+.news-impact-label {
+  flex: none;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  background: #eef3ef;
+  color: #4d6a58;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.news-impact-text {
+  flex: 1;
+  color: #33413a;
+  font-size: 23rpx;
+  line-height: 1.4;
+}

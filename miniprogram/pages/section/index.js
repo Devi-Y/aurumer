@@ -68,10 +68,12 @@ function buildOverview(snapshot, market) {
     return {
       metrics: [
         {
+          // 格子上写 3、点开却只有 1 只，是因为落地页原本固定在「值得打」。
+          // 在售横跨三档，answers.js 里补了一个同名合集，数和落地页这才对得上。
           label: "在售",
           value: `${live.length}`,
           action: "group",
-          group: suggest.length ? "worth" : (live[0]?.group || "worth"),
+          group: "live",
           enabled: live.length > 0,
         },
         {
@@ -157,10 +159,12 @@ function buildOverview(snapshot, market) {
     return {
       metrics: [
         {
+          // 同上：这一格数的是全部 10 只样本，落地页却和右边那格一样固定在
+          // 「优等收息」的 1 只。
           label: "收息样本",
           value: `${items.length}`,
           action: "group",
-          group: "prime",
+          group: "sample",
           enabled: items.length > 0,
         },
         {
@@ -196,8 +200,11 @@ function buildOverview(snapshot, market) {
     return {
       metrics: [
         {
-          label: "国际金",
-          value: hasNumber(international.price) ? Number(international.price).toFixed(0) : "—",
+          // 「国际金 4519」「人民币金 957.5」都是裸数字，一个是美元每盎司、
+          // 一个是人民币每克，同一行摆着看不出是两套口径。详情页那四格已经
+          // 写成「国际金/盎司 $4473」，栏目页跟上同一种写法。
+          label: "国际金/盎司",
+          value: hasNumber(international.price) ? `$${Number(international.price).toFixed(0)}` : "—",
           action: "detail",
           id: "track",
           enabled: true,
@@ -210,8 +217,8 @@ function buildOverview(snapshot, market) {
           enabled: true,
         },
         {
-          label: "人民币金",
-          value: hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "—",
+          label: "人民币金/克",
+          value: hasNumber(domestic.price) ? `¥${Number(domestic.price).toFixed(1)}` : "—",
           action: "detail",
           id: "plan",
           enabled: true,
@@ -230,7 +237,13 @@ function buildOverview(snapshot, market) {
   }
 
   const profiles = allItems(snapshot, "guru");
-  const leader = profiles[0];
+  // leader 原本取 profiles[0]，也就是数组里排头的那条（港股组的价值伙伴经典
+  // 13.2% 年化）；而正下方第一行「业绩靠前持仓」用的是 daily-answers 里
+  // 美股→港股→A股 的取法（德鲁肯米勒 约 30% 年化）。同一屏两处各说一个「领头」，
+  // 数还不一样。这里按 daily-answers 的同一条规则取，两处说的是同一个人。
+  const leader = ["us", "hk", "a"]
+    .map((group) => profiles.find((item) => item.group === group))
+    .find(Boolean) || profiles[0];
   const leaderId = leader ? String(leader.id || "") : "";
   const hkCount = profiles.filter((item) => item.group === "hk").length;
   const usCount = profiles.filter((item) => item.group === "us").length;
@@ -242,7 +255,9 @@ function buildOverview(snapshot, market) {
       { label: "美股", value: `${usCount}`, action: "group", group: "us", enabled: usCount > 0 },
       { label: "A股", value: `${aCount}`, action: "group", group: "a", enabled: aCount > 0 },
     ],
-    target: leader ? shortCompanyName(leader.name, "机构", 6) : "待更新",
+    // 6 个字会把「斯坦利·德鲁肯米勒」削成「斯坦利·德鲁」，看着像个完整名字，
+    // 其实是另一个人。放宽到 10 字，真放不下时交给 CSS 的省略号，至少能看出被截了。
+    target: leader ? shortCompanyName(leader.name, "机构", 10) : "待更新",
     targetId: leaderId,
     grade: topPerf,
     gradeGroup: leader?.group || "hk",

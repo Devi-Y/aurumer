@@ -209,7 +209,12 @@ function hkItems(snapshot) {
     };
   });
   current.forEach((item) => {
-    if (hkLeverageEligible(item)) item.lenses = ["leverage"];
+    if (hkLeverageEligible(item)) item.lenses.push("leverage");
+    // 栏目页顶上那格「在售 3」以前点开落在「值得打」，而值得打只有 1 只——
+    // 格子上写 3、点进去是 1。在售本身横跨值得打 / 暂缓观察 / 暂不建议三档，
+    // 没有哪一档装得下，于是这里补一个只用于跳转的合集：不改任何条目的分档，
+    // 只是让那一格点开后看到的就是它自己数的那几只。
+    if (item.group !== "ended" && item.group !== "cancelled") item.lenses.push("live");
   });
   const ended = (snapshot.hk && snapshot.hk.history ? snapshot.hk.history : []).map((item) => {
     const outcome = hkOutcome(item);
@@ -639,10 +644,16 @@ function aShareItems(snapshot) {
       if (rightCash !== leftCash) return rightCash - leftCash;
       return number(right.score) - number(left.score);
     });
-  return [
+  const sample = [
     ...fixedItems,
     ...autoItems.slice(0, Math.max(0, A_SHARE_SAMPLE_COUNT - fixedItems.length)),
   ].slice(0, A_SHARE_SAMPLE_COUNT);
+  // 同上：栏目页那格「收息样本 10」点开落在「优等收息」，而优等只有 1 只。
+  // 前台真正在展示的就是这 10 只，补一个合集让格子和落地页对得上。
+  sample.forEach((item) => {
+    item.lenses = [...(item.lenses || []), "sample"];
+  });
+  return sample;
 }
 
 function allItems(snapshot, market) {
@@ -659,6 +670,9 @@ function groupDefinitions(snapshot, market) {
   let definitions;
   if (market === "hk") {
     definitions = [
+      // catalog:false —— 只作为「在售 N」那一格的落地页，不在栏目页的分档卡里
+      // 再占一张，免得和下面三档重复计数。
+      ["live", "在售新股", "值得打 / 暂缓观察 / 暂不建议，全部在售", false],
       ["worth", "值得打", "先核一手与风险"],
       ["caution", "暂缓观察", "先看热度"],
       ["avoid", "暂不建议", "风险偏多"],
@@ -679,6 +693,7 @@ function groupDefinitions(snapshot, market) {
     ];
   } else if (market === "a") {
     definitions = [
+      ["sample", "收息样本", "前台在展示的全部收息研究样本", false],
       ["prime", "优等收息", "股息可持续+现金支撑"],
       ["steady", "稳健收息", "综合观察分中等"],
       ["watch", "高息待核", "高息但现金/可持续偏弱"],

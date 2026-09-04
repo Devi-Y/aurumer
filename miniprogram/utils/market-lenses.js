@@ -202,7 +202,8 @@ function goldZoneForPrice(price, watch, upper, risk) {
     return { label: "进入观察上沿", tone: "warn", hold: false, sell: true };
   }
   if (watchHigh !== null && current <= watchHigh) {
-    return { label: "仍在持有观察区", tone: "good", hold: true, sell: false };
+    // 口径跟 pricePlan.internationalWatch 在别处的叫法走：观察低位。
+    return { label: "仍在观察低位", tone: "good", hold: true, sell: false };
   }
   if (watchLow !== null && upperLow !== null && current > watchHigh && current < upperLow) {
     return { label: "持有区与上沿之间", tone: "warn", hold: false, sell: false };

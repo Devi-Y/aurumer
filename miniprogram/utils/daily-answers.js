@@ -58,9 +58,12 @@ function holdingPnLText(holding, price) {
   return `，相对成本${delta >= 0 ? "+" : ""}${delta.toFixed(0)}%`;
 }
 
-function namesOf(items, max = 3) {
+// chars 是「单个名字最多留几个字」。默认 6 是给公司名用的（"深圳市江波龙"），
+// 但机构持仓那一栏列的是人名和基金名，6 个字会把「斯坦利·德鲁肯米勒」切成
+// 「斯坦利·德鲁」——同一行的结论里写的却是全名，一行里自己对不上自己。
+function namesOf(items, max = 3, chars = 6) {
   const names = (items || [])
-    .map((item) => shortCompanyName(item.name, item.code || "标的", 6))
+    .map((item) => shortCompanyName(item.name, item.code || "标的", chars))
     .filter(Boolean);
   if (!names.length) return "";
   return names.slice(0, max).join("、") + (names.length > max ? ` 等${names.length}只` : "");
@@ -299,7 +302,10 @@ function buildUsAnswers(snapshot) {
     `${incomeSymbol} ${sleeve.weights.income}%${sleevePrice(snapshot, incomeSymbol) ? ` ${sleevePrice(snapshot, incomeSymbol)}` : ""}`,
     `O ${sleeve.weights.O}%${sleevePrice(snapshot, "O") ? ` ${sleevePrice(snapshot, "O")}` : ""}`,
     `SGOV ${sleeve.weights.SGOV}%${sleevePrice(snapshot, "SGOV") ? ` ${sleevePrice(snapshot, "SGOV")}` : ""}`,
-    pickNames ? `周期 ${sleeve.weights.cycle}% ${pickNames}` : `周期 ${sleeve.weights.cycle}% 样本不足`,
+    // 前四段都是「代码 权重%」，第五段却是「周期 10% 优步 $75.96、博通 $357.20」，
+    // 权重和举例之间只隔一个空格，读起来像「优步占周期的 10%」。举例括起来，
+    // 五段才是同一种读法。
+    pickNames ? `周期 ${sleeve.weights.cycle}%（${pickNames}）` : `周期 ${sleeve.weights.cycle}% 样本不足`,
   ].join(" + ");
   const missing = ["VOO", incomeSymbol, "O", "SGOV"].filter((symbol) => !sleevePrice(snapshot, symbol));
   const modal = [
@@ -484,8 +490,11 @@ function goldNextLine(priceText, holdRange, sellRange, zone, digits, kind) {
   const holdHigh = Number(holdRange?.high ?? holdRange?.low);
   const sellLow = Number(sellRange?.low ?? sellRange?.high);
   if (kind === "hold") {
-    if (zone?.hold) return `现价 ${priceText}，仍在持有观察区（${formatGoldRange(holdRange, digits)}）`;
-    if (Number.isFinite(holdHigh)) return `现价 ${priceText}，未到持有观察区（≤${holdHigh.toFixed(digits)}）`;
+    // 这里读的是 pricePlan.internationalWatch / domesticWatch，和栏目分组说明、
+    // 明细页、详情页读的是同一个字段，那三处一律叫「观察低位」，只有这两句写成
+    // 「持有观察区」。同一个数在首页和详情页有两个名字，看起来像两回事。
+    if (zone?.hold) return `现价 ${priceText}，仍在观察低位（${formatGoldRange(holdRange, digits)}）`;
+    if (Number.isFinite(holdHigh)) return `现价 ${priceText}，未到观察低位（≤${holdHigh.toFixed(digits)}）`;
   }
   if (kind === "sell") {
     if (zone?.sell) return `现价 ${priceText}，进入观察上沿（${formatGoldRange(sellRange, digits)}）`;
@@ -576,7 +585,7 @@ function buildGuruAnswers(snapshot) {
       answer: top
         ? `${top.name || "机构"} ${top.badge || ""}`.trim()
         : "机构样本待更新",
-      names: holdingLine || namesOf(leaders),
+      names: holdingLine || namesOf(leaders, 3, 10),
       tone: top ? "good" : "muted",
       action: top ? "detail" : "none",
       targetId: top?.id || "",
@@ -586,7 +595,7 @@ function buildGuruAnswers(snapshot) {
       id: "guru-why",
       question: "他们怎么想",
       answer: why[0] || "公开业绩与持仓可对照，思路见详情 WHY",
-      names: namesOf(leaders),
+      names: namesOf(leaders, 3, 10),
       tone: "good",
       action: "detail",
       targetId: top?.id || "",
@@ -597,7 +606,7 @@ function buildGuruAnswers(snapshot) {
       id: "guru-learn",
       question: "我们如何借鉴",
       answer: how[0] || "学框架与风控，不照抄仓位",
-      names: namesOf(leaders),
+      names: namesOf(leaders, 3, 10),
       tone: "good",
       action: "none",
       enabled: true,
@@ -699,11 +708,21 @@ function buildHomeDigest(snapshot, options = {}) {
   const cnyPrice = Number(snapshot?.gold?.quotes?.domestic?.price);
   const goldValue = /进入观察上沿/.test(goldLead?.answer || "")
     ? "偏高"
-    : (/仍在持有观察区/.test(goldLead?.answer || "")
+    : (/仍在观察低位/.test(goldLead?.answer || "")
       ? "可持有"
       // 另外三格都是标的名或结论词，黄金这格却是个没口径的裸数字「958」，
       // 首页上读不出这是什么价。加单位即可，不编造它没有的结论。
       : (Number.isFinite(cnyPrice) ? `${Math.round(cnyPrice)}元/克` : "观望"));
+
+  // 黄金这两句都由 goldNextLine 拼成，开头一律是「现价 4519，」。并成一行发到
+  // 群里就成了「现价 4519，未到…… · 现价 4519，未到……」，同一个价印两遍，
+  // 读的人会当成两个数。只留第一句的现价，后面几句把重复的前缀摘掉——这里只
+  // 做减法，不新增任何原句没有的内容。
+  const goldParts = gold.slice(0, 2).map((item) => String(item.answer || "").trim()).filter(Boolean);
+  const goldPrefix = goldParts.length ? (goldParts[0].match(/^现价\s*\S+?，/u) || [])[0] || "" : "";
+  const goldCardLine = goldParts
+    .map((line, index) => (index && goldPrefix && line.startsWith(goldPrefix) ? line.slice(goldPrefix.length) : line))
+    .join(" · ");
 
   const cardLines = [
     `港股：${hkWorth?.enabled ? `值得打 ${hkWorth.names}` : (hkAvoid?.id === "hk-avoid" ? (hkAvoid.answer || "避雷样本") : "暂无在售新股")}`,
@@ -716,7 +735,7 @@ function buildHomeDigest(snapshot, options = {}) {
       aAdd?.enabled ? aAdd.answer : null,
       aCore?.enabled ? `底仓 ${aCore.names}` : null,
     ].filter(Boolean).join(" · ")}`,
-    `黄金：${gold.slice(0, 2).map((item) => item.answer).filter(Boolean).join(" · ")}`,
+    `黄金：${goldCardLine}`,
     `机构：${guruLead?.answer || "对照公开持仓"}`,
   ];
 

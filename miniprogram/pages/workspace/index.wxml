@@ -84,7 +84,10 @@
       </view>
     </view>
 
-    <view class="record-panel">
+    <!-- 待办为空时，这一整块（含里面那张空态卡）会横在「今日变化摘要」和
+         「即将到来的事件」中间，把这个 tab 上唯一有内容的板块顶到屏幕外。
+         没有待办、但别处还有东西可看时就不占版面；整屏都空才留下这段指引。 -->
+    <view wx:if="{{taskBoard.openCount || taskBoard.done.length || (!calendarUpcoming.length && !changeFeed.length && !state.inbox.length)}}" class="record-panel">
       <view class="panel-tools"><text>待办与节点</text><text>{{taskBoard.openCount}} 项</text></view>
       <view wx:if="{{taskBoard.overdue.length}}">
         <text class="section-divider">已过期</text>

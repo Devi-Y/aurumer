@@ -380,8 +380,8 @@ function homeMemberSummary(workspace) {
   if (!changes && !todos) {
     return {
       active: true,
-      help: "暂无重要变化",
-      detail: "记录正常同步",
+      help: "今天没有新变化",
+      detail: "关注与复盘照常可看",
     };
   }
   const parts = [];

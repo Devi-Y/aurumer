@@ -82,7 +82,8 @@
         aria-label="{{showHoldingForm ? '收起添加持仓' : '添加持仓'}}"
       >{{showHoldingForm ? '收起' : '＋ 添加'}}</text>
     </view>
-    <view class="holding-reminder {{holdingsReminder.tone}}">{{holdingsReminder.text}}</view>
+    <!-- 空仓时这条提示和下面的 holding-empty 说的是同一件事，只留一处。 -->
+    <view wx:if="{{holdings.length}}" class="holding-reminder {{holdingsReminder.tone}}">{{holdingsReminder.text}}</view>
     <view wx:if="{{holdings.length}}" class="holding-list">
       <view
         wx:for="{{holdings}}"
@@ -116,8 +117,8 @@
       </view>
     </view>
     <view wx:else class="holding-empty">
-      <text>先添加一只你真正持有的股票。</text>
-      <text>持仓只保存在本机，不上传服务器；匹配到公开样本后可点进详情。</text>
+      <text>添加一只你真正持有的标的，首页才会给出个人化观察提示。</text>
+      <text>只存在本机、不上传服务器；匹配到公开样本后可点进详情。</text>
     </view>
     <view wx:if="{{showHoldingForm}}" class="holding-form">
       <picker mode="selector" range="{{marketOptions}}" range-key="label" value="{{marketIndex}}" bindchange="changeHoldingMarket">

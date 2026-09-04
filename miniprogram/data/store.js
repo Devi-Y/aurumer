@@ -2,6 +2,16 @@ const bundledSnapshot = require("./live-snapshot");
 const { degradeStaleActions } = require("../utils/action-freshness");
 
 const REMOTE_TTL_MS = 10 * 60 * 1000;
+// 云端本轮结论不完整时的重试间隔。这种情况多半是云函数冷启动先读到旧的
+// 数据库缓存，几十秒后后台回源就好了，不该被 10 分钟 TTL 钉住。
+const DEGRADED_TTL_MS = 60 * 1000;
+// 云函数只会回三种 warning，含义完全不同，之前被同一条正则一网打尽：
+//   UPSTREAM_TEMPORARILY_UNAVAILABLE —— 真的取不到数，该报「数据源暂时不可用」
+//   CACHE_REFRESHING              —— 后台正在回源，数据照常可用，属于正常态
+//   SNAPSHOT_CONTENT_STALE        —— 内容本身超过 36 小时，交给下面的时效判断
+// 只有第一种是故障；另外两种以前也会把全站七个页面刷成橙色告警条。
+const UPSTREAM_DOWN_RE = /UPSTREAM_TEMPORARILY_UNAVAILABLE|上游暂不可用/i;
+const ACTION_SYNC_WARNING = "云端动作结论待同步";
 // 公开快照工作日约两趟（09:30 / 16:30），周末空窗更长。
 // 在云函数仍可服务的 36 小时窗口内，「自动更新」就是当前已发布结论，不要误报成故障。
 const CURRENT_PUBLISH_MAX_AGE_MS = 36 * 60 * 60 * 1000;
@@ -11,6 +21,7 @@ let memorySnapshot = degradeStaleActions(bundledSnapshot);
 let memorySource = "离线备用数据";
 let memoryWarning = "";
 let fetchedAt = 0;
+let fetchTtlMs = REMOTE_TTL_MS;
 let refreshPromise = null;
 
 const INVESTOR_MINIMUM = 6;
@@ -60,11 +71,8 @@ function snapshotAgeMs(snapshot) {
 function freshnessKind(snapshot, baseSource, warning) {
   const age = snapshotAgeMs(snapshot);
   const warnText = String(warning || "");
-  // 仅上游不可用 / 明确缓存回退才算异常；动作结论待同步等软提示不算故障。
-  if (
-    baseSource === "缓存回退"
-    || /UPSTREAM|TEMPORARILY|stale|上游暂不可用/i.test(warnText)
-  ) {
+  // 仅上游不可用 / 明确缓存回退才算异常；后台回源中、内容偏旧都不是故障。
+  if (baseSource === "缓存回退" || UPSTREAM_DOWN_RE.test(warnText)) {
     return "cached";
   }
   if (age > STALE_MAX_AGE_MS) {
@@ -112,7 +120,7 @@ function hasActionSurface(snapshot) {
 
 function fetchLatest(force) {
   const now = Date.now();
-  if (!force && fetchedAt && now - fetchedAt < REMOTE_TTL_MS) {
+  if (!force && fetchedAt && now - fetchedAt < fetchTtlMs) {
     return Promise.resolve({
       snapshot: memorySnapshot,
       source: memorySource,
@@ -137,7 +145,10 @@ function fetchLatest(force) {
     // 此时保留随包/本机动作版快照，避免「能用」被在线回源刷没。
     if (!hasActionSurface(remoteSnapshot) && hasActionSurface(memorySnapshot)
       && memorySnapshot.actionsFresh !== false) {
-      memoryWarning = warning || "云端动作结论待同步";
+      // 云函数是通的，只是这一轮的结论面不完整。保留本机可用结论，但不要按
+      // 「上游不可用」报警——顺带把重试间隔缩短，下次进页面就再问一次。
+      fetchTtlMs = DEGRADED_TTL_MS;
+      memoryWarning = ACTION_SYNC_WARNING;
       return {
         snapshot: memorySnapshot,
         source: memorySource,
@@ -146,9 +157,12 @@ function fetchLatest(force) {
     }
     if (isRemoteNewerOrEqual(remoteSnapshot, memorySnapshot)) {
       memorySnapshot = remoteSnapshot;
-      memorySource = warning ? "缓存回退" : "自动更新";
+      // CACHE_REFRESHING（后台回源中）以前也被算成「缓存回退」，等于每次云端
+      // 顺手刷新都在七个页面顶上挂一条橙色告警。只有取不到数才是回退。
+      memorySource = UPSTREAM_DOWN_RE.test(warning) ? "缓存回退" : "自动更新";
       memoryWarning = warning;
     }
+    fetchTtlMs = REMOTE_TTL_MS;
     return {
       snapshot: memorySnapshot,
       source: memorySource,

@@ -15,7 +15,9 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/hk.svg",
     title: "港股打新",
-    help: "上新·值不值得·卖点",
+    // 港股这条以前写「卖点」，但打新模块里根本没有卖出价这个东西，
+    // 已结束那组给的是暗盘/首日/五日的历史样本对照。照实写。
+    help: "上新·值不值得·历史对照",
     detail: "申购结论",
     tone: "hk",
   },
@@ -43,7 +45,7 @@ const CORE_ENTRIES = [
     icon: "/assets/home/gold.svg",
     title: "黄金追踪",
     help: "人民币金·美元金",
-    detail: "买卖观察区",
+    detail: "观察区·上沿",
     tone: "gold",
   },
   {

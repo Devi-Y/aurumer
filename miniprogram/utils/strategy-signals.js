@@ -156,16 +156,22 @@ function usSignal(item) {
     return {
       label: "风险升高",
       tone: "bad",
-      action: "先停追，优先查财报和估值；价格下跌时不把热度当支撑。",
+      // 列表页只显示 label + action。原来 action 是整段固定话术，于是同一档
+      // 里的每只股票在列表上完全同文，读者分不出谁是因为什么被降级。
+      // 这里把已经算好的 risks 拼进去，不新增任何计算，也不新增结论。
+      action: `${risks.join("、")}；先停追，优先查财报和估值，价格下跌时不把热度当支撑。`,
       trigger: `${risks.join("、")}；任一经营信号继续恶化时降低风险敞口。`,
       basis: "经营质量优先于热度",
     };
   }
   if (risks.length || position >= 72 || pe >= 40) {
+    const why = risks.length
+      ? risks.join("、")
+      : (position >= 72 ? `近60日位置 ${position}%` : `PE ${pe.toFixed(1)} 倍`);
     return {
       label: "等回撤",
       tone: "warn",
-      action: "公司质量尚可但价格/估值不便宜，等位置回落或财报继续验证。",
+      action: `质量尚可，但${why}；等位置回落或财报继续验证，不追高。`,
       trigger: `回到近60日位置 72% 以下且盈利未恶化，再重新观察${pe >= 40 ? "；PE 下降也更重要" : ""}。`,
       basis: "质量通过，估值与位置控回撤",
     };
@@ -173,7 +179,7 @@ function usSignal(item) {
   return {
     label: "可分批观察",
     tone: "good",
-    action: "质量与位置暂未冲突，采用分批观察，不一次性追高。",
+    action: `PE ${pe.toFixed(1)} 倍、近60日位置 ${position}%，质量与位置暂未冲突；分批观察，不一次性追高。`,
     trigger: "PE 快速上升、位置超过 85%，或营收/利润/现金流同时转弱时降级。",
     basis: "质量 + 估值 + 趋势确认",
   };
@@ -215,7 +221,7 @@ function aShareSignal(item) {
     return {
       label: "高息待核",
       tone: "bad",
-      action: "把高股息视为风险信号，先核分红来源和现金流，不急于补仓。",
+      action: `${risks.join("、")}；把高股息当风险信号，先核分红来源和现金流，不急于补仓。`,
       trigger: `${risks.join("、")}；下一期现金流/利润未修复前维持谨慎。`,
       basis: "可持续股息与现金流门禁",
     };
@@ -224,7 +230,7 @@ function aShareSignal(item) {
     return {
       label: "继续观察",
       tone: "warn",
-      action: "现金流暂未完全确认，先观察分红兑现与经营数据是否同步。",
+      action: `${risks.join("、")}；现金流暂未完全确认，先看分红兑现与经营数据是否同步。`,
       trigger: `${risks.join("、")}；若风险线索增加，降级为高息待核。`,
       basis: "股息安全边际尚可但不充分",
     };
@@ -232,7 +238,7 @@ function aShareSignal(item) {
   return {
     label: "现金流支持",
     tone: "good",
-    action: "当前股息与现金流暂未冲突，优先分散配置，不因单一高息集中。",
+    action: `当前股息 ${current.toFixed(1)}%、可持续 ${sustainable.toFixed(1)}% 暂未冲突；优先分散配置，不因单一高息集中。`,
     trigger: "可持续股息明显下修、自由现金流转负或利润连续下滑时重新评估。",
     basis: "股息 + 可持续性 + 自由现金流",
   };

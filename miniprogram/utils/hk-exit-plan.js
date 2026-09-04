@@ -55,7 +55,9 @@ function mapOfferBand(offer, band) {
   if (!hasNumber(offer) || !band || band.p25 == null || band.p75 == null) return null;
   const low = Math.round(Number(offer) * (1 + Number(band.p25) / 100));
   const high = Math.round(Number(offer) * (1 + Number(band.p75) / 100));
-  return `${low}–${high}`;
+  // 这是招股价映射出来的价格区间，页面上一直只写「约 19–31」，没有单位。
+  // 上游 offerPrice 本身就是「19.55 港元」，口径明确，照实带上。
+  return `${low}–${high} 港元`;
 }
 
 function impliedDisclosed(offer, change) {

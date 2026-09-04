@@ -190,7 +190,11 @@ function buildHkAnswers(snapshot) {
       answer: active.length
         ? `${active.length} 只在售`
         : (live.length ? `${live.length} 只已取消或无法申购` : "当前没有可申购新股"),
-      names: namesOf(live.length ? live : items.filter((item) => item.group === "ended").slice(0, 3)),
+      // 计数用的是 active（在售），名字以前用的是 live（含已取消），于是出现
+      // 「3 只在售 · 甲、乙、丙 等4只」这种自己对不上自己的写法。
+      names: namesOf(active.length
+        ? active
+        : (live.length ? live : items.filter((item) => item.group === "ended").slice(0, 3))),
       tone: active.length ? "good" : "muted",
       action: active.length ? "group" : (live.length ? "group" : "group"),
       group: active.length ? (worth.length ? "worth" : active[0].group) : (live.length ? live[0].group : "ended"),
@@ -221,12 +225,18 @@ function buildHkAnswers(snapshot) {
     card({
       id: "hk-leverage",
       question: "十倍融资观察",
+      // 这张卡问的是「十倍融资观察」，空态却写「今天没有值得打的新股」，
+      // 会和上面那张「值得打 N 只」在同一屏里直接打架。空态只说融资门槛。
       answer: leverage.length
         ? `高杠杆观察 ${leverage.length} 只，仍须能承受一手亏损`
-        : (histLev.length
-          ? `今天没有值得打的新股。历史拥挤度对照 ${histLev.length} 只，不能追认当时该打`
-          : `今天没有值得打的新股；近${items.filter((item) => item.group === "ended").length}只历史样本也都不满足拥挤度门槛`),
-      names: namesOf(leverage.length ? leverage : histLev),
+        : (worth.length
+          ? `值得打的 ${worth.length} 只都没到融资门槛，默认仍是一手`
+          : (histLev.length
+            ? `没有够门槛的新股。历史拥挤度对照 ${histLev.length} 只，不能追认当时该打`
+            : `没有够门槛的新股；近${items.filter((item) => item.group === "ended").length}只历史样本也都不满足拥挤度门槛`)),
+      // 空态改口说「值得打的 N 只没到融资门槛」之后，名单还挂着历史拥挤度样本，
+      // 说的和列的又对不上。名单跟着这句话走。
+      names: namesOf(leverage.length ? leverage : (worth.length ? worth : histLev)),
       tone: leverage.length ? "warn" : "muted",
       action: leverage.length ? "group" : (histLev.length ? "group" : "none"),
       group: leverage.length ? "leverage" : "ended",
@@ -691,7 +701,9 @@ function buildHomeDigest(snapshot, options = {}) {
     ? "偏高"
     : (/仍在持有观察区/.test(goldLead?.answer || "")
       ? "可持有"
-      : (Number.isFinite(cnyPrice) ? `${Math.round(cnyPrice)}` : "观望"));
+      // 另外三格都是标的名或结论词，黄金这格却是个没口径的裸数字「958」，
+      // 首页上读不出这是什么价。加单位即可，不编造它没有的结论。
+      : (Number.isFinite(cnyPrice) ? `${Math.round(cnyPrice)}元/克` : "观望"));
 
   const cardLines = [
     `港股：${hkWorth?.enabled ? `值得打 ${hkWorth.names}` : (hkAvoid?.id === "hk-avoid" ? (hkAvoid.answer || "避雷样本") : "暂无在售新股")}`,

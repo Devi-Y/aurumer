@@ -18,7 +18,7 @@ const { goldParity } = require("../../utils/gold-parity");
 const META = {
   hk: {
     title: "港股打新",
-    one: "上新、值不值得打、打中后观察卖点",
+    one: "上新、值不值得打、打中后看历史对照",
     tone: "hk",
     icon: "/assets/home/hk.svg",
     kicker: "新股申购",
@@ -42,7 +42,7 @@ const META = {
     one: "人民币金与美元金持有/观察上沿",
     tone: "gold",
     icon: "/assets/home/gold.svg",
-    kicker: "买卖观察",
+    kicker: "价格观察",
   },
   guru: {
     title: "机构持仓",
@@ -217,9 +217,10 @@ function buildOverview(snapshot, market) {
           enabled: true,
         },
       ],
-      target: hasNumber(domestic.price)
-        ? `人民币金 ${Number(domestic.price).toFixed(1)}`
-        : (hasNumber(international.price) ? `国际金 ${Number(international.price).toFixed(0)}` : "黄金"),
+      // 结论行原来写「人民币金 957.5」，可这个数字紧接着又在下面的关键数值行
+      // 出现一次、在四口径卡里再出现一次，同一屏印三遍。结论行只说这条结论
+      // 是关于谁的，数字交给下面两块。
+      target: "黄金",
       targetId: "track",
       grade: answer.action || "继续观察",
       gradeGroup: "track",

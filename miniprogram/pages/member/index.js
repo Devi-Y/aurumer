@@ -32,11 +32,16 @@ function shortcutsOf(workspace) {
   const brief = workspace.todayBrief || {};
   const board = buildTaskBoard(workspace.reviewTasks || []);
   const watchCount = (workspace.watchItems || []).length;
+  const decisionCount = (workspace.decisions || []).length;
   const changes = Number(brief.factChangeCount || 0) + Number(brief.thesisCount || 0);
+  // 每一行数的必须是点进去那一屏能看到的东西。待办（reviewTasks）在「今日」里，
+  // 原来却挂在「看复盘」下面——写着待办 3 项，点开的复盘页一条待办也没有。
   const helps = {
     watch: watchCount ? `已关注 ${watchCount} 只` : "还没有关注",
-    today: changes ? `${changes} 项新变化` : "今天没有新变化",
-    review: board.openCount ? `待办 ${board.openCount} 项` : "暂无到期复盘",
+    today: changes
+      ? `${changes} 项新变化`
+      : (board.openCount ? `待办 ${board.openCount} 项` : "今天没有新变化"),
+    review: decisionCount ? `已记 ${decisionCount} 条想法` : "还没有想法记录",
   };
   return SHORTCUT_TABS.map((item) => ({ ...item, help: helps[item.tab] }));
 }

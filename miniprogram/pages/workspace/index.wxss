@@ -259,14 +259,16 @@
 .freshness-banner.tone-warn { background: #fff7ec; }
 .freshness-banner.tone-bad { background: #fdf0ee; }
 
+/* 小程序的 button 默认是整行宽，flex-basis:auto 就等于「每个 tab 都想占满整条」，
+   再配上 flex-shrink:0（1 0 auto 的那个 0），三个 tab 加起来是三屏宽——第三个
+   「复盘」整格落在屏幕外，只有横向拖动才看得见。三等分改掉的就是这个。 */
 .tab-bar-wide {
   display: flex;
   gap: 0;
-  overflow-x: auto;
 }
 .tab-bar-wide .tab {
-  flex: 1 0 auto;
-  min-width: 112rpx;
+  flex: 1 1 0;
+  min-width: 0;
   padding: 0 12rpx;
   font-size: 24rpx;
 }

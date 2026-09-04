@@ -293,7 +293,13 @@ function applyPrefill(page, options = {}) {
   const code = safeDecode(options.code);
   const fromDetail = Boolean(name || code);
   const patch = {};
-  if (focus === "decision") patch.activeTab = "watch";
+  // focus=decision 是「去写想法」的入口，想法表单在关注页里。原来只切了 tab，
+  // 真正负责展开表单的那行判断写的是 activeTab === "decision"——这个值不存在
+  // （只有 today/watch/review 三个），所以表单从来没被打开过。
+  if (focus === "decision") {
+    patch.activeTab = "watch";
+    patch.showDecisionForm = true;
+  }
   else if (focus === "watch") patch.activeTab = "watch";
   else if (focus === "changes" || focus === "calendar" || focus === "today") patch.activeTab = "today";
   else if (focus === "review") patch.activeTab = "review";
@@ -443,7 +449,6 @@ Page({
         const state = viewWorkspace(workspace);
         const patch = { state };
         if (!state.watchItems.length && this.data.activeTab === "watch") patch.showWatchForm = true;
-        if (!state.decisions.length && this.data.activeTab === "decision") patch.showDecisionForm = true;
         this.setData(patch);
         this.refreshDerivations(state);
       })
@@ -463,6 +468,16 @@ Page({
         return { ...item, invalidation: watch && watch.invalidation };
       });
       const changeCenter = buildChangeCenter(feed, state.inbox || [], state.watchItems || []);
+      // 「提醒我」存下来的标记原本在页面上完全看不见：日历行还是那颗「提醒我」按钮，
+      // 底下也没有任何一处列出已标记的事件。这里按服务端去重用的同一组字段
+      // （标题+日期+代码）对上号，标过的行改成「已标记提醒」。
+      const markedKeys = new Set(
+        (state.eventMarks || []).map((item) => `${item.title}|${item.dateLabel}|${item.code || ""}`),
+      );
+      const withMark = (rows) => (rows || []).map((row) => ({
+        ...row,
+        marked: markedKeys.has(`${row.title}|${row.dateLabel}|${row.code || ""}`),
+      }));
       const taskBoard = buildTaskBoard(state.reviewTasks || []);
       const review = buildWeeklyReview(state.decisions, snapshot, state.watchItems);
       const dividendSummary = yearCashflow(state.dividendLots || [], state.settings || {});
@@ -473,8 +488,8 @@ Page({
         changeCount: feed.filter((item) => item.changed).length,
         changeCenter,
         taskBoard,
-        calendarUpcoming: events.upcoming,
-        calendarPast: events.past.slice(0, 12),
+        calendarUpcoming: withMark(events.upcoming),
+        calendarPast: withMark(events.past.slice(0, 12)),
         calendarNextCount: events.nextCount || 0,
         weeklyReview: review,
         guruChanges: buildGuruChanges(snapshot).slice(0, 9),
@@ -721,7 +736,7 @@ Page({
       wx.showModal({
         title: "小程序内提醒",
         content: (this.data.state.subscribe && this.data.state.subscribe.hint)
-          || "事件会保存在待办中。配置微信订阅消息模板并完成授权后，才可开通微信提醒。",
+          || "事件会记在今日页的「我标记的提醒」里。配置微信订阅消息模板并完成授权后，才可开通微信提醒。",
         confirmText: "先标记",
         success: (result) => {
           if (result.confirm) persist(false);

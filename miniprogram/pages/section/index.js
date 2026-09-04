@@ -12,6 +12,8 @@ const { listHoldings } = require("../../utils/local-holdings");
 const { marketSources } = require("../../utils/sources");
 // 页头那句「数据截至 …」和新闻资讯页共用同一个写法。
 const { asOfText } = require("../../utils/dates");
+// 黄金栏目页顶部那块「四口径同屏」，和黄金详情页用的是同一份换算。
+const { goldParity } = require("../../utils/gold-parity");
 
 const META = {
   hk: {
@@ -270,6 +272,8 @@ Page({
     deepLinks: [],
     sourceLinks: [],
     dataAsOf: "",
+    // 只有黄金栏目页会用到；其余四栏恒为 null，wx:if 直接整块不渲染。
+    parity: null,
   },
   onLoad(options) {
     const market = META[options.market] ? options.market : "hk";
@@ -364,6 +368,8 @@ Page({
         // 五个栏目页一直只有一句"公开资料整理"，核对无门。
         sourceLinks: marketSources(snapshot, this.data.market),
         dataAsOf: asOfText(snapshot && snapshot.updatedAt, meta.kind),
+        // 四个报价缺一就返回 null，这一块整体不出——不用占位符凑齐一屏。
+        parity: this.data.market === "gold" ? goldParity(snapshot && snapshot.gold) : null,
       });
     }, done, { force });
   },

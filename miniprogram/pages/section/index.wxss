@@ -563,3 +563,117 @@
   font-size: 24rpx;
   font-weight: 620;
 }
+
+/* 四口径 · 同一块金子。
+   四个报价原本散在指标列表里，谁也不挨着谁；这块卡把它们并排放好，
+   最上面一行直接写出那条唯一有人真的在算的结论，最下面一行写出换算式本身——
+   数字给结论，式子给复算，中间四格给出处。只有黄金栏目页会渲染它。 */
+.parity-panel {
+  padding: 20rpx 0 16rpx;
+}
+
+.parity-head {
+  display: flex;
+  padding: 0 24rpx 12rpx;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.parity-title {
+  color: #1f2621;
+  font-size: 28rpx;
+  font-weight: 680;
+}
+
+.parity-meta {
+  flex: none;
+  color: #9aa19c;
+  font-size: 22rpx;
+}
+
+/* 结论比标签重：这一句才是读的人来这一屏要的东西。 */
+.parity-headline {
+  display: block;
+  padding: 0 24rpx 16rpx;
+  color: #123a28;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.parity-grid {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.parity-cell {
+  box-sizing: border-box;
+  width: 50%;
+  min-width: 0;
+  padding: 16rpx 24rpx;
+  border-right: 1rpx solid #edf0ee;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.parity-cell:nth-child(2n) { border-right: 0; }
+.parity-cell:nth-last-child(-n + 2) { border-bottom: 0; }
+
+.parity-cell-label {
+  display: block;
+  overflow: hidden;
+  color: #7e8781;
+  font-size: 23rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 数字和单位分开排：单位小一号，一列列下来数字的起点才对得齐。 */
+.parity-cell-value {
+  display: flex;
+  margin-top: 6rpx;
+  align-items: baseline;
+  gap: 6rpx;
+}
+
+.parity-cell-number {
+  color: #171b18;
+  font-size: 32rpx;
+  font-weight: 740;
+  line-height: 1.15;
+}
+
+.parity-cell-unit {
+  flex: none;
+  color: #8a918c;
+  font-size: 22rpx;
+}
+
+.parity-cell-meta {
+  display: block;
+  margin-top: 4rpx;
+  color: #7e8781;
+  font-size: 22rpx;
+}
+
+/* 换算式。放在最下面是因为它不是结论，是让人自己复算的凭据。 */
+.parity-formula {
+  display: block;
+  padding: 14rpx 24rpx 0;
+  color: #8a918c;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+/* 这两块要放在 .parity-* 之后：同优先级下后写的赢，写在上面那两个
+   @media 里会被下面的常规规则盖掉。 */
+@media (max-width: 340px) {
+  .parity-cell { padding-right: 16rpx; padding-left: 16rpx; }
+  .parity-cell-number { font-size: 30rpx; }
+  .parity-headline { font-size: 28rpx; }
+}
+
+@media (min-width: 700px) {
+  .parity-panel { border-radius: 20px; }
+}

@@ -11,6 +11,11 @@ const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lense
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
 const { marketSources, dedupeSources } = require("../../utils/sources");
+// 「毛利率 43%」本身不回答"这算高还是低"。望潮池子里 30 只美股、20 只 A 股
+// 的同口径字段就摆在快照里，把它算成「池内第 6/30」是零新增数据的一次密度提升。
+const { poolRankVisual } = require("../../utils/pool-rank");
+// 黄金四个报价之间唯一那条换算（1 金衡盎司 = 31.1035 克），栏目页和详情页共用。
+const { goldParity } = require("../../utils/gold-parity");
 // 快照给的日期有 ISO 时间戳、M/D/YYYY、YYYY-MM-DD 三种写法混着来。新闻资讯页
 // 一进门就归一到 YYYY-MM-DD，这一页以前没做，于是同一屏并排出现「行情截至
 // 2026-09-02T20:00:00.000Z」和「披露日期 2026-08-14」。共用同一个归一函数。
@@ -689,6 +694,28 @@ function buildUSView(base, item, snapshot) {
     ["成交量比", hasNumber(raw.volumeRatio) ? `${Number(raw.volumeRatio).toFixed(2)} 倍` : "暂缺"],
   ], "估值与热度", "市盈率：股价相对盈利贵不贵；热度高≠马上买。");
 
+  // 池内分位：同一份快照里 30 只美股的同口径字段，横过来比一遍。
+  // 只陈述"比它高的有几只"这个可以自己复算的事实，不含方向判断——所以市盈率
+  // 那一行明写"越高越贵"，柱子长不代表好。
+  const usPool = Array.isArray(snapshot?.us?.fundamentals) ? snapshot.us.fundamentals : [];
+  const usPoolOf = (key) => usPool.map((entry) => entry && entry[key]);
+  const usRank = poolRankVisual([
+    { label: "毛利率", value: fund.grossMargin, valueText: formatPercent(fund.grossMargin), pool: usPoolOf("grossMargin") },
+    { label: "利润率", value: fund.profitMargin, valueText: formatPercent(fund.profitMargin), pool: usPoolOf("profitMargin") },
+    { label: "股东回报", value: fund.roe, valueText: formatPercent(fund.roe), pool: usPoolOf("roe") },
+    { label: "营收增长", value: fund.revenueGrowth, valueText: formatPercent(fund.revenueGrowth), pool: usPoolOf("revenueGrowth") },
+    {
+      label: "市盈率",
+      note: "越高越贵",
+      value: fund.pe,
+      valueText: hasNumber(fund.pe) ? `${Number(fund.pe).toFixed(1)}倍` : "",
+      pool: usPoolOf("pe"),
+    },
+  ], "池内分位 · 质量与估值", {
+    poolLabel: `望潮美股池 ${usPool.length} 只`,
+    reading: "池内排名，非全市场",
+  });
+
   const revenueHistory = Array.isArray(fund.revenueHistory) ? fund.revenueHistory.filter(hasNumber).map(Number) : [];
   const revenueVisual = revenueHistory.length >= 2
     ? priceVisual(revenueHistory.slice().reverse(), "营收趋势", (value) => formatLarge(value), "近几期公开营收金额。")
@@ -727,6 +754,7 @@ function buildUSView(base, item, snapshot) {
     scoreMeter(scoredUS.score, "研究观察分", item.badge),
     priceVisual(raw.history, "近60日价格", (value) => `$${Number(value).toFixed(2)}`),
     meterVisual(raw.history, raw.price, "价格位置", money),
+    usRank,
     marginBars,
     growthTiles,
     flowTiles,
@@ -922,7 +950,7 @@ function buildAShareRiskItems(raw = {}, financials = {}) {
   ];
 }
 
-function buildAShareView(base, item) {
+function buildAShareView(base, item, snapshot) {
   if (item.raw?.assetType === "fund") {
     buildAShareFundView(base, item);
     return;
@@ -963,6 +991,53 @@ function buildAShareView(base, item) {
   ];
   base.pageHelp = "";
 
+  // 池内分位：A 股这一栏最刺眼的问题是列表里几只长得一模一样——分级都写着
+  // 「稳健收息」，谁都没到边界，滑一遍不知道该看哪只。收息的人真正要判断的
+  // 也不是"今年股息率多少"，而是"这个股息还发得下去吗"，那要看现金流撑不撑得住。
+  //
+  // 说明一句口径：这里不是"三年股息趋势"。快照里每只 A 股只有一个报告期
+  // （2025 年报），没有历史分红序列，硬画三年趋势就是编数据。所以换成同一个
+  // 问题的可交付版本——把当期股息、可持续股息和现金流质量放回 20 只的池子里
+  // 比一遍，全部字段都是快照里已经有的真值。
+  const aPool = Array.isArray(snapshot?.aShare?.quotes) ? snapshot.aShare.quotes : [];
+  const aFundPool = Array.isArray(snapshot?.aShare?.fundamentals) ? snapshot.aShare.fundamentals : [];
+  const aPoolOf = (list, key) => list.map((entry) => entry && entry[key]);
+  const aRank = poolRankVisual([
+    {
+      label: "当前股息",
+      value: raw.currentDividendYield,
+      valueText: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(2)}%` : "",
+      pool: aPoolOf(aPool, "currentDividendYield"),
+    },
+    {
+      label: "可持续股息",
+      value: raw.sustainableDividendYield,
+      valueText: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(2)}%` : "",
+      pool: aPoolOf(aPool, "sustainableDividendYield"),
+    },
+    {
+      label: "自由现金流率",
+      value: financials.freeCashFlowMargin,
+      valueText: formatPercent(financials.freeCashFlowMargin),
+      pool: aPoolOf(aFundPool, "freeCashFlowMargin"),
+    },
+    {
+      label: "现金利润比",
+      value: financials.cashConversion,
+      valueText: hasNumber(financials.cashConversion) ? `${Number(financials.cashConversion).toFixed(2)}倍` : "",
+      pool: aPoolOf(aFundPool, "cashConversion"),
+    },
+    {
+      label: "股东回报",
+      value: financials.roe,
+      valueText: formatPercent(financials.roe),
+      pool: aPoolOf(aFundPool, "roe"),
+    },
+  ], "池内分位 · 股息与现金", {
+    poolLabel: `望潮 A 股池 ${aPool.length} 只`,
+    reading: "同一报告期横比",
+  });
+
   const scoredA = { score: scoredPreview };
   const priceBand = solidVisual([
     hasNumber(raw.currentPrice) ? { label: "现价", value: Number(raw.currentPrice), valueText: money(raw.currentPrice, "¥") } : null,
@@ -972,6 +1047,7 @@ function buildAShareView(base, item) {
   setCharts(
     base,
     scoreMeter(scoredA.score, "收息观察分", item.badge || advice),
+    aRank,
     solidVisual([
       { label: "当前股息", value: raw.currentDividendYield, valueText: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺" },
       { label: "可持续股息", value: raw.sustainableDividendYield, valueText: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺" },
@@ -1225,6 +1301,26 @@ function buildGoldView(base, item) {
   ];
   base.pageHelp = "";
 
+  // 四口径同屏：COMEX、折算克价、上海金、GLD 摆在一起，读的人才知道这四个数
+  // 是同一块金子。缺任一必需报价时 goldParity 返回 null，这一格整块不出。
+  const parity = goldParity(gold);
+  const parityTiles = parity
+    ? {
+      kind: "tiles",
+      title: "四口径金价对照",
+      stats: [
+        { label: "国内对国际", value: parity.direction },
+        { label: "折算克价", value: `${parity.parity} 元/克` },
+        { label: "汇率", value: `${parity.rateText.replace("美元兑人民币 ", "")}` },
+      ],
+      items: parity.cells.map((cell) => ({
+        id: cell.id,
+        label: cell.meta ? `${cell.label} · ${cell.meta}` : cell.label,
+        valueText: `${cell.value} ${cell.unit}`,
+      })),
+    }
+    : null;
+
   const intlHistory = (gold.history?.international || []).map((entry) => entry.close);
   const domesticHistory = (gold.history?.domestic || []).map((entry) => entry.close);
   const scoredGold = scoreForItem(item);
@@ -1239,6 +1335,7 @@ function buildGoldView(base, item) {
   setCharts(
     base,
     scoreMeter(internationalScore, "国际金观察分", action),
+    parityTiles,
     scoreMeter(domesticScore, "人民币金观察分", "国内价格"),
     priceVisual(intlHistory, "国际金轨迹", (value) => Number(value).toFixed(0)),
     meterVisual(intlHistory, international.price, "国际金位置", (value) => Number(value).toFixed(0)),
@@ -1279,6 +1376,9 @@ function buildGoldView(base, item) {
     ["人民币金截至", dayText(domestic.asOf)],
     ["GLD", hasNumber(etf.price) ? `${Number(etf.price).toFixed(2)}·${formatPercent(etf.changePercent)}` : null],
     ["美元兑人民币", hasNumber(usdCny.price) ? `${Number(usdCny.price).toFixed(4)}` : null],
+    ["国际金折算克价", parity ? `${parity.parity}CNY/g` : null],
+    ["上海金折溢价", parity ? `${parity.premium >= 0 ? "+" : ""}${parity.premium}%` : null],
+    ["折算口径", parity ? parity.formula : null],
     ["国际金观察低位", buyIntl],
     ["国际金观察上沿", sellIntl],
     ["国际金风险下沿", riskIntl],
@@ -1291,10 +1391,13 @@ function buildGoldView(base, item) {
     ...(gold.indicators || []).slice(0, 8).map((entry) => [entry.label, hasNumber(entry.value) ? `${entry.value}${entry.unit || ""}` : null]),
   ]);
   base.analysis = [
+    parity
+      ? { title: "四口径怎么对上", body: `${parity.headline}。换算式：${parity.formula}（1 金衡盎司 = 31.1035 克）。四个报价是同一块金子的四种计价方式，不是四个品种。` }
+      : null,
     { title: "双分怎么看", body: `国际金 ${Number.isFinite(internationalScore) ? internationalScore : "待核"} 分 · 人民币金 ${Number.isFinite(domesticScore) ? domesticScore : "待核"} 分；前者看国际宏观与美元，后者看上海金、汇率和国内折溢价。` },
     { title: "美元金", body: `持有观察 ${buyIntl || "暂缺"} · 观察上沿 ${sellIntl || "暂缺"} · 现价 ${hasNumber(international.price) ? Number(international.price).toFixed(0) : "暂缺"}` },
     { title: "人民币金", body: `持有观察 ${buyCny || "暂缺"} · 观察上沿 ${sellCny || "暂缺"} · 现价 ${hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "暂缺"}` },
-  ];
+  ].filter(Boolean);
   base.actions = [];
   base.riskItems = [
     { title: "国际金风险", body: `国际金观察分 ${Number.isFinite(internationalScore) ? internationalScore : "待核"}；重点看实际利率、美元、投机持仓和国际金风险下沿 ${riskIntl || "待核"}。` },
@@ -1332,7 +1435,7 @@ function detailView(item, snapshot) {
   const base = baseView(item);
   if (item.market === "hk") buildHKView(base, item);
   else if (item.market === "us") buildUSView(base, item, snapshot);
-  else if (item.market === "a") buildAShareView(base, item);
+  else if (item.market === "a") buildAShareView(base, item, snapshot);
   else if (item.market === "gold") buildGoldView(base, item);
   else buildGuruView(base, item);
 
@@ -1391,7 +1494,12 @@ function detailView(item, snapshot) {
     const fallback = metricTilesVisual(base.metrics);
     if (fallback) base.charts = [fallback];
   }
-  base.charts = base.charts.slice(0, 8);
+  // 上限从 8 提到 10：这个截断是防"图表无限堆"的兜底，但图表在详情页是分到
+  // 价格/财务/研究三个 tab 里显示的，8 张摊到三个 tab 其实每个只有两三张，
+  // 而超出的部分是无声丢弃的——美股的「估值与热度」「营收趋势」、黄金的
+  // 「价格观察区」「宏观指标」都是这样被砍掉的，黄金的"驱动"tab 因此空掉，
+  // 退化成重复显示金价 tab 的前两张。10 张仍然是硬上限，只是不再误伤。
+  base.charts = base.charts.slice(0, 10);
   base.visual = base.charts[0] || null;
   base.group = item.group;
   base.market = item.market;

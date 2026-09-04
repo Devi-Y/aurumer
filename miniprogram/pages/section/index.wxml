@@ -55,6 +55,28 @@
     </view>
   </view>
 
+  <!-- 黄金专属：四个报价本来就在快照里，但分散成四个互不相干的数字。
+       买金的人每天只算一件事——国内金比国际金贵还是便宜。把那条换算摆到
+       栏目页顶部，并把换算式本身写出来，读的人可以自己复算。 -->
+  <view wx:if="{{parity}}" class="page-card parity-panel">
+    <view class="parity-head">
+      <text class="parity-title">四口径 · 同一块金子</text>
+      <text class="parity-meta">{{parity.rateText}}</text>
+    </view>
+    <text class="parity-headline">{{parity.headline}}</text>
+    <view class="parity-grid">
+      <view wx:for="{{parity.cells}}" wx:key="id" class="parity-cell">
+        <text class="parity-cell-label">{{item.label}}</text>
+        <view class="parity-cell-value">
+          <text class="parity-cell-number">{{item.value}}</text>
+          <text class="parity-cell-unit">{{item.unit}}</text>
+        </view>
+        <text wx:if="{{item.meta}}" class="parity-cell-meta">{{item.meta}}</text>
+      </view>
+    </view>
+    <text class="parity-formula">{{parity.formula}}　（1 金衡盎司 = 31.1035 克）</text>
+  </view>
+
   <view wx:if="{{freshness.show}}" class="page-card freshness-banner tone-{{freshness.tone}}">
     <view class="freshness-head">
       <text class="freshness-label">{{freshness.label}}</text>

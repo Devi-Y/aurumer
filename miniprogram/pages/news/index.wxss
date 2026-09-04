@@ -44,6 +44,36 @@
   line-height: 1.45;
 }
 
+.news-hero-stats {
+  display: flex;
+  margin-top: 14rpx;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.news-stat {
+  padding: 5rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+}
+
+/* 「新增」是这一页唯一需要抢注意力的信息，给它一个实底；
+   其余统计沿用半透明底，不跟它抢。 */
+.news-stat.is-new {
+  background: #ffffff;
+  color: #0b6b49;
+  font-weight: 660;
+}
+
+.news-stat-tap {
+  opacity: 0.78;
+}
+
 /* 六个类目在 390px 宽的机型上排不进一行（实测总宽 395px > 可用 366px）。
    换行会让最后一个「美股」孤零零掉到第二行，所以沿用详情页 tab 的横向滚动写法。 */
 .news-filters {
@@ -74,6 +104,13 @@
   line-height: 1.25;
 }
 
+.news-filter.is-new {
+  border-color: #bfe0d0;
+  background: #eef8f2;
+  color: #0b6b49;
+  font-weight: 660;
+}
+
 .news-filter.active {
   border-color: #0b7a53;
   background: #0b7a53;
@@ -84,6 +121,37 @@
 .news-list,
 .news-empty {
   margin: 16rpx 20rpx 0;
+}
+
+/* 这条流跨度接近一年，最新一条和最老一条在同一张卡片上。没有段头的话，
+   一份 2025 年报看起来和今天的金价一样"新"，那是在误导。 */
+.news-group {
+  display: flex;
+  padding: 20rpx 24rpx 10rpx;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.news-group + .news-row {
+  border-top: 0;
+}
+
+.news-row + .news-group {
+  border-top: 1rpx solid #edf0ee;
+}
+
+.news-group-title {
+  color: #1f2621;
+  font-size: 25rpx;
+  font-weight: 680;
+  letter-spacing: 0.5rpx;
+}
+
+.news-group-count {
+  color: #9aa19c;
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
 }
 
 .news-row {
@@ -118,6 +186,34 @@
 .news-kind.a { background: #f6eeee; color: #8a4b4b; }
 .news-kind.gold { background: #f8f1e2; color: #866223; }
 .news-kind.guru { background: #eeeff9; color: #45509a; }
+
+.news-date-wrap {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 8rpx;
+}
+
+/* 同一条流里混着公告日、挂牌日、报告期三种完全不同的日期。年报的报告期是
+   12-31，读者可能大半年后才看到——不写清楚这个日期是什么，就等于让人
+   把"报告期"读成"刚刚发生"。 */
+.news-date-note {
+  flex: none;
+  color: #a8afaa;
+  font-size: 20rpx;
+}
+
+.news-new {
+  flex: none;
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
+  background: #0b7a53;
+  color: #ffffff;
+  font-size: 19rpx;
+  font-weight: 680;
+  line-height: 1.45;
+}
 
 .news-date {
   flex: none;
@@ -167,6 +263,15 @@
   font-weight: 620;
 }
 
+.news-more {
+  padding: 24rpx 24rpx 26rpx;
+  border-top: 1rpx solid #edf0ee;
+  color: #0b7a53;
+  font-size: 25rpx;
+  font-weight: 620;
+  text-align: center;
+}
+
 .news-empty {
   padding: 32rpx 24rpx 36rpx;
 }
@@ -206,6 +311,7 @@
   .news-hero-title { font-size: 34rpx; }
   .news-filters-inner { padding-left: 12rpx; padding-right: 12rpx; }
   .news-list, .news-empty { margin-left: 12rpx; margin-right: 12rpx; }
+  .news-group { padding-right: 18rpx; padding-left: 18rpx; }
   .news-row { padding: 18rpx 18rpx; }
   .news-row-title { font-size: 27rpx; }
   .news-row-body { font-size: 22rpx; }

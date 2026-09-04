@@ -10,6 +10,11 @@ const { buildHkExitPlan } = require("../../utils/hk-exit-plan");
 const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lenses, MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
+const { marketSources, dedupeSources } = require("../../utils/sources");
+// 快照给的日期有 ISO 时间戳、M/D/YYYY、YYYY-MM-DD 三种写法混着来。新闻资讯页
+// 一进门就归一到 YYYY-MM-DD，这一页以前没做，于是同一屏并排出现「行情截至
+// 2026-09-02T20:00:00.000Z」和「披露日期 2026-08-14」。共用同一个归一函数。
+const { dayText, asOfText } = require("../../utils/dates");
 const {
   REASON_OPTIONS,
   REVIEW_CONDITION_OPTIONS,
@@ -735,7 +740,10 @@ function buildUSView(base, item, snapshot) {
     ["代码", raw.symbol || item.code],
     ["交易所", raw.exchange],
     ["行情状态", raw.marketState],
-    ["数据截至", raw.asOf || fund.period],
+    // 原来这一行写 ["数据截至", raw.asOf || fund.period]：行情日期缺失时会退回
+    // 财报期，于是一个 2025-12-31 的报告期被标成"数据截至"，读起来像是昨天的行情。
+    // 行情和财报是两种日期，各自成行，缺哪个就少哪一行，不互相顶替。
+    ["行情截至", dayText(raw.asOf)],
     ["金额单位", fund.amountUnit === "USD" ? "美元（已规范化）" : null],
     ["近 60 日中位数", range ? money(range.median) : null],
     ["样本交易日", range ? `${range.count}个` : null],
@@ -751,7 +759,7 @@ function buildUSView(base, item, snapshot) {
     ["短期投资", hasNumber(fund.shortTermInvestments) ? formatLarge(fund.shortTermInvestments) : null],
     ["市盈率", hasNumber(fund.pe) ? `${Number(fund.pe).toFixed(1)}倍` : null],
     ["市值", hasNumber(fund.marketCap) ? formatLarge(fund.marketCap) : null],
-    ["财报期", fund.period],
+    ["财报期", dayText(fund.period)],
   ]);
   base.holdings = holders;
   const usPublicFacts = [
@@ -759,7 +767,8 @@ function buildUSView(base, item, snapshot) {
     raw.exchange ? `交易所 ${raw.exchange}` : null,
     hasNumber(fund.marketCap) ? `市值 ${formatLarge(fund.marketCap)}` : null,
     hasNumber(fund.pe) ? `市盈率 ${Number(fund.pe).toFixed(1)}倍` : null,
-    (raw.asOf || fund.period) ? `数据截至 ${raw.asOf || fund.period}` : null,
+    raw.asOf ? `行情截至 ${dayText(raw.asOf)}` : null,
+    fund.period ? `财报期 ${dayText(fund.period)}` : null,
   ].filter(Boolean).join(" · ");
   base.analysis = [
     { title: "公开事实", body: usPublicFacts || "公开资料整理中。" },
@@ -788,7 +797,11 @@ function buildUSView(base, item, snapshot) {
     { title: "事件风险", body: "财报与事件可能造成跳空。" },
   ];
   base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
-  base.sourceNote = `公开行情与财务资料 · ${raw.asOf || fund.period || "日期待核验"}`;
+  base.sourceNote = raw.asOf
+    ? `公开行情与财务资料 · 行情截至 ${dayText(raw.asOf)}`
+    : fund.period
+      ? `公开财务资料 · 财报期 ${dayText(fund.period)}`
+      : "公开行情与财务资料 · 日期待核验";
 }
 
 function buildAShareFundView(base, item) {
@@ -845,7 +858,7 @@ function buildAShareFundView(base, item) {
     ["成立日期", raw.inceptionDate],
     ["基金规模", size],
     ["管理费托管", raw.expenseRatio],
-    ["价格日期", raw.priceAsOf || raw.asOf],
+    ["价格日期", dayText(raw.priceAsOf || raw.asOf)],
     ["历史样本", history.length ? `${history.length}个交易日` : null],
     ["分红说明", raw.distributionNote || "以基金公告为准"],
     ["资料来源", raw.source || raw.priceSource],
@@ -861,7 +874,7 @@ function buildAShareFundView(base, item) {
     { title: "指数风险", body: "红利指数会调仓，行业权重和成分质量会变；分红、净值和场内价格要分开看。" },
     { title: "价格风险", body: "若场内价格明显偏离净值，或单日跌幅扩大，先核对折溢价、指数变化和公告，再决定是否继续持有。" },
   ];
-  base.sourceNote = `${raw.source || raw.priceSource || "公开行情"} · ${raw.priceAsOf || raw.asOf || "日期待核验"}`;
+  base.sourceNote = `${raw.source || raw.priceSource || "公开行情"} · ${dayText(raw.priceAsOf || raw.asOf) || "日期待核验"}`;
 }
 
 function buildAShareRiskItems(raw = {}, financials = {}) {
@@ -990,8 +1003,8 @@ function buildAShareView(base, item) {
     ["公司全称", item.name],
     ["股票代码", raw.code || item.code],
     ["所属行业", raw.industry || financials.industry],
-    ["价格日期", raw.priceAsOf || raw.asOf],
-    ["财报期", financials.reportDate || financials.period],
+    ["价格日期", dayText(raw.priceAsOf || raw.asOf)],
+    ["财报期", dayText(financials.reportDate || financials.period)],
     ["当前价格", hasNumber(raw.currentPrice) ? money(raw.currentPrice, "¥") : null],
     ["昨收", hasNumber(raw.previousClose) ? money(raw.previousClose, "¥") : null],
     ["今日涨跌", hasNumber(raw.changePercent) ? formatPercent(raw.changePercent) : null],
@@ -1061,7 +1074,7 @@ function buildGuruView(base, item) {
     ["持仓", `${holdings.length}`],
     ["退出", `${sold.length}`],
     ["披露滞后", lagDays == null ? "待核" : `${lagDays}天`],
-    ["报告期", raw.reportDate || profile.report || "待核"],
+    ["报告期", dayText(raw.reportDate || profile.report) || "待核"],
   ];
   base.highlights = [
     { label: "年化", value: profile.performanceValue || "—" },
@@ -1116,7 +1129,7 @@ function buildGuruView(base, item) {
     ["表观年化", profile.performanceValue],
     ["业绩区间", profile.performanceDetail],
     ["持仓报告", raw.reportDate || profile.report],
-    ["披露日期", filingDate],
+    ["披露日期", dayText(filingDate)],
     ["披露滞后", lagDays == null ? null : `${lagDays}天`],
     ["资料来源", raw.source || "SEC 13F"],
   ], 12);
@@ -1260,10 +1273,10 @@ function buildGoldView(base, item) {
     ["人民币金观察分", Number.isFinite(domesticScore) ? `${domesticScore}` : null],
     ["国际金价", hasNumber(international.price) ? `${Number(international.price).toFixed(1)}${international.currency || "USD/oz"}` : null],
     ["国际金涨跌", hasNumber(international.changePercent) ? formatPercent(international.changePercent) : null],
-    ["国际金截至", international.asOf],
+    ["国际金截至", dayText(international.asOf)],
     ["人民币金价", hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(2)}${domestic.currency || "CNY/g"}` : null],
     ["人民币金涨跌", hasNumber(domestic.changePercent) ? formatPercent(domestic.changePercent) : null],
-    ["人民币金截至", domestic.asOf],
+    ["人民币金截至", dayText(domestic.asOf)],
     ["GLD", hasNumber(etf.price) ? `${Number(etf.price).toFixed(2)}·${formatPercent(etf.changePercent)}` : null],
     ["美元兑人民币", hasNumber(usdCny.price) ? `${Number(usdCny.price).toFixed(4)}` : null],
     ["国际金观察低位", buyIntl],
@@ -1292,6 +1305,29 @@ function buildGoldView(base, item) {
   base.sourceNote = (gold.sources || []).filter((source) => source.ok).map((source) => source.name).join(" · ") || "公开行情与宏观资料";
 }
 
+// 「资料」tab 里的官方出处。照新闻资讯页的做法：能核验的地址摆出来，点一下
+// 复制走。以前这一页只有 sourceNote 一个来源"名字"，还压在风险 tab 最底下，
+// 用户想核对得自己去搜——而快照里其实躺着两类真实深链：港交所每只新股的
+// 招股章程/上市公告/配发结果 PDF，以及每家机构自己的 SEC EDGAR 备案页。
+//
+// 顺序是先条目级深链、后栏目级入口：深链直接指向这一只标的的原始文件，
+// 站点入口只是兜底。没有地址的来源不放进来（见 utils/sources.js 的 sourceLink）。
+function buildSourceLinks(item, snapshot) {
+  const raw = (item && item.raw) || {};
+  const own = [];
+  if (item.market === "hk") {
+    own.push(
+      raw.prospectusUrl ? { id: "hk-prospectus", name: "招股章程（港交所 PDF）", url: raw.prospectusUrl } : null,
+      raw.announcementUrl ? { id: "hk-announcement", name: "上市公告（港交所 PDF）", url: raw.announcementUrl } : null,
+      raw.allotmentUrl ? { id: "hk-allotment", name: "配发结果（港交所 PDF）", url: raw.allotmentUrl } : null,
+    );
+  }
+  if (item.market === "guru" && raw.sourceUrl) {
+    own.push({ id: "guru-edgar", name: `${item.name || "该机构"} 的 SEC EDGAR 备案`, url: raw.sourceUrl });
+  }
+  return dedupeSources(own.filter(Boolean).concat(marketSources(snapshot, item.market)));
+}
+
 function detailView(item, snapshot) {
   const base = baseView(item);
   if (item.market === "hk") buildHKView(base, item);
@@ -1300,6 +1336,7 @@ function detailView(item, snapshot) {
   else if (item.market === "gold") buildGoldView(base, item);
   else buildGuruView(base, item);
 
+  base.sourceLinks = buildSourceLinks(item, snapshot);
   base.strategy = buildStrategySignal(item, { snapshot, evidence: strategyEvidence });
 
   const scored = scoreForItem(item);
@@ -1437,6 +1474,9 @@ Page({
     activeCharts: [],
     view: {},
     source: "正在读取同步数据",
+    // 页头那句「数据截至 …」和新闻资讯页、栏目页、明细页共用 asOfText()。
+    // 同一份快照在四个页面上说的时间必须是同一个，各写各的迟早会飘。
+    dataAsOf: "",
     freshness: freshnessBanner("正在读取同步数据", "fresh"),
     snapshotSheetOpen: false,
     snapshotSaving: false,
@@ -1471,6 +1511,17 @@ Page({
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
   retryFreshness() { this.refresh(null, true); },
+  // 和新闻资讯页同一套交互：小程序打不开任意外链，来源只能复制出去自己核对。
+  copySourceLink(event) {
+    const url = String(event.currentTarget.dataset.url || "");
+    if (!url) return;
+    track("news_source_copy", { market: String(this.data.market || "") });
+    wx.setClipboardData({
+      data: url,
+      success: () => wx.showToast({ title: "已复制来源链接", icon: "success" }),
+      fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
+    });
+  },
   refreshMemberLink() {
     loadWorkspace()
       .then((workspace) => {
@@ -1502,6 +1553,7 @@ Page({
       rendered = true;
       this._latestSnapshot = snapshot;
       const freshness = freshnessBanner(source, meta.kind);
+      const dataAsOf = asOfText(snapshot && snapshot.updatedAt, meta.kind);
       try {
         const item = findItem(snapshot, this.data.market, this.data.id);
         if (!item) {
@@ -1511,6 +1563,7 @@ Page({
             loadError: "未找到该标的，请返回列表重试",
             source,
             freshness,
+            dataAsOf,
           });
           return;
         }
@@ -1531,6 +1584,7 @@ Page({
           group: item.group || "",
           source,
           freshness,
+          dataAsOf,
         });
         wx.setNavigationBarTitle({ title: view.title || "资料详情" });
         this.refreshMemberLink();
@@ -1542,6 +1596,7 @@ Page({
           loadError: "资料渲染失败，请下拉重试",
           source,
           freshness,
+          dataAsOf,
         });
       }
     }, () => {

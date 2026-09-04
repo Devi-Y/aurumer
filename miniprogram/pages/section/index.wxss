@@ -42,63 +42,79 @@
 .freshness-banner.tone-warn { background: #fff7ec; border-color: #f0e0c8; }
 .freshness-banner.tone-bad { background: #fdf0ee; border-color: #f0d5cf; }
 
+/* 页头绿带。和新闻资讯页同一套：负的左右外边距把带子顶到屏宽，
+   .section-shell 自己那 20rpx 的边留给下面的卡片继续用。 */
 .section-hero {
-  padding: 22rpx 24rpx;
-  border-color: #e3ebe6;
-  background: #ffffff;
-}
-
-.section-hero.us,
-.section-hero.a,
-.section-hero.gold,
-.section-hero.guru {
-  background: #ffffff;
-  border-color: #e3ebe6;
+  margin: -20rpx -20rpx 0;
+  padding: 18rpx 24rpx 40rpx;
+  background: linear-gradient(165deg, #0d8a5c 0%, #0b7a53 55%, #096844 100%);
 }
 
 .hero-top {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .hero-title {
-  color: #172019;
-  font-size: 36rpx;
-  font-weight: 650;
+  flex: none;
+  color: #ffffff;
+  font-size: 40rpx;
+  font-weight: 720;
 }
 
-.hero-help {
-  display: block;
-  margin-top: 12rpx;
+.hero-meta {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
-  color: #5a645e;
-  font-size: 24rpx;
-  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 22rpx;
+  text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.hero-image-wrap {
-  display: flex;
-  width: 56rpx;
-  height: 56rpx;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16rpx;
-  background: #f3f7f4;
+.hero-help {
+  display: block;
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 23rpx;
+  line-height: 1.45;
 }
 
-.hero-image {
-  width: 34rpx;
-  height: 34rpx;
+.hero-stats {
+  display: flex;
+  margin-top: 14rpx;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.hero-stat {
+  padding: 5rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+}
+
+/* 结论与关键数值那张卡向上压住绿带下沿。 */
+.hero-body {
+  position: relative;
+  z-index: 1;
+  margin-top: -22rpx;
 }
 
 .hero-metrics {
   display: flex;
-  margin-top: 18rpx;
+  padding: 16rpx 18rpx 18rpx;
+}
+
+/* 结论行在的时候，两块之间才需要那道分隔线。 */
+.insight-panel + .hero-metrics {
   padding-top: 16rpx;
   border-top: 1rpx solid #edf0ee;
 }
@@ -146,9 +162,7 @@
 }
 
 .insight-panel {
-  margin-top: 14rpx;
-  padding-top: 14rpx;
-  border-top: 1rpx solid #edf0ee;
+  padding: 18rpx 24rpx 0;
 }
 
 .deep-panel {
@@ -488,7 +502,8 @@
 
 @media (max-width: 340px) {
   .section-shell { padding-right: 14rpx; padding-left: 14rpx; }
-  .hero-title { font-size: 37rpx; }
+  .section-hero { margin-right: -14rpx; margin-left: -14rpx; }
+  .hero-title { font-size: 36rpx; }
   .hero-metric { padding-right: 6rpx; padding-left: 6rpx; }
   .hero-metric text:last-child { font-size: 28rpx; }
 }
@@ -498,4 +513,53 @@
   .section-hero,
   .answer-panel,
   .group-panel { border-radius: 20px; }
+}
+
+/* 数据出处。和新闻资讯页每条下面那行"来源 X · 复制链接"是同一件事，
+   只是栏目页一次列全栏目的官方入口，不必每行重复一遍。 */
+.source-panel {
+  padding: 20rpx 0 4rpx;
+}
+
+.source-head {
+  display: flex;
+  padding: 0 24rpx 12rpx;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.source-title {
+  color: #1f2621;
+  font-size: 28rpx;
+  font-weight: 680;
+}
+
+.source-meta {
+  color: #9aa19c;
+  font-size: 22rpx;
+}
+
+.source-link-row {
+  display: flex;
+  min-height: 76rpx;
+  padding: 14rpx 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  border-top: 1rpx solid #edf0ee;
+  font-size: 27rpx;
+}
+
+.source-link-name {
+  min-width: 0;
+  flex: 1;
+  color: #1b211d;
+}
+
+.source-link-action {
+  flex: none;
+  color: #0b7a53;
+  font-size: 24rpx;
+  font-weight: 620;
 }

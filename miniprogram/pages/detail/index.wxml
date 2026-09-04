@@ -58,32 +58,31 @@
 
 <view class="page-shell detail-shell">
   <view wx:if="{{ready}}" class="detail-content">
-    <view class="detail-summary {{view.tone}}">
-      <view class="summary-top">
-        <view class="summary-identity">
-          <text class="summary-label">{{view.marketLabel}}</text>
-          <text class="title">{{view.title}}</text>
-          <text class="code">{{view.code}}</text>
-        </view>
-        <view class="summary-score" wx:if="{{view.researchScore != null}}">
-          <text class="summary-score-value">{{view.researchScore}}</text>
-          <text class="summary-score-label">{{view.researchScoreLabel || '评分'}}</text>
-        </view>
-        <view wx:else class="detail-image-wrap">
-          <image class="detail-image" src="{{view.icon}}" mode="aspectFit" aria-hidden="true"></image>
-        </view>
+    <view class="detail-hero">
+      <view class="hero-top">
+        <text class="hero-label">{{view.marketLabel}}</text>
+        <text class="hero-meta">{{dataAsOf || '同步中'}}</text>
       </view>
+      <view class="hero-name-row">
+        <text class="hero-title">{{view.title}}</text>
+        <text wx:if="{{view.code}}" class="hero-code">{{view.code}}</text>
+      </view>
+      <view wx:if="{{view.researchScore != null}}" class="hero-stats">
+        <text class="hero-stat">{{view.researchScoreLabel || '评分'}} {{view.researchScore}}</text>
+      </view>
+    </view>
 
+    <view class="page-card detail-hero-body">
       <view class="conclusion-card">
         <text class="conclusion-label">结论</text>
         <text class="conclusion-grade">{{view.badge || view.quickAnswer}}</text>
       </view>
-    </view>
 
-    <view wx:if="{{view.highlights.length}}" class="highlight-panel">
-      <view wx:for="{{view.highlights}}" wx:key="label" class="highlight-cell">
-        <text class="highlight-label">{{item.label}}</text>
-        <text class="highlight-value">{{item.value}}</text>
+      <view wx:if="{{view.highlights.length}}" class="highlight-panel">
+        <view wx:for="{{view.highlights}}" wx:key="label" class="highlight-cell">
+          <text class="highlight-label">{{item.label}}</text>
+          <text class="highlight-value">{{item.value}}</text>
+        </view>
       </view>
     </view>
 
@@ -191,7 +190,24 @@
             <text>{{item.value}}</text>
           </view>
         </view>
-        <view wx:if="{{!view.facts.length && !view.holdings.length}}" class="module-empty">当前没有可公开展示的资料。</view>
+        <view wx:if="{{view.sourceLinks.length}}" class="section-card source-card">
+          <text class="block-title">官方出处</text>
+          <text class="source-help">以下地址均为公开可访问的官方页面或原始文件，点一条复制走自行核对。</text>
+          <view
+            wx:for="{{view.sourceLinks}}"
+            wx:key="url"
+            class="source-link-row"
+            data-url="{{item.url}}"
+            bindtap="copySourceLink"
+            hover-class="tap-active"
+            aria-role="button"
+            aria-label="复制 {{item.name}} 的链接"
+          >
+            <text class="source-link-name">{{item.name}}</text>
+            <text class="source-link-action">复制链接</text>
+          </view>
+        </view>
+        <view wx:if="{{!view.facts.length && !view.holdings.length && !view.sourceLinks.length}}" class="module-empty">当前没有可公开展示的资料。</view>
       </view>
 
       <view wx:if="{{activeModule == 'risk'}}" class="module-content">

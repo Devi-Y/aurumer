@@ -45,6 +45,8 @@ const ALLOWED = new Set([
   "news_open",
   "news_item_open",
   "news_source_copy",
+  "news_more",
+  "list_group_switch",
 ]);
 
 const VISIT_KEY = "aurum_last_home_visit_day";

@@ -9,6 +9,9 @@ const { MASTER_PLAYBOOKS } = require("../../utils/master-playbooks");
 const { buildHkHistoryStats } = require("../../utils/hk-history-stats");
 const { buildDailyAnswers } = require("../../utils/daily-answers");
 const { listHoldings } = require("../../utils/local-holdings");
+const { marketSources } = require("../../utils/sources");
+// 页头那句「数据截至 …」和新闻资讯页共用同一个写法。
+const { asOfText } = require("../../utils/dates");
 
 const META = {
   hk: {
@@ -265,6 +268,8 @@ Page({
     playbooks: [],
     answers: [],
     deepLinks: [],
+    sourceLinks: [],
+    dataAsOf: "",
   },
   onLoad(options) {
     const market = META[options.market] ? options.market : "hk";
@@ -289,6 +294,17 @@ Page({
     this.refresh(() => wx.stopPullDownRefresh(), true);
   },
   retryFreshness() { this.refresh(null, true); },
+  // 和新闻资讯页同一套交互：小程序打不开任意外链，来源只能复制出去自己核对。
+  copySourceLink(event) {
+    const url = String(event.currentTarget.dataset.url || "");
+    if (!url) return;
+    track("news_source_copy", { market: String(this.data.market || "") });
+    wx.setClipboardData({
+      data: url,
+      success: () => wx.showToast({ title: "已复制来源链接", icon: "success" }),
+      fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
+    });
+  },
   buildDeepLinks(snapshot, market) {
     if (market === "hk") {
       const stats = buildHkHistoryStats(snapshot);
@@ -344,6 +360,10 @@ Page({
         deepLinks: this.buildDeepLinks(snapshot, this.data.market),
         source,
         freshness: freshnessBanner(source, meta.kind),
+        // 这一栏的数据是从哪儿来的。新闻资讯页每条都挂了官方出处，
+        // 五个栏目页一直只有一句"公开资料整理"，核对无门。
+        sourceLinks: marketSources(snapshot, this.data.market),
+        dataAsOf: asOfText(snapshot && snapshot.updatedAt, meta.kind),
       });
     }, done, { force });
   },

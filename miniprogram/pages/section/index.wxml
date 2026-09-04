@@ -1,13 +1,19 @@
 <view class="page-shell section-shell">
-  <view class="page-card section-hero {{meta.tone}}">
+  <!-- 页头照新闻资讯页的写法：绿带里放栏目名、数据截至、一句说明和范围标签。
+       原来是一张白卡，页面上看不到这份数据是什么时候的，装饰图标反而最显眼。 -->
+  <view class="section-hero">
     <view class="hero-top">
       <text class="hero-title">{{meta.title}}</text>
-      <view class="hero-image-wrap">
-        <image class="hero-image" src="{{meta.icon}}" mode="aspectFit" aria-hidden="true"></image>
-      </view>
+      <text class="hero-meta">{{dataAsOf || '同步中'}}</text>
     </view>
     <text class="hero-help">{{meta.one}}</text>
+    <view wx:if="{{answers.length}}" class="hero-stats">
+      <text class="hero-stat">今日答案 {{answers.length}} 条</text>
+    </view>
+  </view>
 
+  <!-- 结论和关键数值单独成卡，向上压住绿带下沿——和新闻资讯页筛选条压边一样。 -->
+  <view class="page-card hero-body">
     <view class="insight-panel" wx:if="{{overview.target || overview.grade}}">
       <view class="insight-line">
         <text class="insight-label">结论</text>
@@ -150,6 +156,26 @@
         <text class="playbook-principle">{{item.principle}}</text>
       </view>
       <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <view wx:if="{{sourceLinks.length}}" class="page-card source-panel">
+    <view class="source-head">
+      <text class="source-title">数据出处</text>
+      <text class="source-meta">点一条复制走自行核对</text>
+    </view>
+    <view
+      wx:for="{{sourceLinks}}"
+      wx:key="url"
+      class="source-link-row"
+      data-url="{{item.url}}"
+      bindtap="copySourceLink"
+      hover-class="tap-active"
+      aria-role="button"
+      aria-label="复制 {{item.name}} 的链接"
+    >
+      <text class="source-link-name">{{item.name}}</text>
+      <text class="source-link-action">复制链接</text>
     </view>
   </view>
 

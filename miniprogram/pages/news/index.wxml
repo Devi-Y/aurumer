@@ -5,6 +5,17 @@
       <text class="news-hero-meta">{{dataAsOf || '同步中'}}</text>
     </view>
     <text class="news-hero-help">只汇总带日期、带官方出处的公开披露与数据变化，按时间倒序；不转载媒体报道，不含买卖建议。</text>
+    <view wx:if="{{scopeLabel}}" class="news-hero-stats">
+      <text class="news-stat">{{scopeLabel}}</text>
+      <text
+        wx:if="{{newCount}}"
+        class="news-stat is-new"
+        bindtap="showNewOnly"
+        hover-class="news-stat-tap"
+        aria-role="button"
+        aria-label="只看新增的 {{newCount}} 条"
+      >较上次查看新增 {{newCount}} 条 ›</text>
+    </view>
   </view>
 
   <scroll-view
@@ -19,7 +30,7 @@
       <text
         wx:for="{{filters}}"
         wx:key="id"
-        class="news-filter {{activeFilter === item.id ? 'active' : ''}}"
+        class="news-filter {{item.id === 'new' ? 'is-new' : ''}} {{activeFilter === item.id ? 'active' : ''}}"
         data-id="{{item.id}}"
         bindtap="selectFilter"
         aria-role="button"
@@ -28,34 +39,53 @@
     </view>
   </scroll-view>
 
-  <view wx:if="{{visible.length}}" class="page-card news-list">
+  <view wx:if="{{sections.length}}" class="page-card news-list">
+    <block wx:for="{{sections}}" wx:key="id" wx:for-item="section">
+      <view class="news-group">
+        <text class="news-group-title">{{section.title}}</text>
+        <text class="news-group-count">{{section.count}} 条</text>
+      </view>
+      <view
+        wx:for="{{section.rows}}"
+        wx:key="key"
+        class="news-row"
+        data-id="{{item.id}}"
+        bindtap="openItem"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="{{item.isNew ? '新增，' : ''}}{{item.title}}，{{item.dateNote}}{{item.dateLabel}}，{{item.body}}"
+      >
+        <view class="news-row-head">
+          <text class="news-kind {{item.kind}}">{{item.kindLabel}}</text>
+          <view class="news-date-wrap">
+            <text wx:if="{{item.isNew}}" class="news-new">新</text>
+            <text wx:if="{{item.dateNote}}" class="news-date-note">{{item.dateNote}}</text>
+            <text class="news-date">{{item.dateLabel}}</text>
+          </view>
+        </view>
+        <text class="news-row-title">{{item.title}}</text>
+        <text wx:if="{{item.body}}" class="news-row-body">{{item.body}}</text>
+        <view class="news-row-foot">
+          <text
+            class="news-source"
+            data-id="{{item.id}}"
+            catchtap="copySource"
+            aria-role="button"
+            aria-label="复制 {{item.sourceName}} 链接"
+          >来源 {{item.sourceName}}<text wx:if="{{item.sourceAction}}" class="news-source-action"> · {{item.sourceAction}}</text></text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </block>
+
     <view
-      wx:for="{{visible}}"
-      wx:key="id"
-      class="news-row"
-      data-id="{{item.id}}"
-      bindtap="openItem"
+      wx:if="{{restCount}}"
+      class="news-more"
+      bindtap="loadMore"
       hover-class="tap-active"
       aria-role="button"
-      aria-label="{{item.title}}，{{item.body}}"
-    >
-      <view class="news-row-head">
-        <text class="news-kind {{item.kind}}">{{item.kindLabel}}</text>
-        <text class="news-date">{{item.dateLabel}}</text>
-      </view>
-      <text class="news-row-title">{{item.title}}</text>
-      <text wx:if="{{item.body}}" class="news-row-body">{{item.body}}</text>
-      <view class="news-row-foot">
-        <text
-          class="news-source"
-          data-id="{{item.id}}"
-          catchtap="copySource"
-          aria-role="button"
-          aria-label="复制 {{item.sourceName}} 链接"
-        >来源 {{item.sourceName}}<text wx:if="{{item.sourceAction}}" class="news-source-action"> · {{item.sourceAction}}</text></text>
-        <text class="arrow">›</text>
-      </view>
-    </view>
+      aria-label="继续展开更早的 {{restCount}} 条"
+    >继续展开更早的 {{restCount}} 条</view>
   </view>
   <view wx:else class="page-card news-empty">
     <text class="news-empty-title">暂时没有可核验的公开披露</text>

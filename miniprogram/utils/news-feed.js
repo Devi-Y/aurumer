@@ -17,6 +17,11 @@
 // 挂详情链接，只落回栏目页。
 
 const { allItems, INVESTOR_NAMES } = require("./answers");
+// 官方出处登记表已抬到 utils/sources.js 共用，五个功能模块的详情页现在
+// 和这一页用同一份地址，不会出现"新闻页能核验、详情页核验不了"。
+const { sourceUrlOf, sourceNameOf } = require("./sources");
+// 日期归一化也抬到了 utils/dates.js 共用，详情页现在和这一页认同一套写法。
+const { pad2, toDay } = require("./dates");
 
 const KIND_LABEL = {
   hk: "港股新股",
@@ -30,10 +35,6 @@ const KIND_LABEL = {
 // 不设上限的话整条流会被这两类淹掉，港交所和 13F 反而看不见。
 const MAX_PER_KIND = { hk: 8, guru: 9, gold: 5, a: 6, us: 6 };
 
-function pad2(value) {
-  return String(value).padStart(2, "0");
-}
-
 // null / undefined / 空串必须当成「没有这个数」返回 null，不能落进 Number()——
 // Number(null) 是 0 且有限，会把「五日涨跌未公布」渲染成「五日 0.00%」，
 // 那就是拿假数据填版面，违反数据可信优先于页面完整这条红线。
@@ -41,19 +42,6 @@ function number(value) {
   if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
-}
-
-// 统一成 YYYY-MM-DD。识别不了就返回空串，调用方会把这条丢掉——
-// 没有真实日期的条目不进这条流。
-function toDay(value) {
-  if (!value) return "";
-  const raw = String(value).trim();
-  const iso = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if (iso) return `${iso[1]}-${pad2(iso[2])}-${pad2(iso[3])}`;
-  // Nasdaq 的财季写法是 M/D/YYYY，例如 1/25/2026。
-  const us = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (us) return `${us[3]}-${pad2(us[1])}-${pad2(us[2])}`;
-  return "";
 }
 
 // 港交所公告本身没有日期字段，但它的官方链接路径里带着发布日：
@@ -81,39 +69,6 @@ function signedPercent(value, digits = 2) {
 
 function joinBits(bits) {
   return bits.filter((bit) => bit !== null && bit !== undefined && bit !== "").join(" · ");
-}
-
-// 官方出处兜底表。引擎在 data/live-snapshot.json 里是有一份完整 sources 数组的，
-// 但同步进小程序包的那份被脱敏脚本剥掉了（只有 gold.sources 留了下来），
-// 线上拉到的对外快照同样没有。所以这里按 source id 备一份站点级官方地址。
-//
-// 只放"绝对不会指错"的官方入口，不去猜每只标的的深链——链接是给用户复制去核
-// 对的，宁可少一层精确度，也不能给出一个 404。逐条能拿到深链的两类（港交所公
-// 告 PDF、SEC 每家机构的 EDGAR 页）本来就带在快照条目里，优先用那个。
-const SOURCE_FALLBACK = {
-  hkex: { name: "香港交易所新上市资料", url: "https://www2.hkexnews.hk/new-listings/new-listing-information/main-board?sc_lang=zh-HK" },
-  sec: { name: "SEC EDGAR 13F", url: "https://www.sec.gov/edgar/search/" },
-  nasdaq: { name: "Nasdaq 公司财务数据", url: "https://www.nasdaq.com/market-activity/stocks" },
-  "eastmoney-a-financial": { name: "东方财富 A股公开财务数据", url: "https://data.eastmoney.com/" },
-  "gold-yahoo": { name: "Yahoo Finance 公共行情", url: "https://finance.yahoo.com/quote/GC=F/" },
-  "gold-fred": { name: "FRED 宏观指标", url: "https://fred.stlouisfed.org/" },
-  "gold-cftc": { name: "CFTC 黄金持仓", url: "https://www.cftc.gov/dea/newcot/f_disagg.txt" },
-  "gold-sge": { name: "上海黄金交易所 Au99.99", url: "https://www.sge.com.cn/sjzx/quotation_daily_new" },
-};
-
-function sourceEntry(snapshot, id) {
-  const fromSnapshot = (snapshot.sources || []).find((source) => source && source.id === id);
-  return fromSnapshot || SOURCE_FALLBACK[id] || null;
-}
-
-function sourceUrlOf(snapshot, id, fallback = "") {
-  const entry = sourceEntry(snapshot, id);
-  return (entry && entry.url) || fallback;
-}
-
-function sourceNameOf(snapshot, id, fallback = "") {
-  const entry = sourceEntry(snapshot, id);
-  return (entry && entry.name) || fallback;
 }
 
 function buildNewsFeed(snapshot) {
@@ -154,13 +109,17 @@ function buildNewsFeed(snapshot) {
   (hk.listings || []).forEach((listing) => {
     if (!listing || !listing.name) return;
     const url = listing.announcementUrl || listing.prospectusUrl || listing.allotmentUrl || "";
-    const day = dayFromHkexUrl(url) || toDay(listing.listingDate);
+    const fromUrl = dayFromHkexUrl(url);
+    const day = fromUrl || toDay(listing.listingDate);
     const extraction = listing.announcementExtraction || {};
     push({
       id: `news-hk-${listing.id || listing.rawCode}`,
       kind: "hk",
       day,
       title: `${listing.name} · 港交所新上市公告`,
+      // 这一条的日期可能来自公告 PDF 的路径（真·公告日），也可能退回挂牌日，
+      // 两者含义不同，所以标签跟着来源走，不要笼统写成"日期"。
+      dateNote: fromUrl ? "公告日" : "挂牌日",
       body: joinBits([
         listing.code,
         listing.status,
@@ -183,6 +142,7 @@ function buildNewsFeed(snapshot) {
       kind: "hk",
       day: toDay(entry.listingDate),
       title: `${entry.name} 已挂牌上市`,
+      dateNote: "挂牌日",
       body: joinBits([
         // offerPrice 缺失时快照会填「以历史招股文件为准」这类占位话术，
         // 印在资讯流里既不是事实也不是数字，只有真带数字时才展示。
@@ -212,6 +172,8 @@ function buildNewsFeed(snapshot) {
       kind: "guru",
       day: toDay(investor.filingDate),
       title: `${INVESTOR_NAMES[investor.id] || investor.name} 提交 13F`,
+      // filingDate 是递交日，不是持仓截止日（那个是 reportDate，写在正文里）。
+      dateNote: "披露日",
       body: joinBits([
         investor.reportDate ? `${investor.reportDate} 报告期` : "",
         top && top.ticker && number(top.weight) !== null
@@ -243,6 +205,7 @@ function buildNewsFeed(snapshot) {
       kind: "gold",
       day: toDay(domestic.asOf),
       title: `${domestic.name || "上海金"} 报 ${number(domestic.price)} ${domestic.currency || ""}`.trim(),
+      dateNote: "行情日",
       body: joinBits([
         number(domestic.changePercent) !== null ? `较前值 ${signedPercent(domestic.changePercent)}` : "",
         number(domestic.percentile30) !== null ? `近30日分位 ${Math.round(number(domestic.percentile30))}%` : "",
@@ -261,6 +224,7 @@ function buildNewsFeed(snapshot) {
       kind: "gold",
       day: toDay(international.asOf),
       title: `${international.name || "国际金价"} 报 ${number(international.price)} ${international.currency || ""}`.trim(),
+      dateNote: "行情日",
       body: joinBits([
         number(international.changePercent) !== null ? `较前值 ${signedPercent(international.changePercent)}` : "",
         number(returns.day20) !== null ? `20日 ${signedPercent(returns.day20, 1)}` : "",
@@ -286,6 +250,7 @@ function buildNewsFeed(snapshot) {
       kind: "gold",
       day: toDay(indicator.asOf),
       title: `${indicator.label} 更新至 ${value}${indicator.unit || ""}`,
+      dateNote: "数据日",
       body: joinBits([
         number(indicator.change20) !== null ? `20日变化 ${signedPercent(indicator.change20, 1)}` : "",
         indicator.note || "",
@@ -311,6 +276,9 @@ function buildNewsFeed(snapshot) {
       kind: "a",
       day: toDay(row.reportDate),
       title: `${name} ${row.period || "定期报告"}`,
+      // 快照只给了报告期，没给公告披露日。年报的报告期是 12-31，离读者看到它
+      // 的时间可能隔了大半年——不标清楚就会被当成"刚发生的事"。
+      dateNote: "报告期",
       body: joinBits([
         number(row.revenueGrowth) !== null ? `营收同比 ${signedPercent(row.revenueGrowth)}` : "",
         number(row.netProfitGrowth) !== null ? `净利同比 ${signedPercent(row.netProfitGrowth)}` : "",
@@ -337,6 +305,7 @@ function buildNewsFeed(snapshot) {
       kind: "us",
       day,
       title: `${nameOf("us", row.symbol, row.symbol)} 最新财季（截至 ${day}）`,
+      dateNote: "报告期",
       body: joinBits([
         number(row.revenueGrowth) !== null ? `营收同比 ${signedPercent(row.revenueGrowth, 1)}` : "",
         number(row.grossMargin) !== null ? `毛利率 ${number(row.grossMargin).toFixed(1)}%` : "",
@@ -367,10 +336,12 @@ function buildNewsFeed(snapshot) {
     .sort((left, right) => (left.day < right.day ? 1 : left.day > right.day ? -1 : 0))
     .map((item) => ({
       id: item.id,
+      key: `${item.id}@${item.day}`,
       kind: item.kind,
       kindLabel: KIND_LABEL[item.kind] || "公开披露",
       date: item.day,
       dateLabel: dayLabel(item.day),
+      dateNote: item.dateNote || "",
       title: item.title,
       body: item.body,
       sourceName: item.sourceName,
@@ -389,4 +360,40 @@ function buildNewsFeed(snapshot) {
   return { items: feed, filters };
 }
 
-module.exports = { buildNewsFeed };
+// 把已经按时间倒序排好的流切成「最近 7 天 / 最近 30 天 / 更早」三段。
+//
+// 为什么按真实当前时间切、而不是按快照的 updatedAt 切：读者问的是"这事离我
+// 多久"，不是"这事离这份快照多久"。快照要是停更了 40 天，那所有条目本来就
+// 都不该叫"最近 7 天"——页头的数据截至那一行会说明原因，这里不该替它圆场。
+//
+// 分段只是给日期一个参照，不改变顺序，也不增删任何条目。
+const AGE_BUCKETS = [
+  { id: "d7", title: "最近 7 天", maxDays: 7 },
+  { id: "d30", title: "最近 30 天", maxDays: 30 },
+  { id: "old", title: "更早的披露", maxDays: Infinity },
+];
+
+function groupFeedByAge(items, now) {
+  const base = now instanceof Date ? now : new Date(now || Date.now());
+  const todayUtc = Date.UTC(base.getFullYear(), base.getMonth(), base.getDate());
+  const sections = [];
+  (items || []).forEach((item) => {
+    const parts = String(item.date || "").split("-");
+    // 日期解析不出来的条目本来就进不了 feed（push 会拦掉），这里再兜一次底：
+    // 与其猜一个分段，不如放到"更早"，不会假装它很新。
+    const stamp = parts.length === 3
+      ? Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+      : NaN;
+    const days = Number.isFinite(stamp) ? Math.round((todayUtc - stamp) / 86400000) : Infinity;
+    const bucket = AGE_BUCKETS.find((entry) => days <= entry.maxDays) || AGE_BUCKETS[AGE_BUCKETS.length - 1];
+    const last = sections[sections.length - 1];
+    if (last && last.id === bucket.id) {
+      last.rows.push(item);
+      return;
+    }
+    sections.push({ id: bucket.id, title: bucket.title, rows: [item] });
+  });
+  return sections.map((section) => ({ ...section, count: section.rows.length }));
+}
+
+module.exports = { buildNewsFeed, groupFeedByAge };

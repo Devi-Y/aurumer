@@ -5,6 +5,7 @@
 const { aShareDividendStability, allItems, shortCompanyName } = require("./answers");
 const { MASTER_PLAYBOOKS } = require("./master-playbooks");
 const { buildGuruTrend } = require("./guru-trend");
+const { toDay } = require("./dates");
 const {
   buildHkExitBands, formatExitBand, formatExitMedian, formatExitPositive,
   mapOfferBand, mapOfferMedian,
@@ -119,7 +120,21 @@ function buildHkAnswers(snapshot) {
   const offer = parseOfferPrice(lead?.raw?.offerPrice || lead?.raw?.priceHigh || lead?.raw?.priceLow);
   const liveLead = lead && lead.group !== "ended" && lead.group !== "cancelled";
 
-  const exitCard = (id, question, band, endedKey) => {
+  // 用户点名要的是暗盘与首日两个卖点。首周仍然照算，只是收进首日那张卡的
+  // 展开层——它和首日用的是同一批已披露样本，单占一行等于把同一段分位说明
+  // 在一屏里印三遍。
+  const weekModal = () => {
+    const band = bands.fiveDay;
+    if (!band || !band.n) return "打中后首周：已披露样本不足，暂不给出观察价。";
+    const mid = liveLead && offer ? mapOfferMedian(offer, band) : null;
+    return [
+      `打中后首周（与首日同一批样本）：${formatExitMedian(band)}${mid ? `，约 ${mid}` : ""}`,
+      `${formatExitPositive(band)}，区间 ${formatExitBand(band)}`,
+      "历史分位不是下一只的保证卖出价。",
+    ].join("\n");
+  };
+
+  const exitCard = (id, question, band, endedKey, modal = "") => {
     const ended = items
       .filter((item) => item.group === "ended" && Number.isFinite(Number(item.raw?.historicalReview?.[endedKey])))
       .slice()
@@ -145,6 +160,7 @@ function buildHkAnswers(snapshot) {
         targetId: lead.id,
         enabled: true,
         hint: "按历史分位映射到招股价，不是本股保证卖出价。",
+        modal,
       });
     }
     const sample = ended[0];
@@ -170,6 +186,7 @@ function buildHkAnswers(snapshot) {
         targetId: sample.id,
         enabled: true,
         hint: "已披露结果只复盘最近一只；分位不是下一只保证卖出价。",
+        modal,
       });
     }
     if (band?.n) {
@@ -187,6 +204,7 @@ function buildHkAnswers(snapshot) {
         group: "ended",
         enabled: true,
         hint: "没有在售新股招股价时，只展示历史分位。",
+        modal,
       });
     }
     if (lastLine) {
@@ -200,6 +218,7 @@ function buildHkAnswers(snapshot) {
         group: "ended",
         enabled: true,
         hint: "已结束样本的已披露结果，不预测下一只。",
+        modal,
       });
     }
     return card({
@@ -207,6 +226,7 @@ function buildHkAnswers(snapshot) {
       question,
       answer: "样本不足，暂不给出观察价",
       tone: "muted",
+      modal,
     });
   };
 
@@ -237,6 +257,22 @@ function buildHkAnswers(snapshot) {
       group: "worth",
       targetId: worth[0]?.id || "",
       enabled: worth.length > 0,
+      // 打多少手不在用户点名的五个问题里，但「默认仍是一手」是这张卡自己的
+      // 边界，删掉等于把风险话术一起删了。收进展开层：名单在上，仓位在下，
+      // 「查看」仍然直接进列表。没有值得打的新股时不弹这一层。
+      modal: worth.length
+        ? [
+          // 卡片正面最多列三只，超过三只时展开层才需要把名单补全，否则是同一
+          // 行字印两遍。
+          worth.length > 3
+            ? `值得打 ${worth.length} 只：${worth.map((item) => shortCompanyName(item.name, "新股", 6)).join("、")}`
+            : "",
+          leverage.length
+            ? `其中 ${leverage.map((item) => shortCompanyName(item.name, "新股", 4)).join("、")} 达到十倍融资门槛（研究分≥80、招股价与一手金额齐全、超购<200），仍须能承受一手亏损。`
+            : "都没到十倍融资门槛（研究分≥80、招股价与一手金额齐全、超购<200）。",
+          "默认仍是一手；融资会放大破发，这不是加杠杆指令。",
+        ].filter(Boolean).join("\n")
+        : "",
     }),
     card({
       id: "hk-avoid",
@@ -249,40 +285,8 @@ function buildHkAnswers(snapshot) {
       targetId: avoid[0]?.id || "",
       enabled: avoid.length > 0,
     }),
-    card({
-      id: "hk-leverage",
-      question: "十倍融资观察",
-      // 这张卡问的是「十倍融资观察」，空态却写「今天没有值得打的新股」，
-      // 会和上面那张「值得打 N 只」在同一屏里直接打架。空态只说融资门槛。
-      answer: leverage.length
-        ? `高杠杆观察 ${leverage.length} 只，仍须能承受一手亏损`
-        : (worth.length
-          ? `值得打的 ${worth.length} 只都没到融资门槛，默认仍是一手`
-          : (histLev.length
-            ? `没有够门槛的新股。历史拥挤度对照 ${histLev.length} 只，不能追认当时该打`
-            : `没有够门槛的新股；近${items.filter((item) => item.group === "ended").length}只历史样本也都不满足拥挤度门槛`)),
-      // 空态改口说「值得打的 N 只没到融资门槛」之后，名单还挂着历史拥挤度样本，
-      // 说的和列的又对不上。名单跟着这句话走。
-      names: namesOf(leverage.length ? leverage : (worth.length ? worth : histLev)),
-      tone: leverage.length ? "warn" : "muted",
-      action: leverage.length ? "group" : (histLev.length ? "group" : "none"),
-      group: leverage.length ? "leverage" : "ended",
-      targetId: (leverage[0] || histLev[0])?.id || "",
-      enabled: true,
-      hint: "只在值得打且拥挤度不高时出现；默认仍是一手，不是加杠杆指令。",
-      modal: leverage.length
-        ? "达到门槛仍须能承受一手亏损；默认一手，融资会放大破发。不是加杠杆指令。"
-        : [
-          "门槛：值得打、研究分≥80、招股价与一手金额齐全、超购倍数<200。默认仍是一手。",
-          histLev.length
-            ? `历史拥挤度对照：${histLev.map((item) => `${shortCompanyName(item.name, "新股", 4)} 超购 ${Number(item.raw?.publicOversubscription).toFixed(1)} 倍`).join("、")}。当时没有望潮研究分，不能追认值得打或十倍融资。`
-            : `近${items.filter((item) => item.group === "ended").length}只历史样本超购倍数普遍≥200或一手中签过低，按规则不会标十倍融资。`,
-          "没有在售值得打新股时不补虚拟新股。",
-        ].join("\n"),
-    }),
     exitCard("hk-grey", "打中后暗盘", bands.grey, "greyMarketChange"),
-    exitCard("hk-first", "打中后首日", bands.firstDay, "firstDayChange"),
-    exitCard("hk-week", "打中后首周", bands.fiveDay, "fiveDayChange"),
+    exitCard("hk-first", "打中后首日", bands.firstDay, "firstDayChange", weekModal()),
   ];
 }
 
@@ -335,17 +339,95 @@ function buildUsAnswers(snapshot) {
     // 五段才是同一种读法。
     pickNames ? `周期 ${sleeve.weights.cycle}%（${pickNames}）` : `周期 ${sleeve.weights.cycle}% 样本不足`,
   ].join(" + ");
+  // 「七姐妹近期发生了什么事」这一问原来首屏答不出来：页面上只有估值分档，
+  // 没有一句「这一周他们身上发生了什么」。这里只汇总库里已有的两样公开事实——
+  // 周涨跌与最新披露财季。本数据源没有新闻与公告字段，所以不写「因为某某消息」，
+  // 那要另接新闻源才能说。
+  const weekOf = (item) => (hasNumber(item?.raw?.weeklyChange) ? Number(item.raw.weeklyChange) : null);
+  // 近一个月按 21 个交易日算，样本不足就返回空——离线兜底数据只有 24 个收盘价，
+  // 刚好够一档，不够就别拿更短的窗口冒充「近一个月」。
+  const monthOf = (item) => {
+    const history = (item?.raw?.history || []).map(Number).filter((value) => Number.isFinite(value));
+    if (history.length < 21) return null;
+    const base = history[history.length - 21];
+    if (!base) return null;
+    return ((history[history.length - 1] - base) / base) * 100;
+  };
+  const weekRanked = seven.filter((item) => weekOf(item) !== null)
+    .sort((left, right) => weekOf(right) - weekOf(left));
+  const upCount = weekRanked.filter((item) => weekOf(item) > 0).length;
+  const strongest = weekRanked[0];
+  const weakest = weekRanked[weekRanked.length - 1];
+  const sevenAnswer = weekRanked.length >= 2
+    ? `本周 ${upCount} 涨 ${weekRanked.length - upCount} 跌，最强 ${shortCompanyName(strongest.name, strongest.code, 4)} ${signedPct(weekOf(strongest))}，最弱 ${shortCompanyName(weakest.name, weakest.code, 4)} ${signedPct(weekOf(weakest))}`
+    : "本周涨跌数据不足，暂不汇总";
+  const sevenModal = weekRanked.length
+    ? [
+      ...weekRanked.map((item) => {
+        const fund = item.raw?.fund || {};
+        const month = monthOf(item);
+        return [
+          `${shortCompanyName(item.name, item.code, 8)} 本周 ${signedPct(weekOf(item))}`,
+          month !== null ? `近一个月 ${signedPct(month)}` : "",
+          fund.period ? `财季 ${toDay(fund.period) || fund.period}` : "",
+          hasNumber(fund.revenueGrowth) ? `营收同比 ${signedPct(fund.revenueGrowth)}` : "",
+        ].filter(Boolean).join(" · ");
+      }),
+      "",
+      hold.length
+        ? `质量门通过 ${hold.length}/7：${hold.map((item) => shortCompanyName(item.name, item.code, 4)).join("、")}——可长期观察的名单从这里来。`
+        : "本轮没有一只通过质量门，先不谈长期观察。",
+      "只汇总公开行情与已披露财季。本数据源没有新闻与公告字段，不写「因为某某消息」，那要另接新闻源才能说。",
+    ].join("\n")
+    : "";
+
+  // 卡片正面只放配置本身。四个代码各带一个报价、后面再挂两个周期举例，
+  // 在 390 宽的屏幕上要折三行，权重反而看不清；报价留在展开层。
+  const sleeveFace = [
+    `VOO ${sleeve.weights.VOO}%`,
+    `${incomeSymbol} ${sleeve.weights.income}%`,
+    `O ${sleeve.weights.O}%`,
+    `SGOV ${sleeve.weights.SGOV}%`,
+    `周期 ${sleeve.weights.cycle}%`,
+  ].join(" + ");
   const missing = ["VOO", incomeSymbol, "O", "SGOV"].filter((symbol) => !sleevePrice(snapshot, symbol));
   const modal = [
+    // summary 里已经带了一遍配置行，展开层不再重复，只补正面省掉的报价。
     sleeve.summary,
-    sleeveLine,
+    // 一个报价都没有时不印这一行——四个「暂缺」下面紧跟着还有一句
+    // 「暂无已核验报价」，等于把同一件事说两遍。
+    missing.length >= 4
+      ? ""
+      : `报价：${["VOO", incomeSymbol, "O", "SGOV"]
+        .filter((symbol) => sleevePrice(snapshot, symbol))
+        .map((symbol) => `${symbol} ${sleevePrice(snapshot, symbol)}`).join(" · ")}`,
     `收息套：${incomeSymbol}（JEPQ=纳指备兑，SCHD=红利价值，二者取一）`,
-    pickNames ? `周期观察：${pickNames}` : "周期观察：当前样本不足，先留在 SGOV",
+    // 行业观察（万事达、优步）本来单占一张卡，但用户点名的四问里没有它，
+    // 而周期那一格的样本本来就是从这批行业公司里挑的——收进这里，名单不丢，
+    // 首屏也不用为它留一行。
+    industry.length
+      ? `行业对照：${industry.map((item) => {
+        const price = usd(item.raw?.price);
+        return `${shortCompanyName(item.name, item.code, 4)}${price ? ` ${price}` : ""}${item.score != null ? ` ${item.score}分` : ""}`;
+      }).join("、")}——只用于研究比较，不是买入指令。`
+      : "行业对照：当前没有同时满足质量与分数的样本。",
     missing.length ? `${missing.join("/")} 暂无已核验报价，不补虚拟价格。` : "ETF 报价来自 Yahoo Finance 公开行情，只作配置对照。",
     "研究观察，不是买卖指令。",
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 
   return [
+    card({
+      id: "us-seven",
+      question: "七姐妹近期怎么了",
+      answer: sevenAnswer,
+      names: `质量门 ${hold.length}/7 通过`,
+      // 涨跌本身没有好坏，这一格只是把这一周发生的事说清楚。
+      tone: weekRanked.length ? "warn" : "muted",
+      action: "group",
+      group: "seven",
+      enabled: seven.length > 0,
+      modal: sevenModal,
+    }),
     card({
       id: "us-cheap",
       question: "低估的七姐妹",
@@ -369,17 +451,6 @@ function buildUsAnswers(snapshot) {
       targetId: risk[0]?.id || "",
       enabled: risk.length > 0,
       hint: "每日风险重点固定看特斯拉；其它七姐妹风险仍在详情中保留。",
-    }),
-    card({
-      id: "us-hold",
-      question: "可长期观察",
-      answer: hold.length ? `${hold.length} 只质量门通过` : "质量门未通过，先不谈长期",
-      names: namesOf(hold),
-      tone: hold.length ? "good" : "warn",
-      action: "group",
-      group: "hold7",
-      targetId: hold[0]?.id || "",
-      enabled: hold.length > 0,
     }),
     card({
       id: "us-hot",
@@ -416,27 +487,11 @@ function buildUsAnswers(snapshot) {
         : "",
     }),
     card({
-      id: "us-industry",
-      question: "行业公司观察",
-      answer: industry.length
-        ? industry.slice(0, 3).map((item) => {
-          const price = usd(item.raw?.price);
-          return `${shortCompanyName(item.name, item.code, 4)}${price ? ` ${price}` : ""}${item.score != null ? ` ${item.score}分` : ""}`;
-        }).join(" · ")
-        : "没有同时满足质量与分数的行业样本",
-      names: namesOf(industry),
-      tone: industry.length ? "good" : "muted",
-      action: "group",
-      group: "industry",
-      targetId: industry[0]?.id || "",
-      enabled: industry.length > 0,
-      hint: "行业对照固定看万事达、优步；价格与分数只用于研究比较，不是买入指令。",
-    }),
-    card({
       id: "us-sleeve",
       question: "底仓如何配置",
-      answer: sleeveLine,
-      names: pickNames ? `${incomeSymbol} · ${pickNames}` : incomeSymbol,
+      answer: sleeveFace,
+      // 周期那一格在正面只有一个权重，举例放副行；收息套代码已经印在正面了。
+      names: pickNames ? `周期观察 ${pickNames}` : "周期样本不足，先留在 SGOV",
       tone: sleeve.defensive ? "warn" : "good",
       action: "none",
       targetId: sleeve.picks[0]?.id || "",
@@ -991,8 +1046,10 @@ function buildHomeDigest(snapshot, options = {}) {
 
   const ticker = [
     tickerFromCard("hk", hkWorth?.enabled ? hkWorth : hkAvoid),
-    tickerFromCard("us", usCheap?.enabled ? usCheap : pickCard(us, ["us-hold", "us-sleeve"])),
-    tickerFromCard("us", usRisk?.enabled ? usRisk : pickCard(us, ["us-industry"])),
+    // 长期观察与行业观察已并入七姐妹与底仓两张卡，兜底改指还在的卡片，
+    // 否则 pickCard 拿到 undefined，跑马灯会静默少两条。
+    tickerFromCard("us", usCheap?.enabled ? usCheap : pickCard(us, ["us-seven", "us-sleeve"])),
+    tickerFromCard("us", usRisk?.enabled ? usRisk : pickCard(us, ["us-seven", "us-sleeve"])),
     tickerFromCard("a", aAdd),
     tickerFromCard("a", pickCard(a, ["a-cycle"])),
     tickerFromCard("gold", goldLead),

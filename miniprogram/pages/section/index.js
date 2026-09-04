@@ -18,14 +18,16 @@ const { goldParity } = require("../../utils/gold-parity");
 const META = {
   hk: {
     title: "港股打新",
-    one: "上新、值不值得打、打中后看历史对照",
+    // 副标题跟着今日答案那五问走：上新、值得打、避雷、暗盘、首日。
+    one: "上新 / 值得打 / 避雷 / 暗盘 / 首日",
     tone: "hk",
     icon: "/assets/home/hk.svg",
     kicker: "新股申购",
   },
   us: {
     title: "美股投资",
-    one: "七姐妹分档与底仓配置",
+    // 长期观察与行业观察并入七姐妹、底仓两张卡后，副标题只留还在首屏的四件事。
+    one: "七姐妹近况 / 低估 / 高估 / 最热三只",
     tone: "us",
     icon: "/assets/home/us.svg",
     kicker: "全球公司",

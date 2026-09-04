@@ -54,6 +54,14 @@ function inspectKeys(value, trail = []) {
   }
 }
 
+const appStyles = await readFile(path.join(miniRoot, "app.wxss"), "utf8");
+// 圆角内容分组既可以写在页面自己的样式里，也可以引用 app.wxss 里的共享类。
+// 这里把共享类先收集出来，页面用了其中任何一个就算数——否则页面一旦改成引用
+// 共享类，这条检查就会在样式其实没问题的时候报错，逼着人把同一条圆角抄回每一页。
+const sharedRoundedClasses = [...appStyles.matchAll(/\.([A-Za-z0-9_-]+)\s*\{([^}]*)\}/g)]
+  .filter(([, , body]) => body.includes("border-radius: 24rpx"))
+  .map(([, name]) => name);
+
 const appConfig = JSON.parse(await readFile(path.join(miniRoot, "app.json"), "utf8"));
 for (const page of requiredPages) {
   assert(appConfig.pages.includes(page), `app.json 缺少页面：${page}`);
@@ -70,7 +78,13 @@ for (const page of requiredPages) {
   assert(pageTemplate.includes('class="page-shell'), `${page} 没有使用完整小程序视口容器`);
   assert(pageStyles.includes("@media (max-width: 340px)"), `${page} 缺少小屏手机适配`);
   assert(pageStyles.includes("@media (min-width: 700px)"), `${page} 缺少平板或大屏适配`);
-  assert(pageStyles.includes("border-radius: 24rpx"), `${page} 缺少适合触屏识别的圆角内容分组`);
+  const usesSharedRounded = sharedRoundedClasses.some((name) =>
+    new RegExp(`class="[^"]*\\b${name}\\b`).test(pageTemplate)
+  );
+  assert(
+    pageStyles.includes("border-radius: 24rpx") || usesSharedRounded,
+    `${page} 缺少适合触屏识别的圆角内容分组`
+  );
 }
 assert(appConfig.pages[0] === "pages/index/index", "小程序启动页必须是今日重点首页");
 assert(!appConfig.pages.some((page) => page.includes("webview")), "小程序仍注册了外部 web-view 页面");
@@ -103,12 +117,22 @@ const strategyScoreSource = await readFile(path.join(miniRoot, "utils", "strateg
 const strategySignalsSource = await readFile(path.join(miniRoot, "utils", "strategy-signals.js"), "utf8");
 const marketLensesSource = await readFile(path.join(miniRoot, "utils", "market-lenses.js"), "utf8");
 const guruOverlapSource = await readFile(path.join(miniRoot, "utils", "guru-overlap.js"), "utf8");
+const guruChangesSource = await readFile(path.join(miniRoot, "utils", "guru-changes.js"), "utf8");
 const smartMoneyModule = { exports: {} };
 vm.runInNewContext(smartMoneySource, { module: smartMoneyModule, exports: smartMoneyModule.exports });
 const strategyScoreModule = { exports: {} };
 vm.runInNewContext(strategyScoreSource, { module: strategyScoreModule, exports: strategyScoreModule.exports });
+const guruChangesModule = { exports: {} };
+vm.runInNewContext(guruChangesSource, { module: guruChangesModule, exports: guruChangesModule.exports });
 const strategySignalsModule = { exports: {} };
-vm.runInNewContext(strategySignalsSource, { module: strategySignalsModule, exports: strategySignalsModule.exports });
+vm.runInNewContext(strategySignalsSource, {
+  module: strategySignalsModule,
+  exports: strategySignalsModule.exports,
+  require(request) {
+    if (request === "./guru-changes") return guruChangesModule.exports;
+    throw new Error(`策略信号出现未知依赖：${request}`);
+  },
+});
 const marketLensesModule = { exports: {} };
 vm.runInNewContext(marketLensesSource, {
   module: marketLensesModule,
@@ -164,16 +188,33 @@ assert(sectionSource.includes("热度前十") && sectionSource.includes("性价�
 const overlapItems = miniGuruItems.filter((item) => item.group === "overlap");
 assert(overlapItems.length >= 2, `小程序交叉重叠应至少 2 条，实际 ${overlapItems.length}`);
 assert(sectionSource.includes("交叉重叠"), "机构栏目缺少交叉重叠深度入口");
-assert(miniAShareItems.length === 10, `小程序 A 股收息固定研究样本应为 10 只，实际 ${miniAShareItems.length}`);
 const fixedAShareCodes = ["600900.SH", "600036.SH", "600941.SH", "515180.SH", "601088.SH", "000333.SZ"];
 assert(
   JSON.stringify(miniAShareItems.slice(0, fixedAShareCodes.length).map((item) => item.code)) === JSON.stringify(fixedAShareCodes),
   `小程序 A 股收息固定样本顺序不一致：${miniAShareItems.slice(0, fixedAShareCodes.length).map((item) => item.code).join(",")}`,
 );
-assert(miniAShareItems.filter((item) => !fixedAShareCodes.includes(item.code)).length === 4, "小程序 A 股自动补充收息样本应为 4 只");
+// 分红稳定性 / 分红收益性两个前五榜出现之后，样本量不再是固定 10 只：上了榜的
+// 必须整组在样本里，否则点开「前五」只看得到其中三只。所以规则是
+// 「固定 6 只 + 上榜的 + 自动补齐到 10」，样本量 = max(10, 6 + 上榜数)。
+const onBoard = (item) => (item.lenses || []).some((lens) => lens === "stable5" || lens === "yield5");
+for (const lens of ["stable5", "yield5"]) {
+  const board = miniAShareItems.filter((item) => (item.lenses || []).includes(lens));
+  assert(board.length === 5, `小程序 A 股 ${lens} 榜应为 5 只且全在样本内，实际 ${board.length}`);
+}
+const rankedExtra = miniAShareItems.filter((item) => !fixedAShareCodes.includes(item.code) && onBoard(item)).length;
+const expectedAShareCount = Math.max(10, fixedAShareCodes.length + rankedExtra);
+assert(
+  miniAShareItems.length === expectedAShareCount,
+  `小程序 A 股收息研究样本应为 ${expectedAShareCount} 只（固定 ${fixedAShareCodes.length} + 上榜 ${rankedExtra} + 自动补齐），实际 ${miniAShareItems.length}`,
+);
+assert(
+  miniAShareItems.filter((item) => !fixedAShareCodes.includes(item.code) && !onBoard(item)).length
+    === Math.max(0, 10 - fixedAShareCodes.length - rankedExtra),
+  "小程序 A 股自动补充收息样本只能补到 10 只为止",
+);
 assert(miniAShareItems.some((item) => item.code === "515180.SH" && item.raw?.assetType === "fund"), "小程序 A 股收息样本缺少独立 ETF 资产 515180");
 assert(miniGoldItems.length === 2, `小程序黄金入口应有 2 个答案，实际 ${miniGoldItems.length}`);
-assert(miniGoldItems.every((item) => ["track", "plan"].includes(item.group)), "小程序黄金入口应是现在怎么做 / 买点与卖点");
+assert(miniGoldItems.every((item) => ["track", "plan"].includes(item.group)), "小程序黄金入口应是现在怎么做 / 观察区参考");
 assert(miniGoldItems.some((item) => item.one.includes("人民币金")), "小程序黄金追踪缺少人民币金数据");
 const allAShareQuotes = snapshot.aShare?.quotes || [];
 assert(allAShareQuotes.length >= 20, `小程序 A 股详情覆盖门槛应至少为 20 只，实际 ${allAShareQuotes.length}`);
@@ -204,14 +245,15 @@ for (const item of miniAShareItems) {
   assert(item.score == null || Number.isFinite(Number(item.score)), `${item.name} 观察分异常`);
 }
 for (const item of miniHKItems.filter((entry) => ["worth", "caution", "avoid"].includes(entry.group))) {
-  assert(["建议申购", "暂缓观察", "暂不建议", "资料不够"].includes(item.badge), `${item.name} 缺少人话申购结论`);
+  // 「建议申购」是合规清单点名要去掉的说法，产品侧已经统一换成「值得打」，
+  // 这里跟着换，顺带把校验反过来用——出现旧词就算不合格。
+  assert(["值得打", "暂缓观察", "暂不建议", "资料不够"].includes(item.badge), `${item.name} 缺少人话申购结论`);
 }
 
 const indexSource = await readFile(path.join(miniRoot, "pages", "index", "index.js"), "utf8");
 const indexTemplate = await readFile(path.join(miniRoot, "pages", "index", "index.wxml"), "utf8");
 const indexStyles = await readFile(path.join(miniRoot, "pages", "index", "index.wxss"), "utf8");
 const appSource = await readFile(path.join(miniRoot, "app.js"), "utf8");
-const appStyles = await readFile(path.join(miniRoot, "app.wxss"), "utf8");
 const storeSource = await readFile(path.join(miniRoot, "data", "store.js"), "utf8");
 const detailSource = await readFile(path.join(miniRoot, "pages", "detail", "index.js"), "utf8");
 const detailTemplate = await readFile(path.join(miniRoot, "pages", "detail", "index.wxml"), "utf8");
@@ -261,7 +303,7 @@ assert(
   indexTemplate.includes("entry-grid")
     && indexStyles.includes("display: flex")
     && indexStyles.includes("flex-wrap: wrap")
-    && indexStyles.includes("width: 33.333333%"),
+    && /width:\s*33\.3{2,}%/.test(indexStyles),
   "小程序首页核心入口不是手机端 3 列布局",
 );
 assert(
@@ -294,21 +336,22 @@ assert(
   ['id: "hk"', 'id: "us"', 'id: "a"', 'id: "gold"'].every((marker) => indexSource.includes(marker)),
   "今日重点应覆盖港股、美股、A股、黄金四个方向",
 );
+// 滚动思路条已按产品要求从首页撤掉（首页只留今日重点 / 六宫格 / 我的持仓三块），
+// 所以这里不再要求 thesis-ticker，改为要求它确实不在首页上。
 assert(
   indexTemplate.includes("我的持仓")
     && indexSource.includes("openHoldingDetail")
     && indexSource.includes("add_holding")
     && indexSource.includes("trackHomeVisit")
-    && indexTemplate.includes("thesis-ticker")
-    && indexSource.includes("buildThesisTicker")
+    && !indexTemplate.includes("thesis-ticker")
     && !indexTemplate.includes("本机速记")
     && !indexTemplate.includes("我的研究记录")
     && !indexTemplate.includes("查看 4 项速览"),
-  "首页应恢复我的持仓闭环与滚动思路条，且不再保留旧的本机速记条、研究记录条或展开速览",
+  "首页应保留我的持仓闭环，且不再出现滚动思路条、本机速记条、研究记录条或展开速览",
 );
 assert(await access(path.join(miniRoot, "utils", "holding-observe.js")).then(() => true).catch(() => false), "首页持仓观察缺少 holding-observe 工具");
 assert(await access(path.join(miniRoot, "utils", "master-playbooks.js")).then(() => true).catch(() => false), "缺少大师策略摘要模块");
-assert(await access(path.join(miniRoot, "utils", "thesis-ticker.js")).then(() => true).catch(() => false), "缺少首页滚动思路条模块");
+
 const analyticsSource = await readFile(path.join(miniRoot, "utils", "analytics.js"), "utf8");
 assert(analyticsSource.includes("return_visit") && analyticsSource.includes("add_holding"), "首页行为埋点应覆盖添加持仓与次日回访");
 assert(analyticsSource.includes("trackHomeVisit"), "首页应通过 trackHomeVisit 统一记录打开与次日回访");
@@ -360,9 +403,18 @@ for (const [page, marker] of [
 ]) {
   const template = pageTemplatesByPath.get(page) || "";
   const styles = pageStylesByPath.get(page) || "";
+  const sharedPanel = sharedRoundedClasses.some((name) =>
+    new RegExp(`class="[^"]*\\b${name}\\b`).test(template)
+  );
   assert(template.includes(marker), `${page} 没有使用移动端分组列表结构`);
-  assert(styles.includes("background: #ffffff"), `${page} 缺少微信生活缴费式白色内容面板`);
-  assert(styles.includes("border-radius: 24rpx"), `${page} 缺少统一触屏卡片圆角`);
+  assert(
+    styles.includes("background: #ffffff") || sharedPanel,
+    `${page} 缺少微信生活缴费式白色内容面板`,
+  );
+  assert(
+    styles.includes("border-radius: 24rpx") || sharedPanel,
+    `${page} 缺少统一触屏卡片圆角`,
+  );
   assert(!styles.includes("grid-template-columns: repeat(2"), `${page} 仍在大屏强行改成网页双栏布局`);
 }
 for (const page of ["pages/section/index", "pages/list/index"]) {
@@ -372,14 +424,17 @@ for (const page of ["pages/section/index", "pages/list/index"]) {
 assert(indexSource.includes('badge: "¥1288/年"'), "小程序年度会员入口没有显示唯一年费价格");
 const gridDefinition = indexSource.match(/const CORE_ENTRIES = \[([\s\S]*?)\n\];/)?.[1] || "";
 assert((gridDefinition.match(/\n\s+id: /g) || []).length === 6, "小程序首页应只保留 6 个核心入口");
-for (const title of ["港股打新", "美股投资", "A股收息", "黄金追踪", "年费会员", "机构持仓"]) {
+// 年费会员已按产品要求从宫格里挪到下方独立横幅，宫格是六个真实模块。
+for (const title of ["港股打新", "美股投资", "A股收息", "黄金追踪", "机构持仓", "新闻资讯"]) {
   assert(gridDefinition.includes(`title: "${title}"`), `小程序首页缺少准确入口标题：${title}`);
 }
+assert(!gridDefinition.includes('title: "年费会员"'), "年费会员不应再占用六宫格的位置");
+assert(indexSource.includes('title: "年费会员"'), "小程序首页缺少年费会员入口");
 const homeEntryIcons = [...gridDefinition.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
 assert(homeEntryIcons.length === 6 && new Set(homeEntryIcons).size === 6, "小程序首页六个入口必须使用六个不同图标");
-const miniEntryOrder = ["id: \"hk\"", "id: \"us\"", "id: \"a\"", "id: \"gold\"", "id: \"member\"", "id: \"guru\""]
-  .map((marker) => indexSource.indexOf(marker));
-assert(miniEntryOrder.every((position, index) => position >= 0 && (index === 0 || position > miniEntryOrder[index - 1])), "小程序首页顺序必须是港股、美股、A股、黄金、年费会员、机构持仓");
+const miniEntryOrder = ["id: \"hk\"", "id: \"us\"", "id: \"a\"", "id: \"gold\"", "id: \"guru\"", "id: \"news\""]
+  .map((marker) => gridDefinition.indexOf(marker));
+assert(miniEntryOrder.every((position, index) => position >= 0 && (index === 0 || position > miniEntryOrder[index - 1])), "小程序首页顺序必须是港股、美股、A股、黄金、机构持仓、新闻资讯");
 assert(gridDefinition.trimEnd().endsWith("},") && gridDefinition.lastIndexOf('id: "guru"') > gridDefinition.lastIndexOf('id: "member"'), "机构持仓必须位于核心入口最下面的最后一格");
 for (const removedId of ['id: "today"', 'id: "watch"', 'id: "decision"']) {
   assert(!gridDefinition.includes(removedId), `低频入口仍占用首页核心网格：${removedId}`);
@@ -392,7 +447,7 @@ assert(
   "今日重点应支持点击跳转标的详情，无标的时回退品类",
 );
 assert(!indexSource.includes("pages/workspace/index"), "首页不应再挂研究记录入口");
-for (const label of ["建议申购", "暂缓观察", "暂不建议", "已结束", "高杠杆观察", "七姐妹", "低估七姐妹", "风险七姐妹", "长期观察", "热度前三", "热度前十", "性价比观察", "行业观察", "交叉重叠", "优等收息", "稳健收息", "高息待核", "底仓长期", "周期短持", "加大观察", "兑现观察", "现在怎么做", "买点与卖点", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "公开长期年化排序"]) {
+for (const label of ["值得打", "暂缓观察", "暂不建议", "已结束", "高杠杆观察", "七姐妹", "低估七姐妹", "风险七姐妹", "长期观察", "热度前三", "热度前十", "性价比观察", "行业观察", "交叉重叠", "优等收息", "稳健收息", "高息待核", "底仓长期", "周期短持", "加大观察", "兑现观察", "现在怎么做", "观察区参考", "分红稳定性 前五", "分红收益性 前五", "收息样本", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "公开长期年化排序"]) {
   assert(sectionSource.includes(label), `小程序缺少二级入口：${label}`);
 }
 assert(
@@ -414,21 +469,24 @@ assert(
 );
 assert(
   indexSource.includes("buildHomeDigest")
-    && (await readFile(path.join(miniRoot, "utils", "daily-card.js"), "utf8")).includes("extraLines")
-    && (await readFile(path.join(miniRoot, "utils", "thesis-ticker.js"), "utf8")).includes("buildHomeDigest"),
-  "首页今日重点、群卡片和思路条应接入栏目今日答案",
+    && (await readFile(path.join(miniRoot, "utils", "daily-card.js"), "utf8")).includes("extraLines"),
+  "首页今日重点与群卡片应接入栏目今日答案",
 );
 assert(await access(path.join(miniRoot, "utils", "daily-answers.js")).then(() => true).catch(() => false), "缺少今日答案模块");
 assert(await access(path.join(miniRoot, "utils", "market-lenses.js")).then(() => true).catch(() => false), "缺少分档透镜模块");
 assert(marketLensesSource.includes("hkHistoricalCrowdEligible"), "十倍融资应能回看历史拥挤度对照样本");
 const dailyAnswerSource = await readFile(path.join(miniRoot, "utils", "daily-answers.js"), "utf8");
 assert(dailyAnswerSource.includes("sleevePrice") && dailyAnswerSource.includes("sleeveQuotes"), "美股底仓配置应读取已核验 ETF 报价");
+// 五个栏目的今日答案已经按用户点名的六条需求重排：港股问上新/值得打/避雷/暗盘/首日，
+// 美股问七姐妹近况/低估/高估/最热三只/底仓，A 股问两个前五榜与加大兑现，
+// 黄金问价格/买/卖/拐点，机构问持仓与趋势。原来那些被并进展开层或改名的问题
+// （十倍融资观察、行业公司观察、美元金卖出观察等）不再单独占一张卡。
 for (const question of [
-  "近期上新", "哪些值得打", "哪些要避雷", "十倍融资观察", "打中后暗盘", "打中后首日", "打中后首周",
-  "低估的七姐妹", "风险升高要减", "可长期观察", "行业公司观察", "底仓如何配置",
-  "底仓长期持有", "周期短持", "什么价可加大", "什么价可兑现",
-  "美元金可持有", "美元金卖出观察", "人民币金可持有", "人民币金卖出观察",
-  "业绩靠前持仓", "他们怎么想", "我们如何借鉴", "应该避免什么",
+  "近期上新", "哪些值得打", "哪些要避雷", "打中后暗盘", "打中后首日",
+  "七姐妹近期怎么了", "低估的七姐妹", "风险升高要减", "最热的三只", "底仓如何配置",
+  "分红稳定性 前五", "分红收益性 前五", "什么价可加大", "什么价可兑现", "周期短持",
+  "现在什么价", "是否值得买入", "是否应该卖出", "拐点变化",
+  "业绩靠前持仓", "本季他们在加什么", "本季他们在减什么", "未来持仓趋势", "应该避免什么",
 ]) {
   assert(dailyAnswerSource.includes(question), `今日答案缺少问题：${question}`);
 }
@@ -446,10 +504,13 @@ assert(
 for (const label of ["近 60 日最低", "近 60 日中位数", "近 60 日最高", "历史样本区间", "自由现金流", "公开持仓", "完整分析", "为什么看它", "怎么学"]) {
   assert(detailContract.includes(label), `小程序详情缺少关键内容：${label}`);
 }
+// 三个页面的页头照新闻资讯页重做过：绿带里是栏目名 + 数据截至 + 一句说明，
+// 原来那个装饰图标撤掉了（它比数据本身还显眼）。所以这里认的是「有没有说清
+// 这份数据是什么时候的、有没有数据条」，不再认那几个已经不存在的类名。
 for (const [template, labels] of [
-  [pageTemplatesByPath.get("pages/section/index") || "", ["hero-image", "结论", "group-panel", "hero-metrics"]],
-  [pageTemplatesByPath.get("pages/list/index") || "", ["summary-image", "data-bar-block", "item-panel"]],
-  [detailTemplate, ["detail-image", "结论", "visual-card", "metric-panel", "chart-stats"]],
+  [pageTemplatesByPath.get("pages/section/index") || "", ["dataAsOf", "hero-help", "结论", "group-panel", "hero-metrics"]],
+  [pageTemplatesByPath.get("pages/list/index") || "", ["dataAsOf", "list-hero-help", "item-bar", "item-panel"]],
+  [detailTemplate, ["结论", "visual-card", "metric-panel", "chart-stats"]],
 ]) {
   for (const label of labels) assert(template.includes(label), `后续页面缺少图片、数据、分析或结论层级：${label}`);
 }
@@ -522,9 +583,12 @@ for (const label of ["逻辑哨兵", "今日", "关注", "复盘", "站内收件
 for (const action of ["workspace", "refreshSentinel", "saveWatchItem", "removeWatchItem", "saveDecision", "removeDecision", "ackWatchBaselines", "saveEventMark", "removeEventMark", "updateReviewTask", "saveIpoRecord", "saveDividendLot", "saveSettings", "deleteWorkspace"]) {
   assert(memberService.includes(`"${action}"`) || memberService.includes(`'${action}'`) || memberService.includes(action), `小程序会员服务缺少工作台操作：${action}`);
 }
+// 「追踪此标的变化」和「保存决策快照」走的是同一段 openSnapshotSheet，是真重复，
+// 已经合成一个按钮；风险区现在只剩保存快照 + 提醒我相关事件两个。
 assert(
   (detailTemplate.includes("保存决策快照") || detailContract.includes("保存决策快照"))
-  && detailTemplate.includes("追踪此标的变化")
+  && detailTemplate.includes("提醒我相关事件")
+  && !detailTemplate.includes("追踪此标的变化")
   && detailSource.includes("pages/workspace/index"),
   "详情页没有接入研究工作台",
 );

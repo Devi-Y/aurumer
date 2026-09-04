@@ -98,12 +98,13 @@
       bindtap="openAnswer"
       hover-class="{{item.enabled ? 'tap-active' : ''}}"
       aria-role="button"
-      aria-label="{{item.question}}，{{item.answer}}"
+      aria-label="{{item.question}}，{{item.answer}}{{item.hint ? '。' + item.hint : ''}}"
     >
       <view class="answer-copy">
         <text class="answer-q">{{item.question}}</text>
         <text class="answer-a">{{item.answer}}</text>
         <text wx:if="{{item.names}}" class="answer-names">{{item.names}}</text>
+        <text wx:if="{{item.hint}}" class="answer-hint">{{item.hint}}</text>
       </view>
       <text wx:if="{{item.enabled}}" class="arrow">›</text>
       <text wx:else class="group-empty-hint">—</text>

@@ -242,6 +242,18 @@
   line-height: 1.4;
 }
 
+/* 边界那一行：比副行再轻一档，但要能和副行分开——副行说的是「有哪些」，
+   这一行说的是「这句话不能当成什么」。带具体价格的卡才在这里出现，
+   方法论说明留在展开层。 */
+.answer-hint {
+  margin-top: 6rpx;
+  padding-left: 14rpx;
+  border-left: 3rpx solid #d6ded8;
+  color: #8a938d;
+  font-size: 21rpx;
+  line-height: 1.45;
+}
+
 .answer-row.tone-good .answer-a { color: #0b7a53; }
 .answer-row.tone-bad .answer-a { color: #a33b2b; }
 .answer-row.tone-warn .answer-a { color: #8b5b20; }

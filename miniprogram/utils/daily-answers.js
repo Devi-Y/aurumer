@@ -472,7 +472,8 @@ function buildUsAnswers(snapshot) {
       group: "hot",
       targetId: hot[0]?.id || "",
       enabled: hot.length > 0,
-      hint: "热度由公开成交与涨跌算出，不含新闻事件。",
+      // 展开层里已经把这句说得更全（还说明了为什么不写「因为某某消息」），
+      // 同一段话不必在卡面上再印一遍短版。
       modal: hot.length
         ? [
           ...hot.map((item) => {
@@ -551,7 +552,10 @@ function buildAShareAnswers(snapshot, holdings = []) {
   // 用户要的是「优先股票、次之基金」。基金这半边现在给不出来，就说给不出来：
   // 快照里的 A 股基金只有 1 只红利 ETF，且它的分红以基金公告为准、没有股息率字段，
   // 排不进任何一个按股息率排的榜。凑不满五只就不凑。
-  const fundNote = "样本内只有 1 只红利 ETF，分红以基金公告为准、没有股息率，排不进股息排序，所以前五都是股票。";
+  // 这句现在真的会印在卡片上（原来写在 hint 里，而 hint 从来没被渲染过），
+  // 所以要短到能跟结论同屏，长口径留给详情页那几张财务卡。
+  // 只印在两张榜单卡的第一张上——两张紧挨着，同一句话印两遍就成了水印。
+  const fundNote = "样本内唯一的红利 ETF 分红不固定、没有股息率字段，两个榜都排不进，所以前五都是股票。";
 
   const heldTrim = withPlan.filter((entry) => {
     const cost = Number(entry.holding?.cost);
@@ -571,7 +575,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
       group: "stable5",
       targetId: stableTop[0]?.id || "",
       enabled: stableTop.length > 0,
-      hint: `分红稳定性 = 可持续股息对当前股息的覆盖率、自由现金流、现金利润比、股东回报，权重沿用收息观察分，不含股息高低。不是收益承诺。${fundNote}`,
+      hint: `看的是分红能不能持续（覆盖率、现金流、股东回报），不含股息高低，也不是收益承诺。${fundNote}`,
     }),
     card({
       id: "a-yield5",
@@ -583,7 +587,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
       group: "yield5",
       targetId: yieldTop[0]?.id || "",
       enabled: yieldTop.length > 0,
-      hint: `只按当前股息率排序，高息本身不代表分红能持续——两个榜单同时上榜的才是两头都过得去的。${fundNote}`,
+      hint: "只按当前股息率排；高息不代表分红能持续，两个榜都上榜的才是两头过得去。",
     }),
     card({
       id: "a-add",

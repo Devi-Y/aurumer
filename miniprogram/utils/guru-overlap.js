@@ -35,7 +35,12 @@ function buildGuruOverlapRows(snapshot) {
         id: profile.id,
         name: profile.name,
         market: profile.marketLabel,
-        weight: String(holding.weight ?? "—"),
+        // 这个字段是「占该机构组合的比例」，详情页一直是按 % 渲染的
+        // （detail/index.js 的 formatNumber(holding.weight, "%")）。
+        // 这里原来只 String() 一下，重合明细里就是一列没有单位的裸数字。
+        weight: Number.isFinite(Number(holding.weight)) && holding.weight !== null && holding.weight !== ""
+          ? `${Number(holding.weight)}%`
+          : "—",
       });
     }
   }

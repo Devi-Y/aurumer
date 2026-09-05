@@ -122,6 +122,22 @@
     <text>{{disclaimer}}</text>
   </view>
 
+  <view wx:if="{{holderSheet}}" class="holder-mask" bindtap="closeHolderSheet" catchtouchmove="true">
+    <view class="holder-sheet" catchtap="noop">
+      <view class="holder-sheet-head">
+        <text class="holder-sheet-title">{{holderSheet.title}}</text>
+        <view class="holder-sheet-close" bindtap="closeHolderSheet" hover-class="tap-active" aria-role="button" aria-label="关闭">关闭</view>
+      </view>
+      <view class="holder-sheet-body">
+        <view wx:for="{{holderSheet.rows}}" wx:key="key" class="holder-sheet-row">
+          <text class="holder-sheet-name">{{item.name}}</text>
+          <text class="holder-sheet-market">{{item.market}}</text>
+          <text class="holder-sheet-weight">{{item.weight}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <view class="page-nav">
     <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
     <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>

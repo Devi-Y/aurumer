@@ -689,3 +689,110 @@
 @media (min-width: 700px) {
   .parity-panel { border-radius: 20px; }
 }
+
+/* 今日答案展开层。原来走 wx.showModal，但那个控件会把 content 里的换行
+   当空格吞掉，十几行事实会连成一堵墙——这是会员花钱看的正文，必须自己渲染。
+   版式沿用详情页的决策快照抽屉（.snapshot-mask/.snapshot-sheet），两处是
+   同一种「从底部升起的正文层」，不要各写一套。 */
+.answer-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(20, 28, 24, 0.42);
+}
+
+/* 只让正文滚，标题和「查看」不跟着滚出屏幕：七姐妹那张十七行的卡，
+   按钮要是排在滚动区末尾，得翻到底才发现还能点进去看明细。 */
+.answer-sheet {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  max-height: 86vh;
+  padding: 28rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
+  border-radius: 28rpx 28rpx 0 0;
+  background: #fff;
+}
+
+.answer-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.answer-sheet-title {
+  flex: 1;
+  color: #1b211d;
+  font-size: 30rpx;
+  font-weight: 720;
+  line-height: 1.4;
+}
+
+/* 这页的点击区一律用 view+role，不用原生 button——button 自带固定宽度，
+   审计脚本 audit-miniprogram.mjs 也按这条卡着。 */
+.answer-sheet-close {
+  flex: none;
+  padding: 0 4rpx;
+  color: #5f6a64;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+.answer-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top: 20rpx;
+}
+
+.answer-sheet-line {
+  display: block;
+  color: #1b211d;
+  font-size: 27rpx;
+  line-height: 1.62;
+}
+
+/* 正文里以全角空格开头的行是上一行的补充（某只股票的同期公告之类）。
+   拆掉那个空格，改用缩进+降一档字色表示从属，别让它和主行一样重。 */
+.answer-sheet-sub {
+  display: block;
+  padding-left: 24rpx;
+  color: #5f6a64;
+  font-size: 25rpx;
+  line-height: 1.6;
+}
+
+/* 补充行之后又起一条主行，说明换了一个标的：拉开一档，别让七家公司
+   糊成一段。同一段内部（主行接主行）不加，那是同一件事的续行。 */
+.answer-sheet-sub + .answer-sheet-line {
+  margin-top: 14rpx;
+}
+
+/* 空行是段落间隔，不是一行空文字：给高度不给行框。 */
+.answer-sheet-gap {
+  height: 16rpx;
+}
+
+.answer-sheet-foot {
+  flex: none;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.answer-sheet-confirm {
+  height: 76rpx;
+  border-radius: 16rpx;
+  background: #0f5c43;
+  color: #fff;
+  font-size: 27rpx;
+  font-weight: 640;
+  line-height: 76rpx;
+  text-align: center;
+}

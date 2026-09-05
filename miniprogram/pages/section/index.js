@@ -270,6 +270,21 @@ function buildOverview(snapshot, market) {
   };
 }
 
+// 展开层正文按行拆开。空行是段落间隔，不是一行空文字；开头的全角空格是
+// 「上一行的补充」（比如某只股票的同期公告），拆成一档更浅的样式，
+// 而不是让它和主行一样重。
+function sheetLines(text) {
+  return String(text || "").split("\n").map((line, index) => {
+    const trimmed = line.replace(/^\u3000+/, "");
+    return {
+      key: `line-${index}`,
+      text: trimmed,
+      blank: !trimmed,
+      sub: trimmed !== line,
+    };
+  });
+}
+
 Page({
   data: {
     market: "hk",
@@ -294,6 +309,10 @@ Page({
     dataAsOf: "",
     // 只有黄金栏目页会用到；其余四栏恒为 null，wx:if 直接整块不渲染。
     parity: null,
+    // 展开层。wx.showModal 会把 content 里的 \n 当成空格吞掉——七姐妹那张卡
+    // 十几行事实会连成一堵墙，这是用户花钱买的正文，不能这么给。
+    // 所以自己渲染：每行一个 text，空行留白，缩进行降一级。
+    answerSheet: null,
   },
   onLoad(options) {
     const market = META[options.market] ? options.market : "hk";
@@ -438,18 +457,31 @@ Page({
     const book = (this.data.playbooks || []).find((item) => item.id === id);
     if (!book) return;
     track("detail_open", { market: "guru", from: "playbook" });
-    wx.showModal({
-      title: `${book.name} · ${book.tag}`,
-      content: [
-        book.principle,
-        `敏感度：${book.sensitivity}`,
-        `价值透镜：${book.valueLens}`,
-        `边界：${book.doNot}`,
-        `来源：${book.sourceNote}`,
-      ].join("\n"),
-      showCancel: false,
-      confirmText: "知道了",
+    this.setData({
+      answerSheet: {
+        title: `${book.name} · ${book.tag}`,
+        lines: sheetLines([
+          book.principle,
+          `敏感度：${book.sensitivity}`,
+          `价值透镜：${book.valueLens}`,
+          `边界：${book.doNot}`,
+          `来源：${book.sourceNote}`,
+        ].join("\n")),
+        confirmLabel: "",
+      },
     });
+  },
+  // 遮罩点空白处关，正文里点字不关：catchtap 得有个真方法接住冒泡。
+  noop() {},
+  closeAnswerSheet() {
+    this.setData({ answerSheet: null });
+  },
+  confirmAnswerSheet() {
+    const sheet = this.data.answerSheet;
+    this.setData({ answerSheet: null });
+    if (!sheet) return;
+    if (sheet.action === "detail" && sheet.targetId) this.openDetail(sheet.targetId, "section_answer");
+    else if (sheet.action === "group" && sheet.group) this.openGroupById(sheet.group, "section_answer");
   },
   openGroupById(group, from = "section_group") {
     const live = this.data.groups.find((item) => item.id === group);
@@ -479,16 +511,16 @@ Page({
     if (!item) return;
     track("section_answer", { market: this.data.market, id: String(id) });
     if (item.modal) {
-      wx.showModal({
-        title: item.question,
-        content: item.modal,
-        showCancel: item.action === "detail" || item.action === "group",
-        cancelText: "关闭",
-        confirmText: item.action === "detail" || item.action === "group" ? "查看" : "知道了",
-        success: (result) => {
-          if (!result.confirm || item.action === "none") return;
-          if (item.action === "detail" && item.targetId) this.openDetail(item.targetId, "section_answer");
-          else if (item.action === "group" && item.group) this.openGroupById(item.group, "section_answer");
+      const canOpen = (item.action === "detail" && item.targetId) || (item.action === "group" && item.group);
+      this.setData({
+        answerSheet: {
+          title: item.question,
+          lines: sheetLines(item.modal),
+          // 打不开就不留这个按钮：原来无论有没有目标都印「查看」，点了只是关掉。
+          confirmLabel: canOpen ? "查看" : "",
+          action: item.action,
+          targetId: item.targetId || "",
+          group: item.group || "",
         },
       });
       return;

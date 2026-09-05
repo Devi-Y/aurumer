@@ -177,6 +177,9 @@ Page({
     statsBanner: null,
     sourceLinks: [],
     dataAsOf: "",
+    // 重合持仓的持有人明细。原来走 wx.showModal，但那个控件会把 content 里的
+    // 换行当空格吞掉，五六家机构会连成一行——和栏目页的展开层同一套写法。
+    holderSheet: null,
   },
   onLoad(options) {
     const market = MARKET_META[options.market] ? options.market : "hk";
@@ -418,16 +421,26 @@ Page({
       // 于是弹窗永远出不来，点一下会跳去一个不存在的详情页。
       const overlap = item?.overlap;
       if (overlap) {
-        wx.showModal({
-          title: `${overlap.name} · ${overlap.symbol}`,
-          content: overlap.holders.map((holder) => `${holder.name}（${holder.market}）${holder.weight}`).join("\n"),
-          showCancel: false,
-          confirmText: "知道了",
+        this.setData({
+          holderSheet: {
+            title: `${overlap.name} · ${overlap.symbol}`,
+            rows: overlap.holders.map((holder, index) => ({
+              key: `holder-${index}`,
+              name: holder.name,
+              market: holder.market,
+              weight: holder.weight,
+            })),
+          },
         });
         return;
       }
     }
     wx.navigateTo({ url: `/pages/detail/index?market=${this.data.market}&id=${encodeURIComponent(id)}` });
+  },
+  // 遮罩点空白处关，正文里点字不关：catchtap 得有个真方法接住冒泡。
+  noop() {},
+  closeHolderSheet() {
+    this.setData({ holderSheet: null });
   },
   // 和新闻资讯页同一套交互：小程序打不开任意外链，来源只能复制出去自己核对。
   copySourceLink(event) {

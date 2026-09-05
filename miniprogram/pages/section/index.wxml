@@ -206,6 +206,25 @@
     <text>{{disclaimer}}</text>
   </view>
 
+  <view wx:if="{{answerSheet}}" class="answer-mask" bindtap="closeAnswerSheet" catchtouchmove="true">
+    <view class="answer-sheet" catchtap="noop">
+      <view class="answer-sheet-head">
+        <text class="answer-sheet-title">{{answerSheet.title}}</text>
+        <view class="answer-sheet-close" role="button" aria-label="关闭" bindtap="closeAnswerSheet">关闭</view>
+      </view>
+      <view class="answer-sheet-body">
+        <block wx:for="{{answerSheet.lines}}" wx:key="key">
+          <view wx:if="{{item.blank}}" class="answer-sheet-gap"></view>
+          <text wx:elif="{{item.sub}}" class="answer-sheet-sub">{{item.text}}</text>
+          <text wx:else class="answer-sheet-line">{{item.text}}</text>
+        </block>
+      </view>
+      <view wx:if="{{answerSheet.confirmLabel}}" class="answer-sheet-foot">
+        <view class="answer-sheet-confirm" role="button" bindtap="confirmAnswerSheet">{{answerSheet.confirmLabel}}</view>
+      </view>
+    </view>
+  </view>
+
   <view class="page-nav">
     <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
     <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>

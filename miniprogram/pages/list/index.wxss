@@ -443,3 +443,92 @@
   font-size: 24rpx;
   font-weight: 620;
 }
+
+/* 重合持仓的持有人明细层。和栏目页的今日答案展开层是同一种「从底部升起的
+   正文层」，样式刻意保持一致；这页原来用 wx.showModal，换行会被吞成空格，
+   五六家机构挤成一行读不出来。点击区一律 view+role，不用原生 button。 */
+.holder-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(20, 28, 24, 0.42);
+}
+
+.holder-sheet {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  max-height: 86vh;
+  padding: 28rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
+  border-radius: 28rpx 28rpx 0 0;
+  background: #fff;
+}
+
+.holder-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.holder-sheet-title {
+  flex: 1;
+  color: #1b211d;
+  font-size: 30rpx;
+  font-weight: 720;
+  line-height: 1.4;
+}
+
+.holder-sheet-close {
+  flex: none;
+  padding: 0 4rpx;
+  color: #5f6a64;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+.holder-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top: 12rpx;
+}
+
+/* 机构名长短差得远，权重要能对齐着扫：名字占剩下的宽，市场和权重定宽靠右。 */
+.holder-sheet-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.holder-sheet-row:last-child { border-bottom: 0; }
+
+.holder-sheet-name {
+  flex: 1;
+  color: #1b211d;
+  font-size: 26rpx;
+  line-height: 1.45;
+}
+
+.holder-sheet-market {
+  flex: none;
+  color: #8a938d;
+  font-size: 22rpx;
+}
+
+.holder-sheet-weight {
+  flex: none;
+  min-width: 96rpx;
+  color: #0f5c43;
+  font-size: 26rpx;
+  font-weight: 700;
+  text-align: right;
+}

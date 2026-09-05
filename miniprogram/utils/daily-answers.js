@@ -381,6 +381,11 @@ function buildUsAnswers(snapshot) {
   // SEC 公告能补上同期到底发生了什么，是可以点开原文核对的公开事实。
   const filingMap = filingsBySymbol(snapshot);
   const hasFilings = hasFilingFeed(snapshot);
+  // 热度卡和七姐妹卡问的是同一件事（这段时间它身上发生了什么），
+  // 取公告的写法就只留一份，免得两处对 symbol 的取法哪天走岔。
+  const filedOf = (item) => formatFilingLine(
+    filingMap.get(String((item && item.raw && item.raw.symbol) || (item && item.code) || "").toUpperCase()),
+  );
   const extraPool = [];
   const seen = new Set(seven.map((item) => item.code));
   for (const item of items) {
@@ -434,23 +439,33 @@ function buildUsAnswers(snapshot) {
   const sevenAnswer = weekRanked.length >= 2
     ? `本周 ${upCount} 涨 ${weekRanked.length - upCount} 跌，最强 ${shortCompanyName(strongest.name, strongest.code, 4)} ${signedPct(weekOf(strongest))}，最弱 ${shortCompanyName(weakest.name, weakest.code, 4)} ${signedPct(weekOf(weakest))}`
     : "本周涨跌数据不足，暂不汇总";
+  // 拿不到公告字段时返回 null，卡面就当这一栏不存在——写「0 家有公告」等于把
+  // 「我们没这份数据」说成「他们这个月什么都没发」。
+  const sevenFiledCount = hasFilings ? seven.filter((item) => filedOf(item)).length : null;
   const sevenModal = weekRanked.length
     ? [
       ...weekRanked.map((item) => {
         const fund = item.raw?.fund || {};
         const month = monthOf(item);
-        return [
+        const head = [
           `${shortCompanyName(item.name, item.code, 8)} 本周 ${signedPct(weekOf(item))}`,
           month !== null ? `近一个月 ${signedPct(month)}` : "",
           fund.period ? `财季 ${toDay(fund.period) || fund.period}` : "",
           hasNumber(fund.revenueGrowth) ? `营收同比 ${signedPct(fund.revenueGrowth)}` : "",
         ].filter(Boolean).join(" · ");
+        // 用户这一问是「发生了什么事」，涨跌只答了「动了多少」。公告是发行人
+        // 自己交给 SEC 的备案，是这份快照里唯一能核对到原文的「事」。
+        // 和热度卡同一个口径：拿不到这批公告就整行不写，绝不把缺数据说成「没发公告」。
+        if (!hasFilings) return head;
+        return `${head}\n　同期公告：${filedOf(item) || "近 30 天无重大事项公告"}`;
       }),
       "",
       hold.length
         ? `质量门通过 ${hold.length}/7：${hold.map((item) => shortCompanyName(item.name, item.code, 4)).join("、")}——可长期观察的名单从这里来。`
         : "本轮没有一只通过质量门，先不谈长期观察。",
-      "只汇总公开行情与已披露财季。本数据源没有新闻与公告字段，不写「因为某某消息」，那要另接新闻源才能说。",
+      hasFilings
+        ? "涨跌与财季来自公开行情，「同期公告」取自 SEC EDGAR 官方备案。公告与当周涨跌是同期发生，不等于因果——详情页可复制原文链接自己核对。"
+        : "只汇总公开行情与已披露财季。本轮快照未带公司公告字段，不写「因为某某消息」——没有可核对的原文就不下原因结论。",
     ].join("\n")
     : "";
 
@@ -493,7 +508,9 @@ function buildUsAnswers(snapshot) {
       id: "us-seven",
       question: "七姐妹近期怎么了",
       answer: sevenAnswer,
-      names: `质量门 ${hold.length}/7 通过`,
+      names: sevenFiledCount !== null
+        ? `质量门 ${hold.length}/7 通过 · ${sevenFiledCount} 家近 30 天有公告`
+        : `质量门 ${hold.length}/7 通过`,
       // 涨跌本身没有好坏，这一格只是把这一周发生的事说清楚。
       tone: weekRanked.length ? "warn" : "muted",
       action: "group",
@@ -552,8 +569,7 @@ function buildUsAnswers(snapshot) {
           ...hot.map((item) => {
             const heat = Number(item.raw && item.raw.heatScore);
             const driver = item.heatDriver || "驱动数据不足";
-            const symbol = (item.raw && item.raw.symbol) || item.code || "";
-            const filed = formatFilingLine(filingMap.get(String(symbol).toUpperCase()));
+            const filed = filedOf(item);
             const head = `${shortCompanyName(item.name, item.code || "标的", 8)}${Number.isFinite(heat) ? ` 热度 ${Math.round(heat)}` : ""}：${driver}。${item.attentionNote || ""}`;
             // 公告字段本身没取到时整行不写。只有确实拿到了这批公告、而这一只
             // 名下一条都没有，才敢说「没发公告」——那时它是有用的信息：

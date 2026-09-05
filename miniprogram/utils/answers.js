@@ -896,6 +896,9 @@ module.exports = {
   usHeatDriver,
   usAttentionNote,
   INVESTOR_NAMES,
+  // 资讯流要给「没进任何分组、因而不在 allItems 里」的标的写中文名（公告涵盖
+  // 的公司比分组多）。名字只能有一份，所以从这里导出，不要在别处再抄一张表。
+  US_NAMES,
   allItems,
   findItem,
   groupDefinitions,

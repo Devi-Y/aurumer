@@ -16,7 +16,10 @@
 // 另起一套映射——那样迟早会和列表页/详情页对不上。allItems() 找不到的 id 就不
 // 挂详情链接，只落回栏目页。
 
-const { allItems, groupDefinitions, INVESTOR_NAMES } = require("./answers");
+const { allItems, groupDefinitions, INVESTOR_NAMES, US_NAMES } = require("./answers");
+// SEC 备案是这份快照里唯一「按天发生」的美股事实：财季报告期动辄隔半年，
+// 只有它能回答「这一周美股这边出了什么事」。取用写法和详情页/每日答案共用一份。
+const { hasFilingFeed, filingsBySymbol } = require("./us-filings");
 // 官方出处登记表已抬到 utils/sources.js 共用，五个功能模块的详情页现在
 // 和这一页用同一份地址，不会出现"新闻页能核验、详情页核验不了"。
 const { sourceUrlOf, sourceNameOf } = require("./sources");
@@ -33,7 +36,11 @@ const KIND_LABEL = {
 
 // 每类的条数上限。A股 20 份年报报告期完全相同，美股财季也高度重复，
 // 不设上限的话整条流会被这两类淹掉，港交所和 13F 反而看不见。
-const MAX_PER_KIND = { hk: 8, guru: 9, gold: 5, a: 6, us: 6 };
+//
+// 美股占两个额度：财季（us）和 SEC 公告（us-filing）在页面上同属「美股」筛选，
+// 但公告全是近 30 天、财季全是半年前，放同一个额度里按日期排，公告会把财季
+// 整类挤掉。分开计数，两种事实各留一半版面。
+const MAX_PER_KIND = { hk: 8, guru: 9, gold: 5, a: 6, us: 6, "us-filing": 6 };
 
 // null / undefined / 空串必须当成「没有这个数」返回 null，不能落进 Number()——
 // Number(null) 是 0 且有限，会把「五日涨跌未公布」渲染成「五日 0.00%」，
@@ -95,7 +102,15 @@ function buildNewsFeed(snapshot) {
   const linkId = (market, id) => (hit(market, id) ? String(id) : "");
   const nameOf = (market, id, fallback) => {
     const found = hit(market, id);
-    return (found && found.name) || fallback;
+    if (found && found.name) return found.name;
+    // 美股公告和财季涵盖的公司比分组多（Salesforce、博通、Coinbase 都发了公告
+    // 却没进任何分组），allItems 里找不到就退到 answers.js 那张同一份名字表，
+    // 而不是把 CRM、AVGO 这种代码直接印在中文资讯流里。
+    if (market === "us") {
+      const code = String(id || "").toUpperCase();
+      if (US_NAMES[code]) return US_NAMES[code];
+    }
+    return fallback;
   };
 
   // 每条披露后面跟一句「这落到标的上是什么结论」。资讯本身是引流，读完要能
@@ -360,16 +375,49 @@ function buildNewsFeed(snapshot) {
     });
   });
 
+  // —— 美股：SEC EDGAR 备案 ——
+  // 快照里一条公告都没有和「这些公司这个月没发公告」是两回事，前者不能渲染成
+  // 后者，所以整块以 hasFilingFeed 为前提；拿不到就这一类不出现。
+  if (hasFilingFeed(data)) {
+    filingsBySymbol(data).forEach((filings, symbol) => {
+      // 同一家连发三份（Strategy 就常这样连发 Reg FD）时只上最新一份：
+      // 三行同名会把这一类变成一家公司的公告墙，其余十几家全被挤出去。
+      // 剩下几份不丢，写在正文里，读者知道还有几份可以去原文翻。
+      const latest = filings[0];
+      if (!latest || !latest.filingDate) return;
+      const label = (Array.isArray(latest.labels) && latest.labels[0]) || latest.form || "";
+      if (!label) return;
+      push({
+        id: `news-us-filing-${symbol}-${latest.filingDate}`,
+        kind: "us",
+        quota: "us-filing",
+        day: toDay(latest.filingDate),
+        title: `${nameOf("us", symbol, symbol)} · ${label}`,
+        // filingDate 是发行人递交给 SEC 的日子，不是事件发生的日子，也不是
+        // 我们抓到它的日子——这三个不是一回事，标签跟着字段本身走。
+        dateNote: "备案日",
+        body: joinBits([
+          `SEC ${latest.form || "备案"}`,
+          filings.length > 1 ? `近 30 天另有 ${filings.length - 1} 份` : "",
+        ]),
+        sourceName: "SEC EDGAR",
+        sourceUrl: latest.sourceUrl || sourceUrlOf(data, "sec"),
+        market: "us",
+        targetId: linkId("us", symbol),
+      });
+    });
+  }
+
   // 先在类内截断，再全局按日期倒序合并。
   const trimmed = [];
-  Object.keys(MAX_PER_KIND).forEach((kind) => {
+  Object.keys(MAX_PER_KIND).forEach((key) => {
     const group = items
-      .filter((item) => item.kind === kind)
+      .filter((item) => (item.quota || item.kind) === key)
       .sort((left, right) => {
         if (left.day !== right.day) return left.day < right.day ? 1 : -1;
         return (right.weight || 0) - (left.weight || 0);
       })
-      .slice(0, MAX_PER_KIND[kind]);
+      .slice(0, MAX_PER_KIND[key]);
     trimmed.push(...group);
   });
 

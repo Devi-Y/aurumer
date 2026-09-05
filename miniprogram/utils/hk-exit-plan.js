@@ -39,6 +39,34 @@ function bandFromValues(values) {
   };
 }
 
+// 公开超购倍数是这批样本里唯一把结果劈成两半的字段，而且是断层式的、不是渐变：
+// 过千倍的四只暗盘全部收涨（中位 +137%），不到千倍的六只只有两只收涨（中位 -0.8%）。
+// 把两档混进一个中位数会得到 "+0.6%"——它既不像热的那档也不像冷的那档，
+// 等于对谁都没用。所以分档给，并且把每档的只数摆在明面上。
+const HK_HOT_OVERSUBSCRIPTION = 1000;
+
+function oversubscriptionOf(item) {
+  const value = Number(item?.publicOversubscription);
+  return Number.isFinite(value) && item?.publicOversubscription !== null ? value : null;
+}
+
+function tierIdOf(value) {
+  if (value == null) return "unknown";
+  return value >= HK_HOT_OVERSUBSCRIPTION ? "hot" : "cool";
+}
+
+function tierBands(recent, id) {
+  const rows = (recent || []).filter((item) => tierIdOf(oversubscriptionOf(item)) === id);
+  return {
+    id,
+    n: rows.length,
+    names: rows.map((item) => item?.name).filter(Boolean),
+    grey: bandFromValues(collectChanges(rows, "greyMarketChange")),
+    firstDay: bandFromValues(collectChanges(rows, "firstDayChange")),
+    fiveDay: bandFromValues(collectChanges(rows, "fiveDayChange")),
+  };
+}
+
 function buildHkExitBands(snapshot) {
   const recent = Array.isArray(snapshot?.hk?.history) ? snapshot.hk.history : [];
   return {
@@ -46,7 +74,45 @@ function buildHkExitBands(snapshot) {
     grey: bandFromValues(collectChanges(recent, "greyMarketChange")),
     firstDay: bandFromValues(collectChanges(recent, "firstDayChange")),
     fiveDay: bandFromValues(collectChanges(recent, "fiveDayChange")),
+    hot: tierBands(recent, "hot"),
+    cool: tierBands(recent, "cool"),
+    unknown: tierBands(recent, "unknown"),
   };
+}
+
+// 一句话把两档摆在一起。谁都不改谁，读的人自己看落在哪边。
+function formatTierSplit(bands, key) {
+  const hot = bands?.hot?.[key];
+  const cool = bands?.cool?.[key];
+  if (!hot?.n || !cool?.n) return "";
+  return [
+    `超购 ${HK_HOT_OVERSUBSCRIPTION} 倍以上 ${hot.n} 只：${formatExitMedian(hot)}、${formatExitPositive(hot)}`,
+    `不到 ${HK_HOT_OVERSUBSCRIPTION} 倍 ${cool.n} 只：${formatExitMedian(cool)}、${formatExitPositive(cool)}`,
+  ].join("；");
+}
+
+// 详情页一行摆两档：中位 + 映射到招股价的对照价 + 收正只数。混算的那个中位
+// 两边都不像，所以只要分得开就不再把它摆在主位。
+function tierRow(bands, key, offer) {
+  const hot = bands?.hot?.[key];
+  const cool = bands?.cool?.[key];
+  if (!hot?.n || !cool?.n) return "";
+  const price = (band) => {
+    const mapped = mapOfferMedian(offer, band);
+    return mapped ? `约 ${mapped}` : "";
+  };
+  return [
+    `超购 ${HK_HOT_OVERSUBSCRIPTION} 倍以上 ${hot.n} 只 ${formatExitMedian(hot)}${price(hot) ? ` ${price(hot)}` : ""}（${hot.positive}/${hot.n} 收正）`,
+    `不到 ${HK_HOT_OVERSUBSCRIPTION} 倍 ${cool.n} 只 ${formatExitMedian(cool)}${price(cool) ? ` ${price(cool)}` : ""}（${cool.positive}/${cool.n} 收正）`,
+  ].join(" · ");
+}
+
+// 招股期内超购还没公布，只能给「到时候看哪一档」；已公布就直接落到那一档。
+function tierForListing(bands, item) {
+  const value = oversubscriptionOf(item);
+  if (value == null) return null;
+  const picked = bands?.[tierIdOf(value)];
+  return picked && picked.n ? { ...picked, oversubscription: value } : null;
 }
 
 function formatExitBand(band) {
@@ -141,22 +207,24 @@ function buildHkExitPlan(item, options = {}) {
     : [
         {
           label: "暗盘观察分位",
-          value: [
-            formatExitMedian(bands.grey),
-            mapOfferMedian(offer, bands.grey) ? `约 ${mapOfferMedian(offer, bands.grey)}` : null,
-            formatExitPositive(bands.grey),
-            `区间 ${formatExitBand(bands.grey)}`,
-          ].filter(Boolean).join(" · "),
+          value: tierRow(bands, "grey", offer)
+            || [
+              formatExitMedian(bands.grey),
+              mapOfferMedian(offer, bands.grey) ? `约 ${mapOfferMedian(offer, bands.grey)}` : null,
+              formatExitPositive(bands.grey),
+              `区间 ${formatExitBand(bands.grey)}`,
+            ].filter(Boolean).join(" · "),
           locked: false,
         },
         {
           label: "首日观察分位",
-          value: [
-            formatExitMedian(bands.firstDay),
-            mapOfferMedian(offer, bands.firstDay) ? `约 ${mapOfferMedian(offer, bands.firstDay)}` : null,
-            formatExitPositive(bands.firstDay),
-            `区间 ${formatExitBand(bands.firstDay)}`,
-          ].filter(Boolean).join(" · "),
+          value: tierRow(bands, "firstDay", offer)
+            || [
+              formatExitMedian(bands.firstDay),
+              mapOfferMedian(offer, bands.firstDay) ? `约 ${mapOfferMedian(offer, bands.firstDay)}` : null,
+              formatExitPositive(bands.firstDay),
+              `区间 ${formatExitBand(bands.firstDay)}`,
+            ].filter(Boolean).join(" · "),
           locked: false,
         },
         {
@@ -188,7 +256,7 @@ function buildHkExitPlan(item, options = {}) {
     basis: ended
       ? "已披露涨跌与招股价对照，不是下一只新股的卖出价。"
       : (bands.sampleCount
-        ? `历史样本 ${bands.sampleCount} 只的中位数与 25%–75% 分位；整数对照价不是本股保证卖出价。`
+        ? `历史样本 ${bands.sampleCount} 只，按公开超购倍数分档取中位；整数对照价不是本股保证卖出价。`
         : "历史样本不足"),
     disclaimer: "",
   };
@@ -197,6 +265,9 @@ function buildHkExitPlan(item, options = {}) {
 module.exports = {
   buildHkExitPlan,
   buildHkExitBands,
+  formatTierSplit,
+  tierForListing,
+  HK_HOT_OVERSUBSCRIPTION,
   formatExitBand,
   formatExitMedian,
   formatExitPositive,

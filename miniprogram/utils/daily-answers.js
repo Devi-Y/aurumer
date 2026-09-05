@@ -8,7 +8,8 @@ const { buildGuruTrend } = require("./guru-trend");
 const { toDay } = require("./dates");
 const {
   buildHkExitBands, formatExitBand, formatExitMedian, formatExitPositive,
-  mapOfferBand, mapOfferMedian,
+  mapOfferBand, mapOfferMedian, formatTierSplit, tierForListing,
+  HK_HOT_OVERSUBSCRIPTION,
 } = require("./hk-exit-plan");
 const {
   hkLeverageEligible,
@@ -134,6 +135,22 @@ function buildHkAnswers(snapshot) {
     ].join("\n");
   };
 
+  // 展开层把分档摊开：只数、中位、收正、区间，外加一句「样本就这么点」。
+  const tierSplitModal = (allBands, endedKey) => {
+    const key = endedKey === "greyMarketChange" ? "grey" : "firstDay";
+    const split = formatTierSplit(allBands, key);
+    if (!split) return "";
+    const hot = allBands.hot?.[key];
+    const cool = allBands.cool?.[key];
+    return [
+      `超购倍数是这批样本里唯一劈得开结果的字段，而且是断层不是渐变：`,
+      `· 超购 ${HK_HOT_OVERSUBSCRIPTION} 倍以上 ${hot.n} 只，${formatExitMedian(hot)}，区间 ${formatExitBand(hot)}`,
+      `· 不到 ${HK_HOT_OVERSUBSCRIPTION} 倍 ${cool.n} 只，${formatExitMedian(cool)}，区间 ${formatExitBand(cool)}`,
+      `两档合起来算中位会得到一个两边都不像的数，所以分开给。`,
+      `已披露超购的样本只有 ${hot.n + cool.n} 只，这是观察不是规律；超购本身也不保证暗盘一定跟着走。`,
+    ].join("\n");
+  };
+
   const exitCard = (id, question, band, endedKey, modal = "") => {
     const ended = items
       .filter((item) => item.group === "ended" && Number.isFinite(Number(item.raw?.historicalReview?.[endedKey])))
@@ -142,6 +159,57 @@ function buildHkAnswers(snapshot) {
     if (liveLead && offer && band?.n) {
       const mapped = mapOfferBand(offer, band);
       const mid = mapOfferMedian(offer, band);
+      // 全样本中位是两档掺在一起算出来的，谁都不像。超购已公布就落到它那一档，
+      // 没公布就把两档的价格都摆出来——「到时候看超购落在哪边」本身就是答案，
+      // 比一个谁都不像的 +0.6% 有用。
+      const tier = tierForListing(bands, lead?.raw);
+      const tierBand = tier?.[endedKey === "greyMarketChange" ? "grey" : "firstDay"];
+      if (tier && tierBand?.n) {
+        const tierMid = mapOfferMedian(offer, tierBand);
+        return card({
+          id,
+          question,
+          answer: [formatExitMedian(tierBand), tierMid ? `约 ${tierMid}` : null]
+            .filter(Boolean).join("，") || formatExitBand(tierBand),
+          names: [
+            shortCompanyName(lead.name, "新股", 6),
+            `超购 ${Math.round(tier.oversubscription)} 倍`,
+            formatExitPositive(tierBand),
+          ].filter(Boolean).join(" · "),
+          tone: "warn",
+          action: "detail",
+          targetId: lead.id,
+          enabled: true,
+          hint: `只用同档 ${tierBand.n} 只样本，不是本股保证卖出价。`,
+          modal: [tierSplitModal(bands, endedKey), modal].filter(Boolean).join("\n\n"),
+        });
+      }
+      const hotBand = bands.hot?.[endedKey === "greyMarketChange" ? "grey" : "firstDay"];
+      const coolBand = bands.cool?.[endedKey === "greyMarketChange" ? "grey" : "firstDay"];
+      const hotMid = mapOfferMedian(offer, hotBand);
+      const coolMid = mapOfferMedian(offer, coolBand);
+      if (hotBand?.n && coolBand?.n && hotMid && coolMid) {
+        const deadlineDay = String(toDay(lead?.raw?.offerDeadline) || "").slice(5);
+        const deadline = deadlineDay ? ` ${deadlineDay} 截止后公布` : "尚未公布";
+        // 两个价同单位，"46 港元 或 19 港元" 把单位印了两遍。
+        const hotNumber = hotMid.replace(/\s*港元$/, "");
+        return card({
+          id,
+          question,
+          answer: `约 ${hotNumber} 或 ${coolMid}，看超购`,
+          names: [
+            shortCompanyName(lead.name, "新股", 6),
+            `过 ${HK_HOT_OVERSUBSCRIPTION} 倍→${hotNumber}（${hotBand.positive}/${hotBand.n} 收正）`,
+            `不足→${coolMid.replace(/\s*港元$/, "")}（${coolBand.positive}/${coolBand.n} 收正）`,
+          ].filter(Boolean).join(" · "),
+          tone: "warn",
+          action: "detail",
+          targetId: lead.id,
+          enabled: true,
+          hint: `超购倍数${deadline}；分档样本各只有个位数，不是本股保证卖出价。`,
+          modal: [tierSplitModal(bands, endedKey), modal].filter(Boolean).join("\n\n"),
+        });
+      }
       // 粗体那行只放最该记住的一个数：中位。区间和收正只数退到下面那行灰字，
       // 原来把「-1.2%～+57.0%（n=12），约 19–31 港元」全塞进粗体行，
       // 在 375 宽的屏幕上要折三行，还把最关键的中位数彻底省掉了。

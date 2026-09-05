@@ -632,7 +632,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
   const rankNames = (list) => list
     .map((item) => shortCompanyName(item.name, "收息", 4))
     .join(" · ");
-  // 榜首那只的参考买卖价直接写在卡上，剩下四只的价在列表里每行都有。
+  // 卡面只放得下榜首那只的参考买卖价，另外四只在展开层（rankModal）里一次摆齐。
   const leadPrice = (list) => {
     const lead = list[0];
     const plan = lead ? yieldImpliedPlan(lead.raw) : null;
@@ -655,6 +655,39 @@ function buildAShareAnswers(snapshot, holdings = []) {
   // 只印在两张榜单卡的第一张上——两张紧挨着，同一句话印两遍就成了水印。
   const fundNote = "样本内唯一的红利 ETF 分红不固定、没有股息率字段，两个榜都排不进，所以前五都是股票。";
 
+  // 前五名的两个参考价一次摆齐。卡面只放得下第一名（leadPrice），另外四只原来
+  // 只能翻到列表里一行行找，可用户这一问要的就是「前五名各自的参考买入价、
+  // 参考卖出价」。拿不到价的那只照样列名次，写清缺哪个字段——不按公式硬凑一个数。
+  const zoneNote = {
+    add: "现价已在参考买入价之下",
+    trim: "现价已在参考卖出价之上",
+    hold: "现价在两条参考价之间",
+  };
+  const rankModal = (list, kind) => {
+    if (!list.length) return "";
+    const rows = list.map((item, index) => {
+      const raw = item.raw || {};
+      const stability = aShareDividendStability(raw);
+      const why = kind === "stable"
+        ? `分红稳定性 ${hasNumber(stability) ? stability : "暂缺"}`
+        : `当前股息 ${hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(2)}%` : "暂缺"}`;
+      const head = `${index + 1}. ${shortCompanyName(item.name, "收息", 8)} · ${why}`;
+      const plan = yieldImpliedPlan(raw);
+      if (!plan) return `${head}\n\u3000参考价暂缺：缺少现价或可持续股息率，不倒推价格。`;
+      return `${head}\n\u3000现价 ${yuan(plan.price)}｜参考买 ${yuan(plan.addPrice)}｜参考卖 ${yuan(plan.trimPrice)}（${zoneNote[plan.zone] || "观察中"}）`;
+    });
+    return [
+      kind === "stable"
+        ? "按分红能不能持续排：分红覆盖率、经营现金流、现金转换、股东回报四项加权，不看股息高低。"
+        : "只按当前股息率从高到低排，不看这份分红能不能持续——两个榜都上榜的才是两头过得去。",
+      "",
+      ...rows,
+      "",
+      "两条参考价按每家自己的可持续股息率倒推：股息率回到「可持续 ×1.12 或 +0.4 个百分点（取高）」时对应的价是参考买，被压到「×0.88 或 −0.3 个百分点（取低）」时对应的价是参考卖。是观察价，不是目标价，也不是买卖指令。",
+      fundNote,
+    ].join("\n");
+  };
+
   const heldTrim = withPlan.filter((entry) => {
     const cost = Number(entry.holding?.cost);
     if (!hasNumber(cost) || cost <= 0) return false;
@@ -674,6 +707,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
       targetId: stableTop[0]?.id || "",
       enabled: stableTop.length > 0,
       hint: `看的是分红能不能持续（覆盖率、现金流、股东回报），不含股息高低，也不是收益承诺。${fundNote}`,
+      modal: rankModal(stableTop, "stable"),
     }),
     card({
       id: "a-yield5",
@@ -686,6 +720,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
       targetId: yieldTop[0]?.id || "",
       enabled: yieldTop.length > 0,
       hint: "只按当前股息率排；高息不代表分红能持续，两个榜都上榜的才是两头过得去。",
+      modal: rankModal(yieldTop, "yield"),
     }),
     card({
       id: "a-add",

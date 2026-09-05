@@ -171,7 +171,9 @@
         <text class="record-title">{{item.title}}</text>
         <text class="record-note">{{item.detail}}</text>
         <text class="source-line">来源 {{item.source}}</text>
-        <button wx:if="{{!item.marked}}" class="mini-action" data-id="{{item.id}}" bindtap="markEvent">提醒我</button>
+        <view wx:if="{{!item.marked}}" class="task-actions">
+          <button class="mini-action" data-id="{{item.id}}" bindtap="markEvent">提醒我</button>
+        </view>
         <text wx:else class="evidence-line">已标记提醒 · 可在下方取消</text>
       </view>
     </view>
@@ -188,7 +190,9 @@
         <text class="record-title">{{item.title}}</text>
         <text wx:if="{{item.detail}}" class="record-note">{{item.detail}}</text>
         <text class="evidence-line">{{item.notifyLabel}}</text>
-        <button class="mini-action" data-id="{{item.id}}" bindtap="deleteEventMark">取消提醒</button>
+        <view class="task-actions">
+          <button class="mini-action" data-id="{{item.id}}" bindtap="deleteEventMark">取消提醒</button>
+        </view>
       </view>
     </view>
     <view wx:if="{{!state.inbox.length && !changeFeed.length && !calendarUpcoming.length && !taskBoard.openCount && !state.eventMarks.length}}" class="empty-card">

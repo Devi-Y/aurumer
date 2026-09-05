@@ -39,6 +39,10 @@
 
 .task-actions .mini-action {
   margin: 0;
+  /* 微信 button 默认带 184px 固定宽度：容器只有 350px，两个就放不下，
+     四个按钮各占一行，一条待办光按钮就吃掉四行。让它按文字收缩才排得成一行。 */
+  width: auto;
+  min-width: 0;
 }
 
 .brief-card {

@@ -12,6 +12,7 @@ const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lense
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
 const { marketSources, dedupeSources } = require("../../utils/sources");
+const { filingsFor, formatFiling, formatFilingLine } = require("../../utils/us-filings");
 // 「毛利率 43%」本身不回答"这算高还是低"。望潮池子里 30 只美股、20 只 A 股
 // 的同口径字段就摆在快照里，把它算成「池内第 6/30」是零新增数据的一次密度提升。
 const { poolRankVisual } = require("../../utils/pool-rank");
@@ -818,8 +819,15 @@ function buildUSView(base, item, snapshot) {
     raw.asOf ? `行情截至 ${dayText(raw.asOf)}` : null,
     fund.period ? `财报期 ${dayText(fund.period)}` : null,
   ].filter(Boolean).join(" · ");
+  // 公告是发行人自己提交的备案，不是我们的归纳，所以不加【望潮研究归纳】前缀，
+  // 但也绝不写成「因为业绩所以涨」——只说同期发生了什么，因果留给读的人。
+  const usFilings = filingsFor(snapshot, raw.symbol || item.code);
+  const filingBody = usFilings.length
+    ? `${formatFilingLine(usFilings, 3)}。公告与股价同期发生，不代表因果；原文链接见「来源」。`
+    : "";
   base.analysis = [
     { title: "公开事实", body: usPublicFacts || "公开资料整理中。" },
+    filingBody ? { title: "同期公告（SEC EDGAR）", body: filingBody } : null,
     { title: "位置", body: `【望潮研究归纳】${stockRange(raw.history, raw.price)}` },
     mag7Label ? { title: "七姐妹/行业分档", body: `【望潮研究归纳】${mag7Label}` } : null,
     {
@@ -1480,6 +1488,18 @@ function buildSourceLinks(item, snapshot) {
   }
   if (item.market === "guru" && raw.sourceUrl) {
     own.push({ id: "guru-edgar", name: `${item.name || "该机构"} 的 SEC EDGAR 备案`, url: raw.sourceUrl });
+  }
+  if (item.market === "us") {
+    // 「同期公告」那张卡只写日期和事件类型，是我们的转述；能点开核对的原文
+    // 才是这一栏成立的理由，所以每条公告都在来源里留一个可复制的深链。
+    for (const filing of filingsFor(snapshot, raw.symbol || item.code)) {
+      if (!filing.sourceUrl) continue;
+      own.push({
+        id: `us-filing-${filing.filingDate}-${filing.form}`,
+        name: `${formatFiling(filing)}（SEC ${filing.form} 原文）`,
+        url: filing.sourceUrl,
+      });
+    }
   }
   return dedupeSources(own.filter(Boolean).concat(marketSources(snapshot, item.market)));
 }

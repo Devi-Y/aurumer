@@ -137,6 +137,29 @@ function sanitizeUSFundamental(item = {}) {
   };
 }
 
+// SEC 公告本身就是公开备案，没有需要剥的私有字段，但也不能整块原样透传：
+// 只放页面真正会渲染的那几项，并且死守「链接必须是 sec.gov 官方域」——
+// 这一栏的全部价值就是用户点进去能自己核对，指向别处就不如不写。
+function sanitizeUsFiling(item = {}) {
+  const url = String(item.sourceUrl || "");
+  return {
+    symbol: String(item.symbol || "").toUpperCase(),
+    form: String(item.form || ""),
+    filingDate: String(item.filingDate || ""),
+    labels: (Array.isArray(item.labels) ? item.labels : [])
+      .map((label) => String(label))
+      .filter(Boolean)
+      .slice(0, 3),
+    sourceUrl: /^https:\/\/(www\.)?sec\.gov\//.test(url) ? url : "",
+  };
+}
+
+function sanitizeUsFilings(list) {
+  return (Array.isArray(list) ? list : [])
+    .map(sanitizeUsFiling)
+    .filter((item) => item.symbol && item.filingDate && item.labels.length);
+}
+
 function aShareResearchView(item = {}, financials = {}) {
   const hasPriceAndYield = hasNumber(item.currentPrice) && hasNumber(item.currentDividendYield);
   const hasCashFlow = hasNumber(financials.operatingCashFlow) && hasNumber(financials.freeCashFlow);
@@ -292,6 +315,7 @@ function sanitizeSnapshot(snapshot) {
     us: {
       stocks: (snapshot.us && snapshot.us.stocks || []).map(sanitizeUSStock),
       fundamentals: (snapshot.us && snapshot.us.fundamentals || []).map(sanitizeUSFundamental),
+      filings: sanitizeUsFilings(snapshot.us && snapshot.us.filings),
     },
     hk: {
       listings: (snapshot.hk && snapshot.hk.listings || []).map(sanitizeHKListing),

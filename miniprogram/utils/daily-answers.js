@@ -5,6 +5,7 @@
 const { aShareDividendStability, allItems, shortCompanyName } = require("./answers");
 const { MASTER_PLAYBOOKS } = require("./master-playbooks");
 const { buildGuruTrend } = require("./guru-trend");
+const { hasFilingFeed, filingsBySymbol, formatFilingLine } = require("./us-filings");
 const { toDay } = require("./dates");
 const {
   buildHkExitBands, formatExitBand, formatExitMedian, formatExitPositive,
@@ -376,6 +377,10 @@ function buildUsAnswers(snapshot) {
   // 热度前三只存在于分组列表里，首屏答不出来。
   const hot = items.filter((item) => item.group === "hot").slice(0, 3);
   const hotQualified = hot.filter((item) => item.raw && item.raw.fund && item.raw.fund.qualityEligible === true);
+  // 「为什么火热」以前只能答「成交量比高」——那是把「热」换个说法再说一遍。
+  // SEC 公告能补上同期到底发生了什么，是可以点开原文核对的公开事实。
+  const filingMap = filingsBySymbol(snapshot);
+  const hasFilings = hasFilingFeed(snapshot);
   const extraPool = [];
   const seen = new Set(seven.map((item) => item.code));
   for (const item of items) {
@@ -547,10 +552,19 @@ function buildUsAnswers(snapshot) {
           ...hot.map((item) => {
             const heat = Number(item.raw && item.raw.heatScore);
             const driver = item.heatDriver || "驱动数据不足";
-            return `${shortCompanyName(item.name, item.code || "标的", 8)}${Number.isFinite(heat) ? ` 热度 ${Math.round(heat)}` : ""}：${driver}。${item.attentionNote || ""}`;
+            const symbol = (item.raw && item.raw.symbol) || item.code || "";
+            const filed = formatFilingLine(filingMap.get(String(symbol).toUpperCase()));
+            const head = `${shortCompanyName(item.name, item.code || "标的", 8)}${Number.isFinite(heat) ? ` 热度 ${Math.round(heat)}` : ""}：${driver}。${item.attentionNote || ""}`;
+            // 公告字段本身没取到时整行不写。只有确实拿到了这批公告、而这一只
+            // 名下一条都没有，才敢说「没发公告」——那时它是有用的信息：
+            // 这波热度背后没有已披露的公司事件，纯粹是资金在动。
+            if (!hasFilings) return head;
+            return `${head}\n　同期公告：${filed || "近 30 天无重大事项公告"}`;
           }),
           "",
-          "热度只由公开成交量比与涨跌幅算出。本数据源没有新闻与公告字段，所以不写「因为某某消息」这类原因——那需要另接新闻源才能说。",
+          hasFilings
+            ? "热度只由公开成交量比与涨跌幅算出。「同期公告」取自 SEC EDGAR 官方备案，只说明同期发生了什么，不等于当天涨跌的原因——详情页可复制原文链接自己核对。"
+            : "热度只由公开成交量比与涨跌幅算出。本轮快照未带公司公告字段，所以这里不写「因为某某消息」——没有可核对的原文就不下原因结论。",
           "放量下跌和放量上涨都会让热度变高，热度本身不指方向，更不是买入信号。",
         ].join("\n")
         : "",

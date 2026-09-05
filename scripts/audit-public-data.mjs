@@ -1,5 +1,8 @@
 import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
+
+import { buildDailyDigestDocument } from "./build-daily-digest.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const snapshot = JSON.parse(
@@ -125,26 +128,34 @@ assert(indexHtml.includes("data/daily-digest.json") && indexHtml.includes("funct
 const digest = JSON.parse(await readFile(resolve(root, "data/daily-digest.json"), "utf8"));
 assert(digest.updatedAt === snapshot.updatedAt, "今日答案摘要与公开快照 updatedAt 不一致");
 assert(["hk", "us", "a", "gold", "guru"].every((market) => Array.isArray(digest.markets?.[market]) && digest.markets[market].length >= 3), "今日答案摘要五个栏目不完整");
-assert(digest.markets.hk.some((card) => card.question === "哪些值得打"), "今日答案摘要缺少港股值得打");
-assert(digest.markets.us.some((card) => card.question === "低估的七姐妹"), "今日答案摘要缺少低估七姐妹");
-assert(digest.markets.a.some((card) => card.question === "什么价可加大"), "今日答案摘要缺少A股加大观察价");
-assert(digest.markets.gold.some((card) => card.question === "人民币金卖出观察"), "今日答案摘要缺少人民币金卖出观察");
-assert(digest.markets.guru.some((card) => card.question === "应该避免什么"), "今日答案摘要缺少机构边界");
+// 这份清单对位的是用户提的六条诉求，不是「今天恰好生成了哪几张卡」。
+// 少一条就是少回答一个用户花钱买的问题，所以宁可写死也要逐条点名。
 const requiredQuestions = {
-  hk: ["哪些值得打", "哪些要避雷", "打中后暗盘", "打中后首日", "打中后首周"],
-  us: ["低估的七姐妹", "风险升高要减", "行业公司观察", "底仓如何配置"],
-  a: ["底仓长期持有", "周期短持", "什么价可加大", "什么价可兑现"],
-  gold: ["美元金可持有", "美元金卖出观察", "人民币金可持有", "人民币金卖出观察"],
-  guru: ["业绩靠前持仓", "他们怎么想", "我们如何借鉴", "应该避免什么"],
+  hk: ["近期上新", "哪些值得打", "哪些要避雷", "打中后暗盘", "打中后首日"],
+  us: ["七姐妹近期怎么了", "低估的七姐妹", "风险升高要减", "最热的三只", "底仓如何配置"],
+  a: ["分红稳定性 前五", "分红收益性 前五", "什么价可加大", "什么价可兑现", "周期短持"],
+  gold: ["现在什么价", "是否值得买入", "是否应该卖出", "拐点变化"],
+  guru: ["业绩靠前持仓", "本季他们在加什么", "本季他们在减什么", "未来持仓趋势", "应该避免什么"],
 };
 for (const [market, questions] of Object.entries(requiredQuestions)) {
   const actual = new Set((digest.markets[market] || []).map((card) => card.question));
   for (const question of questions) assert(actual.has(question), `今日答案摘要 ${market} 缺少：${question}`);
 }
+// 上面查的是「文件里有没有这几问」，这里查「文件是不是这份快照现算出来的」。
+// 2026-09-04 线上停更 17 小时就栽在这条缝里：卡片改名之后本地 audit 依旧全绿，
+// 因为磁盘上那份 daily-digest.json 还是改名前 CI 提交的旧件，CI 一重算就炸。
+const miniSnapshot = createRequire(import.meta.url)("../miniprogram/data/live-snapshot.js");
+const rebuilt = buildDailyDigestDocument(miniSnapshot);
+for (const market of Object.keys(requiredQuestions)) {
+  const onDisk = (digest.markets[market] || []).map((card) => card.question).join(" / ");
+  const nowBuilt = (rebuilt.markets[market] || []).map((card) => card.question).join(" / ");
+  assert(onDisk === nowBuilt, `今日答案摘要 ${market} 与今日答案模块不同步：文件是「${onDisk}」，现算是「${nowBuilt}」，先跑 npm run sync:mini 再提交`);
+}
 const answerText = JSON.stringify(digest.markets);
+// 这三只在「没有符合条件的标的」时也会以兜底文案点名出现，所以断言的是「有没有正面回答」，
+// 不是「今天它们一定低估/一定有风险」——后者会在某天估值变化时把 CI 炸掉。
 assert(answerText.includes("谷歌-A") && answerText.includes("Meta"), "美股每日答案必须回答谷歌-A与Meta低估观察");
 assert(answerText.includes("特斯拉"), "美股每日答案必须回答特斯拉风险观察");
-assert(answerText.includes("万事达") && answerText.includes("优步"), "美股每日答案必须保留万事达与优步行业对照");
 assert(answerText.includes("不照抄仓位") && answerText.includes("滞后披露"), "机构每日答案必须保留跟随边界");
 assert(!/strategyAssessment|modelEstimate|breakProbability/.test(JSON.stringify(digest)), "今日答案摘要泄露内部字段");
 

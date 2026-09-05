@@ -87,11 +87,12 @@
       </view>
     </view>
 
-    <!-- 待办为空时，这一整块（含里面那张空态卡）会横在「今日变化摘要」和
-         「即将到来的事件」中间，把这个 tab 上唯一有内容的板块顶到屏幕外。
-         没有待办、但别处还有东西可看时就不占版面；整屏都空才留下这段指引。 -->
-    <view wx:if="{{taskBoard.openCount || taskBoard.done.length || (!calendarUpcoming.length && !changeFeed.length && !state.inbox.length)}}" class="record-panel">
-      <view class="panel-tools"><text>待办与节点</text><text>{{taskBoard.openCount}} 项</text></view>
+    <!-- 这一块只管「现在就要处理的」：已过期 + 今日到期。未来 7/30 天挪到下面的
+         「即将到来的事件」，已完成挪到复盘 tab——今日页原来七块并排，真正当天要做的
+         那两段反而被挤到屏幕外。
+         没有到期待办、但别处还有东西可看时就不占版面；整屏都空才留下这段指引。 -->
+    <view wx:if="{{taskBoard.overdue.length || taskBoard.today.length || (!calendarUpcoming.length && !changeFeed.length && !state.inbox.length && !taskBoard.upcoming.length)}}" class="record-panel">
+      <view class="panel-tools"><text>待办与节点</text><text>{{taskBoard.todayCount}} 项</text></view>
       <view wx:if="{{taskBoard.overdue.length}}">
         <text class="section-divider">已过期</text>
         <view wx:for="{{taskBoard.overdue}}" wx:key="taskId" class="record-row is-changed">
@@ -120,41 +121,7 @@
           </view>
         </view>
       </view>
-      <view wx:if="{{taskBoard.week.length}}">
-        <text class="section-divider">未来 7 天</text>
-        <view wx:for="{{taskBoard.week}}" wx:key="taskId" class="record-row">
-          <view class="record-top"><text class="record-tag">{{item.channelLabel}}</text><text class="record-date">{{item.dueAt}}</text></view>
-          <text class="record-title">{{item.title}}</text>
-          <text class="record-note">{{item.description}}</text>
-          <view class="task-actions">
-            <button class="mini-action" data-id="{{item.taskId}}" bindtap="completeTask">完成</button>
-            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskDay">延后一天</button>
-            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskWeek">延后一周</button>
-            <button class="mini-action" data-id="{{item.taskId}}" bindtap="deleteTask">删除</button>
-          </view>
-        </view>
-      </view>
-      <view wx:if="{{taskBoard.month.length}}">
-        <text class="section-divider">未来 30 天</text>
-        <view wx:for="{{taskBoard.month}}" wx:key="taskId" class="record-row">
-          <view class="record-top"><text class="record-tag">{{item.channelLabel}}</text><text class="record-date">{{item.dueAt}}</text></view>
-          <text class="record-title">{{item.title}}</text>
-          <text class="record-note">{{item.description}}</text>
-          <view class="task-actions">
-            <button class="mini-action" data-id="{{item.taskId}}" bindtap="completeTask">完成</button>
-            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskWeek">延后一周</button>
-            <button class="mini-action" data-id="{{item.taskId}}" bindtap="deleteTask">删除</button>
-          </view>
-        </view>
-      </view>
-      <view wx:if="{{taskBoard.done.length}}">
-        <text class="section-divider">已完成</text>
-        <view wx:for="{{taskBoard.done}}" wx:key="taskId" class="record-row">
-          <view class="record-top"><text class="record-tag">已完成</text><text class="record-date">{{item.dueAt}}</text></view>
-          <text class="record-title">{{item.title}}</text>
-        </view>
-      </view>
-      <view wx:if="{{!taskBoard.openCount && !taskBoard.done.length}}" class="empty-card">
+      <view wx:if="{{!taskBoard.openCount}}" class="empty-card">
         <text>暂无待办</text>
         <text>保存关注并设定复核日，或标记招股/上市等公开节点后会出现在这里。</text>
       </view>
@@ -178,8 +145,24 @@
       </view>
     </view>
 
-    <view wx:if="{{calendarUpcoming.length}}" class="record-panel">
-      <view class="panel-tools"><text>即将到来的事件</text></view>
+    <!-- 「我的待办（之后）」和「公开日程」都是「还没到跟前的事」，合成一块。
+         待办排在前面：那是用户自己给自己定的复核日，比交易所日历更该先看到。 -->
+    <view wx:if="{{calendarUpcoming.length || taskBoard.upcoming.length}}" class="record-panel">
+      <view class="panel-tools"><text>即将到来的事件</text><text wx:if="{{taskBoard.upcoming.length}}">待办 {{taskBoard.upcoming.length}} 项</text></view>
+      <view wx:if="{{taskBoard.upcoming.length}}">
+        <text class="section-divider">我的待办</text>
+        <view wx:for="{{taskBoard.upcoming}}" wx:key="taskId" class="record-row">
+          <view class="record-top"><text class="record-tag">{{item.channelLabel}}</text><text class="record-date">{{item.dueAt || '未设到期日'}}</text></view>
+          <text class="record-title">{{item.title}}</text>
+          <text class="record-note">{{item.description}}</text>
+          <view class="task-actions">
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="completeTask">完成</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="snoozeTaskWeek">延后一周</button>
+            <button class="mini-action" data-id="{{item.taskId}}" bindtap="deleteTask">删除</button>
+          </view>
+        </view>
+      </view>
+      <text wx:if="{{taskBoard.upcoming.length && calendarUpcoming.length}}" class="section-divider">公开日程</text>
       <view wx:for="{{calendarUpcoming}}" wx:key="id" class="record-row">
         <view class="record-top">
           <text class="record-tag">{{item.marketLabel}}</text>
@@ -456,6 +439,16 @@
       <text>持续复盘是会员能力</text>
       <text>开通后对照：哪些条件已变、哪些判断尚未被推翻、哪些到了复核日。</text>
       <button class="primary-button" bindtap="openMember">查看会员</button>
+    </view>
+
+    <!-- 从今日页搬过来：做完的事属于回头看，不该天天占着当天要处理的版面。
+         这里不挂 memberFeatures——到期用户仍能只读查看自己的记录，是协议里写死的边界。 -->
+    <view wx:if="{{taskBoard.done.length}}" class="record-panel">
+      <view class="panel-tools"><text>已完成的待办</text><text>{{taskBoard.done.length}} 项</text></view>
+      <view wx:for="{{taskBoard.done}}" wx:key="taskId" class="record-row">
+        <view class="record-top"><text class="record-tag">已完成</text><text class="record-date">{{item.dueAt}}</text></view>
+        <text class="record-title">{{item.title}}</text>
+      </view>
     </view>
   </view>
 

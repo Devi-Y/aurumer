@@ -391,6 +391,7 @@ Page({
       month: [],
       overdue: [],
       later: [],
+      upcoming: [],
       done: [],
       openCount: 0,
       todayCount: 0,

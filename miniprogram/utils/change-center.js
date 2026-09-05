@@ -352,12 +352,24 @@ function buildTaskBoard(tasks = [], today = todayLabelLocal()) {
       : (item.reminderChannel === "wechat" ? "订阅微信提醒" : "小程序内提醒"),
   });
   const rows = open.map(decorate).sort((a, b) => String(a.dueAt || "").localeCompare(String(b.dueAt || "")));
+  // 今日页只留「已过期 + 今日到期」，剩下的合成一条队列挂到「即将到来的事件」下面。
+  // 顺带把 later 桶接回可见范围：它装的是 30 天以外和没填到期日的待办，
+  // 以前哪一块都没渲染，却照样计进 openCount——用户看不见，计数却对不上。
+  const upcoming = rows
+    .filter((item) => item.bucket === "week" || item.bucket === "month" || item.bucket === "later")
+    .sort((left, right) => {
+      const leftDue = String(left.dueAt || "");
+      const rightDue = String(right.dueAt || "");
+      if (!leftDue || !rightDue) return leftDue ? -1 : (rightDue ? 1 : 0);
+      return leftDue.localeCompare(rightDue);
+    });
   return {
     today: rows.filter((item) => item.bucket === "today"),
     week: rows.filter((item) => item.bucket === "week"),
     month: rows.filter((item) => item.bucket === "month"),
     overdue: rows.filter((item) => item.bucket === "overdue"),
     later: rows.filter((item) => item.bucket === "later"),
+    upcoming,
     done: done.map(decorate).slice(0, 20),
     openCount: rows.length,
     todayCount: rows.filter((item) => item.bucket === "today" || item.bucket === "overdue").length,

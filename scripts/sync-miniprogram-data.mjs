@@ -24,15 +24,6 @@ function sampleNumbers(values, limit = HISTORY_LIMIT) {
   });
 }
 
-function sampleSeries(entries, limit = HISTORY_LIMIT) {
-  if (!Array.isArray(entries) || entries.length <= limit) return entries;
-  const last = entries.length - 1;
-  return Array.from({ length: limit }, (_, index) => {
-    const sourceIndex = Math.round((index / Math.max(1, limit - 1)) * last);
-    return entries[sourceIndex];
-  });
-}
-
 function slimForMiniProgram(data) {
   const next = structuredClone(data);
   if (next.us && Array.isArray(next.us.stocks)) {
@@ -41,13 +32,12 @@ function slimForMiniProgram(data) {
       history: sampleNumbers(stock.history, HISTORY_LIMIT),
     }));
   }
-  if (next.gold && next.gold.history) {
-    next.gold.history = {
-      ...next.gold.history,
-      international: sampleSeries(next.gold.history.international, HISTORY_LIMIT),
-      domestic: sampleSeries(next.gold.history.domestic, HISTORY_LIMIT),
-    };
-  }
+  // 黄金历史不抽稀。us.stocks 的 history 只喂走势小图，抽到 24 点看不出来；
+  // 黄金这条是「拐点变化」那张卡的计算输入，goldTurningPoint 要满 60 个收盘价
+  // 才肯出结论（不足就返回 null，不拿短窗口凑）。抽到 24 点等于把这张卡永久
+  // 焊死在「样本不足，暂不下判断」上——线上走云函数读全量本来是好的，可
+  // data/daily-digest.json 是拿这份精简快照算出来的，公开站和离线兜底就一直
+  // 是死卡。180 个点全留下也只多 5.6KB。
   return next;
 }
 
@@ -88,5 +78,5 @@ try {
 
 const digest = await writeDailyDigest(slimSnapshot);
 const bytes = Buffer.byteLength(JSON.stringify(slimSnapshot), "utf8");
-console.log(`小程序离线快照已同步：${slimSnapshot.updatedAt}（约 ${Math.round(bytes / 1024)} KB，历史采样 ${HISTORY_LIMIT} 点）`);
+console.log(`小程序离线快照已同步：${slimSnapshot.updatedAt}（约 ${Math.round(bytes / 1024)} KB，个股走势采样 ${HISTORY_LIMIT} 点、黄金历史全量）`);
 console.log(`今日答案摘要已同步：港${digest.markets.hk.length} / 美${digest.markets.us.length} / A${digest.markets.a.length} / 金${digest.markets.gold.length} / 机构${digest.markets.guru.length} 问`);

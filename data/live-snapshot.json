@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-09-05T04:31:02.936Z",
-  "durationMs": 24493,
+  "updatedAt": "2026-09-06T08:33:42.525Z",
+  "durationMs": 26396,
   "sources": [
     {
       "id": "yahoo",
@@ -94,7 +94,7 @@
     {
       "id": "gold-sge",
       "name": "上海黄金交易所 Au99.99",
-      "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-06&end_date=2026-09-05",
+      "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-07&end_date=2026-09-06",
       "ok": true,
       "error": null
     }
@@ -3931,16 +3931,6 @@
           "新增重大债务"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1543151/000155278126000414/e26328_uber-8k.htm"
-      },
-      {
-        "symbol": "JPM",
-        "form": "10-Q",
-        "filingDate": "2026-08-06",
-        "items": "",
-        "labels": [
-          "季度报告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/19617/000162828026054343/jpm-20260630.htm"
       }
     ],
     "temperature": {
@@ -6632,7 +6622,7 @@
             "close": 1.453
           }
         ],
-        "retrievedAt": "2026-09-05T04:30:43.740Z",
+        "retrievedAt": "2026-09-06T08:33:24.874Z",
         "dataStatus": "live",
         "historyStatus": "live",
         "historyFallbackReason": null
@@ -6643,21 +6633,21 @@
   },
   "gold": {
     "status": "live",
-    "updatedAt": "2026-09-05T04:30:40.744Z",
+    "updatedAt": "2026-09-06T08:33:18.253Z",
     "quotes": {
       "international": {
         "symbol": "GC=F",
         "name": "COMEX 黄金",
-        "price": 4477.2,
+        "price": 4476.6,
         "currency": "USD/oz",
-        "changePercent": -0.32,
+        "changePercent": -0.34,
         "asOf": "2026-09-04T20:59:58.000Z",
         "returns": {
-          "day20": 2.1,
-          "day60": 7.8,
-          "day180": 2.9
+          "day20": 3.1,
+          "day60": 9,
+          "day180": 4
         },
-        "percentile180": 36
+        "percentile180": 41
       },
       "domestic": {
         "symbol": "Au99.99",
@@ -6678,7 +6668,7 @@
         "symbol": "USD/CNY",
         "price": 6.71,
         "changePercent": -0.12,
-        "asOf": "2026-09-05T03:30:51.000Z"
+        "asOf": "2026-09-06T03:30:33.000Z"
       }
     },
     "indicators": [
@@ -6763,33 +6753,33 @@
       "pricePlan": {
         "status": "research",
         "internationalWatch": {
-          "low": 4256,
-          "high": 4385,
+          "low": 4257,
+          "high": 4386,
           "currency": "USD/oz"
         },
         "internationalUpper": {
-          "low": 4591,
-          "high": 4688,
+          "low": 4645,
+          "high": 4746,
           "currency": "USD/oz"
         },
         "internationalRisk": {
-          "low": 4228,
-          "high": 4228,
+          "low": 4225,
+          "high": 4225,
           "currency": "USD/oz"
         },
         "domesticWatch": {
-          "low": 918.2,
-          "high": 946,
+          "low": 918.4,
+          "high": 946.2,
           "currency": "CNY/g"
         },
         "domesticUpper": {
-          "low": 990.4,
-          "high": 1011.3,
+          "low": 1002.1,
+          "high": 1023.9,
           "currency": "CNY/g"
         },
         "domesticRisk": {
-          "low": 912.1,
-          "high": 912.1,
+          "low": 911.5,
+          "high": 911.5,
           "currency": "CNY/g"
         }
       }
@@ -7514,7 +7504,7 @@
         },
         {
           "date": "2026-09-04",
-          "close": 4429.8
+          "close": 4476.6
         }
       ],
       "domestic": [
@@ -7554,7 +7544,7 @@
       {
         "id": "gold-sge",
         "name": "上海黄金交易所 Au99.99",
-        "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-06&end_date=2026-09-05",
+        "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-07&end_date=2026-09-06",
         "ok": true,
         "error": null
       }

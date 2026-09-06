@@ -18,7 +18,9 @@
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
-  <view wx:if="{{!state.writable}}" class="locked-card">
+  <!-- 首次进页面 loading 为 true 时，state 还是没发出真实请求前的占位值，
+       跟「请求回来了、确实只读/不可用」是两回事，这张卡先不出现，等加载完再判断。 -->
+  <view wx:if="{{!loading && !state.writable}}" class="locked-card">
     <text>{{state.backendReady ? '当前只读，已有记录仍可查看' : '记录服务暂不可用'}}</text>
     <button bindtap="openMember">查看会员</button>
   </view>
@@ -462,6 +464,22 @@
   </view>
 
   <text class="privacy-note">记录仅当前微信用户可见。到期后仍可只读查看、导出和删除。订单与支付凭证不在导出范围内。{{disclaimer}}</text>
+
+  <view wx:if="{{answerSheet}}" class="answer-mask" bindtap="closeAnswerSheet" catchtouchmove="true">
+    <view class="answer-sheet" catchtap="noop">
+      <view class="answer-sheet-head">
+        <text class="answer-sheet-title">{{answerSheet.title}}</text>
+        <view class="answer-sheet-close" role="button" aria-label="关闭" bindtap="closeAnswerSheet">关闭</view>
+      </view>
+      <view class="answer-sheet-body">
+        <block wx:for="{{answerSheet.lines}}" wx:key="key">
+          <view wx:if="{{item.blank}}" class="answer-sheet-gap"></view>
+          <text wx:elif="{{item.sub}}" class="answer-sheet-sub">{{item.text}}</text>
+          <text wx:else class="answer-sheet-line">{{item.text}}</text>
+        </block>
+      </view>
+    </view>
+  </view>
 
   <view class="page-nav">
     <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>

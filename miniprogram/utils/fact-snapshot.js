@@ -246,6 +246,10 @@ function buildWeeklyReview(decisions, snapshot, watchItems = []) {
       nowLabel: current
         ? [current.priceLabel, current.oneLiner].filter(Boolean).join(" · ")
         : "",
+      // 「对比当时与现在」按钮要展开逐项对照，不只是这一行摘要，
+      // 把算出来的两份事实原样带上，展开层直接读，不再另算一遍。
+      baseline: evidence || null,
+      currentFact: current || null,
     });
   });
 

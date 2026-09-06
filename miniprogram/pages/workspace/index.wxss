@@ -539,3 +539,81 @@
   .export-button,
   .delete-all-button { width: calc(100vw - 64px) !important; }
 }
+
+/* 「对比当时与现在」展开层：版式与 section/list/detail 页的正文抽屉一致
+   （.answer-sheet/.snapshot-sheet），同一种「从底部升起」的正文层，不再各写一套。 */
+.answer-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(20, 28, 24, 0.42);
+}
+
+.answer-sheet {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  max-height: 86vh;
+  padding: 28rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
+  border-radius: 28rpx 28rpx 0 0;
+  background: #fff;
+}
+
+.answer-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.answer-sheet-title {
+  flex: 1;
+  color: #1b211d;
+  font-size: 30rpx;
+  font-weight: 720;
+  line-height: 1.4;
+}
+
+.answer-sheet-close {
+  flex: none;
+  padding: 0 4rpx;
+  color: #5f6a64;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+.answer-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top: 20rpx;
+}
+
+.answer-sheet-line {
+  display: block;
+  color: #1b211d;
+  font-size: 27rpx;
+  line-height: 1.62;
+}
+
+.answer-sheet-sub {
+  display: block;
+  padding-left: 24rpx;
+  color: #5f6a64;
+  font-size: 25rpx;
+  line-height: 1.6;
+}
+
+.answer-sheet-sub + .answer-sheet-line {
+  margin-top: 14rpx;
+}
+
+.answer-sheet-gap {
+  height: 16rpx;
+}

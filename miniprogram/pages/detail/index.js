@@ -431,11 +431,18 @@ function buildHKView(base, item) {
   const daysToListing = daysFromToday(raw.listingDate);
   const announce = raw.announcementExtraction || {};
   const prospectus = raw.prospectusExtraction || {};
+  // group 是否 ended 只看上游配发结果/结论，不看日期——认购截止到配发结果出来
+  // 之前有个空档，这段时间 group 仍是「非 ended」，但「可关注申购」这种邀请
+  // 继续申购的措辞已经不成立了，得单独判一次日期。
+  const deadlinePassed = !ended && daysToDeadline != null && daysToDeadline < 0;
+  const deadlineLabel = (value) => (value == null ? null : (value < 0 ? "已截止" : (value === 0 ? "今天" : `${value}天`)));
 
   base.badge = item.badge || answer.verdict || base.badge;
   // 详情页读的是 raw.publicAnswer，绕过了 hkActionFromItem，所以退掉的措辞要在
   // 这里再过一次同一个归一化，否则首页改好了详情页还留着「卖点」。
-  base.answer = normalizeHkAction(answer.action, "") || item.one || item.badge;
+  base.answer = deadlinePassed
+    ? `认购已截止，等待${raw.listingDate ? `上市（${raw.listingDate}）` : "配发结果"}。`
+    : (normalizeHkAction(answer.action, "") || item.one || item.badge);
   base.metrics = ended
     ? compactFacts([
         ["是否申购", item.badge || answer.verdict || "已结束"],
@@ -458,7 +465,7 @@ function buildHKView(base, item) {
         ["招股价", offerPrice],
         ["一手中签", hasNumber(raw.oneLotRate) ? `${Number(raw.oneLotRate).toFixed(1)}%` : null],
         ["认购截止", raw.offerDeadline || raw.offerEnd],
-        ["截止剩余", daysToDeadline != null ? `${daysToDeadline}天` : null],
+        ["截止剩余", deadlineLabel(daysToDeadline)],
         ["上市日期", raw.listingDate],
         ["距上市", daysToListing != null ? `${daysToListing}天` : null],
         ["一手股数", lotSize ? `${lotSize}股` : null],
@@ -488,12 +495,13 @@ function buildHKView(base, item) {
             : { label: "上市日", value: raw.listingDate ? String(raw.listingDate).slice(5) : "—" }),
         { label: "一手·港元", value: hasNumber(raw.entryFee) ? `${Number(raw.entryFee).toFixed(0)}` : "—" },
         { label: "招股·港元", value: offer != null ? offer.toFixed(2) : "—" },
-        // 「截止 0天」读起来像已经结束了，其实是今天最后一天。
+        // 「截止 0天」读起来像已经结束了，其实是今天最后一天；负数则是
+        // 认购期已过、配发结果还没出来的空档，写「已截止」而不是「-2天」。
         {
           label: "截止",
           value: daysToDeadline == null
             ? (raw.offerDeadline || "—")
-            : (daysToDeadline === 0 ? "今天" : `${daysToDeadline}天`),
+            : deadlineLabel(daysToDeadline),
         },
       ];
 
@@ -501,7 +509,7 @@ function buildHKView(base, item) {
     ["招股开始", raw.offerStart],
     ["认购截止", raw.offerDeadline || raw.offerEnd],
     ["上市日期", raw.listingDate],
-    ["截止剩余", daysToDeadline != null ? `${daysToDeadline}天` : null],
+    ["截止剩余", deadlineLabel(daysToDeadline)],
     ["距上市", daysToListing != null ? `${daysToListing}天` : null],
   ].filter((row) => row[1]), "认购时间表", "先看还能不能打、什么时候上市。");
 

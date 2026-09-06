@@ -59,6 +59,47 @@ function normalizeCode(value) {
     .replace(/\.(SH|SZ)$/i, "");
 }
 
+// 展开层正文按行拆开，做法与 section/list 页一致：wx.showModal 会把 \n
+// 当空格吞掉，这里自己渲染，空行留白、缩进行降一级。
+function sheetLines(text) {
+  return String(text || "").split("\n").map((line, index) => {
+    const trimmed = line.replace(/^　+/, "");
+    return {
+      key: `line-${index}`,
+      text: trimmed,
+      blank: !trimmed,
+      sub: trimmed !== line,
+    };
+  });
+}
+
+// 「对比当时与现在」要展开的字段：标签 + 从 baseline/current 事实对象里取值的函数。
+const COMPARE_FIELDS = [
+  ["结论", (fact) => fact.oneLiner],
+  ["结论标签", (fact) => fact.badge],
+  ["风险提示", (fact) => fact.risk],
+  ["价格", (fact) => fact.priceLabel],
+  ["关键数据", (fact) => fact.metricLabel],
+];
+
+function buildCompareLines(baseline, current) {
+  const lines = COMPARE_FIELDS.map(([label, pick]) => {
+    const before = String(pick(baseline) || "").trim();
+    const after = String(pick(current) || "").trim();
+    if (!before && !after) return null;
+    if (before === after) return `${label}：${after}（未变）`;
+    return `${label}\n　当时：${before || "暂缺"}\n　现在：${after || "暂缺"}`;
+  }).filter(Boolean);
+  const asOfBefore = baseline.asOf || baseline.snapshotUpdatedAt || "";
+  const asOfAfter = current.asOf || current.snapshotUpdatedAt || "";
+  if (asOfBefore || asOfAfter) {
+    lines.push("");
+    lines.push(`当时留证：${asOfBefore || "时间未知"}`);
+    lines.push(`现在对照：${asOfAfter || "时间未知"}`);
+  }
+  return lines.join("\n");
+}
+
 function buildWatchPreview(watchItems, snapshot) {
   if (!snapshot || !Array.isArray(watchItems) || !watchItems.length) return [];
   const catalogs = {
@@ -135,6 +176,11 @@ function formatExpire(value) {
 
 function viewWorkspace(workspace) {
   const backendReady = Boolean(workspace.backendReady);
+  // 首次进页面时还没发出真实请求，只有一份 backendReady:false 的占位数据，
+  // 跟「请求回来了、服务真的连不上」用的是同一句「记录服务暂不可用」，会在
+  // 加载的一瞬间闪一下假故障。pending 只是给这一瞬间换一句不下结论的话，
+  // 不影响 backendReady 本身在别处（wxml、explainLocked）的判断。
+  const pending = Boolean(workspace.pending);
   const active = Boolean(workspace.active);
   const memberFeatures = Boolean(workspace.memberFeatures || active);
   const writable = Boolean(workspace.writable);
@@ -170,16 +216,20 @@ function viewWorkspace(workspace) {
       calmCount: 0,
       watchCount: 0,
     },
-    statusTitle: !backendReady
-      ? "记录服务暂不可用"
-      : (verificationPending ? "权益核验中（只读）" : (active ? "哨兵已开启" : "免费研究可用")),
-    statusDetail: !backendReady
-      ? "当前仍可浏览公开资料，请稍后再试。"
-      : (verificationPending
-        ? (workspace.verificationMessage || "权益状态暂时无法核验，当前保留只读与导出。")
-        : (active
-          ? "事实没变不打扰；变了进今日简报。"
-          : "免费可保存少量关注与理由；完整追踪为会员能力。")),
+    statusTitle: pending
+      ? "正在连接记录服务"
+      : (!backendReady
+        ? "记录服务暂不可用"
+        : (verificationPending ? "权益核验中（只读）" : (active ? "哨兵已开启" : "免费研究可用"))),
+    statusDetail: pending
+      ? "正在读取你的关注与记录…"
+      : (!backendReady
+        ? "当前仍可浏览公开资料，请稍后再试。"
+        : (verificationPending
+          ? (workspace.verificationMessage || "权益状态暂时无法核验，当前保留只读与导出。")
+          : (active
+            ? "事实没变不打扰；变了进今日简报。"
+            : "免费可保存少量关注与理由；完整追踪为会员能力。"))),
     watchItems: (workspace.watchItems || []).map((item) => ({
       ...item,
       groupLabel: item.groupLabel || "默认",
@@ -400,6 +450,7 @@ Page({
     calendarPast: [],
     calendarNextCount: 0,
     weeklyReview: { count: 0, changedCount: 0, rows: [], headline: "" },
+    answerSheet: null,
     guruChanges: [],
     dividendSummary: { expectedNetCny: 0, actualCny: null, count: 0, rows: [] },
     freshness: freshnessBanner("正在读取同步数据", "fresh"),
@@ -409,6 +460,7 @@ Page({
     reviewConditionOptions: REVIEW_CONDITION_OPTIONS,
     state: viewWorkspace({
       backendReady: false,
+      pending: true,
       active: false,
       writable: false,
       memberFeatures: false,
@@ -516,8 +568,27 @@ Page({
     track("change_item_open", { id: String(id || "") });
   },
   openSnapshotCompare(event) {
-    track("snapshot_compare", { id: String(event.currentTarget.dataset.id || "") });
-    this.setData({ activeTab: "review" });
+    const id = event.currentTarget.dataset.id;
+    track("snapshot_compare", { id: String(id || "") });
+    const row = (this.data.weeklyReview.rows || []).find((item) => item.id === id);
+    const baseline = row && row.baseline;
+    const current = row && row.currentFact;
+    if (!baseline || !current) {
+      wx.showToast({ title: "这条记录没有留存当时的对照证据，没法逐项对比", icon: "none" });
+      return;
+    }
+    this.setData({
+      answerSheet: {
+        title: `${row.title || "对比"} · 当时与现在`,
+        lines: sheetLines(buildCompareLines(baseline, current)),
+        confirmLabel: "",
+      },
+    });
+  },
+  // 遮罩点空白处关，正文里点字不关：catchtap 得有个真方法接住冒泡。
+  noop() {},
+  closeAnswerSheet() {
+    this.setData({ answerSheet: null });
   },
   completeTask(event) {
     const taskId = event.currentTarget.dataset.id;
@@ -699,10 +770,13 @@ Page({
       "决策档案已保存",
       () => {
         track("workspace_save", { kind: "decision", evidence: this.data.saveEvidence });
+        // 复盘 tab 的复盘面板是会员能力（wxml 里 memberFeatures 才渲染 weeklyReview），
+        // 免费用户保存想法后跳过去只会看到会员墙，看不到自己刚存的东西——
+        // 想法本身在「关注」tab 里是无门槛常显的，留在原地就够。
         this.setData({
           decisionForm: { title: "", note: "", invalidation: "", nextReviewAt: "" },
           showDecisionForm: false,
-          activeTab: "review",
+          activeTab: this.data.state.memberFeatures ? "review" : "watch",
         });
       },
     );

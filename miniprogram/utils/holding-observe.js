@@ -15,6 +15,14 @@ function hasNumber(value) {
   return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
 }
 
+// 表单没填时 holding.cost/quantity 是空字符串，Number("") 会先变成 0，
+// 后面的 hasNumber(0) 就再也看不出"没填"和"真填了 0"的区别，卡面上就会
+// 冒出一句用户从没输入过的「成本 0」。到这一步之前先判断原始值是否为空。
+function toNumberOrNaN(value) {
+  if (value === null || value === undefined || value === "") return NaN;
+  return Number(value);
+}
+
 function normalizeCode(market, code) {
   const raw = String(code || "").trim().toUpperCase();
   if (!raw) return "";
@@ -75,24 +83,30 @@ function deriveGoldAction(holding, snapshot) {
   const plan = gold.answer?.pricePlan || {};
   const intl = Number(gold.quotes?.international?.price);
   const dom = Number(gold.quotes?.domestic?.price);
-  const cost = Number(holding.cost);
+  const cost = toNumberOrNaN(holding.cost);
+  // 首页金价固定报「元/克」这个口径，持仓这边如果落到国际金「美元/盎司」，
+  // 同一屏两个不同单位的裸数字摆一起，用户没法分辨谁跟谁比。国内价有就
+  // 一律用国内价，并把单位带在 currentText 上，不再让数字自己猜单位。
+  const current = Number.isFinite(dom) ? dom : intl;
+  const unit = Number.isFinite(dom) ? "元/克" : (Number.isFinite(intl) ? "美元/盎司" : "");
   if (rangeHit(intl, plan.internationalRisk) || rangeHit(dom, plan.domesticRisk)) {
-    return { text: "已进入风险观察区", tone: "risk", triggered: true, current: intl };
+    return { text: "已进入风险观察区", tone: "risk", triggered: true, current, unit };
   }
   if (rangeHit(intl, plan.internationalWatch) || rangeHit(dom, plan.domesticWatch)) {
-    return { text: "进入分批观察区间", tone: "good", triggered: true, current: intl };
+    return { text: "进入分批观察区间", tone: "good", triggered: true, current, unit };
   }
   if (rangeHit(intl, plan.internationalUpper) || rangeHit(dom, plan.domesticUpper)) {
-    return { text: "进入上沿观察区间", tone: "risk", triggered: true, current: intl };
+    return { text: "进入上沿观察区间", tone: "risk", triggered: true, current, unit };
   }
-  const fromCost = costHint(cost, Number.isFinite(dom) ? dom : intl);
-  if (fromCost) return { ...fromCost, current: Number.isFinite(dom) ? dom : intl };
+  const fromCost = costHint(cost, current);
+  if (fromCost) return { ...fromCost, current, unit };
   const action = gold.answer?.action || gold.answer?.researchLabel;
   return {
     text: action || "继续按公开价格观察区核对",
     tone: "wait",
     triggered: false,
-    current: Number.isFinite(intl) ? intl : dom,
+    current,
+    unit,
   };
 }
 
@@ -111,8 +125,8 @@ function deriveHoldingView(holding, snapshot) {
   const market = String(holding.market || "other").toLowerCase();
   const code = normalizeCode(market, holding.code);
   const marketLabel = MARKET_LABELS[market] || "其他";
-  const cost = Number(holding.cost);
-  const quantity = Number(holding.quantity);
+  const cost = toNumberOrNaN(holding.cost);
+  const quantity = toNumberOrNaN(holding.quantity);
   const meta = [
     code || null,
     hasNumber(cost) ? `成本 ${cost}` : null,
@@ -136,7 +150,7 @@ function deriveHoldingView(holding, snapshot) {
       hasDetail: true,
       detailMarket: "gold",
       detailId: "track",
-      currentText: hasNumber(action.current) ? `现价 ${Number(action.current).toFixed(0)}` : "",
+      currentText: hasNumber(action.current) ? `现价 ${Number(action.current).toFixed(0)}${action.unit || ""}` : "",
     });
   }
 

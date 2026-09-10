@@ -998,10 +998,15 @@ Page({
         sourceLinks.length ? { id: "sources", label: "数据出处", count: sourceLinks.length, icon: TAB_ICONS.sources } : null,
       ].filter(Boolean);
       // 保留用户已经切到的 tab；只有它不再存在（比如刷新后这一块没数据了）
-      // 才退回第一个可用的 tab。
+      // 才退回第一个可用的 tab。机构持仓和港股/美股/A股/黄金一样是「两视图」
+      // 栏目，落地就该看到共同方向/机构持仓这张卡，不能让它退回今日答案，
+      // 逼用户多点一次分组浏览才看到本该直接显示的内容。
+      const fallbackTab = this.data.market === "guru" && tabs.some((tab) => tab.id === "groups")
+        ? "groups"
+        : (tabs[0]?.id || "");
       const activeTab = tabs.some((tab) => tab.id === this.data.activeTab)
         ? this.data.activeTab
-        : (tabs[0]?.id || "");
+        : fallbackTab;
       const hkModule = this.data.market === "hk" ? buildHkModule(snapshot) : null;
       const hkExitList = hkModule ? hkModule.exitList : [];
       this._hkExitList = hkExitList;

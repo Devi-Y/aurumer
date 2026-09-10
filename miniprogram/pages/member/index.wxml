@@ -4,6 +4,11 @@
       <text class="status-value {{state.active ? 'active' : ''}}">{{state.active ? '会员已开通' : '会员未开通'}}</text>
       <text class="member-title">个人投资逻辑哨兵</text>
       <text wx:if="{{state.statusDetail}}" class="status-detail">{{state.statusDetail}}</text>
+      <text wx:if="{{!state.active && state.plans.length}}" class="member-subtitle">写理由 · 盯变化 · 复盘</text>
+      <view wx:if="{{!state.active && state.plans.length}}" class="member-price-row">
+        <text class="member-price">{{state.plans[0].priceMain}}<text class="member-price-unit"> {{state.plans[0].priceUnit}}</text></text>
+        <text class="member-term">365 天 · 不自动续费</text>
+      </view>
     </view>
     <view class="member-hero-image-wrap"><image src="/assets/home/member.svg" mode="aspectFit" aria-hidden="true"></image></view>
   </view>
@@ -31,18 +36,6 @@
   <view wx:if="{{settling || (!state.active && lastOrderId)}}" class="settle-card">
     <text>{{settling ? '正在核对微信支付结果…' : '若已付款但权益未到，请刷新。'}}</text>
     <button class="query-button" bindtap="manualQuery" data-order="{{lastOrderId}}" loading="{{querying}}" disabled="{{querying}}">刷新权益</button>
-  </view>
-
-  <view wx:if="{{!state.active && state.plans.length}}" class="plan-card">
-    <view class="plan-heading">
-      <view>
-        <text class="plan-name">365 天会员</text>
-        <text class="plan-term">一次购买 · 不自动续费</text>
-        <text class="plan-brief">写理由 · 盯变化 · 复盘</text>
-      </view>
-      <text class="plan-price">{{state.plans[0].priceMain}}</text>
-    </view>
-    <button class="legal-link" bindtap="openLegal">会员协议与退款规则 <text>›</text></button>
   </view>
 
   <view wx:if="{{!state.active && !state.plans.length}}" class="state-note payment-closed">{{state.paymentReason || '支付通道准备中'}}</view>

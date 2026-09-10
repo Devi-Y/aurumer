@@ -175,6 +175,8 @@ Page({
     disclaimer: RESEARCH_DISCLAIMER,
     groupHelp: "",
     statsBanner: null,
+    // 只有 hk 已结束分组会用到，其余分组恒为 null。
+    hkStatsVisual: null,
     sourceLinks: [],
     dataAsOf: "",
     // 重合持仓的持有人明细。原来走 wx.showModal，但那个控件会把 content 里的
@@ -288,6 +290,7 @@ Page({
       });
       let groupHelp = group ? group.one : "";
       let statsBanner = null;
+      let hkStatsVisual = null;
       if (this.data.market === "hk" && activeGroup === "ended") {
         const stats = buildHkHistoryStats(snapshot);
         const industries = buildHkIndustryStats(snapshot).slice(0, 2);
@@ -297,10 +300,25 @@ Page({
           sponsors.length ? `保荐人 ${sponsors[0].name} 样本 ${sponsors[0].sampleCount}只` : "",
         ].filter(Boolean).join(" · ");
         groupHelp = extra ? `${stats.summary} · ${extra}` : stats.summary;
-        statsBanner = {
-          title: "历史样本对照",
-          body: `暗盘上涨 ${stats.greyWinRate} · 首日上涨 ${stats.firstDayWinRate} · 暗盘→首日同向 ${stats.greyToFirstDirection}`,
-          note: stats.disclaimer,
+        // 参考长桥「新股统计」的可视化呈现（大数字 + 涨跌分布条），但数据
+        // 只有 12 条样本，撑不起它那种年度榜单，这里只做同一批历史样本的
+        // 统计概览，换成条形图代替纯文字，涨/平/跌三档都是真实计数。
+        const total = stats.firstDaySampleTotal;
+        hkStatsVisual = {
+          sampleCount: stats.sampleCount,
+          firstDayWinRate: stats.firstDayWinRate,
+          greyToFirstDirection: stats.greyToFirstDirection,
+          firstDayUpCount: stats.firstDayUpCount,
+          firstDayFlatCount: stats.firstDayFlatCount,
+          firstDayDownCount: stats.firstDayDownCount,
+          upPercent: total ? Math.round((stats.firstDayUpCount / total) * 100) : 0,
+          flatPercent: total ? Math.round((stats.firstDayFlatCount / total) * 100) : 0,
+          downPercent: total ? Math.round((stats.firstDayDownCount / total) * 100) : 0,
+          maxFirstDayLabel: stats.maxFirstDay ? stats.maxFirstDay.label : "—",
+          maxFirstDayName: stats.maxFirstDay ? stats.maxFirstDay.name : "",
+          minFirstDayLabel: stats.minFirstDay ? stats.minFirstDay.label : "—",
+          minFirstDayName: stats.minFirstDay ? stats.minFirstDay.name : "",
+          disclaimer: stats.disclaimer,
         };
       } else if (activeGroup === "hot10") {
         statsBanner = {
@@ -390,6 +408,7 @@ Page({
         title: group ? group.title : "研究明细",
         groupHelp,
         statsBanner,
+        hkStatsVisual,
         items,
         source,
         freshness: freshnessBanner(source, meta.kind),

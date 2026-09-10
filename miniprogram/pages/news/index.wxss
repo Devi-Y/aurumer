@@ -258,9 +258,21 @@
   white-space: nowrap;
 }
 
+/* 复制链接是次要动作（核验用），落点才是这一行的主动作。两个都用品牌绿
+   会在同一行里抢，所以出处这半边退成灰色，绿色只留给下面那个落点。 */
 .news-source-action {
+  color: #8b938e;
+  font-weight: 500;
+}
+
+/* 落点。整行的点击目标是它，来源那半边是 catchtap 复制链接——
+   两个动作在同一行，所以落点得用品牌绿写清楚，不能只留一个箭头。 */
+.news-route {
+  flex: none;
   color: #0b7a53;
+  font-size: 22rpx;
   font-weight: 620;
+  white-space: nowrap;
 }
 
 .news-more {

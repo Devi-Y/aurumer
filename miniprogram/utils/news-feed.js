@@ -16,7 +16,7 @@
 // 另起一套映射——那样迟早会和列表页/详情页对不上。allItems() 找不到的 id 就不
 // 挂详情链接，只落回栏目页。
 
-const { allItems, groupDefinitions, INVESTOR_NAMES, US_NAMES } = require("./answers");
+const { allItems, INVESTOR_NAMES, US_NAMES, shortCompanyName } = require("./answers");
 // SEC 备案是这份快照里唯一「按天发生」的美股事实：财季报告期动辄隔半年，
 // 只有它能回答「这一周美股这边出了什么事」。取用写法和详情页/每日答案共用一份。
 const { hasFilingFeed, filingsBySymbol } = require("./us-filings");
@@ -32,6 +32,18 @@ const KIND_LABEL = {
   gold: "黄金",
   a: "A股",
   us: "美股",
+};
+
+// 点一行会去哪儿，得写在行上。这一页是引流工具，读者不该靠猜才知道
+// 「看完这条能到哪里去看结论」——所以每行末尾写清落点，有标的写标的，
+// 没有标的（这家公司不在样本池里）就写它所属的栏目，和 openItem 的
+// 两条分支一一对应，不会点了才发现去的是别处。
+const MODULE_LABEL = {
+  hk: "港股打新",
+  guru: "机构持仓",
+  gold: "黄金追踪",
+  a: "A股收息",
+  us: "美股投资",
 };
 
 // 每类的条数上限。A股 20 份年报报告期完全相同，美股财季也高度重复，
@@ -78,6 +90,46 @@ function joinBits(bits) {
   return bits.filter((bit) => bit !== null && bit !== undefined && bit !== "").join(" · ");
 }
 
+// —— 「落到标的」这一行印什么 ——
+//
+// 这一页是引流工具：读者是为了看发生了什么事进来的，但看完得能回到「那这只票
+// 现在是什么结论」，否则这一页和市场就断开了。所以每条披露后面那一行只印
+// **结论**，而且用五个栏目页里同一套说法，读者点进去看到的话是对得上的。
+//
+// 反过来说，不在下面这几张表里的东西一律不印。原来这一行会印出「性价比 63」
+// 「行业 56」「已结束」「收息样本」这类内部档位分和分组名——读者拿它做不了
+// 任何判断，等于白占一格，还把真正的结论挤掉了。宁可这一行空着。
+
+// 按透镜（一只票可以同时进好几个透镜）给出的结论。
+// 同一只票可以同时进好几个透镜，表里靠前的先说：谷歌同时在「低估」和
+// 「长期观察」里，只印「低估」才是结论，两个都印就成了自相矛盾的一行。
+const LENS_CONCLUSION = {
+  us: [
+    ["cheap7", "低估，在可买入的一侧"],
+    ["risk7", "风险升高，在要减的一侧"],
+    ["hold7", "七姐妹，暂不在买卖两侧"],
+    ["seven", "七姐妹，暂不在买卖两侧"],
+  ],
+  a: [
+    ["add", "已到加大观察价"],
+    ["trim", "已到兑现观察价"],
+  ],
+};
+
+// 带名次的榜单：第 1 和第 5 不是一回事，名次本身就是结论的一部分。
+const LENS_RANKED = {
+  a: { stable5: "分红稳定性前五第", yield5: "分红收益性前五第" },
+};
+
+// 徽章里本来就是结论的那几个，原样留用；其余（分数、状态词）不留。
+const CONCLUSION_BADGES = {
+  hk: new Set(["值得打", "暂缓观察", "暂不建议", "发行已取消"]),
+  a: new Set(["优等收息", "稳健收息", "高息待核"]),
+  // 美股不列徽章：七姐妹那七只的徽章就是「七姐妹」，而上面的透镜表已经
+  // 把这七只全覆盖了，再印一次只会变成「低估，在可买入的一侧 · 七姐妹」。
+  gold: new Set(["继续观察"]),
+};
+
 function buildNewsFeed(snapshot) {
   const data = snapshot || {};
   const indexCache = {};
@@ -92,13 +144,25 @@ function buildNewsFeed(snapshot) {
       } catch (error) {
         list = [];
       }
-      indexCache[market] = new Map(
-        list.map((item) => [String(item.id || "").toUpperCase(), item]),
-      );
+      // allItems() 对同一只票会按透镜返回好几条：英伟达在「七姐妹」里一条、
+      // 在「性价比观察」里又一条。原来这里 new Map(list.map(...)) 是后写覆盖，
+      // 留下的永远是最后一条——而最后追加的恰好是性价比/行业这两个内部打分，
+      // 所以英伟达的结论印成了「性价比 63」、甲骨文印成了「行业 56」。
+      // 改成同一个 id 的条目全收进一个数组，结论由 impactOf 按优先级挑。
+      const map = new Map();
+      list.forEach((item) => {
+        const key = String(item.id || "").toUpperCase();
+        if (!key) return;
+        const bucket = map.get(key);
+        if (bucket) bucket.push(item);
+        else map.set(key, [item]);
+      });
+      indexCache[market] = map;
     }
     return indexCache[market];
   };
-  const hit = (market, id) => indexOf(market).get(String(id || "").toUpperCase()) || null;
+  const entriesOf = (market, id) => indexOf(market).get(String(id || "").toUpperCase()) || [];
+  const hit = (market, id) => entriesOf(market, id)[0] || null;
   const linkId = (market, id) => (hit(market, id) ? String(id) : "");
   const nameOf = (market, id, fallback) => {
     const found = hit(market, id);
@@ -113,45 +177,79 @@ function buildNewsFeed(snapshot) {
     return fallback;
   };
 
-  // 每条披露后面跟一句「这落到标的上是什么结论」。资讯本身是引流，读完要能
-  // 回到市场：内容一律取 allItems() / groupDefinitions() 已经算好的结论档位与
-  // 分组名次——和列表页、详情页是同一个数。找不到对应标的就不写这一行，
-  // 不为凑格式编一句。
-  const groupTitleCache = {};
-  const groupTitles = (market) => {
-    if (!groupTitleCache[market]) {
-      let list = [];
-      try {
-        list = groupDefinitions(data, market) || [];
-      } catch (error) {
-        list = [];
-      }
-      groupTitleCache[market] = new Map(list.map((group) => [group.id, group.title]));
+  // 港股已结束那批的结论不是「已结束」这个状态，而是它在历史样本里排第几——
+  // 那正是「打中后卖多少合适」这一问的依据。分母要真实，所以数一遍。
+  let hkEndedTotal = null;
+  const endedTotal = () => {
+    if (hkEndedTotal === null) {
+      let count = 0;
+      indexOf("hk").forEach((bucket) => {
+        if (bucket.some((entry) => entry.group === "ended")) count += 1;
+      });
+      hkEndedTotal = count;
     }
-    return groupTitleCache[market];
+    return hkEndedTotal;
   };
+
+  // 见上面 LENS_CONCLUSION 一段的说明：只印结论，不印内部档位分。
   const impactOf = (market, id) => {
-    const found = hit(market, id);
-    if (!found) return "";
-    const titles = groupTitles(market);
-    const lensRank = found.lensRank || {};
-    const lensBits = (found.lenses || [])
-      .map((lens) => {
-        const title = titles.get(lens);
-        if (!title) return "";
-        return lensRank[lens] ? `${title}第 ${lensRank[lens]}` : title;
-      })
-      .filter(Boolean);
-    // 档位徽章和所在分组同名时（美股七姐妹那七只的徽章就是「七姐妹」）只留一个，
-    // 同一个词印两遍不会多出信息。
-    // 徽章优先，它才是结论（「值得打」「优等收息」）。只有当某个分组名已经把
-    // 徽章整个包含进去时才省掉徽章——美股那七只徽章是「七姐妹」、分组是
-    // 「风险七姐妹」，两个都印是同一个词说两遍；「值得打 · 在售新股」不是。
-    const badge = String(found.badge || "");
-    const covered = badge && lensBits.some((title) => title.includes(badge));
-    const bits = [...new Set([covered ? "" : badge, ...lensBits])].filter(Boolean);
-    // 截到三段——这一行是回到市场的指路牌，不是标签墙。
-    return joinBits(bits.length ? bits.slice(0, 3) : [badge]);
+    const entries = entriesOf(market, id);
+    if (!entries.length) return "";
+    const lensTable = LENS_CONCLUSION[market] || [];
+    const rankTable = LENS_RANKED[market] || {};
+    const okBadges = CONCLUSION_BADGES[market] || new Set();
+    const bits = [];
+    const add = (text) => {
+      if (text && !bits.includes(text)) bits.push(text);
+    };
+    // 透镜要跨条目合起来看：allItems() 把同一只票拆成了好几条，
+    // 逐条判断会让「低估」和「长期观察」各自成立，印出自相矛盾的两段。
+    const lenses = new Set();
+    const ranks = {};
+    entries.forEach((entry) => {
+      (entry.lenses || []).forEach((lens) => lenses.add(lens));
+      Object.keys(entry.lensRank || {}).forEach((lens) => {
+        if (!ranks[lens]) ranks[lens] = entry.lensRank[lens];
+      });
+    });
+
+    entries.forEach((entry) => {
+      const badge = String(entry.badge || "");
+      // 港股：在售那几只的徽章就是结论本身。「资料不够」也是结论，只是话没说完，
+      // 补成一句完整的——读者要知道这是「我们不给结论」，不是「这只票不好」。
+      if (market === "hk") {
+        if (badge === "资料不够") add("资料不够，暂不给结论");
+        else if (okBadges.has(badge)) add(badge);
+        if (entry.group === "ended") {
+          // 刚挂牌的那几只还没有首日/暗盘数据，排不进样本名次。这时说
+          // 「结果待披露」而不是留白：读者看到的是一条「XX 新上市公告」，
+          // 得知道我们还答不上「卖多少合适」，不是忘了写。
+          add(entry.rank ? `历史样本第 ${entry.rank}/${endedTotal()}` : "已挂牌，结果待披露");
+        }
+        return;
+      }
+      // 机构：这边没有透镜，徽章是长期业绩。裸写「19.7% 年化」读者不知道
+      // 这个数是谁的、算的是什么，补上主语。
+      if (market === "guru") {
+        if (/年化/.test(badge)) add(`长期业绩 ${badge}`);
+        return;
+      }
+      // 美股热度榜的名次只写在徽章上，没有对应的 lensRank。
+      const heat = market === "us" && badge.match(/^热度第\s*(\d+)$/);
+      if (heat) add(`近期热度第 ${heat[1]}`);
+      if (okBadges.has(badge)) add(badge);
+    });
+
+    // 榜单名次先说（第 1 和第 5 不是一回事），再说所属档位。
+    Object.keys(rankTable).forEach((lens) => {
+      if (ranks[lens]) add(`${rankTable[lens]} ${ranks[lens]}`);
+    });
+    // 透镜结论只取表里最靠前命中的那一个。
+    const lensHit = lensTable.find(([lens]) => lenses.has(lens));
+    if (lensHit) add(lensHit[1]);
+
+    // 截到两段——这一行是回到市场的指路牌，不是标签墙。
+    return joinBits(bits.slice(0, 2));
   };
 
   const items = [];
@@ -172,7 +270,9 @@ function buildNewsFeed(snapshot) {
       id: `news-hk-${listing.id || listing.rawCode}`,
       kind: "hk",
       day,
-      title: `${listing.name} · 港交所新上市公告`,
+      // 快照里存的是工商全称（「优地机器人（无锡）股份有限公司」），
+      // 全站其它地方印的都是简称。这一行是标题，位置比首页四格宽，给到 12 字。
+      title: `${shortCompanyName(listing.name, listing.name, 12)} · 港交所新上市公告`,
       // 这一条的日期可能来自公告 PDF 的路径（真·公告日），也可能退回挂牌日，
       // 两者含义不同，所以标签跟着来源走，不要笼统写成"日期"。
       dateNote: fromUrl ? "公告日" : "挂牌日",
@@ -197,7 +297,7 @@ function buildNewsFeed(snapshot) {
       id: `news-hk-history-${entry.stockCode || entry.id}`,
       kind: "hk",
       day: toDay(entry.listingDate),
-      title: `${entry.name} 已挂牌上市`,
+      title: `${shortCompanyName(entry.name, entry.name, 12)} 已挂牌上市`,
       dateNote: "挂牌日",
       body: joinBits([
         // offerPrice 缺失时快照会填「以历史招股文件为准」这类占位话术，
@@ -439,6 +539,13 @@ function buildNewsFeed(snapshot) {
       market: item.market,
       targetId: item.targetId || "",
       impact: item.targetId ? impactOf(item.market, item.targetId) : "",
+      // 标的名不写在这里：行首的标题已经写着了，再塞一遍还得截断
+      // （「深圳麦科田生物医疗技术」怎么截都不好看）。这一行只回答去哪一层。
+      // 黄金那几条挂的是「现在怎么做」这张结论卡，不是某一只标的，
+      // 写「看标的详情」会让人以为点进去有只票。
+      routeLabel: item.market === "gold"
+        ? "看黄金结论"
+        : (item.targetId ? "看标的详情" : `去${MODULE_LABEL[item.market] || "栏目"}`),
     }));
 
   // 黄金那类里五条披露全指向同一个标的，「落到标的」会连着印五遍同一句话——

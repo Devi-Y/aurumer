@@ -169,6 +169,130 @@
   line-height: 1.4;
 }
 
+/* 新股统计。只有 hk 已结束分组会渲染，把原来一整句话的历史样本对照
+   换成大数字 + 涨跌分布条，参考长桥「新股统计」的呈现方式，但样本只有
+   十几条，不做它那种年度榜单，只做这一批历史样本自己的统计概览。 */
+.hk-stats-panel {
+  margin-top: 14rpx;
+  padding: 20rpx 24rpx 18rpx;
+}
+
+.hk-stats-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.hk-stats-title {
+  color: #1f2621;
+  font-size: 28rpx;
+  font-weight: 680;
+}
+
+.hk-stats-meta {
+  color: #9aa19c;
+  font-size: 22rpx;
+}
+
+.hk-stats-tiles {
+  display: flex;
+  margin-top: 16rpx;
+  gap: 16rpx;
+}
+
+.hk-stats-tile {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  padding: 14rpx 16rpx;
+  flex-direction: column;
+  gap: 4rpx;
+  border-radius: 14rpx;
+  background: #f5f7f6;
+}
+
+.hk-stats-tile-value {
+  color: #1b211d;
+  font-size: 34rpx;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-stats-tile-label {
+  color: #7a847e;
+  font-size: 21rpx;
+}
+
+.hk-stats-bar-legend {
+  display: flex;
+  margin-top: 18rpx;
+  gap: 16rpx;
+  font-size: 22rpx;
+  font-weight: 620;
+}
+
+.hk-stats-legend-item.up { color: #c4473a; }
+.hk-stats-legend-item.flat { color: #8a918c; }
+.hk-stats-legend-item.down { color: #0b7a53; }
+
+.hk-stats-bar {
+  display: flex;
+  overflow: hidden;
+  margin-top: 8rpx;
+  height: 14rpx;
+  border-radius: 7rpx;
+  background: #eef1ef;
+}
+
+.hk-stats-bar-seg.up { background: #d4452c; }
+.hk-stats-bar-seg.flat { background: #c7cdc9; }
+.hk-stats-bar-seg.down { background: #20ad68; }
+
+.hk-stats-extremes {
+  display: flex;
+  margin-top: 18rpx;
+  gap: 16rpx;
+}
+
+.hk-stats-extreme {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.hk-stats-extreme-label {
+  color: #7a847e;
+  font-size: 21rpx;
+}
+
+.hk-stats-extreme-value {
+  font-size: 27rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-stats-extreme-value.up { color: #c4473a; }
+.hk-stats-extreme-value.down { color: #0b7a53; }
+
+.hk-stats-extreme-name {
+  color: #4b514d;
+  font-size: 22rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hk-stats-disclaimer {
+  display: block;
+  margin-top: 16rpx;
+  color: #7a847e;
+  font-size: 21rpx;
+  line-height: 1.4;
+}
+
 .item-panel,
 .empty { margin-top: 16rpx; }
 

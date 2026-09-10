@@ -262,6 +262,15 @@ function hkItems(snapshot) {
       raw: item,
     };
   });
+  // pages/list 对没有 lensRank[group] 的分组用稳定排序原样保留数组顺序，
+  // 所以「涨跌排行榜」要靠这里的数组顺序本身就是名次——不排序的话，
+  // 行号（01/02/03…）对应的是原始快照顺序，不是真实涨跌名次。
+  // 缺数据的排到最后，不参与排名但仍然要展示。
+  ended.sort((left, right) => {
+    const l = Number.isFinite(left.outcomeValue) ? left.outcomeValue : -Infinity;
+    const r = Number.isFinite(right.outcomeValue) ? right.outcomeValue : -Infinity;
+    return r - l;
+  });
   const items = [...current, ...ended];
   const ranked = items
     .filter((item) => item.group === "ended" && Number.isFinite(item.outcomeValue))

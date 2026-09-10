@@ -43,6 +43,46 @@
     <text class="stats-note">{{statsBanner.note}}</text>
   </view>
 
+  <view wx:if="{{hkStatsVisual}}" class="page-card hk-stats-panel">
+    <view class="hk-stats-head">
+      <text class="hk-stats-title">新股统计</text>
+      <text class="hk-stats-meta">样本 {{hkStatsVisual.sampleCount}}</text>
+    </view>
+    <view class="hk-stats-tiles">
+      <view class="hk-stats-tile">
+        <text class="hk-stats-tile-value">{{hkStatsVisual.firstDayWinRate}}</text>
+        <text class="hk-stats-tile-label">首日上涨率</text>
+      </view>
+      <view class="hk-stats-tile">
+        <text class="hk-stats-tile-value">{{hkStatsVisual.greyToFirstDirection}}</text>
+        <text class="hk-stats-tile-label">暗盘→首日同向</text>
+      </view>
+    </view>
+    <view class="hk-stats-bar-legend">
+      <text class="hk-stats-legend-item up">上涨 {{hkStatsVisual.firstDayUpCount}}</text>
+      <text wx:if="{{hkStatsVisual.firstDayFlatCount}}" class="hk-stats-legend-item flat">持平 {{hkStatsVisual.firstDayFlatCount}}</text>
+      <text class="hk-stats-legend-item down">下跌 {{hkStatsVisual.firstDayDownCount}}</text>
+    </view>
+    <view class="hk-stats-bar">
+      <view class="hk-stats-bar-seg up" style="width:{{hkStatsVisual.upPercent}}%"></view>
+      <view wx:if="{{hkStatsVisual.firstDayFlatCount}}" class="hk-stats-bar-seg flat" style="width:{{hkStatsVisual.flatPercent}}%"></view>
+      <view class="hk-stats-bar-seg down" style="width:{{hkStatsVisual.downPercent}}%"></view>
+    </view>
+    <view class="hk-stats-extremes">
+      <view class="hk-stats-extreme">
+        <text class="hk-stats-extreme-label">首日最高涨幅</text>
+        <text class="hk-stats-extreme-value up">{{hkStatsVisual.maxFirstDayLabel}}</text>
+        <text class="hk-stats-extreme-name">{{hkStatsVisual.maxFirstDayName}}</text>
+      </view>
+      <view class="hk-stats-extreme">
+        <text class="hk-stats-extreme-label">首日最高跌幅</text>
+        <text class="hk-stats-extreme-value down">{{hkStatsVisual.minFirstDayLabel}}</text>
+        <text class="hk-stats-extreme-name">{{hkStatsVisual.minFirstDayName}}</text>
+      </view>
+    </view>
+    <text class="hk-stats-disclaimer">{{hkStatsVisual.disclaimer}}</text>
+  </view>
+
   <view wx:if="{{freshness.show}}" class="page-card freshness-banner tone-{{freshness.tone}}">
     <view class="freshness-head">
       <text class="freshness-label">{{freshness.label}}</text>

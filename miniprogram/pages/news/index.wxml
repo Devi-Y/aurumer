@@ -53,7 +53,7 @@
         bindtap="openItem"
         hover-class="tap-active"
         aria-role="button"
-        aria-label="{{item.isNew ? '新增，' : ''}}{{item.title}}，{{item.dateNote}}{{item.dateLabel}}，{{item.body}}{{item.impact ? '，落到标的 ' + item.impact : ''}}"
+        aria-label="{{item.isNew ? '新增，' : ''}}{{item.title}}，{{item.dateNote}}{{item.dateLabel}}，{{item.body}}{{item.impact ? '，落到标的 ' + item.impact : ''}}，{{item.routeLabel}}"
       >
         <view class="news-row-head">
           <text class="news-kind {{item.kind}}">{{item.kindLabel}}</text>
@@ -77,7 +77,9 @@
             aria-role="button"
             aria-label="复制 {{item.sourceName}} 链接"
           >来源 {{item.sourceName}}<text wx:if="{{item.sourceAction}}" class="news-source-action"> · {{item.sourceAction}}</text></text>
-          <text class="arrow">›</text>
+          <!-- 原来这里只有一个光秃秃的「›」，读者不知道点下去会到哪儿。
+               这一页是引流工具，落点得写出来：有标的就去详情，没有就去栏目页。 -->
+          <text class="news-route">{{item.routeLabel}} ›</text>
         </view>
       </view>
     </block>

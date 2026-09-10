@@ -44,6 +44,23 @@ function buildHkHistoryStats(snapshot) {
     && hasNumber(item.historicalReview?.firstDayChange)
   )).length;
 
+  // 首日涨跌分布：涨/平/跌三档都是真实计数，0% 单独一档，不并进"跌"里
+  // 显得比实际更差，也不并进"涨"里显得比实际更好。
+  const firstDayUpCount = firstDaySamples.filter((item) => Number(item.historicalReview.firstDayChange) > 0).length;
+  const firstDayDownCount = firstDaySamples.filter((item) => Number(item.historicalReview.firstDayChange) < 0).length;
+  const firstDayFlatCount = firstDaySamples.length - firstDayUpCount - firstDayDownCount;
+  let maxFirstDay = null;
+  let minFirstDay = null;
+  for (const item of firstDaySamples) {
+    const value = Number(item.historicalReview.firstDayChange);
+    if (!maxFirstDay || value > maxFirstDay.value) {
+      maxFirstDay = { value, label: signedPercent(value), name: item.name || "", code: item.code || "" };
+    }
+    if (!minFirstDay || value < minFirstDay.value) {
+      minFirstDay = { value, label: signedPercent(value), name: item.name || "", code: item.code || "" };
+    }
+  }
+
   return {
     sampleCount: recent.length,
     greyWinRate: rateText(greyWins, greySamples.length),
@@ -53,6 +70,12 @@ function buildHkHistoryStats(snapshot) {
     averageFirstDay: signedPercent(firstDayAvg),
     greyToFirstDirection: rateText(directionMatch, directionTotal),
     directionSamples: directionTotal,
+    firstDaySampleTotal: firstDaySamples.length,
+    firstDayUpCount,
+    firstDayFlatCount,
+    firstDayDownCount,
+    maxFirstDay,
+    minFirstDay,
     summary: recent.length
       ? `样本 ${recent.length} · 首日上涨 ${rateText(firstDayWins, firstDaySamples.length)} · 暗盘→首日同向 ${rateText(directionMatch, directionTotal)}（n=${directionTotal}）`
       : "暂无已收录历史样本",

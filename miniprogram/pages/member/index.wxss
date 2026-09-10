@@ -9,9 +9,7 @@
   padding-bottom: calc(34rpx + env(safe-area-inset-bottom));
 }
 
-.member-status-card,
 .member-shortcuts,
-.plan-card,
 .settle-card,
 .active-entry,
 .member-links,
@@ -23,12 +21,18 @@
   background: #ffffff;
 }
 
+/* 会员状态卡：深色卡，照抄原型 .wc-membership（与首页「今日重点」
+   .today-card 同一套 --wc-deep 系变量，全站深色卡统一）。 */
 .member-status-card {
+  box-sizing: border-box;
+  width: 100%;
   display: flex;
-  padding: 28rpx;
-  align-items: center;
+  margin-bottom: 16rpx;
+  padding: 40rpx 36rpx;
+  align-items: flex-start;
   gap: 20rpx;
-  background: linear-gradient(145deg, #e9f8f0 0%, #f9fcfa 100%);
+  border-radius: 40rpx;
+  background: #204937;
 }
 
 .member-hero-copy { min-width: 0; flex: 1; }
@@ -40,16 +44,27 @@
   align-items: center;
   justify-content: center;
   border-radius: 28rpx;
-  background: #ffffff;
+  background: #ffffff1f;
 }
 .member-hero-image-wrap image { width: 58rpx; height: 58rpx; }
 
 .status-value,
 .status-detail { display: block; }
-.status-value { color: #777e79; font-size: 23rpx; font-weight: 600; }
-.status-value.active { color: #0b7a53; }
-.member-title { display: block; margin-top: 8rpx; color: #1b211d; font-size: 42rpx; font-weight: 760; line-height: 1.2; }
-.status-detail { margin-top: 9rpx; color: #606762; font-size: 24rpx; line-height: 1.5; }
+.status-value { color: #c1d1c5; font-size: 23rpx; font-weight: 600; }
+.status-value.active { color: #e2d2a9; }
+.member-title { display: block; margin-top: 8rpx; font-family: "Songti SC", "STSong", serif; color: #f4f7ef; font-size: 42rpx; font-weight: 760; line-height: 1.2; letter-spacing: 1rpx; }
+.status-detail { margin-top: 9rpx; color: #c1d1c5; font-size: 24rpx; line-height: 1.5; }
+.member-subtitle { display: block; margin-top: 9rpx; color: #c1d1c5; font-size: 24rpx; }
+
+.member-price-row { margin-top: 28rpx; }
+.member-price {
+  font-family: Georgia, serif;
+  font-size: 72rpx;
+  color: #f4f7ef;
+  line-height: 1.1;
+}
+.member-price-unit { font-family: -apple-system, sans-serif; font-size: 24rpx; color: #c1d1c5; }
+.member-term { display: block; margin-top: 6rpx; color: #c1d1c5; font-size: 23rpx; }
 
 .member-shortcuts {
   display: flex;
@@ -103,22 +118,6 @@
   line-height: 1.4;
 }
 
-.plan-card {
-  padding: 25rpx 24rpx 10rpx;
-  border: 1rpx solid #d7e4db;
-}
-.plan-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18rpx;
-}
-.plan-name,
-.plan-term { display: block; }
-.plan-name { color: #202421; font-size: 31rpx; font-weight: 700; }
-.plan-term { margin-top: 8rpx; color: #6b756f; font-size: 24rpx; }
-.plan-brief { display: block; margin-top: 12rpx; color: #078d4b; font-size: 24rpx; font-weight: 650; }
-.plan-price { color: #152019; font-size: 54rpx; font-weight: 730; }
 .legal-link,
 .support-link {
   box-sizing: border-box;
@@ -139,7 +138,6 @@
   line-height: 1.4;
   text-align: left;
 }
-.plan-card .legal-link { margin-top: 12rpx; border-top: 1rpx solid #edf0ee; }
 .legal-link text { color: #a6ada9; font-size: 37rpx; font-weight: 300; }
 
 .active-entry {
@@ -256,10 +254,10 @@
 
 @media (max-width: 340px) {
   .member-shell { padding-right: 12rpx; padding-left: 12rpx; }
-  .member-status-card { padding: 22rpx 20rpx; }
+  .member-status-card { padding: 30rpx 24rpx; }
   .member-hero-image-wrap { width: 72rpx; height: 72rpx; }
   .member-hero-image-wrap image { width: 44rpx; height: 44rpx; }
-  .plan-price { font-size: 36rpx; }
+  .member-price { font-size: 56rpx; }
   .pay-dock { padding-right: 12rpx; padding-left: 12rpx; gap: 5rpx 9rpx; }
   .buy-button { width: 230rpx; font-size: 24rpx; }
 }
@@ -269,7 +267,6 @@
   .member-shell-active { padding-bottom: calc(42px + env(safe-area-inset-bottom)); }
   .member-status-card,
   .member-shortcuts,
-  .plan-card,
   .settle-card,
   .active-entry,
   .member-links,

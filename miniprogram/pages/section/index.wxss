@@ -83,24 +83,6 @@
   line-height: 1.45;
 }
 
-.hero-stats {
-  display: flex;
-  margin-top: 14rpx;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10rpx;
-}
-
-.hero-stat {
-  padding: 5rpx 14rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 21rpx;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.35;
-}
-
 /* 结论与关键数值那张卡向上压住绿带下沿。 */
 .hero-body {
   position: relative;
@@ -165,9 +147,80 @@
   padding: 18rpx 24rpx 0;
 }
 
-.deep-panel {
+/* 港股栏目页把「在售/值得打」两格挪进了今日答案卡片，只剩结论行，
+   这时候结论行自己要补上下边距——原来这道边距是靠后面的 .hero-metrics
+   兜底的，它不出现的市场不能跟着一起没了留白。 */
+.insight-panel:last-child {
+  padding-bottom: 18rpx;
+}
+
+/* 分段 tab：今日答案/分组浏览/策略摘要/数据出处四块内容共用一条横向
+   分段控件切换，同一屏只渲染当前选中的一块，不再一张卡接一张卡往下摞。
+   最多 4 块、每个标签都是 4 个字，等宽平分铺满一行，不用横向滚动。 */
+.tab-bar {
   margin-top: 14rpx;
 }
+
+.tab-track {
+  display: flex;
+  padding: 4rpx;
+  gap: 4rpx;
+  border-radius: 999rpx;
+  background: #e7ece9;
+}
+
+.tab-chip {
+  box-sizing: border-box;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  padding: 14rpx 8rpx;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  border-radius: 999rpx;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tab-chip-icon {
+  flex: none;
+  width: 26rpx;
+  height: 26rpx;
+}
+
+/* 选中态背景变成品牌绿，图标本来是灰色描边，这里直接反相成白色，
+   不用为每个图标再单独存一份白色版本。 */
+.tab-chip.is-active .tab-chip-icon {
+  filter: brightness(0) invert(1);
+}
+
+.tab-chip-label {
+  overflow: hidden;
+  color: #5f6a64;
+  font-size: 25rpx;
+  font-weight: 620;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+/* 数字是这块内容真实的条目数，点开前先心里有数——不是装饰用的红点。 */
+.tab-chip-count {
+  flex: none;
+  color: #9aa19c;
+  font-size: 20rpx;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.15s ease;
+}
+
+.tab-chip.is-active {
+  background: #0b7a53;
+  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.28);
+}
+
+.tab-chip.is-active .tab-chip-label { color: #ffffff; }
+.tab-chip.is-active .tab-chip-count { color: rgba(255, 255, 255, 0.72); }
 
 .answer-panel {
   margin-top: 14rpx;
@@ -175,18 +228,10 @@
 
 .answer-head {
   display: flex;
-  min-height: 76rpx;
+  min-height: 56rpx;
   padding: 0 24rpx;
   align-items: center;
-  justify-content: space-between;
-  gap: 12rpx;
   border-bottom: 1rpx solid #edf0ee;
-}
-
-.answer-title {
-  color: #1b211d;
-  font-size: 28rpx;
-  font-weight: 700;
 }
 
 .answer-meta {
@@ -194,59 +239,140 @@
   font-size: 22rpx;
 }
 
-.answer-row {
+/* 今日答案竖排卡片，一条接一条往下排，不用滑动就能看全。每张卡内容
+   按需长高，不裁剪——hint 那行有时候是唯一一处合规边界文字（比如暗盘卡
+   在没有在售新股时既没有展开层也没有别处能看到这句话），裁掉等于把
+   免责声明删了，只能让卡片自己变高。 */
+.answer-track {
   display: flex;
-  min-height: 118rpx;
-  padding: 18rpx 24rpx;
-  align-items: center;
-  gap: 12rpx;
+  flex-direction: column;
+  padding: 0 24rpx 18rpx;
+  gap: 14rpx;
 }
 
-.answer-row + .answer-row {
-  border-top: 1rpx solid #edf0ee;
+.answer-card {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  padding: 20rpx 22rpx;
+  border: 1rpx solid #e7ece9;
+  border-radius: 18rpx;
+  background: #fafcfb;
 }
 
-.answer-row.is-empty {
-  opacity: 0.55;
+.answer-card.is-empty {
+  opacity: 0.6;
 }
 
-.answer-copy {
-  min-width: 0;
-  flex: 1;
-}
-
-.answer-q,
-.answer-a,
-.answer-names {
+.answer-card-q {
   display: block;
-}
-
-.answer-q {
   color: #66706a;
   font-size: 23rpx;
   font-weight: 560;
 }
 
-.answer-a {
-  margin-top: 6rpx;
+.answer-card-a {
+  display: block;
+  margin-top: 8rpx;
   color: #1b211d;
   font-size: 28rpx;
   font-weight: 700;
   line-height: 1.4;
 }
 
-.answer-names {
-  margin-top: 4rpx;
+.answer-card-names {
+  display: block;
+  margin-top: 6rpx;
   color: #66706a;
   font-size: 22rpx;
   line-height: 1.4;
 }
 
-/* 边界那一行：比副行再轻一档，但要能和副行分开——副行说的是「有哪些」，
-   这一行说的是「这句话不能当成什么」。带具体价格的卡才在这里出现，
-   方法论说明留在展开层。 */
-.answer-hint {
-  margin-top: 6rpx;
+/* ---------- 卡内小表：前五名单、最热三只 ---------- */
+
+.answer-table {
+  display: flex;
+  margin-top: 12rpx;
+  overflow: hidden;
+  flex-direction: column;
+  border-radius: 12rpx;
+  background: #ffffff;
+}
+
+.answer-tr {
+  display: flex;
+  min-height: 56rpx;
+  align-items: center;
+  padding: 8rpx 12rpx;
+  border-bottom: 1rpx solid #eef2f0;
+  /* 到价那行左边加一条色带，行本身不整片染色——五行里一行是重点，
+     整片染色会把表读成两张表。没到价的行 border 透明，列不会错位。 */
+  border-left: 5rpx solid transparent;
+}
+
+.answer-tr:last-child {
+  border-bottom: none;
+}
+
+.answer-th {
+  background: #f4f7f5;
+  color: #8a938d;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.answer-td {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: #2a322d;
+  font-size: 23rpx;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* 参考买 / 参考卖 上下要对得齐，等宽数字比默认字距靠谱。 */
+  font-variant-numeric: tabular-nums;
+}
+
+/* 第一列是标的名，左对齐并且给它多一点宽度——"陕西煤业"四个字加名次
+   在等分列里会被切成"1 陕西煤…"。 */
+.answer-td:first-child {
+  flex: 1.5;
+  color: #1b211d;
+  font-weight: 620;
+  text-align: left;
+}
+
+.answer-tr.row-good { border-left-color: #0b7a53; }
+.answer-tr.row-warn { border-left-color: #b45309; }
+.answer-tr.row-bad { border-left-color: #c4473a; }
+
+.answer-tr.row-good .answer-td:first-child { color: #0b7a53; }
+.answer-tr.row-warn .answer-td:first-child { color: #8b5b20; }
+.answer-tr.row-bad .answer-td:first-child { color: #a33b2b; }
+
+/* 「为什么火热」挂在自己那一行下面，跨满整行——它是一句话，塞进列里
+   会被截成"成交是平时的 2.3…"，等于没写。 */
+.answer-tnote {
+  display: block;
+  padding: 0 12rpx 10rpx 17rpx;
+  border-bottom: 1rpx solid #eef2f0;
+  background: #ffffff;
+  color: #7f8781;
+  font-size: 20rpx;
+  line-height: 1.45;
+}
+
+.answer-tnote:last-child {
+  border-bottom: none;
+}
+
+/* 边界文字：比正文再轻一档，但常驻不折叠——它说的是「这句话不能当成什么」，
+   不能因为卡片要做窄就退成要点开才看得到的东西。 */
+.answer-card-hint {
+  display: block;
+  margin-top: 10rpx;
   padding-left: 14rpx;
   border-left: 3rpx solid #d6ded8;
   color: #8a938d;
@@ -254,48 +380,19 @@
   line-height: 1.45;
 }
 
-.answer-row.tone-good .answer-a { color: #0b7a53; }
-.answer-row.tone-bad .answer-a { color: #a33b2b; }
-.answer-row.tone-warn .answer-a { color: #8b5b20; }
-
-.deep-row {
-  display: flex;
-  min-height: 108rpx;
-  padding: 22rpx 24rpx;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.deep-row + .deep-row {
-  border-top: 1rpx solid #edf0ee;
-}
-
-.deep-row.is-empty {
-  opacity: 0.55;
-}
-
-.deep-copy {
-  min-width: 0;
-  flex: 1;
-}
-
-.deep-title,
-.deep-help {
+.answer-card-foot {
   display: block;
+  margin-top: 14rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid #edf0ee;
+  color: #7f8781;
+  font-size: 21rpx;
+  font-weight: 620;
 }
 
-.deep-title {
-  color: #1b211d;
-  font-size: 30rpx;
-  font-weight: 720;
-}
-
-.deep-help {
-  margin-top: 6rpx;
-  color: #66706a;
-  font-size: 24rpx;
-  line-height: 1.45;
-}
+.answer-card.tone-good .answer-card-a { color: #0b7a53; }
+.answer-card.tone-bad .answer-card-a { color: #a33b2b; }
+.answer-card.tone-warn .answer-card-a { color: #8b5b20; }
 
 .insight-line {
   display: flex;
@@ -362,25 +459,103 @@
   font-size: 24rpx;
 }
 
-.group-row {
+/* 分组网格：deepLinks 和 groups 两路数据共用同一套卡片样式。港股的
+   值得打/暂缓观察/暂不建议本来就有好坏含义（今日答案卡上已经在用同一套
+   颜色），这里复用而不是新造判断；发行已取消/已结束和其余市场没有天然
+   好坏之分，保持中性底色，不臆造颜色。 */
+.tile-panel {
+  margin-top: 14rpx;
+  padding: 20rpx;
+}
+
+.tile-grid {
   display: flex;
-  min-height: 108rpx;
-  padding: 16rpx 18rpx 16rpx 20rpx;
-  align-items: center;
-  gap: 15rpx;
+  flex-wrap: wrap;
+  gap: 14rpx;
 }
 
-.group-row + .group-row { border-top: 1rpx solid #edf0ee; }
+.tile-card {
+  box-sizing: border-box;
+  display: flex;
+  width: calc(50% - 7rpx);
+  padding: 18rpx 20rpx;
+  align-items: flex-start;
+  gap: 14rpx;
+  border: 1rpx solid #e7ece9;
+  border-radius: 16rpx;
+  background: #fafcfb;
+}
 
-.group-row.is-empty { opacity: 0.45; }
-.group-row.is-empty .group-index { background: #f0f2f1; color: #9aa19c; }
+.tile-card.is-empty { opacity: 0.5; }
 
-.group-empty-hint {
+/* 落单的最后一格别再半宽晾在那里——凑不成一对就占满整行。 */
+.tile-card:nth-child(odd):last-child { width: 100%; }
+
+/* 图标带个浅色圆底，看着像个徽章而不是贴在卡片上的一个小图。 */
+.tile-icon {
+  box-sizing: border-box;
   flex: none;
-  color: #9aa19c;
-  font-size: 26rpx;
-  font-weight: 600;
+  width: 52rpx;
+  height: 52rpx;
+  padding: 11rpx;
+  border-radius: 50%;
+  background: #eef2ef;
 }
+
+.tile-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.tile-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8rpx;
+}
+
+.tile-title {
+  display: block;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: #1b211d;
+  font-size: 27rpx;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tile-count {
+  flex: none;
+  color: #7f8781;
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 两行截断而不是一行——历史样本对照那张卡的说明是现算的统计句
+   （"样本12·首日上涨58.3%·暗盘→首日同向75.0%"），一行经常放不下，
+   截没了就等于把这张卡存在的意义（比分组列表更详细）截掉了。 */
+.tile-help {
+  display: -webkit-box;
+  margin-top: 6rpx;
+  overflow: hidden;
+  color: #6a746e;
+  font-size: 21rpx;
+  line-height: 1.4;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.tile-card.tone-worth { border-color: #cfe8db; background: #f1f9f4; }
+.tile-card.tone-worth .tile-title { color: #0b7a53; }
+.tile-card.tone-worth .tile-icon { background: #dcf0e4; }
+.tile-card.tone-caution { border-color: #ecdcb8; background: #fdf7ec; }
+.tile-card.tone-caution .tile-title { color: #8b5b20; }
+.tile-card.tone-caution .tile-icon { background: #f7e9c9; }
+.tile-card.tone-avoid { border-color: #eccbc3; background: #fdf1ef; }
+.tile-card.tone-avoid .tile-title { color: #a33b2b; }
+.tile-card.tone-avoid .tile-icon { background: #f6dad4; }
 
 .playbook-panel {
   margin-top: 16rpx;
@@ -454,50 +629,6 @@
   line-height: 1.45;
 }
 
-.group-index {
-  display: flex;
-  width: 46rpx;
-  height: 46rpx;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14rpx;
-  background: #f0f5f2;
-  color: #0b7a53;
-  font-size: 24rpx;
-  font-weight: 650;
-}
-
-.group-copy {
-  min-width: 0;
-  flex: 1;
-}
-
-.group-title {
-  display: block;
-  color: #1b211d;
-  font-size: 30rpx;
-  font-weight: 650;
-}
-
-.group-help {
-  display: block;
-  margin-top: 4rpx;
-  overflow: hidden;
-  color: #6a746e;
-  font-size: 22rpx;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.group-count {
-  flex: none;
-  color: #7f8781;
-  font-size: 24rpx;
-}
-
-
 .tap-active { background: #eef8f2; }
 
 .page-note {
@@ -524,7 +655,7 @@
   .section-shell { padding-right: 32px; padding-left: 32px; }
   .section-hero,
   .answer-panel,
-  .group-panel { border-radius: 20px; }
+  .tile-panel { border-radius: 20px; }
 }
 
 /* 数据出处。和新闻资讯页每条下面那行"来源 X · 复制链接"是同一件事，
@@ -574,120 +705,6 @@
   color: #0b7a53;
   font-size: 24rpx;
   font-weight: 620;
-}
-
-/* 四口径 · 同一块金子。
-   四个报价原本散在指标列表里，谁也不挨着谁；这块卡把它们并排放好，
-   最上面一行直接写出那条唯一有人真的在算的结论，最下面一行写出换算式本身——
-   数字给结论，式子给复算，中间四格给出处。只有黄金栏目页会渲染它。 */
-.parity-panel {
-  padding: 20rpx 0 16rpx;
-}
-
-.parity-head {
-  display: flex;
-  padding: 0 24rpx 12rpx;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16rpx;
-}
-
-.parity-title {
-  color: #1f2621;
-  font-size: 28rpx;
-  font-weight: 680;
-}
-
-.parity-meta {
-  flex: none;
-  color: #9aa19c;
-  font-size: 22rpx;
-}
-
-/* 结论比标签重：这一句才是读的人来这一屏要的东西。 */
-.parity-headline {
-  display: block;
-  padding: 0 24rpx 16rpx;
-  color: #123a28;
-  font-size: 30rpx;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.parity-grid {
-  display: flex;
-  flex-wrap: wrap;
-  border-top: 1rpx solid #edf0ee;
-}
-
-.parity-cell {
-  box-sizing: border-box;
-  width: 50%;
-  min-width: 0;
-  padding: 16rpx 24rpx;
-  border-right: 1rpx solid #edf0ee;
-  border-bottom: 1rpx solid #edf0ee;
-}
-
-.parity-cell:nth-child(2n) { border-right: 0; }
-.parity-cell:nth-last-child(-n + 2) { border-bottom: 0; }
-
-.parity-cell-label {
-  display: block;
-  overflow: hidden;
-  color: #7e8781;
-  font-size: 23rpx;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 数字和单位分开排：单位小一号，一列列下来数字的起点才对得齐。 */
-.parity-cell-value {
-  display: flex;
-  margin-top: 6rpx;
-  align-items: baseline;
-  gap: 6rpx;
-}
-
-.parity-cell-number {
-  color: #171b18;
-  font-size: 32rpx;
-  font-weight: 740;
-  line-height: 1.15;
-}
-
-.parity-cell-unit {
-  flex: none;
-  color: #8a918c;
-  font-size: 22rpx;
-}
-
-.parity-cell-meta {
-  display: block;
-  margin-top: 4rpx;
-  color: #7e8781;
-  font-size: 22rpx;
-}
-
-/* 换算式。放在最下面是因为它不是结论，是让人自己复算的凭据。 */
-.parity-formula {
-  display: block;
-  padding: 14rpx 24rpx 0;
-  color: #8a918c;
-  font-size: 22rpx;
-  line-height: 1.5;
-}
-
-/* 这两块要放在 .parity-* 之后：同优先级下后写的赢，写在上面那两个
-   @media 里会被下面的常规规则盖掉。 */
-@media (max-width: 340px) {
-  .parity-cell { padding-right: 16rpx; padding-left: 16rpx; }
-  .parity-cell-number { font-size: 30rpx; }
-  .parity-headline { font-size: 28rpx; }
-}
-
-@media (min-width: 700px) {
-  .parity-panel { border-radius: 20px; }
 }
 
 /* 今日答案展开层。原来走 wx.showModal，但那个控件会把 content 里的换行
@@ -795,4 +812,1118 @@
   font-weight: 640;
   line-height: 76rpx;
   text-align: center;
+}
+
+/* ---------- 港股打新：原型的「近期申购/中签后」两视图，按原型忠实复刻 ---------- */
+
+.hk-card {
+  margin-top: 14rpx;
+  padding: 22rpx 24rpx 24rpx;
+}
+
+.hk-tabs {
+  display: flex;
+  padding: 6rpx;
+  gap: 6rpx;
+  border-radius: 16rpx;
+  background: #e7ece9;
+}
+
+.hk-tab {
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 72rpx;
+  padding: 16rpx 8rpx;
+  border-radius: 12rpx;
+  color: #6a746e;
+  font-size: 26rpx;
+  font-weight: 600;
+  line-height: 40rpx;
+  text-align: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.hk-tab.is-active {
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.14);
+  color: #0b7a53;
+  font-weight: 680;
+}
+
+.hk-hint {
+  margin-top: 20rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 16rpx;
+  background: #eef8f2;
+  color: #1b211d;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.hk-stock-list {
+  margin-top: 6rpx;
+}
+
+.hk-stock-row {
+  padding: 26rpx 0;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.hk-stock-row:last-child {
+  padding-bottom: 4rpx;
+  border-bottom: none;
+}
+
+.hk-row-between {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.hk-row-name-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.hk-stock-name {
+  display: block;
+  overflow: hidden;
+  color: #1b211d;
+  font-size: 29rpx;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hk-code {
+  display: block;
+  margin-top: 5rpx;
+  color: #9aa19c;
+  font-size: 21rpx;
+  letter-spacing: 0.5rpx;
+}
+
+.hk-badge {
+  flex: none;
+  padding: 5rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 21rpx;
+  font-weight: 620;
+  line-height: 1.5;
+}
+
+.hk-badge.tone-worth { background: #dcf0e4; color: #0b7a53; }
+.hk-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
+.hk-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
+
+.hk-row-reason {
+  display: block;
+  margin-top: 12rpx;
+  color: #6a746e;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.hk-row-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18rpx;
+  color: #9aa19c;
+  font-size: 22rpx;
+}
+
+.hk-empty {
+  padding: 48rpx 0;
+  color: #9aa19c;
+  font-size: 25rpx;
+  text-align: center;
+}
+
+.hk-note {
+  display: block;
+  margin-top: 20rpx;
+  padding-left: 14rpx;
+  border-left: 3rpx solid #d6ded8;
+  color: #9aa19c;
+  font-size: 21rpx;
+  line-height: 1.45;
+}
+
+.hk-picker-label {
+  display: block;
+  margin-top: 20rpx;
+  margin-bottom: 12rpx;
+  color: #6a746e;
+  font-size: 23rpx;
+}
+
+.hk-picker-value {
+  box-sizing: border-box;
+  display: flex;
+  min-height: 84rpx;
+  padding: 16rpx 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  border: 1rpx solid #e7ece9;
+  border-radius: 16rpx;
+  background: #fafcfb;
+}
+
+.hk-picker-value text:first-child {
+  overflow: hidden;
+  min-width: 0;
+  flex: 1;
+  color: #1b211d;
+  font-size: 27rpx;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hk-picker-caret {
+  flex: none;
+  color: #9aa19c;
+  font-size: 22rpx;
+}
+
+.hk-exit-card {
+  box-sizing: border-box;
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border: 1rpx solid #edf0ee;
+  border-radius: 20rpx;
+  background: #fafcfb;
+}
+
+.hk-exit-name {
+  overflow: hidden;
+  color: #1b211d;
+  font-size: 29rpx;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hk-exit-card .hk-hint {
+  margin-top: 18rpx;
+  background: #ffffff;
+  border: 1rpx solid #edf0ee;
+}
+
+.hk-exit-rows {
+  display: flex;
+  margin-top: 20rpx;
+  flex-direction: column;
+}
+
+.hk-exit-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #eef2f0;
+}
+
+.hk-exit-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.hk-exit-row-label {
+  flex: none;
+  color: #6a746e;
+  font-size: 23rpx;
+}
+
+.hk-exit-row-value {
+  overflow: hidden;
+  color: #1b211d;
+  font-size: 26rpx;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hk-empty-text {
+  display: block;
+  margin-top: 20rpx;
+  color: #9aa19c;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.hk-risk-line {
+  display: flex;
+  margin-top: 20rpx;
+  color: #8b5b20;
+  font-size: 23rpx;
+  line-height: 1.5;
+}
+
+.hk-details {
+  margin-top: 22rpx;
+  padding-top: 4rpx;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.hk-details-toggle {
+  display: flex;
+  min-height: 72rpx;
+  align-items: center;
+  justify-content: space-between;
+  color: #0b7a53;
+  font-size: 25rpx;
+  font-weight: 600;
+}
+
+.hk-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding-bottom: 18rpx;
+}
+
+.hk-details-body text {
+  color: #8a938d;
+  font-size: 22rpx;
+  line-height: 1.55;
+}
+
+/* ---------- 美股投资：原型的「七姐妹/热门三只」两视图，按原型忠实复刻 ---------- */
+
+.us-card {
+  margin-top: 14rpx;
+  padding: 22rpx 24rpx 24rpx;
+}
+
+.us-tabs {
+  display: flex;
+  padding: 6rpx;
+  gap: 6rpx;
+  border-radius: 16rpx;
+  background: #e7ece9;
+}
+
+.us-tab {
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 72rpx;
+  padding: 16rpx 8rpx;
+  border-radius: 12rpx;
+  color: #6a746e;
+  font-size: 26rpx;
+  font-weight: 600;
+  line-height: 40rpx;
+  text-align: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.us-tab.is-active {
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.14);
+  color: #0b7a53;
+  font-weight: 680;
+}
+
+.us-hint {
+  margin-top: 20rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 16rpx;
+  background: #eef8f2;
+  color: #1b211d;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.us-stock-list {
+  margin-top: 6rpx;
+}
+
+.us-stock-row {
+  display: flex;
+  padding: 26rpx 0;
+  gap: 16rpx;
+  align-items: flex-start;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.us-stock-row:last-child {
+  padding-bottom: 4rpx;
+  border-bottom: none;
+}
+
+.us-monogram {
+  box-sizing: border-box;
+  display: flex;
+  flex: none;
+  width: 60rpx;
+  height: 60rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999rpx;
+  background: #eef8f2;
+  color: #0b7a53;
+  font-size: 26rpx;
+  font-weight: 680;
+}
+
+.us-row-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.us-row-between {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.us-row-name-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.us-stock-name {
+  display: block;
+  overflow: hidden;
+  color: #1b211d;
+  font-size: 29rpx;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.us-code {
+  display: block;
+  margin-top: 5rpx;
+  color: #9aa19c;
+  font-size: 21rpx;
+  letter-spacing: 0.5rpx;
+}
+
+.us-badge {
+  flex: none;
+  padding: 5rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 21rpx;
+  font-weight: 620;
+  line-height: 1.5;
+}
+
+.us-badge.tone-worth { background: #dcf0e4; color: #0b7a53; }
+.us-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
+.us-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
+
+.us-row-reason {
+  display: block;
+  margin-top: 12rpx;
+  color: #6a746e;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.us-right {
+  flex: none;
+  text-align: right;
+}
+
+.us-price {
+  display: block;
+  color: #1b211d;
+  font-size: 25rpx;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+
+.us-empty {
+  padding: 48rpx 0;
+  color: #9aa19c;
+  font-size: 25rpx;
+  text-align: center;
+}
+
+.us-note {
+  display: block;
+  margin-top: 20rpx;
+  padding-left: 14rpx;
+  border-left: 3rpx solid #d6ded8;
+  color: #9aa19c;
+  font-size: 21rpx;
+  line-height: 1.45;
+}
+
+.us-hot-list {
+  margin-top: 6rpx;
+}
+
+.us-hot-card {
+  padding: 26rpx 0;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.us-hot-card:last-child {
+  padding-bottom: 4rpx;
+  border-bottom: none;
+}
+
+.us-hot-name {
+  overflow: hidden;
+  color: #1b211d;
+  font-size: 29rpx;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.us-hot-why {
+  display: block;
+  margin-top: 12rpx;
+  color: #6a746e;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.us-details {
+  margin-top: 18rpx;
+  padding-top: 4rpx;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.us-details-toggle {
+  display: flex;
+  min-height: 72rpx;
+  align-items: center;
+  justify-content: space-between;
+  color: #0b7a53;
+  font-size: 25rpx;
+  font-weight: 600;
+}
+
+.us-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding-bottom: 10rpx;
+}
+
+.us-details-body text {
+  color: #8a938d;
+  font-size: 22rpx;
+  line-height: 1.55;
+}
+
+/* ---------- A股收息：原型的「分红稳定性/分红收益性」前五+参考买卖价，按原型忠实复刻 ---------- */
+
+.a-card {
+  margin-top: 14rpx;
+  padding: 22rpx 24rpx 24rpx;
+}
+
+.a-tabs {
+  display: flex;
+  padding: 6rpx;
+  gap: 6rpx;
+  border-radius: 16rpx;
+  background: #e7ece9;
+}
+
+.a-tab {
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 72rpx;
+  padding: 16rpx 8rpx;
+  border-radius: 12rpx;
+  color: #6a746e;
+  font-size: 26rpx;
+  font-weight: 600;
+  line-height: 40rpx;
+  text-align: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.a-tab.is-active {
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.14);
+  color: #0b7a53;
+  font-weight: 680;
+}
+
+.a-hint {
+  margin-top: 20rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 16rpx;
+  background: #eef8f2;
+  color: #1b211d;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.a-table {
+  margin-top: 6rpx;
+}
+
+.a-table-head {
+  display: flex;
+  align-items: center;
+  padding: 0 4rpx 14rpx;
+  border-bottom: 1rpx solid #edf0ee;
+  color: #9aa19c;
+  font-size: 21rpx;
+  font-weight: 600;
+}
+
+.a-table-row {
+  display: flex;
+  align-items: center;
+  padding: 22rpx 4rpx;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.a-table-row:last-child {
+  padding-bottom: 4rpx;
+  border-bottom: none;
+}
+
+.a-col-name {
+  min-width: 0;
+  flex: 1.7;
+}
+
+.a-col-metric {
+  flex: 1;
+  color: #1b211d;
+  font-size: 25rpx;
+  font-weight: 620;
+  text-align: right;
+}
+
+.a-col-buy {
+  flex: 1;
+  color: #0b7a53;
+  font-size: 23rpx;
+  text-align: right;
+}
+
+.a-col-sell {
+  flex: 1;
+  color: #a33b2b;
+  font-size: 23rpx;
+  text-align: right;
+}
+
+.a-table-head .a-col-metric,
+.a-table-head .a-col-buy,
+.a-table-head .a-col-sell,
+.a-table-head .guru-col-move {
+  font-size: 21rpx;
+  font-weight: 600;
+  color: #9aa19c;
+}
+
+.guru-col-move {
+  flex: 1;
+  color: #6a746e;
+  font-size: 23rpx;
+  text-align: right;
+}
+
+.a-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.a-stock-name {
+  overflow: hidden;
+  color: #1b211d;
+  font-size: 27rpx;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.a-code {
+  display: block;
+  margin-top: 5rpx;
+  color: #9aa19c;
+  font-size: 21rpx;
+  letter-spacing: 0.5rpx;
+}
+
+.a-badge {
+  flex: none;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  font-weight: 620;
+  line-height: 1.5;
+}
+
+.a-badge.tone-worth { background: #dcf0e4; color: #0b7a53; }
+.a-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
+.a-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
+
+.a-empty {
+  padding: 40rpx 0;
+  color: #9aa19c;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.a-risk-line {
+  display: block;
+  margin-top: 18rpx;
+  color: #9aa19c;
+  font-size: 22rpx;
+  line-height: 1.55;
+}
+
+.a-details {
+  margin-top: 14rpx;
+  padding-top: 4rpx;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.a-details-toggle {
+  display: flex;
+  min-height: 72rpx;
+  align-items: center;
+  justify-content: space-between;
+  color: #0b7a53;
+  font-size: 25rpx;
+  font-weight: 600;
+}
+
+.a-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding-bottom: 10rpx;
+}
+
+.a-details-body text {
+  color: #8a938d;
+  font-size: 22rpx;
+  line-height: 1.55;
+}
+
+.a-fund-card {
+  margin-top: 20rpx;
+  padding: 22rpx;
+  border-radius: 16rpx;
+  border: 1rpx dashed #cfd8d2;
+  background: #f6f8f6;
+}
+
+.a-fund-card .a-row-between {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.a-fund-card .a-row-name-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.a-fund-note {
+  display: block;
+  margin-top: 12rpx;
+  color: #6a746e;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.a-fund-hint {
+  display: block;
+  margin-top: 10rpx;
+  color: #9aa19c;
+  font-size: 21rpx;
+  line-height: 1.5;
+}
+
+/* ---------- 机构持仓：原型的「共同方向/机构持仓」两个视图，按原型忠实复刻 ---------- */
+
+.guru-card {
+  margin-top: 14rpx;
+  padding: 22rpx 24rpx 24rpx;
+}
+
+.guru-direction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18rpx;
+  color: #1b211d;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.guru-direction:first-child {
+  margin-top: 6rpx;
+}
+
+.guru-bar-track {
+  overflow: hidden;
+  margin-top: 10rpx;
+  height: 14rpx;
+  border-radius: 999rpx;
+  background: #edf0ee;
+}
+
+.guru-bar-fill {
+  height: 100%;
+  border-radius: 999rpx;
+}
+
+.guru-bar-fill.tone-worth { background: #0b7a53; }
+.guru-bar-fill.tone-caution { background: #8b5b20; }
+.guru-bar-fill.tone-avoid { background: #a33b2b; }
+
+.guru-institution-list {
+  margin-top: 8rpx;
+}
+
+.guru-institution-row {
+  display: flex;
+  min-height: 100rpx;
+  padding: 20rpx 0;
+  align-items: center;
+  gap: 12rpx;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.guru-institution-row:last-child {
+  padding-bottom: 4rpx;
+  border-bottom: none;
+}
+
+.guru-institution-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.guru-institution-name {
+  display: block;
+  overflow: hidden;
+  color: #1b211d;
+  font-size: 27rpx;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guru-institution-org {
+  display: block;
+  margin-top: 6rpx;
+  overflow: hidden;
+  color: #9aa19c;
+  font-size: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gold-card {
+  margin-top: 14rpx;
+  padding: 22rpx 24rpx 24rpx;
+}
+
+.gold-quotes {
+  display: flex;
+  gap: 12rpx;
+}
+
+.gold-quote-button {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  padding: 18rpx 16rpx;
+  border-radius: 16rpx;
+  background: #f4f8f6;
+  text-align: center;
+  transition: background-color 0.15s ease;
+}
+
+.gold-quote-button.is-active {
+  background: #eef8f2;
+  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.14);
+}
+
+.gold-quote-label {
+  display: block;
+  color: #6a746e;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.gold-quote-button.is-active .gold-quote-label {
+  color: #0b7a53;
+}
+
+.gold-quote-price {
+  display: block;
+  margin-top: 6rpx;
+  color: #1b211d;
+  font-size: 34rpx;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.gold-quote-button.is-active .gold-quote-price {
+  color: #0b7a53;
+}
+
+.gold-quote-unit {
+  display: block;
+  margin-top: 4rpx;
+  color: #9aa19c;
+  font-size: 20rpx;
+}
+
+.gold-panel {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.gold-row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.gold-row-sub {
+  display: flex;
+  margin-top: 8rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.gold-headline {
+  color: #1b211d;
+  font-size: 27rpx;
+  font-weight: 680;
+}
+
+.gold-badge {
+  flex: none;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  font-weight: 620;
+  line-height: 1.5;
+}
+
+.gold-badge.tone-worth { background: #dcf0e4; color: #0b7a53; }
+.gold-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
+.gold-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
+
+.gold-currency-label {
+  color: #7a847e;
+  font-size: 22rpx;
+}
+
+.gold-periods {
+  display: flex;
+  gap: 6rpx;
+}
+
+.gold-period {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #f4f8f6;
+  color: #6a746e;
+  font-size: 21rpx;
+  font-weight: 600;
+}
+
+.gold-period.is-active {
+  background: #eef8f2;
+  color: #0b7a53;
+}
+
+.gold-chart {
+  margin-top: 16rpx;
+}
+
+.gold-chart-bars {
+  display: flex;
+  height: 200rpx;
+  padding: 12rpx 8rpx 0;
+  align-items: flex-end;
+  gap: 3rpx;
+  border-bottom: 1rpx solid #d7e3db;
+  border-radius: 12rpx 12rpx 0 0;
+  background: #f7faf8;
+}
+
+.gold-chart-slot {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.gold-chart-bar {
+  width: 86%;
+  min-height: 8rpx;
+  border-radius: 4rpx 4rpx 0 0;
+  background: #2fba78;
+}
+
+.gold-chart-bar.latest { background: #0b7a53; }
+.gold-chart-bar.peak { background: #d99a12; }
+.gold-chart-bar.floor { background: #7eb89a; }
+
+.gold-chart-labels {
+  display: flex;
+  margin-top: 8rpx;
+  justify-content: space-between;
+  gap: 8rpx;
+  color: #7a847e;
+  font-size: 22rpx;
+}
+
+.gold-chart-labels text:nth-child(2) { color: #0b7a53; font-weight: 700; text-align: center; }
+.gold-chart-labels text:last-child { text-align: right; }
+
+.gold-chart-empty {
+  display: block;
+  margin-top: 16rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 16rpx;
+  background: #f4f8f6;
+  color: #9aa19c;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.gold-zone-grid {
+  display: flex;
+  margin-top: 16rpx;
+  gap: 12rpx;
+}
+
+.gold-zone {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  padding: 16rpx 18rpx;
+  border-radius: 16rpx;
+  background: #eef8f2;
+}
+
+.gold-zone.warn {
+  background: #fdf3e3;
+}
+
+.gold-zone-label {
+  display: block;
+  color: #6a746e;
+  font-size: 21rpx;
+}
+
+.gold-zone-value {
+  display: block;
+  margin-top: 6rpx;
+  color: #0b7a53;
+  font-size: 28rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.gold-zone.warn .gold-zone-value {
+  color: #8b5b20;
+}
+
+.gold-risk-line {
+  display: block;
+  margin-top: 16rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 16rpx;
+  background: #eef8f2;
+  color: #1b211d;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.gold-trend-line {
+  display: flex;
+  margin-top: 16rpx;
+  align-items: flex-start;
+  gap: 12rpx;
+}
+
+.gold-dot {
+  flex: none;
+  width: 16rpx;
+  height: 16rpx;
+  margin-top: 6rpx;
+  border-radius: 50%;
+  background: #9aa19c;
+}
+
+.gold-dot.tone-worth { background: #0b7a53; }
+.gold-dot.tone-caution { background: #d99a12; }
+.gold-dot.tone-avoid { background: #a33b2b; }
+
+.gold-trend-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.gold-trend-title {
+  color: #1b211d;
+  font-size: 26rpx;
+  font-weight: 680;
+}
+
+.gold-trend-detail {
+  color: #7a847e;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.gold-details {
+  margin-top: 14rpx;
+  padding-top: 4rpx;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.gold-details-toggle {
+  display: flex;
+  min-height: 72rpx;
+  align-items: center;
+  justify-content: space-between;
+  color: #0b7a53;
+  font-size: 25rpx;
+  font-weight: 600;
+}
+
+.gold-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding-bottom: 10rpx;
+}
+
+.gold-details-body text {
+  color: #8a938d;
+  font-size: 22rpx;
+  line-height: 1.55;
 }

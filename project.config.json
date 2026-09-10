@@ -1,16 +1,38 @@
 {
-    "description": "望潮 Aurum 微信小程序壳层",
-    "miniprogramRoot": "miniprogram/",
-    "cloudfunctionRoot": "cloudfunctions/",
-    "compileType": "miniprogram",
-    "setting": {
-        "es6": true,
-        "enhance": true,
-        "postcss": true,
-        "minified": true,
-        "urlCheck": true
-    },
-    "appid": "wx4329d5e05c2f13f9",
-    "projectname": "aurum-mini",
-    "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
+  "description": "望潮 Aurum 微信小程序壳层",
+  "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "compileType": "miniprogram",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "appid": "wx4329d5e05c2f13f9",
+  "projectname": "aurum-mini",
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {}
 }

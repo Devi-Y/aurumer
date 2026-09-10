@@ -18,7 +18,6 @@ const {
   yieldImpliedPlan,
   goldZoneForPrice,
   goldTurningPoint,
-  usSleevePlan,
   matchesGroup,
   parseOfferPrice,
   hasNumber,
@@ -30,11 +29,6 @@ function yuan(value) {
 
 function usd(value) {
   return hasNumber(value) ? `$${Number(value).toFixed(2)}` : "";
-}
-
-function sleevePrice(snapshot, symbol) {
-  const row = (snapshot?.us?.sleeveQuotes || []).find((item) => item.symbol === symbol);
-  return usd(row?.price);
 }
 
 function impliedPrice(offer, change) {
@@ -77,6 +71,17 @@ function namesOf(items, max = 3, chars = 6) {
   return names.slice(0, max).join("、") + (names.length > max ? ` 等${names.length}只` : "");
 }
 
+// names 里的每一个名字都已经出现在答案句里了吗？是的话它在卡面上就没有新信息。
+// 逐个名字比对而不是整串比对：「长江电力、招商银行、中国移动」里只有前两个
+// 写进了答案，第三个是新的，这一行就还得印。
+function redundantNames(answer, names) {
+  const line = String(names || "").trim();
+  if (!line) return true;
+  const text = String(answer || "");
+  const parts = line.split(/[、,，·]/).map((part) => part.trim()).filter(Boolean);
+  return parts.length > 0 && parts.every((part) => text.includes(part));
+}
+
 function card({
   id,
   question,
@@ -90,12 +95,18 @@ function card({
   hint = "",
   modal = "",
   state = "",
+  rows = null,
 }) {
   return {
     id,
     question,
     answer,
+    // names 这一栏担两份活：卡面上的补充说明，和首页 2×2、群卡片取标的名。
+    // 后一份不能动，可当它的内容已经整句写在 answer 里时——
+    // 「谷歌-A $338.40 · Meta $613.50」底下再印一行「谷歌-A、Meta」——
+    // 卡面上就是同一句话说两遍。字段照留给首页用，卡面改读 namesLine。
     names,
+    namesLine: redundantNames(answer, names) ? "" : names,
     tone,
     action,
     group,
@@ -103,6 +114,11 @@ function card({
     enabled: Boolean(enabled && (action !== "none" || modal)),
     hint,
     modal,
+    // 前五名单、最热三只这类答案本来就是表——写成「甲 · 乙 · 丙 · 丁 · 戊」
+    // 一行流水账，参考买卖价只能塞进展开层。给卡片一个可选的小表格：
+    // { head: [列名], body: [{ key, cells: [...], note, tone }] }。
+    // 没有表的卡片传 null，卡面照旧。
+    rows,
     // 首页那格摘要要判断黄金现在处在哪个区。原来靠对答案文案做正则，文案一改
     // 就静默失效；这里让卡片直接把区名带出来，文案怎么写都不影响判断。
     state,
@@ -118,6 +134,7 @@ function buildHkAnswers(snapshot) {
   const leverage = items.filter(hkLeverageEligible);
   const histLev = items.filter(hkHistoricalCrowdEligible);
   const bands = buildHkExitBands(snapshot);
+  const recentEnded = items.filter((item) => item.group === "ended").slice(0, 3);
   const lead = worth[0] || active[0];
   const offer = parseOfferPrice(lead?.raw?.offerPrice || lead?.raw?.priceHigh || lead?.raw?.priceLow);
   const liveLead = lead && lead.group !== "ended" && lead.group !== "cancelled";
@@ -150,6 +167,42 @@ function buildHkAnswers(snapshot) {
       `两档合起来算中位会得到一个两边都不像的数，所以分开给。`,
       `已披露超购的样本只有 ${hot.n + cool.n} 只，这是观察不是规律；超购本身也不保证暗盘一定跟着走。`,
     ].join("\n");
+  };
+
+  // 最近三只已披露样本各自的结果：涨跌幅，以及按发行价折算出来的对照卖出价。
+  // 两个数都来自快照里已有的字段（historicalReview + offerPrice），折算不出来
+  // 的那格写「—」，不拿中位数顶上去冒充这一只的价。
+  const recentExitRows = (ended, endedKey) => {
+    const rows = ended.slice(0, 3).map((item) => {
+      const change = Number(item.raw.historicalReview[endedKey]);
+      const price = impliedPrice(parseOfferPrice(item.raw.offerPrice), change);
+      return {
+        key: item.id,
+        // 这一列右边只跟一两个百分数，位置比首页四格宽得多。给 5 会把
+        // 「梅卡曼德机器人」切成「梅卡曼德机」——看上去像个完整但不存在的公司名，
+        // 而 shortCompanyName 是不加省略号的。给到 7 让整名放得下。
+        name: shortCompanyName(item.name, "新股", 7),
+        change: signedPct(change) || "—",
+        price: price != null ? `${price} 港元` : "",
+        // 港股列表页那条对比条就是涨绿跌红，同一份数据在两页里不该换配色。
+        tone: change > 0 ? "good" : (change < 0 ? "bad" : ""),
+      };
+    });
+    if (!rows.length) return null;
+    // 快照里多数已结束样本没有发行价，折算价那一列会整列是「—」。
+    // 一列破折号不是信息，只有过半的行折算得出来才留这一列。
+    const priced = rows.filter((row) => row.price).length;
+    const withPrice = priced * 2 >= rows.length;
+    return {
+      head: withPrice
+        ? ["最近样本", endedKey === "greyMarketChange" ? "暗盘" : "首日", "对照卖出"]
+        : ["最近样本", endedKey === "greyMarketChange" ? "暗盘" : "首日"],
+      body: rows.map((row) => ({
+        key: row.key,
+        cells: withPrice ? [row.name, row.change, row.price || "—"] : [row.name, row.change],
+        tone: row.tone,
+      })),
+    };
   };
 
   const exitCard = (id, question, band, endedKey, modal = "") => {
@@ -198,11 +251,24 @@ function buildHkAnswers(snapshot) {
           id,
           question,
           answer: `约 ${hotNumber} 或 ${coolMid}，看超购`,
-          names: [
-            shortCompanyName(lead.name, "新股", 6),
-            `过 ${HK_HOT_OVERSUBSCRIPTION} 倍→${hotNumber}（${hotBand.positive}/${hotBand.n} 收正）`,
-            `不足→${coolMid.replace(/\s*港元$/, "")}（${coolBand.positive}/${coolBand.n} 收正）`,
-          ].filter(Boolean).join(" · "),
+          names: shortCompanyName(lead.name, "新股", 6),
+          // 两档分别是什么价、各自多少只收正，本来挤成「过 1000 倍→46（4/4 收正）
+          // · 不足→19（2/6 收正）」一行灰字。它本来就是一张两行三列的表。
+          rows: {
+            head: ["超购", "参考卖出", "历史收正"],
+            body: [
+              {
+                key: "hot",
+                cells: [`过 ${HK_HOT_OVERSUBSCRIPTION} 倍`, hotMid, `${hotBand.positive}/${hotBand.n}`],
+                tone: hotBand.positive * 2 >= hotBand.n ? "good" : "",
+              },
+              {
+                key: "cool",
+                cells: [`不到 ${HK_HOT_OVERSUBSCRIPTION} 倍`, coolMid, `${coolBand.positive}/${coolBand.n}`],
+                tone: coolBand.positive * 2 >= coolBand.n ? "good" : "bad",
+              },
+            ],
+          },
           tone: "warn",
           action: "detail",
           targetId: lead.id,
@@ -243,12 +309,14 @@ function buildHkAnswers(snapshot) {
       return card({
         id,
         question,
-        answer: `${lastLine}；下一只先看${formatExitMedian(band)}`,
-        names: [
-          namesOf(ended.slice(0, 3)),
-          formatExitPositive(band),
-          `区间 ${formatExitBand(band)}`,
-        ].filter(Boolean).join(" · "),
+        // 原来这一行是「最近希音-W已披露 -13.3%；下一只先看中位 +0.6%」，
+        // 而下面那张表的第一行写的就是希音-W -13.3%——同一个数印两遍。
+        // 粗体行只留还没发生的那半句，已披露的那几只交给表。
+        answer: `下一只先看${formatExitMedian(band)}`,
+        // 名字、收正只数、区间原来挤成一行灰字。这一格真正该回答的是「打中了
+        // 卖多少合适」，最近三只各自卖出多少、对照什么价，摊成表比读一行流水账快。
+        names: [formatExitPositive(band), `区间 ${formatExitBand(band)}`].filter(Boolean).join(" · "),
+        rows: recentExitRows(ended, endedKey),
         tone: "warn",
         action: "group",
         group: "ended",
@@ -303,18 +371,19 @@ function buildHkAnswers(snapshot) {
     card({
       id: "hk-new",
       question: "近期上新",
-      answer: active.length
-        ? `${active.length} 只在售`
-        : (live.length ? `${live.length} 只已取消或无法申购` : "当前没有可申购新股"),
+      // 一只都没在售时，这里原来退回去数「已取消」的那几只——可它们紧接着
+      // 就是下面「哪些要避雷」的答案，同一批票、同一句话，一屏里印两遍。
+      // 没有就说没有；这一格改说最近挂牌的是哪几只，让这一栏还有个着落点。
+      answer: active.length ? `${active.length} 只在售` : "当前没有可申购新股",
       // 计数用的是 active（在售），名字以前用的是 live（含已取消），于是出现
       // 「3 只在售 · 甲、乙、丙 等4只」这种自己对不上自己的写法。
-      names: namesOf(active.length
-        ? active
-        : (live.length ? live : items.filter((item) => item.group === "ended").slice(0, 3))),
+      names: active.length
+        ? namesOf(active)
+        : (recentEnded.length ? `最近挂牌：${namesOf(recentEnded)}` : ""),
       tone: active.length ? "good" : "muted",
-      action: active.length ? "group" : (live.length ? "group" : "group"),
-      group: active.length ? (worth.length ? "worth" : active[0].group) : (live.length ? live[0].group : "ended"),
-      enabled: live.length + items.filter((item) => item.group === "ended").length > 0,
+      action: "group",
+      group: active.length ? (worth.length ? "worth" : active[0].group) : "ended",
+      enabled: active.length > 0 || recentEnded.length > 0,
     }),
     card({
       id: "hk-worth",
@@ -362,21 +431,21 @@ function buildHkAnswers(snapshot) {
 function buildUsAnswers(snapshot) {
   const items = allItems(snapshot, "us");
   const seven = items.filter((item) => item.group === "seven");
-  const byCode = new Map();
-  for (const item of items) {
-    const code = String(item.code || item.id || "").toUpperCase();
-    if (!code || !byCode.has(code) || item.group === "industry") byCode.set(code, item);
-  }
-  // 截图要求的每日重点不是把所有模型分档都塞进首屏，而是固定回答两只低估、特斯拉风险和两只行业对照；
-  // 是否进入这些重点仍由七姐妹质量/估值分档与公开价格决定，未通过时保持空白。
+  // 这一栏只回答四问：七姐妹这阵子怎么了、哪些低估、哪些高估要减、最热三只
+  // 为什么热且值不值得关注。原来还有一张「底仓如何配置」（VOO/JEPQ/O/SGOV
+  // 权重）——它不在这四问里，整块连同 usSleevePlan 的计算一起撤掉，
+  // 行业对照（万事达、优步）随之退回「分组浏览」里的行业分组。
   const cheap = seven.filter((item) => ["GOOGL", "META"].includes(item.code) && matchesGroup(item, "cheap7"));
   const risk = seven.filter((item) => item.code === "TSLA" && matchesGroup(item, "risk7"));
   const hold = seven.filter((item) => matchesGroup(item, "hold7"));
-  const industry = ["MA", "UBER"].map((code) => byCode.get(code)).filter(Boolean);
   // 「近期最热的三只是什么、为什么火热」——这一问原来页面上一张卡都没有，
   // 热度前三只存在于分组列表里，首屏答不出来。
   const hot = items.filter((item) => item.group === "hot").slice(0, 3);
   const hotQualified = hot.filter((item) => item.raw && item.raw.fund && item.raw.fund.qualityEligible === true);
+  // 「没过质量门」和「没有质量数据」是两回事。热度前三经常是七姐妹之外的
+  // 中小盘，快照里根本没带它们的基本面行——那时候写「三只都没过质量门」
+  // 是把缺数据说成考过没通过。分开数，两种情况分别写。
+  const hotJudged = hot.filter((item) => typeof item.raw?.fund?.qualityEligible === "boolean");
   // 「为什么火热」以前只能答「成交量比高」——那是把「热」换个说法再说一遍。
   // SEC 公告能补上同期到底发生了什么，是可以点开原文核对的公开事实。
   const filingMap = filingsBySymbol(snapshot);
@@ -386,37 +455,12 @@ function buildUsAnswers(snapshot) {
   const filedOf = (item) => formatFilingLine(
     filingMap.get(String((item && item.raw && item.raw.symbol) || (item && item.code) || "").toUpperCase()),
   );
-  const extraPool = [];
-  const seen = new Set(seven.map((item) => item.code));
-  for (const item of items) {
-    const code = item.code || item.id;
-    if (!code || seen.has(code)) continue;
-    seen.add(code);
-    extraPool.push(item);
-  }
-  const sleeve = usSleevePlan(seven, industry, extraPool);
-  const cycleBits = (sleeve.picks || []).map((item) => {
-    const price = usd(item.raw?.price);
-    return `${shortCompanyName(item.name, item.code || "周期", 4)}${price ? ` ${price}` : ""}`;
-  }).filter(Boolean);
-  const pickNames = cycleBits.join("、") || namesOf(sleeve.picks, 2);
   const quoteLine = (item) => {
     if (!item) return "";
     const price = usd(item.raw?.price);
     const score = item.score != null ? ` ${item.score}分` : "";
     return `${shortCompanyName(item.name, item.code || "标的", 6)}${price ? ` ${price}` : ""}${score}`;
   };
-  const incomeSymbol = sleeve.income;
-  const sleeveLine = [
-    `VOO ${sleeve.weights.VOO}%${sleevePrice(snapshot, "VOO") ? ` ${sleevePrice(snapshot, "VOO")}` : ""}`,
-    `${incomeSymbol} ${sleeve.weights.income}%${sleevePrice(snapshot, incomeSymbol) ? ` ${sleevePrice(snapshot, incomeSymbol)}` : ""}`,
-    `O ${sleeve.weights.O}%${sleevePrice(snapshot, "O") ? ` ${sleevePrice(snapshot, "O")}` : ""}`,
-    `SGOV ${sleeve.weights.SGOV}%${sleevePrice(snapshot, "SGOV") ? ` ${sleevePrice(snapshot, "SGOV")}` : ""}`,
-    // 前四段都是「代码 权重%」，第五段却是「周期 10% 优步 $75.96、博通 $357.20」，
-    // 权重和举例之间只隔一个空格，读起来像「优步占周期的 10%」。举例括起来，
-    // 五段才是同一种读法。
-    pickNames ? `周期 ${sleeve.weights.cycle}%（${pickNames}）` : `周期 ${sleeve.weights.cycle}% 样本不足`,
-  ].join(" + ");
   // 「七姐妹近期发生了什么事」这一问原来首屏答不出来：页面上只有估值分档，
   // 没有一句「这一周他们身上发生了什么」。这里只汇总库里已有的两样公开事实——
   // 周涨跌与最新披露财季。本数据源没有新闻与公告字段，所以不写「因为某某消息」，
@@ -469,39 +513,30 @@ function buildUsAnswers(snapshot) {
     ].join("\n")
     : "";
 
-  // 卡片正面只放配置本身。四个代码各带一个报价、后面再挂两个周期举例，
-  // 在 390 宽的屏幕上要折三行，权重反而看不清；报价留在展开层。
-  const sleeveFace = [
-    `VOO ${sleeve.weights.VOO}%`,
-    `${incomeSymbol} ${sleeve.weights.income}%`,
-    `O ${sleeve.weights.O}%`,
-    `SGOV ${sleeve.weights.SGOV}%`,
-    `周期 ${sleeve.weights.cycle}%`,
-  ].join(" + ");
-  const missing = ["VOO", incomeSymbol, "O", "SGOV"].filter((symbol) => !sleevePrice(snapshot, symbol));
-  const modal = [
-    // summary 里已经带了一遍配置行，展开层不再重复，只补正面省掉的报价。
-    sleeve.summary,
-    // 一个报价都没有时不印这一行——四个「暂缺」下面紧跟着还有一句
-    // 「暂无已核验报价」，等于把同一件事说两遍。
-    missing.length >= 4
-      ? ""
-      : `报价：${["VOO", incomeSymbol, "O", "SGOV"]
-        .filter((symbol) => sleevePrice(snapshot, symbol))
-        .map((symbol) => `${symbol} ${sleevePrice(snapshot, symbol)}`).join(" · ")}`,
-    `收息套：${incomeSymbol}（JEPQ=纳指备兑，SCHD=红利价值，二者取一）`,
-    // 行业观察（万事达、优步）本来单占一张卡，但用户点名的四问里没有它，
-    // 而周期那一格的样本本来就是从这批行业公司里挑的——收进这里，名单不丢，
-    // 首屏也不用为它留一行。
-    industry.length
-      ? `行业对照：${industry.map((item) => {
-        const price = usd(item.raw?.price);
-        return `${shortCompanyName(item.name, item.code, 4)}${price ? ` ${price}` : ""}${item.score != null ? ` ${item.score}分` : ""}`;
-      }).join("、")}——只用于研究比较，不是买入指令。`
-      : "行业对照：当前没有同时满足质量与分数的样本。",
-    missing.length ? `${missing.join("/")} 暂无已核验报价，不补虚拟价格。` : "ETF 报价来自 Yahoo Finance 公开行情，只作配置对照。",
-    "研究观察，不是买卖指令。",
-  ].filter(Boolean).join("\n");
+  // 最热三只本来只有一行「英伟达 100 · 特斯拉 88 · AMD 80」，用户问的
+  // 「为什么火热」「是否建议关注」全压在展开层里，卡面一个字都答不上。
+  // heatDriver（成交放大多少、一周涨跌）和 attentionNote（质量门过没过）
+  // 早就逐只算好了，这里把它们摆成三行一张表：一眼看到谁热、热在哪、要不要看。
+  const hotRows = hot.length
+    ? {
+      head: ["标的", "热度", "是否建议关注"],
+      body: hot.map((item) => {
+        const heat = Number(item.raw && item.raw.heatScore);
+        const eligible = item.raw?.fund?.qualityEligible;
+        return {
+          key: item.code || item.id,
+          cells: [
+            shortCompanyName(item.name, item.code || "标的", 5),
+            Number.isFinite(heat) ? String(Math.round(heat)) : "—",
+            // 卡面这一格只放结论词，完整口径仍在展开层和 attentionNote 里。
+            eligible === true ? "过质量门" : (eligible === false ? "未过质量门" : "质量数据不足"),
+          ],
+          note: item.heatDriver || "驱动数据不足",
+          tone: eligible === true ? "good" : (eligible === false ? "bad" : "muted"),
+        };
+      }),
+    }
+    : null;
 
   return [
     card({
@@ -545,19 +580,22 @@ function buildUsAnswers(snapshot) {
     card({
       id: "us-hot",
       question: "最热的三只",
+      // 名单交给下面那张表，这一行只说这三只整体值不值得看——表和结论各说各的，
+      // 不再把同一串名字印两遍。
       answer: hot.length
-        ? hot.map((item) => {
-          const heat = Number(item.raw && item.raw.heatScore);
-          return `${shortCompanyName(item.name, item.code || "标的", 6)}${Number.isFinite(heat) ? ` ${Math.round(heat)}` : ""}`;
-        }).join(" · ")
-        : "热度数据不足",
-      names: hot.length
         ? (hotQualified.length
-          ? `${hotQualified.length} 只过质量门：${namesOf(hotQualified, 3, 6)}`
-          : "三只都没过质量门")
-        : "",
+          ? `${hotQualified.length}/${hot.length} 过质量门，可进观察名单`
+          : (hotJudged.length
+            ? `${hot.length} 只都没过质量门，只当热度看`
+            : `${hot.length} 只都缺质量数据，暂不给关注结论`))
+        : "热度数据不足",
+      names: hot.length ? "热度只由公开成交量比与涨跌幅算出，不指方向" : "",
+      rows: hotRows,
       // 热本身没有好坏，所以不给 good/bad；过了质量门才转中性偏好。
-      tone: hot.length ? (hotQualified.length ? "warn" : "bad") : "muted",
+      // 缺数据不是坏消息，不染红——那一档退回 muted。
+      tone: hot.length
+        ? (hotQualified.length ? "warn" : (hotJudged.length ? "bad" : "muted"))
+        : "muted",
       action: "group",
       group: "hot",
       targetId: hot[0]?.id || "",
@@ -585,25 +623,12 @@ function buildUsAnswers(snapshot) {
         ].join("\n")
         : "",
     }),
-    card({
-      id: "us-sleeve",
-      question: "底仓如何配置",
-      answer: sleeveFace,
-      // 周期那一格在正面只有一个权重，举例放副行；收息套代码已经印在正面了。
-      names: pickNames ? `周期观察 ${pickNames}` : "周期样本不足，先留在 SGOV",
-      tone: sleeve.defensive ? "warn" : "good",
-      action: "none",
-      targetId: sleeve.picks[0]?.id || "",
-      enabled: true,
-      modal,
-    }),
   ];
 }
 
 function buildAShareAnswers(snapshot, holdings = []) {
   const items = allItems(snapshot, "a");
   const core = items.filter((item) => matchesGroup(item, "core"));
-  const cycle = items.filter((item) => matchesGroup(item, "cycle"));
   const withPlan = core
     .filter((item) => item.raw?.assetType !== "fund")
     .map((item) => ({
@@ -623,22 +648,49 @@ function buildAShareAnswers(snapshot, holdings = []) {
   };
   // 两个维度的前五。名次在 answers.js 里按同一套排序打好了 lens，这里只负责
   // 把名次重新排出来并挑出领头那只的两个参考价——排序口径不能有两份。
+  // 「优先股票、次之基金」是用户点名的排法：同一榜里股票整体排在基金前面，
+  // 各自内部再按分数降序。今天样本里唯一的红利 ETF 两个榜都进不去（见 fundNote），
+  // 但排法先立在这儿，将来有基金进榜时不至于插到股票中间。
+  const isFund = (item) => item?.raw?.assetType === "fund";
   const rankedBy = (lens, score) => items
     .filter((item) => matchesGroup(item, lens))
-    .sort((left, right) => score(right.raw || {}) - score(left.raw || {}));
+    .sort((left, right) => {
+      const byKind = Number(isFund(left)) - Number(isFund(right));
+      if (byKind) return byKind;
+      return score(right.raw || {}) - score(left.raw || {});
+    });
   const stableTop = rankedBy("stable5", (raw) => Number(aShareDividendStability(raw) || 0) * 1000
     + Number(raw.sustainableDividendYield || 0));
   const yieldTop = rankedBy("yield5", (raw) => Number(raw.currentDividendYield || 0));
-  const rankNames = (list) => list
-    .map((item) => shortCompanyName(item.name, "收息", 4))
-    .join(" · ");
-  // 卡面只放得下榜首那只的参考买卖价，另外四只在展开层（rankModal）里一次摆齐。
-  const leadPrice = (list) => {
-    const lead = list[0];
-    const plan = lead ? yieldImpliedPlan(lead.raw) : null;
-    if (!lead) return "";
-    if (!plan) return `${shortCompanyName(lead.name, "收息", 4)} 参考价暂缺`;
-    return `第一名 ${shortCompanyName(lead.name, "收息", 4)} 参考买 ${yuan(plan.addPrice)} · 参考卖 ${yuan(plan.trimPrice)}`;
+  const stableIds = new Set(stableTop.map((item) => item.id));
+  const bothTop = yieldTop.filter((item) => stableIds.has(item.id));
+  // 用户这一问要的是「前五名各自的参考买入价、参考卖出价」——那本来就是一张表。
+  // 原来卡面只放得下第一名（leadPrice），另外四只得点开展开层才看得到，
+  // 名次和两个价还分在两处。改成四列摆齐：名次标的｜排序依据｜参考买｜参考卖。
+  // 拿不到价的那只照样占一行，写「暂缺」，不按公式硬凑一个数。
+  const rankRows = (list, kind) => {
+    if (!list.length) return null;
+    return {
+      head: ["标的", kind === "stable" ? "稳定性" : "股息率", "参考买", "参考卖"],
+      body: list.map((item, index) => {
+        const raw = item.raw || {};
+        const plan = yieldImpliedPlan(raw);
+        const basis = kind === "stable"
+          ? (hasNumber(aShareDividendStability(raw)) ? String(aShareDividendStability(raw)) : "暂缺")
+          : (hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺");
+        return {
+          key: item.id || item.code || String(index),
+          cells: [
+            `${index + 1} ${shortCompanyName(item.name, "收息", 4)}`,
+            basis,
+            plan ? yuan(plan.addPrice) : "暂缺",
+            plan ? yuan(plan.trimPrice) : "暂缺",
+          ],
+          // 现价已经跌到参考买之下的那行标绿：这一栏用户每天真正要找的就是它。
+          tone: plan && plan.zone === "add" ? "good" : (plan && plan.zone === "trim" ? "warn" : ""),
+        };
+      }),
+    };
   };
   // 排序依据得摆出来，否则「凭什么它第一」只能靠信。
   const stableWhy = stableTop[0]
@@ -650,10 +702,10 @@ function buildAShareAnswers(snapshot, holdings = []) {
   // 用户要的是「优先股票、次之基金」。基金这半边现在给不出来，就说给不出来：
   // 快照里的 A 股基金只有 1 只红利 ETF，且它的分红以基金公告为准、没有股息率字段，
   // 排不进任何一个按股息率排的榜。凑不满五只就不凑。
-  // 这句现在真的会印在卡片上（原来写在 hint 里，而 hint 从来没被渲染过），
-  // 所以要短到能跟结论同屏，长口径留给详情页那几张财务卡。
+  // 卡面那句要短到能跟表格同屏，完整口径留在展开层（fundNoteFull）。
   // 只印在两张榜单卡的第一张上——两张紧挨着，同一句话印两遍就成了水印。
-  const fundNote = "样本内唯一的红利 ETF 分红不固定、没有股息率字段，两个榜都排不进，所以前五都是股票。";
+  const fundNote = "前五均为股票：样本内唯一的红利 ETF 无股息率字段，两榜都排不进";
+  const fundNoteFull = "样本内唯一的红利 ETF 分红以基金公告为准、没有股息率字段，两个榜都排不进，所以前五都是股票——不是把基金筛掉了，是它没有可比的字段。";
 
   // 前五名的两个参考价一次摆齐。卡面只放得下第一名（leadPrice），另外四只原来
   // 只能翻到列表里一行行找，可用户这一问要的就是「前五名各自的参考买入价、
@@ -684,7 +736,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
       ...rows,
       "",
       "两条参考价按每家自己的可持续股息率倒推：股息率回到「可持续 ×1.12 或 +0.4 个百分点（取高）」时对应的价是参考买，被压到「×0.88 或 −0.3 个百分点（取低）」时对应的价是参考卖。是观察价，不是目标价，也不是买卖指令。",
-      fundNote,
+      fundNoteFull,
     ].join("\n");
   };
 
@@ -699,21 +751,33 @@ function buildAShareAnswers(snapshot, holdings = []) {
     card({
       id: "a-stable5",
       question: "分红稳定性 前五",
-      answer: stableTop.length ? rankNames(stableTop) : "缺少分红分与可持续股息，暂不排名",
-      names: [stableWhy, leadPrice(stableTop)].filter(Boolean).join(" · "),
+      // 名次和两个参考价都在下面那张表里，这一行只交代榜首是谁、凭什么第一。
+      answer: stableTop.length
+        ? `${shortCompanyName(stableTop[0].name, "收息", 6)} 居首 · ${stableWhy}`
+        : "缺少分红分与可持续股息，暂不排名",
+      names: fundNote,
+      rows: rankRows(stableTop, "stable"),
       tone: stableTop.length ? "good" : "warn",
       action: "group",
       group: "stable5",
       targetId: stableTop[0]?.id || "",
       enabled: stableTop.length > 0,
-      hint: `看的是分红能不能持续（覆盖率、现金流、股东回报），不含股息高低，也不是收益承诺。${fundNote}`,
+      hint: "看的是分红能不能持续（覆盖率、现金流、股东回报），不含股息高低，也不是收益承诺。",
       modal: rankModal(stableTop, "stable"),
     }),
     card({
       id: "a-yield5",
       question: "分红收益性 前五",
-      answer: yieldTop.length ? rankNames(yieldTop) : "缺少当前股息率，暂不排名",
-      names: [yieldWhy, leadPrice(yieldTop)].filter(Boolean).join(" · "),
+      answer: yieldTop.length
+        ? `${shortCompanyName(yieldTop[0].name, "收息", 6)} 居首 · ${yieldWhy}`
+        : "缺少当前股息率，暂不排名",
+      // fundNote 只印在上面那张榜单卡上——两张紧挨着，同一句话印两遍就成了水印。
+      // 这一格放两榜的交集：稳定性和收益性都进前五的那几只，才是「两头过得去」，
+      // 这是表格本身答不出来、又必须跨两张表才看得到的一件事。
+      names: bothTop.length
+        ? `两榜都上榜：${bothTop.map((item) => shortCompanyName(item.name, "收息", 4)).join("、")}`
+        : "两榜没有重合，高息与稳定这轮没落在同一只上",
+      rows: rankRows(yieldTop, "yield"),
       tone: yieldTop.length ? "good" : "warn",
       action: "group",
       group: "yield5",
@@ -758,17 +822,8 @@ function buildAShareAnswers(snapshot, holdings = []) {
         ? "本地持仓相对成本已抬升或进入兑现观察，不是自动卖出指令。"
         : "股息被价格压缩后进入兑现观察，不是自动卖出指令。无本地成本时无法计算盈利了结。",
     }),
-    card({
-      id: "a-cycle",
-      question: "周期短持",
-      answer: cycle.length ? `商品/产能周期 ${cycle.length} 只` : "当前样本没有周期短持角色",
-      names: namesOf(cycle),
-      tone: cycle.length ? "warn" : "muted",
-      action: "group",
-      group: "cycle",
-      targetId: cycle[0]?.id || "",
-      enabled: cycle.length > 0,
-    }),
+    // 「周期短持」原来还有一张卡。用户这一栏点名只要两个维度的前五和参考买卖价，
+    // 周期不在其中——撤掉卡片，分组本身还在，「分组浏览」里照样点得进去。
   ];
 }
 
@@ -1037,24 +1092,22 @@ function buildGuruAnswers(snapshot) {
       enabled: true,
       // 「他们怎么想 / 我们如何借鉴」原来各占一张卡，和方向汇总说的是同一件事的
       // 两个层次。收进这张卡的展开层：一屏先给方向，想看理由再点开。
+      // 「应该避免什么」原来单占一张卡。用户这一栏只要持仓、动向、未来趋势三样，
+      // 但那张卡上的边界（滞后披露、只含多头、别照抄仓位）正是读这一栏时必须
+      // 同时知道的——不删内容，收进这张趋势卡的展开层，一屏先给方向，
+      // 想看理由和边界再点开。
       modal: [
         why.length ? `他们怎么想\n${why.join("\n")}` : "",
         how.length ? `我们如何借鉴\n${how.join("\n")}` : "学框架、能力圈和风险边界，不按报告期仓位下单。",
+        [
+          "要避免什么",
+          "不照抄仓位、不把滞后披露当实时单、不复制机构杠杆。",
+          "13F/季报有滞后，且通常只含多头。",
+          "表观年化不可跨市场、跨币种横比。",
+          ...avoid,
+        ].join("\n"),
         "WHY/HOW 是望潮研究归纳，不是投资人实时表述。",
       ].filter(Boolean).join("\n\n"),
-    }),
-    card({
-      id: "guru-avoid",
-      question: "应该避免什么",
-      answer: "不照抄仓位、不把滞后披露当实时单、不复制机构杠杆",
-      tone: "bad",
-      action: "none",
-      enabled: true,
-      modal: [
-        "13F/季报有滞后，且通常只含多头。",
-        "表观年化不可跨市场、跨币种横比。",
-        ...avoid,
-      ].join("\n"),
     }),
   ];
 }
@@ -1068,12 +1121,24 @@ function buildDailyAnswers(snapshot, market, options = {}) {
   return [];
 }
 
+// 半角字符（拉丁、数字、标点）占的宽度不到汉字一半，按个数截断就把
+// 「谷歌-A、Meta」切成了「谷歌-A、Met…」——明明一行放得下。max 按汉字宽算，
+// 半角记 0.5，中英混排的标的名才不会被无谓地砍掉。
+function displayWidth(char) {
+  return /[⺀-鿿豈-﫿　-〿＀-￯]/.test(char) ? 1 : 0.5;
+}
+
 function clip(text, max = 5) {
   const value = String(text || "").replace(/\s+/g, " ").trim();
   if (!value) return "";
-  // 截断要看得出来。原来是无声切一刀，「优地机器人」在首页上就变成了
-  // 「优地机器」——读的人不会知道这不是公司全名。
-  return value.length > max ? `${value.slice(0, max)}…` : value;
+  let width = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    width += displayWidth(value[i]);
+    // 截断要看得出来。原来是无声切一刀，「优地机器人」在首页上就变成了
+    // 「优地机器」——读的人不会知道这不是公司全名。
+    if (width > max) return `${value.slice(0, i)}…`;
+  }
+  return value;
 }
 
 function pickCard(cards, ids) {
@@ -1098,6 +1163,38 @@ function homePoint(id, label, value, targetId, extra = {}) {
   };
 }
 
+// 「今日重点」详情页要给每条结论配一句原因和一句风险，但不能现编——
+// modal 里已经写好了论证过程，第一行通常是理由，最后一行通常是风险提示；
+// 没有 modal 的卡（比如 us-cheap/us-risk）就退回 hint，hint 也没有才用
+// 这份按市场兜底的、确实为真但不针对个股的风险提示。
+const MARKET_RISK_FALLBACK = {
+  hk: "打新参考价基于历史分位，不是下一只新股的保证收益。",
+  us: "估值与风险分档随市场每日变化，达到条件不是买卖指令。",
+  a: "分红存在被下调或取消的可能，参考区间基于历史数据不预测未来。",
+  gold: "金价短期波动大，参考区间是观察辅助不是保证买卖点。",
+  guru: "机构公开持仓披露存在滞后，反映的是披露期而非当前实时仓位。",
+};
+
+function reasonAndRisk(candidate, marketId) {
+  const lines = String(candidate?.modal || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const hint = candidate?.hint || "";
+  if (lines.length >= 2) return { reason: lines[0], risk: lines[lines.length - 1] };
+  if (lines.length === 1) return { reason: lines[0], risk: hint || MARKET_RISK_FALLBACK[marketId] || "" };
+  return { reason: hint, risk: MARKET_RISK_FALLBACK[marketId] || "" };
+}
+
+// 「下一验证点」同样不能编一个具体日期——只说得清下一次真实数据什么时候到。
+const MARKET_NEXT_CHECK = {
+  hk: "下一次新股公告或中签结果公布后复核",
+  us: "下一次财报或估值区间更新后复核",
+  a: "下一次分红公告或财报期披露后复核",
+  gold: "下一次金价更新或宏观数据公布后复核",
+  guru: "下一次机构持仓季度披露后复核",
+};
+
 function buildHomeDigest(snapshot, options = {}) {
   const hk = buildHkAnswers(snapshot);
   const us = buildUsAnswers(snapshot);
@@ -1109,6 +1206,7 @@ function buildHomeDigest(snapshot, options = {}) {
   const hkAvoid = pickCard(hk, ["hk-avoid", "hk-new"]);
   const usCheap = pickCard(us, ["us-cheap"]);
   const usRisk = pickCard(us, ["us-risk"]);
+  const usHot = pickCard(us, ["us-hot"]);
   const aAdd = pickCard(a, ["a-add"]);
   const aCore = pickCard(a, ["a-stable5", "a-core"]);
   // 黄金那格现在拿「是否应该卖出」当引子：有风险/上沿要先说，没有再退回价格卡。
@@ -1128,9 +1226,13 @@ function buildHomeDigest(snapshot, options = {}) {
   const usValue = usCheap?.enabled
     ? clip(usCheap.names || usCheap.answer, 8)
     : (usRisk?.enabled ? clip(usRisk.names || "风险", 8) : "七姐妹");
+  // 榜单卡改成表格以后，names 那一栏放的是口径说明（"样本内唯一的红利 ETF……"），
+  // 首页那格再拿它当标的名就成了半句话。榜首的名字现在在表的第一行第一格里，
+  // 格式是「1 长江电力」，去掉名次就是首页要的那四个字。
+  const aLeadName = String(aCore?.rows?.body?.[0]?.cells?.[0] || "").replace(/^\d+\s*/, "");
   const aValue = aAdd?.enabled && aAdd.id === "a-add" && /已到加大/.test(aAdd.answer)
     ? clip(aAdd.names || "加大", 8)
-    : clip(aCore?.names || "收息", 8);
+    : clip(aLeadName || "收息", 8);
   const cnyPrice = Number(snapshot?.gold?.quotes?.domestic?.price);
   // 判断改看卡片自己带出来的区名，不再对答案文案做正则——文案是会改的，区名不会。
   const goldBuy = pickCard(gold, ["gold-buy"]);
@@ -1155,27 +1257,83 @@ function buildHomeDigest(snapshot, options = {}) {
 
   const cardLines = [
     `港股：${hkWorth?.enabled ? `值得打 ${hkWorth.names}` : (hkAvoid?.id === "hk-avoid" ? (hkAvoid.answer || "避雷样本") : "暂无在售新股")}`,
+    // 底仓配置那张卡撤了，群卡片这行就跟着少一段——原来那段是「VOO 50% +
+    // JEPQ 20% + …」，本来也不是这行该说的事。热度三只顶上，跟栏目页一致。
+    // 卡面上「3 只都缺质量数据」上方就是「最热的三只」这个问句，所以不必自带主语；
+    // 分享出去只剩这一行，缺主语就成了半句话，这里把它补回来。
     `美股：${[
       usCheap?.enabled ? `低估 ${usCheap.names}` : null,
       usRisk?.enabled ? `风险 ${usRisk.names}` : null,
-      pickCard(us, ["us-sleeve"])?.answer,
+      usHot?.answer ? `最热三只 ${usHot.answer}` : null,
     ].filter(Boolean).join(" · ")}`,
     `A股：${[
       aAdd?.enabled ? aAdd.answer : null,
-      aCore?.enabled ? `稳定性前五 ${clip(aCore.answer.split(" · ")[0], 6)} 等5只` : null,
+      aCore?.enabled && aLeadName ? `稳定性前五 ${clip(aLeadName, 6)} 等${aCore.rows.body.length}只` : null,
     ].filter(Boolean).join(" · ")}`,
     `黄金：${goldCardLine}`,
     // 机构那行原来只有「谁的持仓」，把本季在往哪边动也带上——用户问的是持仓与动向。
     `机构：${[guruLead?.answer || "对照公开持仓", guruMove?.answer].filter(Boolean).join(" · ")}`,
   ];
 
+  // 好坏色跟着算出 value 时用的那张卡走，不新起一套判断，也不给「暂无/观望」
+  // 这种没结论的格子瞎配颜色。
+  const hkTone = hkWorth?.enabled
+    ? hkWorth.tone
+    : (hkAvoid?.id === "hk-avoid" && hkAvoid.enabled ? hkAvoid.tone : "muted");
+  const usTone = usCheap?.enabled
+    ? usCheap.tone
+    : (usRisk?.enabled ? usRisk.tone : "muted");
+  const aTone = (aAdd?.enabled && aAdd.id === "a-add" && /已到加大/.test(aAdd.answer))
+    ? aAdd.tone
+    : (aCore?.tone || "muted");
+  const goldTone = goldState === "risk"
+    ? "bad"
+    : (goldState === "sell" ? "warn" : (goldState === "buy" ? "good" : "muted"));
+
+  // 今日重点清单：五个方向里挑出真有信号的那几条，按信号强弱排序，最多留 3 条。
+  // 不覆盖每天每个方向；没有信号的方向这天就不出现，不用空话占位。
+  // 「较上次的变化」需要跟上一份快照比对，这里还没有这个数据源——只给结论和
+  // 已有的口径提示（hint），没有的就不写，不能编一句「较上次」出来。
+  const toneWeight = (tone) => (tone === "bad" ? 3 : tone === "warn" ? 2 : tone === "good" ? 1 : 0);
+  const pickBetter = (...cards) => cards
+    .filter((item) => item && item.enabled)
+    .sort((left, right) => toneWeight(right.tone) - toneWeight(left.tone))[0] || null;
+  const highlightSource = [
+    ["hk", "港股打新", pickBetter(hkWorth, hkAvoid)],
+    ["us", "美股投资", pickBetter(usRisk, usCheap)],
+    ["a", "A股收息", pickBetter(aAdd, aCore)],
+    ["gold", "黄金追踪", goldActive],
+    ["guru", "机构持仓", guruMove && guruMove.tone !== "muted" ? guruMove : null],
+  ];
+  const highlights = highlightSource
+    .filter(([, , candidate]) => candidate)
+    .sort((left, right) => toneWeight(right[2].tone) - toneWeight(left[2].tone))
+    .slice(0, 3)
+    .map(([marketId, marketLabel, candidate], index) => {
+      const { reason, risk } = reasonAndRisk(candidate, marketId);
+      return {
+        no: `0${index + 1}`,
+        id: candidate.id,
+        marketId,
+        marketLabel,
+        title: candidate.answer,
+        hint: candidate.hint || "",
+        reason,
+        risk,
+        next: MARKET_NEXT_CHECK[marketId] || "",
+        targetId: candidate.targetId || "",
+        tone: candidate.tone,
+      };
+    });
+
   return {
     points: [
-      homePoint("hk", "港股", hkValue, hkWorth?.enabled ? hkWorth.targetId : ""),
-      homePoint("us", "美股", usValue, usCheap?.targetId || usRisk?.targetId || ""),
-      homePoint("a", "A股", aValue, aAdd?.targetId || aCore?.targetId || ""),
-      homePoint("gold", "黄金", goldValue, goldLead?.targetId || "track"),
+      homePoint("hk", "港股", hkValue, hkWorth?.enabled ? hkWorth.targetId : "", { tone: hkTone }),
+      homePoint("us", "美股", usValue, usCheap?.targetId || usRisk?.targetId || "", { tone: usTone }),
+      homePoint("a", "A股", aValue, aAdd?.targetId || aCore?.targetId || "", { tone: aTone }),
+      homePoint("gold", "黄金", goldValue, goldLead?.targetId || "track", { tone: goldTone }),
     ],
+    highlights,
     cardLines,
     help: [hkValue, usValue, aValue, goldValue].filter(Boolean).join(" · "),
   };
@@ -1184,4 +1342,5 @@ function buildHomeDigest(snapshot, options = {}) {
 module.exports = {
   buildDailyAnswers,
   buildHomeDigest,
+  goldMonthDay,
 };

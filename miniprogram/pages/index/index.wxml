@@ -1,59 +1,17 @@
 <view class="page-shell home-shell">
-  <!-- 第一块：今日重点。只放当天的结论矩阵和群卡片，不再挂轮播条。 -->
-  <view class="home-hero">
-    <view class="hero-top">
-      <text class="hero-title">今日重点</text>
-      <text class="hero-help">{{todayHelp}}</text>
-    </view>
-    <view class="hero-matrix">
-      <view
-        wx:for="{{today.points}}"
-        wx:key="id"
-        class="hero-cell"
-      >
-        <text
-          class="hero-label"
-          data-market="{{item.id}}"
-          bindtap="openTodayCategory"
-          hover-class="hero-tap"
-          aria-role="button"
-          aria-label="{{item.ariaCategory}}"
-        >{{item.label}}</text>
-        <text
-          class="hero-value"
-          data-market="{{item.id}}"
-          data-target="{{item.targetId}}"
-          bindtap="openTodayTarget"
-          hover-class="hero-tap"
-          aria-role="button"
-          aria-label="{{item.ariaTarget}}"
-        >{{item.value}}</text>
-      </view>
-    </view>
-    <view
-      class="daily-card-row"
-      bindtap="copyDailyCard"
-      hover-class="hero-tap"
-      aria-role="button"
-      aria-label="复制今日微信群卡片文案"
-    >
-      <text class="daily-card-title">复制群卡片</text>
-      <text class="daily-card-help">今日结论 · 不含买卖建议</text>
-      <text class="daily-card-arrow">复制</text>
-    </view>
-  </view>
-
-  <!-- 第二块：六宫格入口。 -->
+  <!-- 第一块：核心研究。照微信「服务」页的分组图标网格，一格只有图标和名字，
+       进哪个栏目一眼认出来，不用先读一行说明。
+       标题栏不写第二遍「望潮 Aurum」——导航栏已经有了，这里让给数据时间。 -->
   <view class="page-card home-panel">
-    <view class="panel-head">
-      <text class="panel-title">核心研究</text>
-      <text class="panel-meta">{{dataAsOf || '同步中'}}</text>
+    <view class="group-head">
+      <text class="group-label">核心研究</text>
+      <text class="group-meta">{{dataAsOf || '同步中'}}</text>
     </view>
     <view class="entry-grid">
       <view
         wx:for="{{entries}}"
         wx:key="id"
-        class="grid-card {{item.tone}}"
+        class="grid-card"
         data-id="{{item.id}}"
         bindtap="openGridEntry"
         hover-class="tap-active"
@@ -61,99 +19,93 @@
         aria-role="button"
         aria-label="{{item.title}}，{{item.help}}"
       >
-        <text wx:if="{{item.badge}}" class="entry-badge">{{item.badge}}</text>
-        <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
+        <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}}">
+          <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
+        </view>
         <text class="card-title">{{item.title}}</text>
-        <text class="card-help">{{item.help}}</text>
-        <text class="entry-arrow">›</text>
       </view>
     </view>
   </view>
 
-  <!-- 第三块：我的持仓分析 + 年费会员。 -->
-  <view class="page-card home-panel">
-    <view class="panel-head">
-      <text class="panel-title">我的持仓</text>
-      <text
-        class="panel-action"
-        bindtap="toggleHoldingForm"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-label="{{showHoldingForm ? '收起添加持仓' : '添加持仓'}}"
-      >{{showHoldingForm ? '收起' : '＋ 添加'}}</text>
+  <!-- 第二块：今日重点。深色卡片照抄原型 .wc-today，年费入口就在这块里，
+       不再单开一张会员卡。非会员看到的是标注为示例的占位条目。 -->
+  <view class="today-card">
+    <view class="today-head">
+      <text class="today-title">今日重点</text>
+      <text class="today-badge {{memberActive ? 'on' : ''}}">{{memberActive ? memberNote : '年度会员'}}</text>
     </view>
-    <!-- 空仓时这条提示和下面的 holding-empty 说的是同一件事，只留一处。 -->
-    <view wx:if="{{holdings.length}}" class="holding-reminder {{holdingsReminder.tone}}">{{holdingsReminder.text}}</view>
-    <view wx:if="{{holdings.length}}" class="holding-list">
+    <text class="today-sub">{{memberActive ? '今天最值得关注的变化' : '每天一份，筛出真正重要的变化 · 以下为示例'}}</text>
+
+    <view class="today-list">
       <view
-        wx:for="{{holdings}}"
-        wx:key="id"
-        class="holding-row"
+        wx:for="{{todayItems}}"
+        wx:key="no"
+        class="today-row"
+        data-market="{{item.marketId}}"
+        data-target="{{item.targetId}}"
+        bindtap="openTodayRow"
+        hover-class="today-row-tap"
+        aria-role="button"
+        aria-label="{{item.marketLabel}}，{{item.title}}"
       >
+        <text class="today-no">{{item.no}}</text>
+        <view class="today-row-body">
+          <text><text class="today-row-market">{{item.marketLabel}} · </text>{{item.title}}</text>
+          <text wx:if="{{memberActive && item.hint}}" class="today-row-hint">{{item.hint}}</text>
+        </view>
+        <text class="today-row-icon">{{memberActive ? '›' : '🔒'}}</text>
+      </view>
+      <view wx:if="{{memberActive && todayEmpty}}" class="today-empty">今天没有特别重要的变化，保持现有判断即可</view>
+    </view>
+
+    <block wx:if="{{memberActive}}">
+      <view class="today-foot">
         <view
-          class="holding-main"
-          data-id="{{item.id}}"
-          bindtap="openHoldingDetail"
+          class="today-btn"
+          bindtap="openTodayPage"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="打开 {{item.name}} 详情"
-        >
-          <view class="holding-title-row">
-            <text class="holding-name">{{item.name}}</text>
-            <text class="holding-market">{{item.marketLabel}}</text>
-          </view>
-          <text class="holding-meta">{{item.displayMeta}}</text>
-          <text class="holding-action {{item.actionTone}}">{{item.actionText}}</text>
-          <text wx:if="{{item.performanceText}}" class="holding-performance {{item.performanceTone}}">{{item.performanceText}}</text>
-        </view>
-        <text wx:if="{{item.hasDetail}}" class="arrow">›</text>
-        <text
-          class="holding-delete"
-          data-id="{{item.id}}"
-          catchtap="deleteHolding"
+          aria-label="阅读今日完整重点"
+        >阅读今日完整重点</view>
+      </view>
+      <view class="today-between">
+        <text class="today-between-time">{{dataAsOf || '同步中'}}</text>
+        <view
+          class="today-btn ghost"
+          bindtap="openMemberBanner"
+          hover-class="tap-active"
           aria-role="button"
-          aria-label="删除 {{item.name}}"
-        >删除</text>
+          aria-label="打开我的会员"
+        >我的会员</view>
       </view>
-    </view>
-    <view wx:else class="holding-empty">
-      <text>添加一只你真正持有的标的，首页才会给出个人化观察提示。</text>
-      <text>只存在本机、不上传服务器；匹配到公开样本后可点进详情。</text>
-    </view>
-    <view wx:if="{{showHoldingForm}}" class="holding-form">
-      <picker mode="selector" range="{{marketOptions}}" range-key="label" value="{{marketIndex}}" bindchange="changeHoldingMarket">
-        <view class="holding-picker" aria-role="button">
-          <text>市场</text>
-          <text>{{marketOptions[marketIndex].label}} ›</text>
-        </view>
-      </picker>
-      <input class="holding-input" placeholder="名称，如 英伟达 / 黄金" value="{{holdingForm.name}}" bindinput="inputHoldingName" />
-      <input class="holding-input" placeholder="代码（黄金可留空）" value="{{holdingForm.code}}" bindinput="inputHoldingCode" />
-      <input class="holding-input" type="digit" placeholder="成本（选填）" value="{{holdingForm.cost}}" bindinput="inputHoldingCost" />
-      <input class="holding-input" type="digit" placeholder="数量股/克（选填）" value="{{holdingForm.quantity}}" bindinput="inputHoldingQuantity" />
-      <view class="holding-form-actions">
-        <view class="holding-cancel" bindtap="toggleHoldingForm" hover-class="tap-active" aria-role="button">取消</view>
-        <view class="holding-save" bindtap="saveHolding" hover-class="tap-active" aria-role="button">保存到本机</view>
+    </block>
+    <block wx:elif="{{memberQueryFailed}}">
+      <view
+        class="today-cta error"
+        bindtap="refreshMemberCard"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="会员状态查询失败，点击重试"
+      >会员状态查询失败 · 点击重试</view>
+    </block>
+    <block wx:else>
+      <view
+        class="today-cta"
+        bindtap="openMemberBanner"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="开通年度会员查看今日重点"
+      >开通年度会员 · ¥1,288 / 年</view>
+      <view class="today-sample-link-wrap">
+        <text
+          class="today-sample-link"
+          bindtap="openTodayPage"
+          hover-class="tap-active"
+          aria-role="button"
+          aria-label="先看一份完整样例"
+        >先看一份完整样例</text>
       </view>
-    </view>
-  </view>
-
-  <view class="page-card home-panel member-panel">
-    <view
-      class="member-banner"
-      bindtap="openMemberBanner"
-      hover-class="tap-active"
-      aria-role="button"
-      aria-label="{{member.title}}，{{member.help}}"
-    >
-      <image class="member-banner-icon" src="{{member.icon}}" mode="aspectFit" aria-hidden="true"></image>
-      <view class="member-banner-copy">
-        <text class="member-banner-title">{{member.title}}</text>
-        <text class="member-banner-help">{{member.help}}</text>
-      </view>
-      <text wx:if="{{member.badge}}" class="member-banner-badge">{{member.badge}}</text>
-      <text class="arrow">›</text>
-    </view>
+    </block>
   </view>
 
   <view class="page-footer">

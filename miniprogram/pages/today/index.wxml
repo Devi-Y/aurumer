@@ -1,0 +1,70 @@
+<view class="page-shell today-shell">
+  <view class="today-hero">
+    <view class="today-hero-top">
+      <text class="today-hero-title">今日重点</text>
+      <text class="today-hero-meta">{{dataAsOf || '同步中'}}</text>
+    </view>
+    <text class="today-hero-help" wx:if="{{memberState === 'active'}}">今天，先看这几件事</text>
+    <text class="today-hero-help" wx:else>一份今日重点的样子 · 完整样例 · 以下事件及结论均为演示</text>
+  </view>
+
+  <view wx:if="{{memberState === 'loading'}}" class="page-card today-status">
+    <text class="today-status-text">今日重点加载中…</text>
+  </view>
+
+  <view wx:elif="{{memberState === 'error'}}" class="page-card today-status">
+    <text class="today-status-text">会员状态查询失败，无法确认是否已开通</text>
+    <view class="today-status-retry" bindtap="refreshMember" hover-class="tap-active" aria-role="button" aria-label="点击重试">点击重试</view>
+  </view>
+
+  <block wx:else>
+    <view class="today-stack">
+      <view
+        wx:for="{{memberState === 'active' ? items : sampleItems}}"
+        wx:key="no"
+        class="page-card today-item"
+      >
+        <view class="today-item-head">
+          <text class="today-item-no">{{item.no}}</text>
+          <text class="today-item-badge">{{item.marketLabel}}</text>
+        </view>
+        <text class="today-item-title">{{item.title}}</text>
+        <text class="today-item-change">{{item.change}}</text>
+        <text wx:if="{{item.reason}}" class="today-item-reason">{{item.reason}}</text>
+        <view class="today-item-rule"></view>
+        <text class="today-item-next"><text class="today-item-next-label">接下来看</text> {{item.next}}</text>
+        <view class="today-item-risk">
+          <text class="today-item-risk-icon">!</text>
+          <text>{{item.risk}}</text>
+        </view>
+        <view
+          class="today-item-link"
+          data-market="{{item.marketId}}"
+          bindtap="openResearch"
+          hover-class="tap-active"
+          aria-role="button"
+          aria-label="看完整研究"
+        >看完整研究 ›</view>
+      </view>
+
+      <view wx:if="{{memberState === 'active' && todayEmpty}}" class="page-card today-status">
+        <text class="today-status-text">今天没有特别重要的变化，保持现有判断即可</text>
+      </view>
+    </view>
+
+    <view wx:if="{{memberState === 'active'}}" class="today-actions">
+      <view class="today-action" bindtap="copyDailyCard" hover-class="tap-active" aria-role="button" aria-label="复制今日微信群卡片文案">复制群卡片</view>
+      <view class="today-action ghost" bindtap="openMember" hover-class="tap-active" aria-role="button" aria-label="打开我的会员">我的会员</view>
+    </view>
+    <view wx:else class="today-cta" bindtap="openMember" hover-class="tap-active" aria-role="button" aria-label="开通年度会员 · 年费一千二百八十八元">开通年度会员 · ¥1,288 / 年</view>
+  </block>
+
+  <view class="page-note">
+    <text>{{footerDisclaimer}}</text>
+  </view>
+
+  <view class="page-nav">
+    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
+    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
+  </view>
+</view>

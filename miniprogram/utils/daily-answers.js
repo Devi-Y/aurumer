@@ -661,7 +661,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
     });
   const stableTop = rankedBy("stable5", (raw) => Number(aShareDividendStability(raw) || 0) * 1000
     + Number(raw.sustainableDividendYield || 0));
-  const yieldTop = rankedBy("yield5", (raw) => Number(raw.currentDividendYield || 0));
+  const yieldTop = rankedBy("yield5", (raw) => Number(raw.sustainableDividendYield || 0));
   const stableIds = new Set(stableTop.map((item) => item.id));
   const bothTop = yieldTop.filter((item) => stableIds.has(item.id));
   // 用户这一问要的是「前五名各自的参考买入价、参考卖出价」——那本来就是一张表。
@@ -671,13 +671,13 @@ function buildAShareAnswers(snapshot, holdings = []) {
   const rankRows = (list, kind) => {
     if (!list.length) return null;
     return {
-      head: ["标的", kind === "stable" ? "稳定性" : "股息率", "参考买", "参考卖"],
+      head: ["标的", kind === "stable" ? "稳定性" : "可持续股息率", "参考买", "参考卖"],
       body: list.map((item, index) => {
         const raw = item.raw || {};
         const plan = yieldImpliedPlan(raw);
         const basis = kind === "stable"
           ? (hasNumber(aShareDividendStability(raw)) ? String(aShareDividendStability(raw)) : "暂缺")
-          : (hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺");
+          : (hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺");
         return {
           key: item.id || item.code || String(index),
           cells: [
@@ -697,7 +697,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
     ? `分红稳定性 ${aShareDividendStability(stableTop[0].raw)}`
     : "";
   const yieldWhy = stableTop.length && yieldTop[0]
-    ? `当前股息 ${Number(yieldTop[0].raw?.currentDividendYield || 0).toFixed(1)}%`
+    ? `可持续股息 ${Number(yieldTop[0].raw?.sustainableDividendYield || 0).toFixed(1)}%`
     : "";
   // 用户要的是「优先股票、次之基金」。基金这半边现在给不出来，就说给不出来：
   // 快照里的 A 股基金只有 1 只红利 ETF，且它的分红以基金公告为准、没有股息率字段，
@@ -722,7 +722,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
       const stability = aShareDividendStability(raw);
       const why = kind === "stable"
         ? `分红稳定性 ${hasNumber(stability) ? stability : "暂缺"}`
-        : `当前股息 ${hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(2)}%` : "暂缺"}`;
+        : `可持续股息 ${hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(2)}%` : "暂缺"}`;
       const head = `${index + 1}. ${shortCompanyName(item.name, "收息", 8)} · ${why}`;
       const plan = yieldImpliedPlan(raw);
       if (!plan) return `${head}\n\u3000参考价暂缺：缺少现价或可持续股息率，不倒推价格。`;
@@ -731,7 +731,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
     return [
       kind === "stable"
         ? "按分红能不能持续排：分红覆盖率、经营现金流、现金转换、股东回报四项加权，不看股息高低。"
-        : "只按当前股息率从高到低排，不看这份分红能不能持续——两个榜都上榜的才是两头过得去。",
+        : "先把「高息待核」这种靠不住的挡在外面，剩下的按可持续股息率从高到低排——两个榜都上榜的才是两头过得去。",
       "",
       ...rows,
       "",
@@ -783,7 +783,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
       group: "yield5",
       targetId: yieldTop[0]?.id || "",
       enabled: yieldTop.length > 0,
-      hint: "只按当前股息率排；高息不代表分红能持续，两个榜都上榜的才是两头过得去。",
+      hint: "先过滤高息待核，再按可持续股息率排；两个榜都上榜的才是两头过得去。",
       modal: rankModal(yieldTop, "yield"),
     }),
     card({

@@ -749,7 +749,7 @@ function aShareItems(snapshot) {
   const rankPool = stockItems.filter((item) => yieldImpliedPlan(item.raw));
   // 名次跟着 lens 一起记下来：列表页给行标了 01–05 的序号，那个序号必须就是
   // 这个榜单的名次，否则页头写着「前五」、行里却按样本顺序编号，等于编了个假名次。
-  const markTop5 = (score, lens) => [...rankPool]
+  const markTop5 = (pool, score, lens) => [...pool]
     .sort((left, right) => score(right) - score(left))
     .slice(0, 5)
     .forEach((item, index) => {
@@ -757,11 +757,13 @@ function aShareItems(snapshot) {
       item.lensRank = { ...(item.lensRank || {}), [lens]: index + 1 };
     });
   // 稳定性：分红能不能拿得住，同分再看可持续股息率。
-  markTop5((item) => number(aShareDividendStability(item.raw)) * 1000
+  markTop5(rankPool, (item) => number(aShareDividendStability(item.raw)) * 1000
     + number(item.raw.sustainableDividendYield), "stable5");
-  // 收益性就是当前股息率——拿到手的那一个数，不掺可持续性的判断。
-  // 两个榜单谁高谁低本来就该不一样，同时上榜的才是两头都过得去的。
-  markTop5((item) => number(item.raw.currentDividendYield), "yield5");
+  // 收益性：先把「高息待核」这种靠不住的挡在外面，剩下的才比可持续股息率——
+  // 比的是大概率能一直分到的钱，不是这次分得猛不猛。跟稳定性榜的差别在于，
+  // 这里只要求过了及格线就按到手金额多少排，不是按有多稳排。
+  const yieldPool = rankPool.filter((item) => item.group !== "watch");
+  markTop5(yieldPool, (item) => number(item.raw.sustainableDividendYield), "yield5");
   const stockByCode = new Map(stockItems.map((item) => [item.code, item]));
   const fundSource = (snapshot.aShare && snapshot.aShare.funds || [])
     .find((item) => String(item.code || "").replace(/\.(SH|SZ)$/i, "") === "515180")
@@ -839,7 +841,7 @@ function groupDefinitions(snapshot, market) {
   } else if (market === "a") {
     definitions = [
       ["stable5", "分红稳定性 前五", "分红分与可持续股息排序，每行带参考买卖价"],
-      ["yield5", "分红收益性 前五", "当前股息率排序，每行带参考买卖价"],
+      ["yield5", "分红收益性 前五", "先过滤高息待核，再按可持续股息率排序，每行带参考买卖价"],
       ["sample", "收息样本", "前台在展示的全部收息研究样本", false],
       ["prime", "优等收息", "股息可持续+现金支撑"],
       ["steady", "稳健收息", "综合观察分中等"],

@@ -213,17 +213,24 @@ function hkItems(snapshot) {
       item.entryFee ? `一手 ${Math.round(Number(item.entryFee))}` : null,
       item.offerDeadline || item.offerEnd || null,
     ].filter(Boolean);
-    // 已出配发结果的仍可能留在 listings；按「已结束」展示，不混进暂不建议。
-    const group = action.group === "ended" || item.allotmentUrl
-      ? "ended"
-      : action.group;
+    // 已出配发结果的仍留在 listings 里（还没被上游归档进 history），说明暗盘/
+    // 首日还没走完——这不是「已结束」（那是 history 里真正的历史样本），是
+    // 「中签后」独有的一档：申购确实关了，但要在这一档继续看得到，直到上游
+    // 把它挪进 history。之前把这档也并进 group:"ended"，会跟 lenses 里的
+    // "live" 判断（下面）连锁，导致这只股票同时从「近期申购」和「中签后」
+    // 两个视图消失——申购关了就整只从两张单子上蒸发，配发结果反而白等了。
+    const group = action.group === "cancelled"
+      ? action.group
+      : (action.group === "ended" || item.allotmentUrl)
+        ? "settled"
+        : action.group;
     return {
       id: String(item.rawCode || item.code || item.id).replace(/\.HK$/i, ""),
       market: "hk",
       group,
       name: item.name || "港股新股",
       code: item.code || item.rawCode,
-      badge: group === "ended" ? (action.badge || "申购已结束") : action.badge,
+      badge: group === "settled" ? (action.badge || "申购已结束") : action.badge,
       score: action.score,
       scoreText: action.badge,
       extractionNote,
@@ -238,8 +245,11 @@ function hkItems(snapshot) {
     // 栏目页顶上那格「在售 3」以前点开落在「值得打」，而值得打只有 1 只——
     // 格子上写 3、点进去是 1。在售本身横跨值得打 / 暂缓观察 / 暂不建议三档，
     // 没有哪一档装得下，于是这里补一个只用于跳转的合集：不改任何条目的分档，
-    // 只是让那一格点开后看到的就是它自己数的那几只。
-    if (item.group !== "ended" && item.group !== "cancelled") item.lenses.push("live");
+    // 只是让那一格点开后看到的就是它自己数的那几只。「已配发」不算在售——
+    // 申购窗口真的关了，不该出现在「近期申购」这一侧。
+    if (item.group !== "ended" && item.group !== "cancelled" && item.group !== "settled") {
+      item.lenses.push("live");
+    }
   });
   const ended = (snapshot.hk && snapshot.hk.history ? snapshot.hk.history : []).map((item) => {
     const outcome = hkOutcome(item);
@@ -442,8 +452,9 @@ function smartMoneyItems(snapshot) {
           weight: holding.weight,
           changeLabel: holding.changeLabel || "变化待核验",
           interpretation: "报告有滞后，只能当学习样本，不能当明天的买卖单。",
+          putCall: holding.putCall || null,
         }))
-      : (profile.holdings || []).map(([ticker, name, weight, changeLabel, interpretation]) => ({ ticker, name, weight, changeLabel, interpretation }));
+      : (profile.holdings || []).map(([ticker, name, weight, changeLabel, interpretation]) => ({ ticker, name, weight, changeLabel, interpretation, putCall: null }));
     return {
       id: profile.id,
       market: "guru",
@@ -824,6 +835,8 @@ function groupDefinitions(snapshot, market) {
       ["caution", "暂缓观察", "先看热度"],
       ["avoid", "暂不建议", "风险偏多"],
       ["leverage", "高杠杆观察", "值得打且拥挤度不高，默认仍是一手", false],
+      // catalog:false —— 只作为「中签后」那一格的落地页，不再单占一张分档卡。
+      ["settled", "已配发", "申购已结束，暗盘/首日观察中", false],
       ["cancelled", "发行已取消", "无法申购"],
       ["ended", "已结束", "历史样本对照：暗盘·首日·五日"],
     ];

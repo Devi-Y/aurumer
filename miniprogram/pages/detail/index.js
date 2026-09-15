@@ -3,11 +3,11 @@ const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER, RISK_LABEL } = require("../../utils/disclaimer");
 const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction } = require("../../utils/answers");
+const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction, usHeatDriver } = require("../../utils/answers");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const { buildHkExitPlan } = require("../../utils/hk-exit-plan");
-const { isPositionChange } = require("../../utils/guru-changes");
+const { isPositionChange, instrumentSuffix } = require("../../utils/guru-changes");
 const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lenses, MAGNIFICENT_SEVEN, goldTurningPoint } = require("../../utils/market-lenses");
 const { goldMonthDay } = require("../../utils/daily-answers");
 const strategyEvidence = require("../../data/strategy-evidence");
@@ -168,14 +168,15 @@ function withChartMeta(chart, hint) {
   return chart;
 }
 
+let lineChartSeq = 0;
+
+// 券商行情图那种折线走势：型号沿用 chart-visual 模板里现成的 canvas 挂载点，
+// 真正的曲线由 paintLineChart() 在 drawLineChart()（见 Page 定义）里用 Canvas 2D
+// 画出来，这里只负责整理数据——canvasId 只求本页同一时刻不撞名，不要求稳定，
+// 因为每次切 tab 对应的 canvas 节点本来就会被 wx:if 销毁重建。
 function priceVisual(history, title, formatter = (value) => Number(value).toFixed(2), hint) {
   const values = (history || []).filter(hasNumber).map(Number);
   if (values.length < 2) return null;
-  const sampleCount = Math.min(36, values.length);
-  const samples = Array.from({ length: sampleCount }, (_, index) => {
-    const sourceIndex = Math.round((index / Math.max(1, sampleCount - 1)) * (values.length - 1));
-    return values[sourceIndex];
-  });
   const low = Math.min(...values);
   const high = Math.max(...values);
   const latest = values[values.length - 1];
@@ -183,21 +184,13 @@ function priceVisual(history, title, formatter = (value) => Number(value).toFixe
   const mid = Math.floor(sorted.length / 2);
   const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
   const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
-  const span = Math.max(high - low, 1);
   const change = values[0] ? ((latest - values[0]) / Math.abs(values[0])) * 100 : 0;
+  lineChartSeq += 1;
   return withChartMeta({
-    kind: "columns",
+    kind: "line",
+    canvasId: `price-line-${lineChartSeq}`,
     title,
-    items: samples.map((value, index) => {
-      const isLatest = index === samples.length - 1;
-      const isHigh = value === high;
-      const isLow = value === low;
-      return {
-        id: `${index}-${value}`,
-        height: Math.round(16 + ((value - low) / span) * 84),
-        tone: isLatest ? "latest" : (isHigh ? "peak" : (isLow ? "floor" : "")),
-      };
-    }),
+    values,
     lowLabel: `最低 ${formatter(low)}`,
     latestLabel: `最新 ${formatter(latest)}`,
     highLabel: `最高 ${formatter(high)}`,
@@ -208,7 +201,86 @@ function priceVisual(history, title, formatter = (value) => Number(value).toFixe
       { label: "高低差", value: formatter(high - low) },
       { label: "区间涨跌", value: `${change >= 0 ? "+" : ""}${change.toFixed(1)}%` },
     ],
-  }, hint || "柱越高价格越高；只看历史，不预测明天。");
+  }, hint || "曲线越靠上价格越高；只看历史，不预测明天。");
+}
+
+// 和 chart-prototype.html 浏览器原型里验证过的同一份画法——先在标准 Canvas 2D
+// 里用真实金价/股价数据跑通视觉效果，再原样搬进小程序的 type="2d" canvas，
+// 两边共用一套坐标算法，避免临时改动导致移植后走样。
+function paintLineChart(ctx, width, height, values) {
+  ctx.clearRect(0, 0, width, height);
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  const span = Math.max(high - low, 1e-6);
+  const padTop = 10, padBottom = 4, padX = 2;
+  const plotH = height - padTop - padBottom;
+  const plotW = width - padX * 2;
+  const stepX = plotW / (values.length - 1);
+  const xAt = (i) => padX + i * stepX;
+  const yAt = (v) => padTop + (1 - (v - low) / span) * plotH;
+
+  ctx.strokeStyle = "#e4ebe6";
+  ctx.lineWidth = 1;
+  [0.33, 0.66].forEach((f) => {
+    const y = padTop + plotH * f;
+    ctx.beginPath();
+    ctx.moveTo(padX, y);
+    ctx.lineTo(width - padX, y);
+    ctx.stroke();
+  });
+
+  const pts = values.map((v, i) => [xAt(i), yAt(v)]);
+  function tracePath() {
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const mx = (pts[i][0] + pts[i + 1][0]) / 2;
+      const my = (pts[i][1] + pts[i + 1][1]) / 2;
+      ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
+    }
+    ctx.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+  }
+
+  ctx.beginPath();
+  tracePath();
+  const gradient = ctx.createLinearGradient(0, padTop, 0, height - padBottom);
+  gradient.addColorStop(0, "rgba(11,122,83,0.22)");
+  gradient.addColorStop(1, "rgba(11,122,83,0)");
+  ctx.lineTo(pts[pts.length - 1][0], height - padBottom);
+  ctx.lineTo(pts[0][0], height - padBottom);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  ctx.beginPath();
+  tracePath();
+  ctx.strokeStyle = "#0b7a53";
+  ctx.lineWidth = 1.6;
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  function dot(i, color, radius) {
+    ctx.beginPath();
+    ctx.arc(pts[i][0], pts[i][1], radius, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+  dot(values.indexOf(high), "#d99a12", 2.5);
+  dot(values.indexOf(low), "#7eb89a", 2.5);
+
+  const lastIdx = pts.length - 1;
+  ctx.setLineDash([2, 2]);
+  ctx.strokeStyle = "#0b7a53";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pts[lastIdx][0], pts[lastIdx][1]);
+  ctx.lineTo(pts[lastIdx][0], height - padBottom);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.arc(pts[lastIdx][0], pts[lastIdx][1], 4, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(11,122,83,0.18)";
+  ctx.fill();
+  dot(lastIdx, "#0b7a53", 2.8);
 }
 
 function barVisual(rows, title, options = {}) {
@@ -234,6 +306,34 @@ function barVisual(rows, title, options = {}) {
       colorIndex: index % 4,
     })),
   }, options.hint);
+}
+
+/**
+ * 分年分红柱状图：只用 dividendHistory 里「实施分配」的真实记录（快照抓取时
+ * 已过滤掉「董事会决议通过」等未实施的预案，同年多次分配也已在源头按年合并）。
+ * 最多展示最近 10 年，避免部分股票 20+ 年历史把这一屏拉得过长；完整年数放
+ * 进 stats 里，不截断真实覆盖范围的说法。
+ */
+function dividendHistoryVisual(history) {
+  const rows = (history || []).filter((row) => row && hasNumber(row.perTenSharesRmb));
+  if (rows.length < 2) return null;
+  const recent = rows.slice(-10);
+  const chart = barVisual(
+    recent.map((row) => ({
+      label: `${row.year}年`,
+      value: row.perTenSharesRmb,
+      valueText: `¥${Number(row.perTenSharesRmb).toFixed(2)}`,
+    })),
+    "分红历史（每10股，含税）",
+    { stats: false },
+  );
+  if (!chart) return null;
+  chart.stats = [
+    { label: "覆盖年数", value: `${rows.length}年` },
+    { label: "起始年份", value: `${rows[0].year}` },
+    { label: "最新年份", value: `${rows[rows.length - 1].year}` },
+  ];
+  return chart;
 }
 
 /** 扁平竖柱对比：仅用于同一量纲的指标。 */
@@ -310,6 +410,30 @@ function meterVisual(history, currentPrice, title, formatter = money, hint) {
   }, hint || "越靠近右边，越接近这段时间的高价。");
 }
 
+/** 与 meterVisual 同构，但区间来自显式 low/high（如按股息率回推的参考买卖价），
+ * 不是历史价格数组；复用同一个 meter 图表模板，不需要新增 WXML。 */
+function bandMeterVisual(low, high, current, title, formatter = money, hint) {
+  if (!hasNumber(low) || !hasNumber(high) || !hasNumber(current)) return null;
+  const lowValue = Math.min(Number(low), Number(high));
+  const highValue = Math.max(Number(low), Number(high));
+  const price = Number(current);
+  const percent = highValue === lowValue ? 50 : Math.round(((price - lowValue) / (highValue - lowValue)) * 100);
+  const clamped = Math.max(0, Math.min(100, percent));
+  return withChartMeta({
+    kind: "meter",
+    title,
+    percent: clamped,
+    lowLabel: formatter(lowValue),
+    midLabel: `现价 ${formatter(price)}`,
+    highLabel: formatter(highValue),
+    stats: [
+      { label: "参考买入", value: formatter(lowValue) },
+      { label: "现价", value: formatter(price) },
+      { label: "参考卖出", value: formatter(highValue) },
+    ],
+  }, hint || "");
+}
+
 function metricTilesVisual(metrics, title = "关键数据", hint) {
   const rows = (metrics || [])
     .filter((row) => Array.isArray(row) && row[1] && !isSparseValue(row[1]))
@@ -376,7 +500,9 @@ function investorHoldings(snapshot, symbol) {
       if (!holding) return null;
       return {
         name: INVESTOR_NAMES[investor.id] || investor.name,
-        value: `${formatNumber(holding.weight, "%")} · ${holding.changeLabel || "变化待核验"}`,
+        // 这只票自己的详情页也会读到这份持仓：不标出期权，读的人会以为
+        // 这家机构是在买正股，而实际可能是一张方向相反的看跌/看涨期权。
+        value: `${formatNumber(holding.weight, "%")}${instrumentSuffix(holding.putCall)} · ${holding.changeLabel || "变化待核验"}`,
       };
     })
     .filter(Boolean);
@@ -598,6 +724,18 @@ function buildHKView(base, item) {
     base.pageHelp = "";
   }
 
+  // 四标签下「申购」「卖出」「依据」各自拥有的图表，不再靠标题正则猜归属。
+  base.subscribeCharts = (ended
+    ? [capitalTiles, structureTiles, offerBandVisual(raw, offerPrice)]
+    : [scheduleTiles, capitalTiles, offerBandVisual(raw, offerPrice), structureTiles]
+  ).filter(Boolean);
+  // hkCohortVisual 恒放第一位：即便还没配发结果，卖出 tab 也不能是空的。
+  base.sellCharts = (ended
+    ? [listingBars, hkCohortVisual(strategyEvidence), allotBars]
+    : [hkCohortVisual(strategyEvidence), allotBars]
+  ).filter(Boolean);
+  base.evidenceCharts = [scoreMeter(answer.score, "研究分", item.badge || answer.verdict), statusTiles, qualityTiles].filter(Boolean);
+
   base.facts = compactFacts([
     ["公司全称", item.name],
     ["股票代码", raw.code || item.code],
@@ -659,6 +797,16 @@ function buildHKView(base, item) {
   base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   if (ended && item.rank) base.score = `首日涨幅第 ${item.rank} 名`;
   base.sourceNote = raw.source || "港交所公开文件与历史结果整理";
+  // 供 buildOverview 拼「阶段与关键节点」卡片，避免重算一遍 ended/截止/上市日逻辑。
+  base.stageInfo = {
+    ended,
+    deadlinePassed,
+    daysToDeadline,
+    daysToListing,
+    listingDate: raw.listingDate || "",
+    offerDeadline: raw.offerDeadline || raw.offerEnd || "",
+    firstDayChange: review.firstDayChange,
+  };
 }
 
 function buildUSView(base, item, snapshot) {
@@ -680,9 +828,8 @@ function buildUSView(base, item, snapshot) {
     ["市值", hasNumber(fund.marketCap) ? formatLarge(fund.marketCap) : "暂缺"],
     ["近 60 日最低", range ? money(range.low) : null],
     ["近 60 日最高", range ? money(range.high) : null],
-    ["股东回报", formatPercent(fund.roe)],
-    ["利润率", formatPercent(fund.profitMargin)],
-    ["营收增长", formatPercent(fund.revenueGrowth)],
+    // 股东回报/利润率/营收增长已由「依据」tab 的 marginBars/growthTiles 图表
+    // 承载，这里不再重复罗列，避免同一个数字在图表和关键数据里各出现一次。
     ["成交量比", hasNumber(raw.volumeRatio) ? `${Number(raw.volumeRatio).toFixed(2)}倍` : null],
   ];
   base.metrics = compactFacts(base.metrics, 14);
@@ -793,6 +940,23 @@ function buildUSView(base, item, snapshot) {
     revenueVisual,
   );
 
+  // 四标签下「价格」只放走势与位置；「动态」放近期变化（营收趋势、同期公告、
+  // 热度/七姐妹分档）；「依据」放估值与质量的深挖图表，不再靠标题正则猜归属。
+  base.trendCharts = [
+    priceVisual(raw.history, "近60日价格", (value) => `$${Number(value).toFixed(2)}`),
+    meterVisual(raw.history, raw.price, "价格位置", money),
+  ].filter(Boolean);
+  base.dynamicsCharts = [revenueVisual].filter(Boolean);
+  base.evidenceCharts = [
+    scoreMeter(scoredUS.score, "研究观察分", item.badge),
+    usRank,
+    marginBars,
+    growthTiles,
+    flowTiles,
+    stockTiles,
+    sizeTiles,
+  ].filter(Boolean);
+
   base.pageHelp = "";
   base.facts = compactFacts([
     ["代码", raw.symbol || item.code],
@@ -834,6 +998,11 @@ function buildUSView(base, item, snapshot) {
   const filingBody = usFilings.length
     ? `${formatFilingLine(usFilings, 3)}。公告与股价同期发生，不代表因果；原文链接见「来源」。`
     : "";
+  base.dynamics = {
+    heat: usHeatDriver(raw) || "近期没有明显超出日常波动的热度信号。",
+    filings: filingBody || "近期未查到新的 SEC 公开备案。",
+    mag7Label: mag7Label || "",
+  };
   base.analysis = [
     { title: "公开事实", body: usPublicFacts || "公开资料整理中。" },
     filingBody ? { title: "同期公告（SEC EDGAR）", body: filingBody } : null,
@@ -902,18 +1071,26 @@ function buildAShareFundView(base, item) {
     price != null ? { label: "现价", value: price, valueText: fundPrice } : null,
     hasNumber(raw.previousClose) ? { label: "昨收", value: Number(raw.previousClose), valueText: `¥${Number(raw.previousClose).toFixed(3)}` } : null,
   ].filter(Boolean), "ETF价格对照");
+  const fundInfoTiles = metricTilesVisual([
+    ["基金规模", size],
+    ["跟踪指数", raw.trackingIndex || "中证红利指数"],
+    ["管理人", raw.fundManager || "易方达基金"],
+    ["分红", "以公告为准"],
+  ], "基金资料");
   setCharts(
     base,
     history.length >= 2 ? priceVisual(history, "红利ETF轨迹", (value) => `¥${Number(value).toFixed(3)}`) : null,
     history.length >= 2 ? meterVisual(history, price, "红利ETF位置", (value) => `¥${Number(value).toFixed(3)}`) : null,
     priceBand,
-    metricTilesVisual([
-      ["基金规模", size],
-      ["跟踪指数", raw.trackingIndex || "中证红利指数"],
-      ["管理人", raw.fundManager || "易方达基金"],
-      ["分红", "以公告为准"],
-    ], "基金资料"),
+    fundInfoTiles,
   );
+  base.trendCharts = [
+    history.length >= 2 ? priceVisual(history, "红利ETF轨迹", (value) => `¥${Number(value).toFixed(3)}`) : null,
+    history.length >= 2 ? meterVisual(history, price, "红利ETF位置", (value) => `¥${Number(value).toFixed(3)}`) : null,
+    priceBand,
+  ].filter(Boolean);
+  base.dividendCharts = [fundInfoTiles].filter(Boolean);
+  base.evidenceCharts = [];
   base.facts = compactFacts([
     ["基金全称", raw.name || "易方达中证红利ETF"],
     ["基金代码", raw.code || item.code],
@@ -1006,19 +1183,16 @@ function buildAShareView(base, item, snapshot) {
   base.metrics = [
     ["收息分级", item.badge || "—"],
     ["持仓角色", roleLabel],
-    ["收息观察分", scoredPreview != null ? `${scoredPreview}` : "暂缺"],
     ["当前股息", hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺"],
     ["可持续股息", hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺"],
-    ["加大观察价", implied ? money(implied.addPrice, "¥") : null],
-    ["兑现观察价", implied ? money(implied.trimPrice, "¥") : null],
-    ["自由现金流", formatLarge(financials.freeCashFlow)],
-    ["现金利润比", hasNumber(financials.cashConversion) ? `${Number(financials.cashConversion).toFixed(2)}` : "暂缺"],
-    ["股东回报", formatPercent(financials.roe)],
+    ["参考买入价", implied ? money(implied.addPrice, "¥") : null],
+    ["参考卖出价", implied ? money(implied.trimPrice, "¥") : null],
     ["当前价格", money(raw.currentPrice, "¥")],
     ["今日涨跌", formatPercent(raw.changePercent)],
     ["10万年息估", hasNumber(annualDividend) ? `${Math.round(annualDividend)}元` : "暂缺"],
-    ["经营现金流", formatLarge(financials.operatingCashFlow)],
     ["资料状态", advice],
+    // 收息观察分/自由现金流/现金利润比/股东回报/经营现金流已分别由「依据」的
+    // scoreMeter 和「分红」的现金与质量图表承载，这里不再重复列一遍。
   ];
   base.highlights = [
     // 「分级」这一格和正上方绿色「结论」条是同一个 item.badge，同屏重复；
@@ -1026,7 +1200,9 @@ function buildAShareView(base, item, snapshot) {
     hasNumber(raw.currentPrice)
       ? { label: "现价·元", value: Number(raw.currentPrice).toFixed(2) }
       : { label: "10万年息", value: hasNumber(annualDividend) ? `${Math.round(annualDividend)}元` : "—" },
-    { label: "观察分", value: scoredPreview != null ? `${scoredPreview}` : "—" },
+    // 「观察分」原本在这里和头部/依据 tab 的评分图重复展示三遍；这一格改放
+    // 首屏还没出现过的今日涨跌，评分只在「依据」tab 的图表里保留一份。
+    { label: "今日", value: formatPercent(raw.changePercent) },
     { label: "股息", value: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "—" },
     { label: "可持续", value: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "—" },
   ];
@@ -1036,10 +1212,13 @@ function buildAShareView(base, item, snapshot) {
   // 「稳健收息」，谁都没到边界，滑一遍不知道该看哪只。收息的人真正要判断的
   // 也不是"今年股息率多少"，而是"这个股息还发得下去吗"，那要看现金流撑不撑得住。
   //
-  // 说明一句口径：这里不是"三年股息趋势"。快照里每只 A 股只有一个报告期
-  // （2025 年报），没有历史分红序列，硬画三年趋势就是编数据。所以换成同一个
-  // 问题的可交付版本——把当期股息、可持续股息和现金流质量放回 20 只的池子里
-  // 比一遍，全部字段都是快照里已经有的真值。
+  // 说明一句口径：下面这组池内分位比的是当期股息、可持续股息和现金流质量，
+  // 不是历史股息率趋势——股息率历史需要历史股价配合分红金额，快照没有历史
+  // 股价序列，这里仍然没有，也不打算硬凑。
+  //
+  // 但「有没有分红历史」这件事已经解决：dividendHistory 是东方财富公开的
+  // 实施分配记录（只算"实施分配"，未落地的董事会预案不计入；同年多次分配已
+  // 按年合并），下面单独画一张分年柱状图，全部是真实披露过的每10股分红金额。
   const aPool = Array.isArray(snapshot?.aShare?.quotes) ? snapshot.aShare.quotes : [];
   const aFundPool = Array.isArray(snapshot?.aShare?.fundamentals) ? snapshot.aShare.fundamentals : [];
   const aPoolOf = (list, key) => list.map((entry) => entry && entry[key]);
@@ -1116,6 +1295,40 @@ function buildAShareView(base, item, snapshot) {
     ].filter(Boolean), "成长质量"),
   );
 
+  // 「价格」只放参考买卖区间与现价对照；「分红」放股息与现金质量；「依据」放
+  // 观察分与池内分位，不再靠标题正则猜归属。
+  base.trendCharts = [
+    implied ? bandMeterVisual(implied.addPrice, implied.trimPrice, raw.currentPrice, "参考买卖区间", (value) => money(value, "¥"), "按当前每股分红回推的参考区间，不是目标价承诺。") : null,
+    priceBand,
+  ].filter(Boolean);
+  base.dividendCharts = [
+    dividendHistoryVisual(financials.dividendHistory),
+    solidVisual([
+      { label: "当前股息", value: raw.currentDividendYield, valueText: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺" },
+      { label: "可持续股息", value: raw.sustainableDividendYield, valueText: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺" },
+    ].filter((row) => hasNumber(row.value)), "股息率对比"),
+    metricTilesVisual([
+      ["自由现金流", formatLarge(financials.freeCashFlow)],
+      ["现金利润比", hasNumber(financials.cashConversion) ? `${Number(financials.cashConversion).toFixed(2)}` : null],
+      ["股东回报", formatPercent(financials.roe)],
+      ["经营现金流", formatLarge(financials.operatingCashFlow)],
+    ].filter((row) => row[1] && row[1] !== "暂缺"), "现金与质量"),
+    hasNumber(annualDividend)
+      ? metricTilesVisual([
+          ["10万年息估", `${Math.round(annualDividend)}元`],
+          ["现价", money(raw.currentPrice, "¥")],
+        ], "收息估算")
+      : null,
+  ].filter(Boolean);
+  base.evidenceCharts = [
+    scoreMeter(scoredA.score, "收息观察分", item.badge || advice),
+    aRank,
+    solidVisual([
+      hasNumber(financials.revenueGrowth) ? { label: "营收增长", value: financials.revenueGrowth, valueText: formatPercent(financials.revenueGrowth) } : null,
+      hasNumber(financials.roe) ? { label: "股东回报", value: financials.roe, valueText: formatPercent(financials.roe) } : null,
+    ].filter(Boolean), "成长质量"),
+  ].filter(Boolean);
+
   base.facts = compactFacts([
     ["公司全称", item.name],
     ["股票代码", raw.code || item.code],
@@ -1143,7 +1356,7 @@ function buildAShareView(base, item, snapshot) {
     { title: "资料", body: advice },
     { title: "持仓角色", body: role === "core" ? "现金流较稳，可作为底仓长期收息样本。" : (role === "cycle" ? "景气敏感，只作周期短持观察，不把高息当永续。" : "行业角色不够清晰，先看现金流再决定仓位角色。") },
     implied
-      ? { title: "观察价", body: `加大 ${money(implied.addPrice, "¥")} · 兑现 ${money(implied.trimPrice, "¥")} · 现价 ${money(implied.price, "¥")}（按当前每股分红回推）` }
+      ? { title: "参考区间", body: `参考买入 ${money(implied.addPrice, "¥")} · 参考卖出 ${money(implied.trimPrice, "¥")} · 现价 ${money(implied.price, "¥")}（按当前每股分红回推）` }
       : null,
     { title: "现金流", body: `经营 ${formatLarge(financials.operatingCashFlow)} · 自由 ${formatLarge(financials.freeCashFlow)}` },
   ].filter(Boolean);
@@ -1191,7 +1404,7 @@ function buildGuruView(base, item) {
   base.answer = [
     (raw.reportDate || profile.report) ? `报告期 ${raw.reportDate || profile.report}` : null,
     topHolding
-      ? `第一大持仓 ${topHolding.ticker}${hasNumber(topHolding.weight) ? ` ${formatNumber(topHolding.weight, "%")}` : ""}`
+      ? `第一大持仓 ${topHolding.ticker}${hasNumber(topHolding.weight) ? ` ${formatNumber(topHolding.weight, "%")}` : ""}${instrumentSuffix(topHolding.putCall)}`
       : null,
     changed.length ? `本期 ${changed.length} 项仓位变化` : null,
   ].filter(Boolean).join(" · ") || profile.marketLabel || item.badge;
@@ -1216,13 +1429,21 @@ function buildGuruView(base, item) {
     { label: lagLabel, value: lagDays == null ? "—" : `${lagDays}天` },
   ];
   base.holdings = holdings.slice(0, 8).map((holding) => ({
-    name: holding.ticker,
+    name: `${holding.ticker}${instrumentSuffix(holding.putCall)}`,
     value: `${formatNumber(holding.weight, "%")} · ${holding.changeLabel || "变化待核"}`,
   }));
 
+  // 图表标签空间有限，期权只标 ·PUT/·CALL 短记号，不用完整的括注写法。
+  const chartTicker = (holding) => {
+    const mark = String(holding.putCall || "").trim().toLowerCase();
+    if (mark === "put") return `${holding.ticker}·PUT`;
+    if (mark === "call") return `${holding.ticker}·CALL`;
+    return holding.ticker;
+  };
+
   const changeBars = solidVisual(
     changed.slice(0, 6).map((holding) => ({
-      label: holding.ticker,
+      label: chartTicker(holding),
       value: Number(holding.weight) || 1,
       valueText: String(holding.changeLabel || "").slice(0, 8),
     })),
@@ -1241,7 +1462,7 @@ function buildGuruView(base, item) {
       ["有变化标注", `${changed.length}`],
     ].filter((row) => row[1]), "本期摘要"),
     solidVisual(holdings.slice(0, 8).map((holding) => ({
-      label: holding.ticker,
+      label: chartTicker(holding),
       value: holding.weight,
       valueText: formatNumber(holding.weight, "%"),
     })), "持仓权重"),
@@ -1494,6 +1715,71 @@ function buildGoldView(base, item) {
 //
 // 顺序是先条目级深链、后栏目级入口：深链直接指向这一只标的的原始文件，
 // 站点入口只是兜底。没有地址的来源不放进来（见 utils/sources.js 的 sourceLink）。
+// 决策概览：把结论/先看答案/策略信号里重复的判断合并成一句主判断+一句理由，
+// 首屏最多给 3 条依据、1 条风险、1 个下一步关注点，具体口径见 Section 五。
+function buildOverview(base, item) {
+  if (!["us", "a", "hk"].includes(item.market)) return;
+  const raw = item.raw || {};
+  const strategy = base.strategy || {};
+  const evidenceBullets = (base.analysis || [])
+    .filter((entry) => entry && entry.title && entry.body)
+    .slice(0, 3)
+    .map((entry) => `${entry.title}：${entry.body}`);
+  const keyRisk = (base.riskItems && base.riskItems[0])
+    ? `${base.riskItems[0].title}：${base.riskItems[0].body}`
+    : (base.risk || "数据不足时宁可不给硬答案。");
+  const nextWatch = strategy.trigger || "暂无明确触发条件，留意下一次财报/公告更新。";
+
+  let priceCard = null;
+  let priceNote = "";
+  if (item.market === "us") {
+    const range = historyStats(raw.history);
+    priceCard = (range && hasNumber(raw.price))
+      ? meterVisual(raw.history, raw.price, "近 60 日价格位置", money, "仅为近 60 日价格位置，不等于估值分位或安全边际。")
+      : null;
+    if (!priceCard) priceNote = "暂未形成参考区间";
+  } else if (item.market === "a") {
+    if (raw.assetType === "fund") {
+      const fundHistory = (raw.history || []).map((entry) => entry?.close).filter(hasNumber).map(Number);
+      const fundPrice = hasNumber(raw.currentPrice) ? Number(raw.currentPrice) : null;
+      priceCard = (fundHistory.length >= 2 && fundPrice != null)
+        ? meterVisual(fundHistory, fundPrice, "近 60 日价格位置", (value) => money(value, "¥"), "仅为近 60 日价格位置，不是净值折溢价或估值判断。")
+        : null;
+      if (!priceCard) priceNote = "暂未形成参考区间";
+    } else {
+      const implied = yieldImpliedPlan(raw);
+      priceCard = (implied && hasNumber(raw.currentPrice))
+        ? bandMeterVisual(implied.addPrice, implied.trimPrice, raw.currentPrice, "参考买卖区间", (value) => money(value, "¥"), "按当前每股分红回推的参考区间，不是目标价承诺。")
+        : null;
+      if (!priceCard) priceNote = "暂未形成参考区间";
+    }
+  } else if (item.market === "hk") {
+    const stage = base.stageInfo || {};
+    const stageLabel = stage.ended
+      ? (hasNumber(stage.firstDayChange) ? `已上市 · 首日 ${formatPercent(stage.firstDayChange)}` : "已上市")
+      : (stage.deadlinePassed ? "认购已截止，等待配发/上市" : "认购中");
+    const watchLabel = stage.ended ? "上市日期" : (stage.deadlinePassed ? "预计上市" : "认购截止");
+    const watchValue = stage.ended
+      ? (stage.listingDate || "待核验")
+      : (stage.deadlinePassed ? (stage.listingDate || "待公布") : (stage.offerDeadline || "待公布"));
+    priceCard = metricTilesVisual([
+      ["当前阶段", stageLabel],
+      [watchLabel, watchValue],
+    ], "阶段与关键节点");
+    if (!priceCard) priceNote = "暂未形成参考区间";
+  }
+
+  base.overview = {
+    categoryTag: (DETAIL_META[item.market] || DETAIL_META.hk).label,
+    priceCard,
+    priceNote,
+    evidenceBullets,
+    keyRisk,
+    nextWatch,
+    reason: strategy.action || base.answer || "",
+  };
+}
+
 function buildSourceLinks(item, snapshot) {
   const raw = (item && item.raw) || {};
   const own = [];
@@ -1532,6 +1818,7 @@ function detailView(item, snapshot) {
 
   base.sourceLinks = buildSourceLinks(item, snapshot);
   base.strategy = buildStrategySignal(item, { snapshot, evidence: strategyEvidence });
+  buildOverview(base, item);
 
   const scored = scoreForItem(item);
   if (scored.score != null) {
@@ -1567,6 +1854,12 @@ function detailView(item, snapshot) {
     .join(" · ");
   const quickAnswer = [base.badge || base.answer, metricHint].filter(Boolean).join(" · ");
   base.quickAnswer = quickAnswer.length > 48 ? `${quickAnswer.slice(0, 48)}…` : (quickAnswer || "先看关键数据");
+  // NVDA 这类标的曾把「七姐妹」这种分类标签当结论展示在最显眼的位置；分类
+  // 不是判断。美股/A股/港股新股优先用策略信号的真实结论，金/机构持仓两类
+  // 未改动结构，公式退化到原来的 badge/quickAnswer，输出与旧版逐字节相同。
+  base.primaryJudgment = ["us", "a", "hk"].includes(item.market)
+    ? (base.strategy.label || base.badge || base.quickAnswer)
+    : (base.badge || base.quickAnswer);
   base.metrics = compactFacts(base.metrics || [], 14);
   base.facts = compactFacts(base.facts || [], 28);
   if (!Array.isArray(base.highlights) || !base.highlights.length) {
@@ -1624,17 +1917,50 @@ function detailModules(market) {
       { id: "risk", label: "风险" },
     ];
   }
+  // 美股/A股/港股新股改为「决策概览＋四标签」，id 全部换新字符串，
+  // 避免和上面黄金/机构持仓仍在用的 summary/price/finance/source/research/risk
+  // 撞车——WXML 里旧六标签内容块只按 activeModule 判断，不看 market。
+  if (market === "us") {
+    return [
+      { id: "overview", label: "概览" },
+      { id: "trend", label: "价格" },
+      { id: "dynamics", label: "动态" },
+      { id: "evidence", label: "依据" },
+    ];
+  }
+  if (market === "a") {
+    return [
+      { id: "overview", label: "概览" },
+      { id: "trend", label: "价格" },
+      { id: "dividend", label: "分红" },
+      { id: "evidence", label: "依据" },
+    ];
+  }
   return [
-    { id: "summary", label: "结论" },
-    { id: "price", label: "价格" },
-    { id: "finance", label: "财务" },
-    { id: "source", label: "资料" },
-    { id: "research", label: "研究" },
-    { id: "risk", label: "风险" },
+    { id: "overview", label: "概览" },
+    { id: "subscribe", label: "申购" },
+    { id: "sell", label: "卖出" },
+    { id: "evidence", label: "依据" },
   ];
 }
 
 function buildDetailModules(view, market) {
+  // 美股/A股/港股新股：每个 buildXView 已经把图表直接分装进
+  // trendCharts/dynamicsCharts/dividendCharts/subscribeCharts/sellCharts/
+  // evidenceCharts，不再靠标题正则去猜该进哪个 tab。黄金/机构持仓完全走
+  // 下面未改动的正则分类逻辑。
+  if (market === "us" || market === "a" || market === "hk") {
+    return {
+      ...view,
+      modules: detailModules(market),
+      trendCharts: view.trendCharts || [],
+      dynamicsCharts: view.dynamicsCharts || [],
+      dividendCharts: view.dividendCharts || [],
+      subscribeCharts: view.subscribeCharts || [],
+      sellCharts: view.sellCharts || [],
+      evidenceCharts: view.evidenceCharts || [],
+    };
+  }
   const charts = Array.isArray(view.charts) ? view.charts : [];
   const chartText = (chart) => String(chart?.title || "");
   const pricePattern = market === "gold"
@@ -1657,6 +1983,24 @@ function buildDetailModules(view, market) {
     financeCharts: financeCharts.length ? financeCharts : charts.slice(0, 2),
     researchCharts: researchCharts.length ? researchCharts : charts.slice(-2),
   };
+}
+
+// price/finance/research 是黄金/机构持仓沿用的旧 tab id；trend/dynamics/
+// dividend/subscribe/sell/evidence 是美股/A股/港股新股的新 tab id。refresh()
+// 和 switchModule() 共用这一份映射，避免两处各写一次、以后加 tab 漏改一处。
+function chartsForModule(view, moduleId) {
+  const chartMap = {
+    price: view.priceCharts,
+    finance: view.financeCharts,
+    research: view.researchCharts,
+    trend: view.trendCharts,
+    dynamics: view.dynamicsCharts,
+    dividend: view.dividendCharts,
+    subscribe: view.subscribeCharts,
+    sell: view.sellCharts,
+    evidence: view.evidenceCharts,
+  };
+  return chartMap[moduleId] || [];
 }
 
 Page({
@@ -1773,18 +2117,19 @@ Page({
           view.exitPlan = null;
         }
         this._detailItem = item;
+        const firstModuleId = (view.modules && view.modules[0] && view.modules[0].id) || "summary";
         this.setData({
           ready: true,
           loading: false,
           loadError: "",
           view,
-          activeModule: "summary",
-          activeCharts: view.priceCharts || [],
+          activeModule: firstModuleId,
+          activeCharts: chartsForModule(view, firstModuleId),
           group: item.group || "",
           source,
           freshness,
           dataAsOf,
-        });
+        }, () => this.drawActiveLineCharts());
         wx.setNavigationBarTitle({ title: view.title || "资料详情" });
         this.refreshMemberLink();
       } catch (error) {
@@ -1821,17 +2166,46 @@ Page({
     const moduleId = String(event.currentTarget.dataset.module || "summary");
     const view = this.data.view || {};
     if (!(view.modules || []).some((item) => item.id === moduleId)) return;
-    const chartMap = {
-      price: view.priceCharts,
-      finance: view.financeCharts,
-      research: view.researchCharts,
-    };
     track("detail_module_switch", { market: this.data.market, module: moduleId });
     this.setData({
       activeModule: moduleId,
-      activeCharts: chartMap[moduleId] || [],
+      activeCharts: chartsForModule(view, moduleId),
       detailsExpanded: moduleId === "research" ? this.data.detailsExpanded : false,
+    }, () => this.drawActiveLineCharts());
+  },
+  drawActiveLineCharts() {
+    (this.data.activeCharts || []).forEach((item) => {
+      if (item && item.kind === "line" && Array.isArray(item.values)) {
+        this.drawLineChart(item.canvasId, item.values);
+      }
     });
+  },
+  drawLineChart(canvasId, values, attempt = 0) {
+    if (!canvasId || !Array.isArray(values) || values.length < 2) return;
+    wx.createSelectorQuery()
+      .in(this)
+      .select(`#${canvasId}`)
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        const hit = res && res[0];
+        // setData 回调触发时，canvas 节点有时还没被原生层量出真实尺寸，size.width
+        // 读到 0——这个坑在浏览器原型（chart-prototype.html）里复现过一次：第一次
+        // fetch 回调时 canvas.width 画成 0，曲线整条静默不见，重跑一遍才画出来。
+        // 这里退避重试，不能假设 setData 回调=布局已经就绪。
+        if (!hit || !hit.node || !hit.width) {
+          if (attempt < 10) {
+            setTimeout(() => this.drawLineChart(canvasId, values, attempt + 1), 40);
+          }
+          return;
+        }
+        const canvas = hit.node;
+        const dpr = (wx.getWindowInfo && wx.getWindowInfo().pixelRatio) || 1;
+        canvas.width = hit.width * dpr;
+        canvas.height = hit.height * dpr;
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+        paintLineChart(ctx, hit.width, hit.height, values);
+      });
   },
   openMember() {
     track("member_open", { from: "detail" });

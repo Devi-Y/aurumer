@@ -4,11 +4,35 @@
  */
 const ACTION_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 const STALE_ACTION = "数据过期，暂不提供动作";
+const STALE_ACTION_WEEKEND = "周末没有新收盘，动作待下一交易日更新";
 
 function isActionFresh(updatedAt, now = Date.now()) {
   const stamp = Date.parse(updatedAt);
   if (!updatedAt || Number.isNaN(stamp)) return false;
   return now - stamp <= ACTION_MAX_AGE_MS;
+}
+
+/**
+ * 只用于挑选过期提示文案，不改变 isActionFresh 的过期判定阈值——
+ * 阈值放宽会让真实的工作日抓取失败也被当成"只是周末"蒙混过去。
+ * 用 UTC 星期近似交易日历（周六/周日不开盘），在午夜 UTC 附近对本地
+ * 时区（北京/香港/纽约）会有几小时误差，这是已知的精度局限，不是
+ * 判定动作是否展示的依据，只影响这行文案怎么写。超过 4 天的过期不再
+ * 按"周末"解释，避免把真正的长期抓取失败说成周末。与
+ * cloudfunctions/aurum-data/action-freshness.js 保持一致。
+ */
+function isLikelyWeekendGap(updatedAt, now = Date.now()) {
+  const stamp = Date.parse(updatedAt);
+  if (!updatedAt || Number.isNaN(stamp)) return false;
+  const ageMs = now - stamp;
+  if (ageMs <= 0 || ageMs > 4 * 24 * 60 * 60 * 1000) return false;
+  const updatedDay = new Date(stamp).getUTCDay();
+  const nowDay = new Date(now).getUTCDay();
+  return updatedDay === 5 && (nowDay === 6 || nowDay === 0 || nowDay === 1);
+}
+
+function describeStaleReason(updatedAt, now = Date.now()) {
+  return isLikelyWeekendGap(updatedAt, now) ? STALE_ACTION_WEEKEND : STALE_ACTION;
 }
 
 function emptyPricePlan(status = "unavailable") {
@@ -29,11 +53,12 @@ function degradeStaleActions(snapshot, now = Date.now()) {
     return { ...snapshot, actionsFresh: true, actionFreshness: "fresh" };
   }
 
+  const reason = describeStaleReason(snapshot.updatedAt, now);
   const next = {
     ...snapshot,
     actionsFresh: false,
     actionFreshness: "stale",
-    actionDegradeReason: STALE_ACTION,
+    actionDegradeReason: reason,
   };
 
   if (next.hk) {
@@ -42,12 +67,12 @@ function degradeStaleActions(snapshot, now = Date.now()) {
       const publicAnswer = item.publicAnswer && typeof item.publicAnswer === "object"
         ? {
           ...item.publicAnswer,
-          action: STALE_ACTION,
+          action: reason,
           verdict: item.publicAnswer.verdict === "已结束" || item.historical
             ? item.publicAnswer.verdict
-            : STALE_ACTION,
+            : reason,
         }
-        : { verdict: STALE_ACTION, action: STALE_ACTION };
+        : { verdict: reason, action: reason };
       return { ...item, publicAnswer };
     };
     next.hk = {
@@ -72,7 +97,7 @@ function degradeStaleActions(snapshot, now = Date.now()) {
         } = stock;
         return {
           ...rest,
-          actionNote: STALE_ACTION,
+          actionNote: reason,
         };
       }),
     };
@@ -96,8 +121,8 @@ function degradeStaleActions(snapshot, now = Date.now()) {
         } = quote;
         return {
           ...rest,
-          actionNote: STALE_ACTION,
-          summary: STALE_ACTION,
+          actionNote: reason,
+          summary: reason,
         };
       }),
     };
@@ -109,10 +134,10 @@ function degradeStaleActions(snapshot, now = Date.now()) {
       ...next.gold,
       answer: {
         ...answer,
-        action: STALE_ACTION,
-        conclusion: STALE_ACTION,
-        researchLabel: STALE_ACTION,
-        researchConclusion: STALE_ACTION,
+        action: reason,
+        conclusion: reason,
+        researchLabel: reason,
+        researchConclusion: reason,
         pricePlan: emptyPricePlan("stale"),
       },
     };
@@ -124,6 +149,9 @@ function degradeStaleActions(snapshot, now = Date.now()) {
 module.exports = {
   ACTION_MAX_AGE_MS,
   STALE_ACTION,
+  STALE_ACTION_WEEKEND,
   isActionFresh,
+  isLikelyWeekendGap,
+  describeStaleReason,
   degradeStaleActions,
 };

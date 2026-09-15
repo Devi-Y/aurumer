@@ -17,13 +17,30 @@ function lagDays(filingDate) {
   return Math.max(0, Math.round((Date.now() - time) / (24 * 60 * 60 * 1000)));
 }
 
+// 13F 里同一个 ticker 可能是股票也可能是 Put/Call：Scion 这期第一大持仓是
+// PLTR，权重 66%，但那是一张看跌期权，不是买入了 66% 仓位的正股。不标出来，
+// 「第一大持仓 PLTR 66.0%」这句话本身就是反的——读的人会以为是重仓做多。
+function instrumentSuffix(putCall) {
+  const value = String(putCall || "").trim().toLowerCase();
+  if (value === "put") return "（看跌期权）";
+  if (value === "call") return "（看涨期权）";
+  return "";
+}
+
+function holdingLabel(row) {
+  const name = (row && (row.issuer || row.name || row.ticker)) || "待更新";
+  return `${name}${instrumentSuffix(row && row.putCall)}`;
+}
+
 function buildGuruChanges(snapshot) {
   const list = (snapshot && snapshot.investors) || [];
   return list.map((item) => {
     const holdings = Array.isArray(item.holdings) ? item.holdings : [];
     const sold = Array.isArray(item.sold) ? item.sold : [];
-    const increased = holdings.filter((row) => /增|加|new|increase/i.test(String(row.changeType || row.changeLabel || "")));
-    const decreased = holdings.filter((row) => /减|削|decrease/i.test(String(row.changeType || row.changeLabel || "")));
+    // 期权不计入「增持/减持」：看跌期权新进不是加仓，看涨期权减持也不是减仓，
+    // 和 guru-trend.js 里跨机构方向汇总的口径一致。期权仍会出现在 topHoldings。
+    const increased = holdings.filter((row) => !row.putCall && /增|加|new|increase/i.test(String(row.changeType || row.changeLabel || "")));
+    const decreased = holdings.filter((row) => !row.putCall && /减|削|decrease/i.test(String(row.changeType || row.changeLabel || "")));
     const unchanged = holdings.filter((row) => {
       const label = String(row.changeType || row.changeLabel || "");
       return /same|不变|持平/i.test(label) || (!increased.includes(row) && !decreased.includes(row) && !sold.find((s) => s.ticker === row.ticker));
@@ -42,7 +59,7 @@ function buildGuruChanges(snapshot) {
       decreased: decreased.slice(0, 8).map(simplifyHolding),
       sold: sold.slice(0, 8).map((row) => ({
         ticker: row.ticker || "",
-        name: row.issuer || row.name || row.ticker || "",
+        name: holdingLabel(row),
         changeLabel: "退出",
       })),
       topHoldings: holdings.slice(0, 5).map(simplifyHolding),
@@ -59,10 +76,11 @@ function buildGuruChanges(snapshot) {
 function simplifyHolding(row) {
   return {
     ticker: row.ticker || "",
-    name: row.issuer || row.name || row.ticker || "",
+    name: holdingLabel(row),
     weight: row.weight != null ? Number(row.weight) : null,
     changeLabel: row.changeLabel || row.changeType || "",
+    putCall: row.putCall || null,
   };
 }
 
-module.exports = { buildGuruChanges, isPositionChange, lagDays };
+module.exports = { buildGuruChanges, isPositionChange, lagDays, instrumentSuffix, holdingLabel };

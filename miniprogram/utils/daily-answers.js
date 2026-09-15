@@ -5,6 +5,7 @@
 const { aShareDividendStability, allItems, shortCompanyName } = require("./answers");
 const { MASTER_PLAYBOOKS } = require("./master-playbooks");
 const { buildGuruTrend } = require("./guru-trend");
+const { holdingLabel } = require("./guru-changes");
 const { hasFilingFeed, filingsBySymbol, formatFilingLine } = require("./us-filings");
 const { toDay } = require("./dates");
 const {
@@ -127,7 +128,7 @@ function card({
 
 function buildHkAnswers(snapshot) {
   const items = allItems(snapshot, "hk");
-  const live = items.filter((item) => item.group !== "ended");
+  const live = items.filter((item) => item.group !== "ended" && item.group !== "settled");
   const active = live.filter((item) => item.group !== "cancelled");
   const worth = items.filter((item) => item.group === "worth");
   const avoid = items.filter((item) => item.group === "avoid" || item.group === "cancelled");
@@ -1004,7 +1005,7 @@ function buildGuruAnswers(snapshot) {
   const top = leaders[0];
   const holdings = (top?.raw?.holdings || []).slice(0, 3);
   const holdingLine = holdings
-    .map((row) => `${row.ticker || row.name}${Number.isFinite(Number(row.weight)) ? ` ${Number(row.weight).toFixed(1)}%` : ""}`)
+    .map((row) => `${holdingLabel({ ...row, issuer: row.ticker || row.name })}${Number.isFinite(Number(row.weight)) ? ` ${Number(row.weight).toFixed(1)}%` : ""}`)
     .join(" · ");
   const firstSentence = (value) => {
     const text = String(value || "").replace(/\s+/gu, " ").trim();
@@ -1031,20 +1032,24 @@ function buildGuruAnswers(snapshot) {
   const listAll = (rows, key) => rows
     .map((row) => `${row.name} ${row[key].length}家：${row[key].map((one) => one.who).join(" / ")}`)
     .join("\n");
+  // 9 家机构的 13F 报告期并不都一样；buildGuruTrend 已经按报告期对齐，只留
+  // 同一期的机构再数「几家在加/几家在减」，这里把具体是哪一期写出来，
+  // 不用「本季」含糊带过——不然读的人会以为这几家指的是同一个当季。
+  const trendPeriod = trend.reportPeriod ? `${trend.reportPeriod} 报告期` : "本季";
   const addAnswer = trend.consensusAdds.length
     ? `${listCounts(trend.consensusAdds, "adders")} 同向加仓`
     : (trend.adds.length
-      ? `本季没有 2 家以上同向加仓，单家加的有 ${listNames(trend.adds)}`
-      : "本季公开申报里未见增持标注");
+      ? `${trendPeriod}没有 2 家以上同向加仓，单家加的有 ${listNames(trend.adds)}`
+      : `${trendPeriod}公开申报里未见增持标注`);
   const cutAnswer = trend.consensusCuts.length
     ? `${listCounts(trend.consensusCuts, "cutters")} 同向减仓`
     : (trend.cuts.length
-      ? `本季没有 2 家以上同向减仓，单家减的有 ${listNames(trend.cuts)}`
-      : "本季公开申报里未见减持标注");
+      ? `${trendPeriod}没有 2 家以上同向减仓，单家减的有 ${listNames(trend.cuts)}`
+      : `${trendPeriod}公开申报里未见减持标注`);
   // 加与减取自持仓行的标注，退出取自 sold 名单，两份口径不同，不合并成一个净值。
   const trendAnswer = trend.totals.up + trend.totals.new + trend.totals.down > 0
-    ? `${trend.investorCount} 家里，增持/新建 ${trend.totals.up + trend.totals.new} 项、减持 ${trend.totals.down} 项，另有 ${trend.totals.exit} 项整仓退出`
-    : "本季公开申报的变化标注不足，方向暂不下判断";
+    ? `${trendPeriod} ${trend.investorCount} 家里，增持/新建 ${trend.totals.up + trend.totals.new} 项、减持 ${trend.totals.down} 项，另有 ${trend.totals.exit} 项整仓退出`
+    : `${trendPeriod}公开申报的变化标注不足，方向暂不下判断`;
   const splitLine = trend.split.length
     ? `分歧：${trend.split.slice(0, 3).map((row) => `${row.name}（${row.adders.length}加${row.cutters.length}减）`).join(" · ")}`
     : "";
@@ -1086,16 +1091,17 @@ function buildGuruAnswers(snapshot) {
       id: "guru-trend",
       question: "未来持仓趋势",
       answer: trendAnswer,
-      names: [splitLine, "13F 为季度披露，反映的是申报期方向，不是实时单"].filter(Boolean).join(" · "),
+      // 「应该避免什么」原来单占一张卡，answer 是「不照抄仓位、不把滞后披露当实时单、
+      // 不复制机构杠杆」——这句边界原来靠那张卡的 answer（一个不会被 publicCard()
+      // 剥掉的扁平字段）传到公开摘要 data/daily-digest.json，网页驾驶舱才读得到。
+      // 折进这张卡之后曾经只留在 modal 里，而 modal 会被 publicCard() 剥掉，
+      // 边界就从网页端消失了——这里放回 names，让它继续跟着扁平字段走。
+      names: [splitLine, "不照抄仓位、不把滞后披露当实时单、不复制机构杠杆"].filter(Boolean).join(" · "),
       tone: "warn",
       action: "none",
       enabled: true,
       // 「他们怎么想 / 我们如何借鉴」原来各占一张卡，和方向汇总说的是同一件事的
       // 两个层次。收进这张卡的展开层：一屏先给方向，想看理由再点开。
-      // 「应该避免什么」原来单占一张卡。用户这一栏只要持仓、动向、未来趋势三样，
-      // 但那张卡上的边界（滞后披露、只含多头、别照抄仓位）正是读这一栏时必须
-      // 同时知道的——不删内容，收进这张趋势卡的展开层，一屏先给方向，
-      // 想看理由和边界再点开。
       modal: [
         why.length ? `他们怎么想\n${why.join("\n")}` : "",
         how.length ? `我们如何借鉴\n${how.join("\n")}` : "学框架、能力圈和风险边界，不按报告期仓位下单。",

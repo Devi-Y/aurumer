@@ -6,7 +6,6 @@ const html = await readFile(resolve(root, "index.html"), "utf8");
 const dailyHtml = await readFile(resolve(root, "daily.html"), "utf8");
 const dashboardJs = await readFile(resolve(root, "assets/dashboard.js"), "utf8");
 const miniIndexWxml = await readFile(resolve(root, "miniprogram/pages/index/index.wxml"), "utf8");
-const holdingObserve = await readFile(resolve(root, "miniprogram/utils/holding-observe.js"), "utf8");
 const manifest = JSON.parse(await readFile(resolve(root, "manifest.webmanifest"), "utf8"));
 const serviceWorker = await readFile(resolve(root, "sw.js"), "utf8");
 const smartMoney = await readFile(resolve(root, "assets/smart-money.js"), "utf8");
@@ -107,7 +106,7 @@ assert(!dailyHtml.includes("legacy.html"), "每日驾驶舱不应把今日答案
 assert(dashboardJs.includes("cards.filter") && dashboardJs.includes(".map((item)"), "每日驾驶舱不能只呈现每栏前三条答案");
 assert(dashboardJs.includes("DAILY_FACT_IDS"), "每日驾驶舱应按用户问题精简答案行");
 assert(dashboardJs.includes("state.digestSyncing"), "摘要与公开快照时间不一致时必须阻止旧答案混用");
-assert(miniIndexWxml.includes("item.performanceText") && holdingObserve.includes("performanceFor"), "小程序持仓缺少基于本地成本的浮盈展示");
+assert(!miniIndexWxml.includes("item.performanceText"), "小程序首页不应恢复基于本地成本的浮盈展示（我的持仓已按产品决策整体从首页移除）");
 
 for (const forbidden of ["策略权重", "模型公式", "评分公式", "保证赚钱", "必然上涨"]) {
   assert(!html.includes(forbidden), `公开页面出现不应展示的内容：${forbidden}`);

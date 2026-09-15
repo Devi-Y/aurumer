@@ -916,6 +916,7 @@
 .hk-badge.tone-worth { background: #dcf0e4; color: #0b7a53; }
 .hk-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
 .hk-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
+.hk-badge.tone-settled { background: #f0f2f1; color: #778079; }
 
 .hk-row-reason {
   display: block;
@@ -1630,6 +1631,71 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.guru-history-chart {
+  margin-top: 16rpx;
+}
+
+.guru-history-bars {
+  display: flex;
+  height: 200rpx;
+  padding: 12rpx 6rpx 0;
+  align-items: flex-end;
+  gap: 6rpx;
+  border-bottom: 1rpx solid #d7e3db;
+  border-radius: 12rpx 12rpx 0 0;
+  background: #f7faf8;
+}
+
+.guru-history-slot {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.guru-history-bar {
+  width: 70%;
+  min-height: 8rpx;
+  border-radius: 4rpx 4rpx 0 0;
+  background: #2fba78;
+}
+
+.guru-history-bar.latest { background: #0b7a53; }
+.guru-history-bar.peak { background: #d99a12; }
+.guru-history-bar.floor { background: #7eb89a; }
+
+.guru-history-ticks {
+  display: flex;
+  padding: 0 6rpx;
+  gap: 6rpx;
+}
+
+.guru-history-tick {
+  overflow: hidden;
+  margin-top: 6rpx;
+  min-width: 0;
+  flex: 1;
+  color: #9aa19c;
+  font-size: 18rpx;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guru-history-labels {
+  display: flex;
+  margin-top: 8rpx;
+  justify-content: space-between;
+  gap: 8rpx;
+  color: #7a847e;
+  font-size: 22rpx;
+}
+
+.guru-history-labels text:nth-child(2) { color: #0b7a53; font-weight: 700; text-align: center; }
+.guru-history-labels text:last-child { text-align: right; }
 
 .gold-card {
   margin-top: 14rpx;

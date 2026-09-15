@@ -21,7 +21,7 @@ const MARKET_META = {
   guru: { label: "机构持仓", icon: "/assets/home/guru.svg", tone: "guru" },
 };
 
-const HK_BADGE_SENTIMENT = { worth: "good", caution: "warn", avoid: "bad", ended: "muted", cancelled: "muted" };
+const HK_BADGE_SENTIMENT = { worth: "good", caution: "warn", avoid: "bad", settled: "muted", ended: "muted", cancelled: "muted" };
 const A_BADGE_SENTIMENT = { prime: "good", watch: "warn" };
 
 function badgeSentimentFor(market, group) {

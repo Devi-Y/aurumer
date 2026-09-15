@@ -94,6 +94,13 @@
   font-weight: 600;
 }
 
+/* 分类标签（美股投资/A股收息/港股打新）只是归类，不是结论，视觉上要比
+   黄金/机构持仓那颗评分胶囊更淡一档，避免被当成第二个判断。 */
+.hero-category-tag {
+  font-weight: 560;
+  opacity: .82;
+}
+
 /* 结论条和核心数据合成一张白卡，压在通栏下沿上——和栏目页的指标卡同一个做法。 */
 .detail-hero-body {
   position: relative;
@@ -723,6 +730,15 @@
 .column-labels text:nth-child(2) { color: #0b7a53; font-weight: 700; text-align: center; }
 .column-labels text:last-child { text-align: right; }
 
+.line-chart-wrap { margin-top: 16rpx; }
+.line-chart-canvas {
+  display: block;
+  width: 100%;
+  height: 200rpx;
+  border-radius: 8rpx;
+  background: #f7faf8;
+}
+
 .solid-chart {
   display: flex;
   height: 260rpx;
@@ -761,12 +777,20 @@
   width: 58%;
   min-height: 16rpx;
   border-radius: 6rpx 6rpx 2rpx 2rpx;
-  background: #2fba78;
+  background: linear-gradient(180deg, #5ecb92 0%, #2fba78 55%, #0b7a53 100%);
+  box-shadow: 0 2rpx 5rpx rgba(11, 122, 83, 0.18);
+  transform-origin: center bottom;
+  animation: solidBarGrow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.solid-bar.down { background: #d97757; }
-.solid-bar.tone-1 { background: #3b82f6; }
-.solid-bar.tone-2 { background: #d99a12; }
-.solid-bar.tone-3 { background: #2f9d6a; }
+.solid-bar.tone-1 { background: linear-gradient(180deg, #8fb8f7 0%, #3b82f6 60%, #2a63c4 100%); box-shadow: 0 2rpx 5rpx rgba(59, 130, 246, 0.2); }
+.solid-bar.tone-2 { background: linear-gradient(180deg, #f0c25e 0%, #d99a12 60%, #a8760a 100%); box-shadow: 0 2rpx 5rpx rgba(217, 154, 18, 0.2); }
+.solid-bar.tone-3 { background: linear-gradient(180deg, #5ecb92 0%, #2f9d6a 60%, #0b7a53 100%); box-shadow: 0 2rpx 5rpx rgba(47, 157, 106, 0.18); }
+/* 语义色（涨跌）优先于装饰色，跌的柱子不论第几根都要是暖色，不能被 tone-N 盖成蓝/黄 */
+.solid-bar.down { background: linear-gradient(180deg, #ef9a78 0%, #d97757 55%, #b25a3f 100%); box-shadow: 0 2rpx 5rpx rgba(217, 119, 87, 0.2); }
+@keyframes solidBarGrow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
 .solid-label {
   margin-top: 8rpx;
   color: #4d5650;
@@ -796,21 +820,34 @@
 .bar-value {
   height: 100%;
   border-radius: 4rpx;
-  background: #2fba78;
+  background: linear-gradient(90deg, #5ecb92 0%, #2fba78 100%);
+  transform-origin: left center;
+  animation: barValueGrow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.bar-value.down { background: #d97757; }
-.bar-value.tone-1 { background: #3b82f6; }
-.bar-value.tone-2 { background: #d99a12; }
-.bar-value.tone-3 { background: #2f9d6a; }
+.bar-value.tone-1 { background: linear-gradient(90deg, #8fb8f7 0%, #3b82f6 100%); }
+.bar-value.tone-2 { background: linear-gradient(90deg, #f0c25e 0%, #d99a12 100%); }
+.bar-value.tone-3 { background: linear-gradient(90deg, #5ecb92 0%, #2f9d6a 100%); }
+/* 语义色（涨跌）优先于装饰色，理由同 .solid-bar.down */
+.bar-value.down { background: linear-gradient(90deg, #ef9a78 0%, #d97757 100%); }
+@keyframes barValueGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
 
 .meter-chart { margin-top: 18rpx; }
 .meter-track {
   position: relative;
   height: 18rpx;
-  border-radius: 4rpx;
-  background: linear-gradient(90deg, #d9efe3 0%, #2fba78 50%, #0b7a53 100%);
+  overflow: hidden;
+  border-radius: 9rpx;
+  background: #e8eeea;
 }
-.meter-fill { height: 100%; }
+.meter-fill {
+  height: 100%;
+  border-radius: 9rpx;
+  background: linear-gradient(90deg, #7eb89a 0%, #0b7a53 100%);
+  transition: width 0.3s ease;
+}
 .meter-dot {
   position: absolute;
   top: 50%;
@@ -821,6 +858,8 @@
   border: 3rpx solid #ffffff;
   border-radius: 50%;
   background: #0b7a53;
+  box-shadow: 0 2rpx 6rpx rgba(11, 122, 83, 0.4);
+  transition: left 0.3s ease;
 }
 .meter-labels {
   display: flex;
@@ -940,6 +979,31 @@
 .analysis-body { display: block; }
 .analysis-title { color: #1c211d; font-size: 30rpx; font-weight: 760; }
 .analysis-body { margin-top: 6rpx; color: #4f5651; font-size: 28rpx; line-height: 1.7; }
+/* 「动态」tab 的同期备案是一段独立说明，不挂在 analysis-block 的编号项下面，
+   补一圈内距，不影响它在 .analysis-copy 里的原有用法。 */
+.section-card > .analysis-body { padding: 8rpx 22rpx 18rpx; }
+
+/* 概览 tab 的关键依据：最多三条，圆点起头，比 fact-row 的两栏布局更适合
+   单句要点。 */
+.evidence-list { padding: 4rpx 22rpx 18rpx; }
+.evidence-item {
+  display: flex;
+  padding: 14rpx 0;
+  gap: 10rpx;
+  color: #2a322c;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+.evidence-item + .evidence-item { border-top: 1rpx solid #edf0ee; }
+.evidence-item::before {
+  content: "";
+  flex: none;
+  width: 10rpx;
+  height: 10rpx;
+  margin-top: 10rpx;
+  border-radius: 50%;
+  background: #0b7a53;
+}
 
 .risk-card {
   margin-top: 16rpx;

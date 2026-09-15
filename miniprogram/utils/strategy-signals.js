@@ -75,6 +75,15 @@ function hkSignal(item, evidence = {}) {
       basis: "事件样本，不是持续收益策略",
     };
   }
+  if (item?.group === "settled") {
+    return {
+      label: "等待结果",
+      tone: "muted",
+      action: "申购窗口已关闭，暗盘/首日结果公布前不构成新的操作依据。",
+      trigger: "暗盘或首日成交公布后，再按实际结果决定去留。",
+      basis: "配发结果已公布，尚未计入历史样本",
+    };
+  }
   if (raw.withdrawn || raw.researchView?.state === "withdrawn") {
     return {
       label: "不再申购",

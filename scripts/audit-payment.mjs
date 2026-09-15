@@ -158,7 +158,9 @@ assert(legalPage.includes("普通小程序微信支付") && !legalPage.includes(
 assert(`${memberTemplate}\n${legalPage}`.includes("导出") && !memberTemplate.includes("数据更新提醒"), "会员页承诺必须与首期实际交付一致");
 assert(memberTemplate.includes("365 天") && client.includes("¥1,288 / 年"), "会员页未展示唯一的 1288 元年度方案");
 assert(memberTemplate.includes("¥1,288") && memberTemplate.includes("365 天") && memberTemplate.includes("不自动续费"), "会员主页面缺少清晰的年费与续费说明");
-assert(memberStyles.includes("font-size: 54rpx") && memberStyles.includes("min-height: 82rpx"), "会员价格或底部固定购买按钮不符合长辈友好尺寸");
+// dfd074e 把会员价格从重复的 .plan-card（54rpx）前移到顶部状态区的 .member-price，
+// 改大到 72rpx——尺寸变大不是变小，长辈友好的意图没有变，这里改认新类名的当前值。
+assert(memberStyles.includes("font-size: 72rpx") && memberStyles.includes("min-height: 82rpx"), "会员价格或底部固定购买按钮不符合长辈友好尺寸");
 assert(memberTemplate.includes('class="pay-dock"') && memberStyles.includes("position: fixed") && memberTemplate.includes("立即微信支付"), "会员页缺少始终可见的一键支付入口");
 assert(memberPage.includes('plan.id === ANNUAL_PLAN.id') && memberPage.includes('id: "research-365d"'), "客户端没有拒绝旧的 30/90 天远端方案");
 assert(workspaceTemplate.includes("到期后仍可") && workspaceTemplate.includes("导出") && workspaceTemplate.includes("删除"), "工作台缺少到期用户的数据可携带边界");

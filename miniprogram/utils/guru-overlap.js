@@ -9,11 +9,15 @@ function normalizeSymbol(ticker) {
 function profileHoldings(profile, snapshot) {
   const live = (snapshot?.investors || []).find((item) => item.id === profile.id);
   if (live && Array.isArray(live.holdings) && live.holdings.length) {
-    return live.holdings.map((holding) => ({
-      ticker: holding.ticker,
-      name: holding.issuer || holding.ticker,
-      weight: holding.weight,
-    }));
+    // 期权仓位不算「重叠持仓」：一家买正股、一家买这只票的看跌期权，方向可能
+    // 完全相反，不能算作两家机构看法一致。重叠只统计正股持仓。
+    return live.holdings
+      .filter((holding) => !holding.putCall)
+      .map((holding) => ({
+        ticker: holding.ticker,
+        name: holding.issuer || holding.ticker,
+        weight: holding.weight,
+      }));
   }
   return (profile.holdings || []).map(([ticker, name, weight]) => ({ ticker, name, weight }));
 }

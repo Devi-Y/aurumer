@@ -220,9 +220,10 @@ function buildNewsFeed(snapshot) {
       if (market === "hk") {
         if (badge === "资料不够") add("资料不够，暂不给结论");
         else if (okBadges.has(badge)) add(badge);
-        if (entry.group === "ended") {
-          // 刚挂牌的那几只还没有首日/暗盘数据，排不进样本名次。这时说
-          // 「结果待披露」而不是留白：读者看到的是一条「XX 新上市公告」，
+        if (entry.group === "ended" || entry.group === "settled") {
+          // 刚挂牌的那几只还没有首日/暗盘数据，排不进样本名次；已出配发结果
+          // 但还没到暗盘/首日的（settled）同样没有 rank，走的是同一句文案。
+          // 说「结果待披露」而不是留白：读者看到的是一条「XX 新上市公告」，
           // 得知道我们还答不上「卖多少合适」，不是忘了写。
           add(entry.rank ? `历史样本第 ${entry.rank}/${endedTotal()}` : "已挂牌，结果待披露");
         }

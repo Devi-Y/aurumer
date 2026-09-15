@@ -216,8 +216,14 @@ const DAILY_FACT_IDS = {
   hk: ['hk-new', 'hk-avoid'],
   us: ['us-cheap', 'us-risk'],
   a: ['a-core', 'a-cycle', 'a-add', 'a-trim'],
-  gold: ['gold-usd-hold', 'gold-usd-sell', 'gold-cny-hold', 'gold-cny-sell'],
-  guru: ['guru-why', 'guru-learn', 'guru-avoid'],
+  // gold-usd-hold/gold-usd-sell/gold-cny-hold/gold-cny-sell 四张卡在同一次改版里被
+  // 按问题重拆为下面四张——旧 id 消失后 evidence 常年为空，黄金结论卡静默不渲染，
+  // 这里改认现在的四张卡（下面 gold 分支里读卡片的逻辑也一并改掉了）。
+  gold: ['gold-price', 'gold-buy', 'gold-sell', 'gold-turn'],
+  // guru-why/guru-learn/guru-avoid 三张卡在 f6d9ce3→2bbaa38 的改版里被拆分合并进
+  // guru-add/guru-cut/guru-trend——旧 id 全部消失后这里一直匹配不到任何卡，
+  // evidence 常年为空，机构结论卡在每日驾驶舱静默不渲染，这里改认现在的四张卡。
+  guru: ['guru-holdings', 'guru-add', 'guru-cut', 'guru-trend'],
 };
 
 function digestItem(cards, id) {
@@ -238,16 +244,6 @@ function compactPriceSignal(value) {
     .replace(/现价[¥$]?[\d.,]+[，,]\s*/gu, '')
     .split(' · ')[0]
     .trim();
-}
-
-function compactGoldSignal(cards, holdId, sellId, label, prefix) {
-  const hold = digestValue(cards, holdId);
-  const sell = digestValue(cards, sellId);
-  const current = hold.match(/现价\s*([\d.,]+)/u)?.[1] || '待核验';
-  const lower = hold.match(/≤\s*([\d.,]+)/u)?.[1] || '—';
-  const upper = sell.match(/≥\s*([\d.,]+)/u)?.[1] || '—';
-  const state = hold.includes('进入') ? '持有观察' : sell.includes('进入') ? '卖出观察' : hold.includes('未到') && sell.includes('未到') ? '区间外' : '待核验';
-  return {answer:`${label} ${prefix}${current}：${state}`, threshold:`${label} ≤${lower} / ≥${upper}`};
 }
 
 function dailyStrategyCard(market, type, href, source) {
@@ -288,14 +284,23 @@ function dailyStrategyCard(market, type, href, source) {
       nextStep: `价格纪律：${addSignal}；${trimSignal}`,
     };
   } else if (market === 'gold') {
-    const international = compactGoldSignal(cards, 'gold-usd-hold', 'gold-usd-sell', '美元金', '$');
-    const domestic = compactGoldSignal(cards, 'gold-cny-hold', 'gold-cny-sell', '人民币金', '¥');
+    const buy = digestItem(cards, 'gold-buy');
+    const sell = digestItem(cards, 'gold-sell');
+    // 旧模型按「美元金/人民币金」拆两张卡，各自现价能用正则从 goldNextLine() 的固定
+    // 文案里抠出来；f6d9ce3→2bbaa38 改成按问题拆卡后，answer 把两个口径合成一句，
+    // 正则抠不出单一现价了。改用卡片自带的 tone 判断信号——gold-buy 的 tone 为
+    // good 就是买入观察，gold-sell 的 tone 为 bad/warn 就是风险/卖出观察——
+    // 跟 daily-answers.js 的 buildHomeDigest 判断黄金信号的口径一致
+    // （不对 answer 文案做正则，文案会改，tone 不会）。
+    const sellActive = sell?.tone === 'bad' || sell?.tone === 'warn';
+    const buyActive = buy?.tone === 'good';
+    const active = sellActive ? sell : (buyActive ? buy : null);
     config = {
-      status: international.answer.includes('观察') || domestic.answer.includes('观察') ? '进入观察' : '区间外',
-      tone: international.answer.includes('卖出') || domestic.answer.includes('卖出') ? 'risk' : 'wait',
+      status: active ? '进入观察' : '区间外',
+      tone: sellActive ? 'risk' : (buyActive ? 'good' : 'wait'),
       title: '美元金 + 人民币金',
-      answer: `${international.answer}；${domestic.answer}。`,
-      nextStep: `阈值：${international.threshold}；${domestic.threshold}。`,
+      answer: `${digestValue(cards, 'gold-price')}；${active ? active.answer : '买卖两侧都未到观察区，继续观察'}。`,
+      nextStep: `阈值：${[buy?.names && `买入 ${buy.names}`, sell?.names && `卖出 ${sell.names}`].filter(Boolean).join('；') || '待核验'}`,
     };
   } else {
     config = {

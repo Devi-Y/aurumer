@@ -13,31 +13,17 @@ const require = createRequire(import.meta.url);
 const { sanitizeSnapshot } = require("../cloudfunctions/aurum-data/sanitize.js");
 const publicSnapshot = sanitizeSnapshot(snapshot);
 
-const HISTORY_LIMIT = 24;
-
-function sampleNumbers(values, limit = HISTORY_LIMIT) {
-  if (!Array.isArray(values) || values.length <= limit) return values;
-  const last = values.length - 1;
-  return Array.from({ length: limit }, (_, index) => {
-    const sourceIndex = Math.round((index / Math.max(1, limit - 1)) * last);
-    return values[sourceIndex];
-  });
-}
-
 function slimForMiniProgram(data) {
   const next = structuredClone(data);
-  if (next.us && Array.isArray(next.us.stocks)) {
-    next.us.stocks = next.us.stocks.map((stock) => ({
-      ...stock,
-      history: sampleNumbers(stock.history, HISTORY_LIMIT),
-    }));
-  }
-  // 黄金历史不抽稀。us.stocks 的 history 只喂走势小图，抽到 24 点看不出来；
-  // 黄金这条是「拐点变化」那张卡的计算输入，goldTurningPoint 要满 60 个收盘价
-  // 才肯出结论（不足就返回 null，不拿短窗口凑）。抽到 24 点等于把这张卡永久
-  // 焊死在「样本不足，暂不下判断」上——线上走云函数读全量本来是好的，可
-  // data/daily-digest.json 是拿这份精简快照算出来的，公开站和离线兜底就一直
-  // 是死卡。180 个点全留下也只多 5.6KB。
+  // us.stocks 的 history 曾经在这里被抽到 24 点，注释写的是「只喂走势小图」——
+  // 但 pages/detail/index.js 的 meterVisual/historyStats/stockRange 直接拿
+  // raw.history 算「近 60 日位置」「近 60 日中位数」「样本交易日」，抽样后的
+  // 24 点既不等于真实 60 日高低（抽样点未必落在真正的最高/最低那天），也让
+  // 「样本交易日」显示成 24 个而非 60 个——用展示点数代替了真实样本量，是
+  // 一个真实存在过的计算用抽样数据的 bug（NVDA 实测：真实 60 日位置 83%，
+  // 抽样后算出 87%）。priceVisual 自己已经会按最多 36 列再抽一遍做柱状展示，
+  // 不依赖这里传入的数组长度，所以这里不再抽稀，直接把完整历史交给计算函数；
+  // 30 只股票 × 60 点全量，体积增量以 KB 计，可忽略。
   return next;
 }
 
@@ -78,5 +64,5 @@ try {
 
 const digest = await writeDailyDigest(slimSnapshot);
 const bytes = Buffer.byteLength(JSON.stringify(slimSnapshot), "utf8");
-console.log(`小程序离线快照已同步：${slimSnapshot.updatedAt}（约 ${Math.round(bytes / 1024)} KB，个股走势采样 ${HISTORY_LIMIT} 点、黄金历史全量）`);
+console.log(`小程序离线快照已同步：${slimSnapshot.updatedAt}（约 ${Math.round(bytes / 1024)} KB，个股走势与黄金历史均为全量、不抽稀）`);
 console.log(`今日答案摘要已同步：港${digest.markets.hk.length} / 美${digest.markets.us.length} / A${digest.markets.a.length} / 金${digest.markets.gold.length} / 机构${digest.markets.guru.length} 问`);

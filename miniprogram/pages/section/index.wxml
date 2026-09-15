@@ -337,7 +337,7 @@
       <view class="a-table" wx:if="{{aYieldList.length}}">
         <view class="a-table-head">
           <text class="a-col-name">股票</text>
-          <text class="a-col-metric">股息率</text>
+          <text class="a-col-metric">可持续股息率</text>
           <text class="a-col-buy">参考买</text>
           <text class="a-col-sell">参考卖</text>
         </view>
@@ -349,7 +349,7 @@
           bindtap="openADetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，第{{item.rank}}名，股息率{{item.metricText}}"
+          aria-label="{{item.name}}，第{{item.rank}}名，可持续股息率{{item.metricText}}"
         >
           <view class="a-col-name">
             <view class="a-name-row">
@@ -381,7 +381,7 @@
       </view>
       <view class="a-details-body" wx:if="{{aEvidenceOpen}}">
         <text wx:if="{{aSubTab === 'stable'}}">排序依据分红覆盖率、自由现金流、现金转化率与ROE加权算出的稳定性分，分越高越拿得住。</text>
-        <text wx:else>排序依据当前股息率，从高到低；参考买卖价按可持续股息率区间回推，不是保证成交价。</text>
+        <text wx:else>先排除高息待核（靠不住的高息）标的，剩下的按可持续股息率从高到低排；参考买卖价按可持续股息率区间回推，不是保证成交价。</text>
         <text>样本仅覆盖已接入实时行情与财务数据的公开公司，缺失字段显示「待更新」，不编内容。</text>
       </view>
     </view>
@@ -638,6 +638,14 @@
         aria-role="button"
         aria-selected="{{guruSubTab === 'holdings'}}"
       >机构持仓</view>
+      <view
+        class="a-tab {{guruSubTab === 'history' ? 'is-active' : ''}}"
+        data-id="history"
+        bindtap="switchGuruSubTab"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-selected="{{guruSubTab === 'history'}}"
+      >持仓走势</view>
     </view>
 
     <block wx:if="{{guruSubTab === 'trend'}}">
@@ -762,6 +770,78 @@
           <view class="a-details-body" wx:if="{{guruEvidenceOpen}}">
             <text>持仓来自机构依法定期披露的公开报告（如13F），不是券商后台的实时数据。</text>
             <text>披露截止日与实际持仓变动之间存在滞后，披露之外的仓位调整看不到；样本仅覆盖已接入的机构，缺失字段显示「待更新」，不编内容。</text>
+          </view>
+        </view>
+      </block>
+      <view class="a-empty" wx:else><text>机构样本待更新。</text></view>
+    </block>
+
+    <block wx:if="{{guruSubTab === 'history'}}">
+      <block wx:if="{{guruInstitutionList.length}}">
+        <text class="hk-picker-label">选择机构</text>
+        <picker
+          class="hk-picker"
+          mode="selector"
+          range="{{guruInstitutionList}}"
+          range-key="name"
+          value="{{guruInstitutionIndex}}"
+          bindchange="selectGuruInstitution"
+        >
+          <view class="hk-picker-value">
+            <text>{{guruInstitutionName}}</text>
+            <text class="hk-picker-caret">▾</text>
+          </view>
+        </picker>
+
+        <view class="a-hint"><text>{{guruHistoryHint}}</text></view>
+
+        <view wx:if="{{guruHistoryChart}}" class="guru-history-chart">
+          <view class="guru-history-bars">
+            <view wx:for="{{guruHistoryChart.columns}}" wx:for-item="col" wx:key="id" class="guru-history-slot">
+              <view class="guru-history-bar {{col.tone}}" style="height: {{col.height}}%;"></view>
+            </view>
+          </view>
+          <view class="guru-history-ticks">
+            <text wx:for="{{guruHistoryChart.columns}}" wx:for-item="col" wx:key="id" class="guru-history-tick">{{col.label}}</text>
+          </view>
+          <view class="guru-history-labels">
+            <text>{{guruHistoryChart.lowLabel}}</text>
+            <text>{{guruHistoryChart.latestLabel}}</text>
+            <text>{{guruHistoryChart.highLabel}}</text>
+          </view>
+        </view>
+        <view class="a-empty" wx:else><text>{{guruHistoryChartEmptyText}}</text></view>
+
+        <view class="a-table" wx:if="{{guruHistoryRowsData.length}}">
+          <view class="a-table-head">
+            <text class="a-col-name">报告期</text>
+            <text class="a-col-metric">持仓规模</text>
+            <text class="guru-col-move">较上期</text>
+          </view>
+          <view wx:for="{{guruHistoryRowsData}}" wx:for-item="row" wx:key="key" class="a-table-row">
+            <view class="a-col-name"><text class="a-stock-name">{{row.period}}</text></view>
+            <text class="a-col-metric">{{row.valueText}}</text>
+            <text class="guru-col-move">{{row.moveText}}</text>
+          </view>
+        </view>
+
+        <text class="a-risk-line">季度披露之间的具体调仓时点看不到，图表只能反映披露日快照的规模变化，不代表持续走势。</text>
+
+        <view class="a-details">
+          <view
+            class="a-details-toggle"
+            bindtap="toggleGuruEvidence"
+            hover-class="tap-active"
+            aria-role="button"
+            aria-label="趋势图怎么来的"
+          >
+            <text>趋势图怎么来的</text>
+            <text>{{guruEvidenceOpen ? '−' : '+'}}</text>
+          </view>
+          <view class="a-details-body" wx:if="{{guruEvidenceOpen}}">
+            <text>SEC 13F 与东方财富基金季报按季更新，取最近可回溯的公开报告期，最多8期；较新的私募基金若成立不满8个季度，图表只画实际有的期数，不用空值凑数。</text>
+            <text>东方财富的十大重仓股接口不披露基金总规模与持仓数，这类机构（华夏大盘精选等3只A股基金）每期只有新增/清仓与前十持仓，规模趋势图暂时画不出来，下方表格如实标注「暂缺」。</text>
+            <text>Trustnet、Value Partners两个来源只提供最新一期PDF快照，没有可访问的历史归档，这两家机构暂时看不到趋势图。</text>
           </view>
         </view>
       </block>

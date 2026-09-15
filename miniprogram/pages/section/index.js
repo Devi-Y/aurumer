@@ -21,6 +21,7 @@ const { marketSources } = require("../../utils/sources");
 // 「机构持仓」的共识加减仓聚合，和今日答案卡片（未来持仓趋势）同一份计算，
 // 不重新写一遍 13F 方向统计。
 const { buildGuruTrend } = require("../../utils/guru-trend");
+const { holdingLabel } = require("../../utils/guru-changes");
 // 页头那句「数据截至 …」和新闻资讯页共用同一个写法。
 const { asOfText } = require("../../utils/dates");
 
@@ -118,17 +119,22 @@ const HK_APPLY_GUIDANCE_EMPTY = "证据不足，暂不形成价格判断。";
 function hkTone(group) {
   if (group === "worth") return "worth";
   if (group === "caution") return "caution";
+  if (group === "settled") return "settled";
   return "avoid";
 }
 
-// 「近期申购」「中签后」两个视图共用同一批在售新股，只是各取各的字段——
-// 和原型 hkStocks 一份数据喂两个视图是同一个思路，这里换成真实数据源。
+// 「近期申购」取还在接受申购的三档（值得打/暂缓观察/暂不建议）；「中签后」
+// 取已出配发结果、还没被上游归档进历史的一档（group:"settled"）。两个视图
+// 曾经共用同一份「live」过滤池，导致一只股票配发结果一出就同时从两边消失——
+// 现在按各自的真实生命周期阶段分开取数，一只股票任一时刻只属于其中一边。
 function buildHkModule(snapshot) {
-  const items = allItems(snapshot, "hk").filter((item) => (item.lenses || []).includes("live"));
+  const items = allItems(snapshot, "hk");
   const priority = { worth: 0, caution: 1, avoid: 2 };
-  const sorted = [...items].sort((left, right) => (priority[left.group] ?? 3) - (priority[right.group] ?? 3));
+  const applyItems = items.filter((item) => (item.lenses || []).includes("live"));
+  const sortedApply = [...applyItems].sort((left, right) => (priority[left.group] ?? 3) - (priority[right.group] ?? 3));
+  const exitItems = items.filter((item) => item.group === "settled");
 
-  const applyList = sorted.map((item) => ({
+  const applyList = sortedApply.map((item) => ({
     id: item.id,
     name: shortCompanyName(item.name, item.code || "新股", 10),
     code: String(item.code || "").replace(/\.HK$/i, ""),
@@ -142,7 +148,7 @@ function buildHkModule(snapshot) {
     ? `${applyList.length} 只新股申购中${worthCount ? ` · ${worthCount} 只值得优先关注` : ""}`
     : "暂无在售新股";
 
-  const exitList = sorted.map((item) => {
+  const exitList = exitItems.map((item) => {
     const plan = buildHkExitPlan(item, { evidence: strategyEvidence, snapshot });
     const offerNum = parseOfferPrice(item.raw && item.raw.offerPrice);
     const offerLabel = offerNum != null ? `发行价 HK$ ${offerNum}` : "发行价待更新";
@@ -258,11 +264,13 @@ function aRankedList(items, lens) {
     .sort((left, right) => left.lensRank[lens] - right.lensRank[lens])
     .map((item) => {
       const plan = yieldImpliedPlan(item.raw);
-      const yieldNow = Number(item.raw.currentDividendYield);
+      // yield5 现在按可持续股息率排序（先过滤高息待核），这一列必须跟排序
+      // 依据同一个数，不能继续显示当前股息率——那是另一个数，会和名次对不上。
+      const sustainableYield = Number(item.raw.sustainableDividendYield);
       const stability = aShareDividendStability(item.raw);
       const metricText = lens === "stable5"
         ? (stability != null ? `${stability} 分` : "待更新")
-        : (Number.isFinite(yieldNow) ? `${yieldNow.toFixed(1)}%` : "待更新");
+        : (Number.isFinite(sustainableYield) ? `${sustainableYield.toFixed(1)}%` : "待更新");
       return {
         id: item.id,
         rank: item.lensRank[lens],
@@ -289,7 +297,7 @@ function buildAModule(snapshot) {
     ? `${stableList.length} 只入围 · 分红稳定性从高到低`
     : "分红稳定性榜单暂不足以显示";
   const yieldHint = yieldList.length
-    ? `${yieldList.length} 只入围 · 当前股息率从高到低`
+    ? `${yieldList.length} 只入围 · 先过滤高息待核，按可持续股息率从高到低`
     : "分红收益性榜单暂不足以显示";
   const fundItem = items.find((item) => item.raw && item.raw.assetType === "fund");
   const fund = fundItem ? { name: fundItem.name, code: fundItem.code, note: fundItem.one } : null;
@@ -514,6 +522,70 @@ function guruTrendRowsFrom(trend) {
   return rows.map((row) => guruTrendRow(row, trend.investorCount || 0));
 }
 
+// 报告期"2026-06-30" → "26Q2"，8 期历史挤在一条横向图表里，完整日期放不下。
+function guruQuarterLabel(reportDate) {
+  const match = /^(\d{4})-(\d{2})-\d{2}$/.exec(String(reportDate || ""));
+  if (!match) return reportDate || "待更新";
+  const quarter = Math.ceil(Number(match[2]) / 3);
+  return `${match[1].slice(2)}Q${quarter}`;
+}
+
+// 机构持仓规模用"亿/万亿"这类中文财经媒体惯用单位，不是原始美元/人民币数字。
+function guruFundSizeText(value, currency) {
+  if (!Number.isFinite(Number(value))) return "暂缺";
+  const amount = Number(value);
+  const trim = (text) => String(text).replace(/\.0$/, "");
+  if (Math.abs(amount) >= 1e12) return `${currency}${trim((amount / 1e12).toFixed(2))}万亿`;
+  if (Math.abs(amount) >= 1e8) return `${currency}${trim((amount / 1e8).toFixed(1))}亿`;
+  if (Math.abs(amount) >= 1e4) return `${currency}${trim((amount / 1e4).toFixed(1))}万`;
+  return `${currency}${amount.toFixed(0)}`;
+}
+
+// history 按 reportDate 逆序存放（最新在前），图表按时间从左到右读，先转成正序。
+function guruHistoryChart(history, currency) {
+  const rows = (history || []).filter((row) => row && Number.isFinite(Number(row.portfolioValue)));
+  if (rows.length < 2) return null;
+  const chronological = [...rows].reverse();
+  const values = chronological.map((row) => Number(row.portfolioValue));
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  const latest = values[values.length - 1];
+  const span = Math.max(high - low, 1);
+  return {
+    columns: chronological.map((row, index) => {
+      const value = values[index];
+      const isLatest = index === values.length - 1;
+      const isHigh = value === high;
+      const isLow = value === low;
+      return {
+        id: `${index}-${row.reportDate}`,
+        label: guruQuarterLabel(row.reportDate),
+        height: Math.round(16 + ((value - low) / span) * 84),
+        tone: isLatest ? "latest" : (isHigh ? "peak" : (isLow ? "floor" : "")),
+      };
+    }),
+    lowLabel: `最低 ${guruFundSizeText(low, currency)}`,
+    latestLabel: `最新 ${guruFundSizeText(latest, currency)}`,
+    highLabel: `最高 ${guruFundSizeText(high, currency)}`,
+  };
+}
+
+// 图表只画持仓规模的形状，具体每期的持仓数/新增清仓数还是要靠表格给准确数字。
+function guruHistoryRows(history, currency) {
+  return (history || []).map((row) => {
+    const hasNew = Number.isFinite(Number(row.newCount));
+    const hasSold = Number.isFinite(Number(row.soldCount));
+    return {
+      key: row.reportDate || `${Math.random()}`,
+      period: guruQuarterLabel(row.reportDate),
+      reportDate: row.reportDate || "待更新",
+      valueText: guruFundSizeText(row.portfolioValue, currency),
+      positionCountText: Number.isFinite(Number(row.positionCount)) ? `${row.positionCount}只` : "暂缺",
+      moveText: hasNew || hasSold ? `新增${hasNew ? Number(row.newCount) : 0} · 清仓${hasSold ? Number(row.soldCount) : 0}` : "无更早数据可比",
+    };
+  });
+}
+
 function buildGuruModule(snapshot) {
   const profiles = allItems(snapshot, "guru").filter((item) => item.group !== "overlap");
   const trend = buildGuruTrend(snapshot);
@@ -527,15 +599,29 @@ function buildGuruModule(snapshot) {
   profiles.forEach((item) => {
     const holdings = Array.isArray(item.raw?.holdings) ? item.raw.holdings : [];
     const rows = holdings.slice(0, 5).map((holding) => ({
-      name: holding.name || holding.ticker || "待更新",
+      name: holdingLabel(holding),
       weightText: Number.isFinite(Number(holding.weight)) ? `${Number(holding.weight).toFixed(1)}%` : "待更新",
       moveText: holding.changeLabel || "待更新",
     }));
+    // 美股 13F 经理（group:us/hk）披露单位是美元，东方财富A股基金（group:a）是人民币。
+    const currency = item.group === "a" ? "¥" : "$";
+    const history = Array.isArray(item.raw?.history) ? item.raw.history : [];
     holdingsByInstitution[item.id] = {
       rows,
       hint: rows.length ? `重仓前 ${rows.length} · 按披露顺序排列` : "暂无持仓披露",
       reportDate: item.raw?.reportDate || "以最新公开报告为准",
       filingDate: item.raw?.filingDate || "以原始文件为准",
+      historyChart: guruHistoryChart(history, currency),
+      historyRowsData: guruHistoryRows(history, currency),
+      historyHint: history.length >= 2
+        ? `近 ${history.length} 期季度披露 · 按报告期排列`
+        : "该机构暂未接入多期历史，仅有最新一期公开披露",
+      // 东方财富十大重仓股接口不披露基金总规模/持仓数，即使有多期 history，
+      // portfolioValue 也一直是 null，图表画不出来；措辞要跟"完全没有多期历史"
+      // 区分开，不能让人以为下面连新增/清仓表都没有。
+      historyChartEmptyText: history.length >= 2
+        ? "该来源未披露基金规模与持仓数，暂不能画规模趋势图；下方各期新增/清仓变化仍可参考"
+        : "该机构暂未接入多期历史，仅有最新一期公开披露，暂不足以画趋势图",
     };
   });
   const defaultId = String(
@@ -546,7 +632,16 @@ function buildGuruModule(snapshot) {
   return { profiles, trend, trendRows, institutionList, holdingsByInstitution, defaultId };
 }
 
-const GURU_EMPTY_HOLDINGS = { rows: [], hint: "持仓证据不足，暂不展示", reportDate: "", filingDate: "" };
+const GURU_EMPTY_HOLDINGS = {
+  rows: [],
+  hint: "持仓证据不足，暂不展示",
+  reportDate: "",
+  filingDate: "",
+  historyChart: null,
+  historyRowsData: [],
+  historyHint: "机构样本待更新",
+  historyChartEmptyText: "机构样本待更新",
+};
 
 // 机构切换（「跟着谁看」点行 / 「重仓前五」下拉选）共用同一份「预先算好
 // 全部、只挑一个」的模式，和 resolveHkExitSelection、resolveGoldView 一路。
@@ -568,7 +663,7 @@ function resolveGuruInstitution(guruModule, institutionId) {
 
 function buildOverview(snapshot, market) {
   if (market === "hk") {
-    const items = allItems(snapshot, "hk").filter((item) => item.group !== "ended");
+    const items = allItems(snapshot, "hk").filter((item) => item.group !== "ended" && item.group !== "settled");
     const live = items.filter((item) => item.group !== "cancelled");
     const suggest = items.filter((item) => item.group === "worth");
     const lead = suggest[0] || live[0];
@@ -859,6 +954,10 @@ Page({
     guruHoldingsHint: "",
     guruReportDate: "",
     guruFilingDate: "",
+    guruHistoryChart: null,
+    guruHistoryRowsData: [],
+    guruHistoryHint: "",
+    guruHistoryChartEmptyText: "",
     guruEvidenceOpen: false,
     // 「今日答案/分组浏览/策略摘要/数据出处」四块内容原来从上到下摞在一起，
     // 现在收进横向 tab，同一屏只看其中一块，切换靠点顶部的分段控件。
@@ -920,6 +1019,7 @@ Page({
         countOf("caution") ? `暂缓观察 ${countOf("caution")}` : null,
         countOf("avoid") ? `暂不建议 ${countOf("avoid")}` : null,
       ].filter(Boolean).join(" · ");
+      const settledCount = countOf("settled");
       return [
         {
           id: "history",
@@ -934,6 +1034,13 @@ Page({
           title: "在售新股",
           help: liveCount > 0 ? `在售 ${liveCount} 只 · ${liveBreakdown}` : "当前没有在售新股",
           enabled: liveCount > 0,
+        },
+        {
+          id: "settled",
+          group: "settled",
+          title: "中签后观察",
+          help: settledCount > 0 ? `已配发 ${settledCount} 只 · 暗盘/首日观察中` : "暂无已配发新股",
+          enabled: settledCount > 0,
         },
       ];
     }
@@ -1071,6 +1178,10 @@ Page({
         guruHoldingsHint: guruSelection.holdings.hint,
         guruReportDate: guruSelection.holdings.reportDate,
         guruFilingDate: guruSelection.holdings.filingDate,
+        guruHistoryChart: guruSelection.holdings.historyChart,
+        guruHistoryRowsData: guruSelection.holdings.historyRowsData,
+        guruHistoryHint: guruSelection.holdings.historyHint,
+        guruHistoryChartEmptyText: guruSelection.holdings.historyChartEmptyText,
       });
     }, done, { force });
   },
@@ -1187,6 +1298,10 @@ Page({
       guruHoldingsHint: selection.holdings.hint,
       guruReportDate: selection.holdings.reportDate,
       guruFilingDate: selection.holdings.filingDate,
+      guruHistoryChart: selection.holdings.historyChart,
+      guruHistoryRowsData: selection.holdings.historyRowsData,
+      guruHistoryHint: selection.holdings.historyHint,
+      guruHistoryChartEmptyText: selection.holdings.historyChartEmptyText,
     });
     track("section_guru_institution_select", { id: String(selection.id || "") });
   },

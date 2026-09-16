@@ -271,11 +271,12 @@ const liveDataFunction = await readFile(path.join(root, "cloudfunctions", "aurum
 const liveDataSanitizer = await readFile(path.join(root, "cloudfunctions", "aurum-data", "sanitize.js"), "utf8");
 const hkExitPlan = await readFile(path.join(miniRoot, "utils", "hk-exit-plan.js"), "utf8");
 const detailContract = `${detailSource}\n${detailTemplate}`;
-// 黄金/聪明钱详情页仍是原六标签结构，本轮未改动。
-const expectedGoldGuruModuleLabels = ["结论", "金价", "驱动", "资料", "研究", "风险", "持仓", "业绩"];
-// 美股/A股/港股新股详情页改为“决策概览＋四标签”，标签集随之更新（原“价格/财务”六标签
-// 时代命名已被下方新标签取代，不再要求“财务”作为独立标签存在）。
-const expectedMarketModuleLabels = ["概览", "价格", "动态", "依据", "分红", "申购", "卖出"];
+// 黄金详情页仍是原六标签结构，本轮未改动。
+const expectedGoldModuleLabels = ["结论", "金价", "驱动", "资料", "研究", "风险"];
+// 美股/A股/港股新股/机构持仓详情页改为“决策概览＋标签”，标签集随之更新（原“价格/财务”
+// 六标签时代命名已被下方新标签取代，不再要求“财务”作为独立标签存在；机构持仓的“持仓”
+// 标签沿用旧名但内容已改为专属的持仓构成图+明细，不再是六标签之一）。
+const expectedMarketModuleLabels = ["概览", "价格", "动态", "依据", "分红", "申购", "卖出", "持仓"];
 assert(
   detailTemplate.includes('scroll-x="true"')
   && detailTemplate.includes('class="detail-tabs"')
@@ -283,7 +284,7 @@ assert(
   && detailSource.includes("switchModule"),
   "详情页缺少横向滑动模块",
 );
-for (const label of [...expectedGoldGuruModuleLabels, ...expectedMarketModuleLabels]) {
+for (const label of [...expectedGoldModuleLabels, ...expectedMarketModuleLabels]) {
   assert([...label].length === 2, `详情页模块名称不是 2 个字：${label}`);
   assert(detailSource.includes(`label: "${label}"`), `详情页缺少模块：${label}`);
 }

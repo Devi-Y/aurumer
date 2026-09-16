@@ -114,7 +114,7 @@
     </scroll-view>
 
     <view class="module-panel">
-      <view wx:if="{{activeModule == 'summary' && (view.market == 'gold' || view.market == 'guru')}}" class="module-content">
+      <view wx:if="{{activeModule == 'summary' && view.market == 'gold'}}" class="module-content">
         <text class="module-title">先看答案</text>
         <text class="module-answer">{{view.answer || '结论待核验'}}</text>
         <view wx:if="{{view.strategy}}" class="strategy-card tone-{{view.strategy.tone}}">
@@ -138,7 +138,7 @@
         <view wx:if="{{!view.answer}}" class="module-empty">当前没有可展示的结论。</view>
       </view>
 
-      <view wx:if="{{(activeModule == 'price' || activeModule == 'finance' || activeModule == 'research') && (view.market == 'gold' || view.market == 'guru')}}" class="module-content">
+      <view wx:if="{{(activeModule == 'price' || activeModule == 'finance' || activeModule == 'research') && view.market == 'gold'}}" class="module-content">
         <text class="module-title">{{activeModule == 'price' ? '价格与位置' : (activeModule == 'finance' ? '数据与质量' : '研究图表')}}</text>
         <block wx:if="{{activeCharts.length}}">
           <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
@@ -175,7 +175,7 @@
         </view>
       </view>
 
-      <view wx:if="{{activeModule == 'source' && (view.market == 'gold' || view.market == 'guru')}}" class="module-content">
+      <view wx:if="{{activeModule == 'source' && view.market == 'gold'}}" class="module-content">
         <text class="module-title">已披露资料</text>
         <view wx:if="{{view.facts.length}}" class="section-card">
           <view wx:for="{{view.facts}}" wx:key="*this" class="fact-row">
@@ -210,7 +210,7 @@
         <view wx:if="{{!view.facts.length && !view.holdings.length && !view.sourceLinks.length}}" class="module-empty">当前没有可公开展示的资料。</view>
       </view>
 
-      <view wx:if="{{activeModule == 'risk' && (view.market == 'gold' || view.market == 'guru')}}" class="module-content">
+      <view wx:if="{{activeModule == 'risk' && view.market == 'gold'}}" class="module-content">
         <text class="module-title">风险提醒</text>
         <view wx:if="{{view.riskItems && view.riskItems.length}}" class="risk-stack">
           <view wx:for="{{view.riskItems}}" wx:key="title" class="risk-card">
@@ -250,9 +250,9 @@
         </view>
       </view>
 
-      <!-- 美股/A股/港股新股：决策概览＋四标签，见说明四/五。黄金/机构持仓走
+      <!-- 美股/A股/港股新股/机构持仓：决策概览＋标签，见说明四/五。黄金走
            上面未改动的六标签，不会命中这里任何一个 activeModule 取值。 -->
-      <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk')}}" class="module-content">
+      <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru')}}" class="module-content">
         <text class="module-title">概览</text>
         <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
         <text wx:if="{{view.strategy && view.strategy.basis}}" class="collapsed-hint">口径：{{view.strategy.basis}}</text>
@@ -340,9 +340,24 @@
         <view wx:if="{{!(view.exitPlan && view.exitPlan.show) && !activeCharts.length}}" class="module-empty">当前没有可展示的卖出参考。</view>
       </view>
 
+      <view wx:if="{{activeModule == 'holdings' && view.market == 'guru'}}" class="module-content">
+        <text class="module-title">持仓构成</text>
+        <block wx:if="{{activeCharts.length}}">
+          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
+        </block>
+        <view wx:if="{{view.holdings.length}}" class="section-card">
+          <text class="block-title">机构持仓对照</text>
+          <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
+            <text>{{item.name}}</text>
+            <text>{{item.value}}</text>
+          </view>
+        </view>
+        <view wx:if="{{!activeCharts.length && !view.holdings.length}}" class="module-empty">当前没有可展示的持仓明细。</view>
+      </view>
+
       <!-- 依据：合并原「数据与质量」「研究图表」「已披露资料」「风险提醒」四个
-           旧标签的内容，美股/A股/港股新股共用同一个 tab，不再分四页翻。 -->
-      <view wx:if="{{activeModule == 'evidence' && (view.market == 'us' || view.market == 'a' || view.market == 'hk')}}" class="module-content">
+           旧标签的内容，美股/A股/港股新股/机构持仓共用同一个 tab，不再分多页翻。 -->
+      <view wx:if="{{activeModule == 'evidence' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru')}}" class="module-content">
         <text class="module-title">依据</text>
         <block wx:if="{{activeCharts.length}}">
           <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
@@ -383,7 +398,7 @@
             <text>{{item[1]}}</text>
           </view>
         </view>
-        <view wx:if="{{view.holdings.length}}" class="section-card">
+        <view wx:if="{{view.holdings.length && view.market != 'guru'}}" class="section-card">
           <text class="block-title">机构持仓对照</text>
           <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
             <text>{{item.name}}</text>

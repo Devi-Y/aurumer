@@ -1450,8 +1450,20 @@ function buildGuruView(base, item) {
     "仓位变化",
   );
 
-  setCharts(
-    base,
+  // 「持仓」标签只放持仓构成本身；「依据」标签放摘要+滞后位置。以前靠
+  // pricePattern/financePattern 两条正则去猜这 4 张图该进哪个旧标签，
+  // 正则把 4 张全吃进「持仓/业绩」两档，researchCharts 兜底 slice(-2) 又把
+  // 「仓位变化」重复搬进「研究」标签，同一张图显示了两遍。改成显式分组后
+  // 每张图只出现一次，也不用再猜。
+  base.holdingsCharts = [
+    solidVisual(holdings.slice(0, 8).map((holding) => ({
+      label: chartTicker(holding),
+      value: holding.weight,
+      valueText: formatNumber(holding.weight, "%"),
+    })), "持仓权重"),
+    changeBars,
+  ].filter(Boolean);
+  base.evidenceCharts = [
     // 这里原来把表观年化 ×3 截到 100 当成分数画进 0–100 刻度条，格子里还写着
     // 「研究分 23」——聪明人持仓根本没有研究分，这个 3 倍也没有任何口径依据。
     // 同组年化名次已经在核心数据里，下面几张图又全是真实披露，直接去掉。
@@ -1461,12 +1473,6 @@ function buildGuruView(base, item) {
       ["披露滞后", lagDays == null ? null : `${lagDays}天`],
       ["有变化标注", `${changed.length}`],
     ].filter((row) => row[1]), "本期摘要"),
-    solidVisual(holdings.slice(0, 8).map((holding) => ({
-      label: chartTicker(holding),
-      value: holding.weight,
-      valueText: formatNumber(holding.weight, "%"),
-    })), "持仓权重"),
-    changeBars,
     lagDays != null
       ? meterVisual(
         [0, Math.min(180, lagDays), 180],
@@ -1475,7 +1481,7 @@ function buildGuruView(base, item) {
         (value) => `${Math.round(value)}天`,
       )
       : null,
-  );
+  ].filter(Boolean);
 
   base.facts = compactFacts([
     ["机构", profile.name || item.name],
@@ -1718,7 +1724,7 @@ function buildGoldView(base, item) {
 // 决策概览：把结论/先看答案/策略信号里重复的判断合并成一句主判断+一句理由，
 // 首屏最多给 3 条依据、1 条风险、1 个下一步关注点，具体口径见 Section 五。
 function buildOverview(base, item) {
-  if (!["us", "a", "hk"].includes(item.market)) return;
+  if (!["us", "a", "hk", "guru"].includes(item.market)) return;
   const raw = item.raw || {};
   const strategy = base.strategy || {};
   const evidenceBullets = (base.analysis || [])
@@ -1767,6 +1773,14 @@ function buildOverview(base, item) {
       [watchLabel, watchValue],
     ], "阶段与关键节点");
     if (!priceCard) priceNote = "暂未形成参考区间";
+  } else if (item.market === "guru") {
+    // guru 没有价格，概览卡复用已经算好的 highlights（年化排名/持仓/退出/
+    // 披露滞后），跟 hk 的「阶段与关键节点」是同一种「关键数据前置」思路。
+    const highlightPairs = (base.highlights || [])
+      .map((tile) => [tile.label, tile.value])
+      .filter(([, value]) => value && value !== "—");
+    priceCard = highlightPairs.length ? metricTilesVisual(highlightPairs, "本期关键数据") : null;
+    if (!priceCard) priceNote = "暂未形成关键数据";
   }
 
   base.overview = {
@@ -1791,7 +1805,13 @@ function buildSourceLinks(item, snapshot) {
     );
   }
   if (item.market === "guru" && raw.sourceUrl) {
-    own.push({ id: "guru-edgar", name: `${item.name || "该机构"} 的 SEC EDGAR 备案`, url: raw.sourceUrl });
+    // 13F 机构（raw.isLive）确实备案在 SEC EDGAR；港股/A 股那几只基金没有 13F，
+    // 走的是基金月报/半年报，硬写「SEC EDGAR 备案」是张冠李戴。有 raw.source
+    // 就用它本来的名字（如「Value Partners 月报」），没有才退回「官方原文」。
+    const sourceLabel = raw.isLive
+      ? "SEC EDGAR 备案"
+      : raw.source || (raw.profile && raw.profile.sourceName) || "官方原文";
+    own.push({ id: "guru-source", name: `${item.name || "该机构"} 的 ${sourceLabel}`, url: raw.sourceUrl });
   }
   if (item.market === "us") {
     // 「同期公告」那张卡只写日期和事件类型，是我们的转述；能点开核对的原文
@@ -1805,7 +1825,12 @@ function buildSourceLinks(item, snapshot) {
       });
     }
   }
-  return dedupeSources(own.filter(Boolean).concat(marketSources(snapshot, item.market)));
+  // guru 栏目的市场级出处（sec）是给真正披露 13F 的机构用的；港股/A 股基金
+  // 没有 13F 义务，挂 SEC EDGAR 链接是张冠李戴——宁可少这一条，也不能挂错。
+  const marketLevel = marketSources(snapshot, item.market).filter(
+    (source) => !(item.market === "guru" && source.id === "sec" && !raw.isLive),
+  );
+  return dedupeSources(own.filter(Boolean).concat(marketLevel));
 }
 
 function detailView(item, snapshot) {
@@ -1909,16 +1934,13 @@ function detailModules(market) {
   }
   if (market === "guru") {
     return [
-      { id: "summary", label: "结论" },
-      { id: "price", label: "持仓" },
-      { id: "finance", label: "业绩" },
-      { id: "source", label: "资料" },
-      { id: "research", label: "研究" },
-      { id: "risk", label: "风险" },
+      { id: "overview", label: "概览" },
+      { id: "holdings", label: "持仓" },
+      { id: "evidence", label: "依据" },
     ];
   }
-  // 美股/A股/港股新股改为「决策概览＋四标签」，id 全部换新字符串，
-  // 避免和上面黄金/机构持仓仍在用的 summary/price/finance/source/research/risk
+  // 美股/A股/港股新股/机构持仓改为「决策概览＋标签」，id 全部换新字符串，
+  // 避免和上面黄金仍在用的 summary/price/finance/source/research/risk
   // 撞车——WXML 里旧六标签内容块只按 activeModule 判断，不看 market。
   if (market === "us") {
     return [
@@ -1945,11 +1967,11 @@ function detailModules(market) {
 }
 
 function buildDetailModules(view, market) {
-  // 美股/A股/港股新股：每个 buildXView 已经把图表直接分装进
+  // 美股/A股/港股新股/机构持仓：每个 buildXView 已经把图表直接分装进
   // trendCharts/dynamicsCharts/dividendCharts/subscribeCharts/sellCharts/
-  // evidenceCharts，不再靠标题正则去猜该进哪个 tab。黄金/机构持仓完全走
-  // 下面未改动的正则分类逻辑。
-  if (market === "us" || market === "a" || market === "hk") {
+  // holdingsCharts/evidenceCharts，不再靠标题正则去猜该进哪个 tab。黄金
+  // 还没排期迁移，仍走下面未改动的正则分类逻辑。
+  if (market === "us" || market === "a" || market === "hk" || market === "guru") {
     return {
       ...view,
       modules: detailModules(market),
@@ -1958,21 +1980,14 @@ function buildDetailModules(view, market) {
       dividendCharts: view.dividendCharts || [],
       subscribeCharts: view.subscribeCharts || [],
       sellCharts: view.sellCharts || [],
+      holdingsCharts: view.holdingsCharts || [],
       evidenceCharts: view.evidenceCharts || [],
     };
   }
   const charts = Array.isArray(view.charts) ? view.charts : [];
   const chartText = (chart) => String(chart?.title || "");
-  const pricePattern = market === "gold"
-    ? /金|价格|位置|买卖/u
-    : market === "guru"
-      ? /持仓|仓位|滞后/u
-      : /价格|位置|轨迹|涨跌|招股价|退出/u;
-  const financePattern = market === "gold"
-    ? /指标|驱动|位置/u
-    : market === "guru"
-      ? /业绩|摘要/u
-      : /股息|现金|成长|质量|利润|估值|认购|中签|发行规模/u;
+  const pricePattern = /金|价格|位置|买卖/u;
+  const financePattern = /指标|驱动|位置/u;
   const priceCharts = charts.filter((chart) => pricePattern.test(chartText(chart)));
   const financeCharts = charts.filter((chart) => !pricePattern.test(chartText(chart)) && financePattern.test(chartText(chart)));
   const researchCharts = charts.filter((chart) => !priceCharts.includes(chart) && !financeCharts.includes(chart));
@@ -1985,9 +2000,10 @@ function buildDetailModules(view, market) {
   };
 }
 
-// price/finance/research 是黄金/机构持仓沿用的旧 tab id；trend/dynamics/
-// dividend/subscribe/sell/evidence 是美股/A股/港股新股的新 tab id。refresh()
-// 和 switchModule() 共用这一份映射，避免两处各写一次、以后加 tab 漏改一处。
+// price/finance/research 是黄金沿用的旧 tab id；trend/dynamics/dividend/
+// subscribe/sell/holdings/evidence 是美股/A股/港股新股/机构持仓的新 tab id。
+// refresh() 和 switchModule() 共用这一份映射，避免两处各写一次、以后加 tab
+// 漏改一处。
 function chartsForModule(view, moduleId) {
   const chartMap = {
     price: view.priceCharts,
@@ -1998,6 +2014,7 @@ function chartsForModule(view, moduleId) {
     dividend: view.dividendCharts,
     subscribe: view.subscribeCharts,
     sell: view.sellCharts,
+    holdings: view.holdingsCharts,
     evidence: view.evidenceCharts,
   };
   return chartMap[moduleId] || [];

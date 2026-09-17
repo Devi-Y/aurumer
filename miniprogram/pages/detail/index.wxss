@@ -739,6 +739,24 @@
   background: #f7faf8;
 }
 
+.radar-chart-wrap { margin-top: 16rpx; }
+.radar-chart-canvas {
+  display: block;
+  width: 100%;
+  height: 320rpx;
+  border-radius: 8rpx;
+  background: #f7faf8;
+}
+
+.scatter-chart-wrap { margin-top: 16rpx; }
+.scatter-chart-canvas {
+  display: block;
+  width: 100%;
+  height: 240rpx;
+  border-radius: 8rpx;
+  background: #f7faf8;
+}
+
 .solid-chart {
   display: flex;
   height: 260rpx;

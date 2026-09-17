@@ -171,7 +171,7 @@ function buildHkExitPlan(item, options = {}) {
   const bands = buildHkExitBands(options.snapshot);
   const offer = parseOfferPrice(raw.offerPrice || raw.priceHigh || raw.priceLow);
 
-  const rows = ended
+  const computedRows = ended
     ? [
         {
           label: "已披露暗盘涨跌",
@@ -244,13 +244,20 @@ function buildHkExitPlan(item, options = {}) {
         },
       ].filter((row) => row.value && row.value !== "样本不足");
 
-  const ready = rows.some((row) => row.value && row.value !== "样本不足");
+  const ready = computedRows.some((row) => row.value && row.value !== "样本不足");
+  // 非 ended 这四行原来直接铺成文字，「超购1000倍以上4只：中位+137.1%、
+  // 4/4收正」这种句子一行塞了四个数字，读起来很费劲。这批数字现在改由
+  // hkExitTierBarsVisual() 画成横向柱状图（见 index.js），文字版只留给
+  // 已上市、只有三行短句的 ended 分支；non-ended 不再重复展示同一批数字，
+  // ready/show 仍按 computedRows 是否齐全判断，标题和 basis 说明照样保留。
+  const rows = ended ? computedRows : [];
 
   return {
     show: ready,
     memberActive: true,
     locked: false,
     title: ended ? "上市结果对照" : "打中后观察分位",
+    ended,
     rows,
     ready,
     basis: ended

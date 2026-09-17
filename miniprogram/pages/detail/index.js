@@ -6,7 +6,7 @@ const { freshnessBanner } = require("../../utils/freshness-ui");
 const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction, usHeatDriver } = require("../../utils/answers");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
-const { buildHkExitPlan } = require("../../utils/hk-exit-plan");
+const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
 const { isPositionChange, instrumentSuffix } = require("../../utils/guru-changes");
 const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lenses, MAGNIFICENT_SEVEN, goldTurningPoint } = require("../../utils/market-lenses");
 const { goldMonthDay } = require("../../utils/daily-answers");
@@ -283,6 +283,141 @@ function paintLineChart(ctx, width, height, values) {
   dot(lastIdx, "#0b7a53", 2.8);
 }
 
+// 雷达图画法：N 边形网格 + 数据多边形，坐标算法和 paintLineChart 一样先用
+// 真实数据跑通再搬进小程序 canvas；sin/cos 直接决定文字对齐方向，不需要把
+// 角度先归一化到某个区间。
+function paintRadarChart(ctx, width, height, axes) {
+  ctx.clearRect(0, 0, width, height);
+  const n = axes.length;
+  const cx = width / 2;
+  const cy = height / 2 + 4;
+  const labelPad = 30;
+  const radius = Math.max(20, Math.min(width, height) / 2 - labelPad);
+  const angleAt = (i) => -Math.PI / 2 + (i * 2 * Math.PI) / n;
+  const pointAt = (i, r) => {
+    const angle = angleAt(i);
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  };
+
+  ctx.strokeStyle = "#e4ebe6";
+  ctx.lineWidth = 1;
+  [0.25, 0.5, 0.75, 1].forEach((f) => {
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const [x, y] = pointAt(i % n, radius * f);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  });
+  for (let i = 0; i < n; i++) {
+    const [x, y] = pointAt(i, radius);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = "#dbe4de";
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  axes.forEach((axis, i) => {
+    const [x, y] = pointAt(i, radius * (axis.value / 100));
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = "rgba(11,122,83,0.22)";
+  ctx.fill();
+  ctx.strokeStyle = "#0b7a53";
+  ctx.lineWidth = 1.6;
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  axes.forEach((axis, i) => {
+    const [dotX, dotY] = pointAt(i, radius * (axis.value / 100));
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 2.6, 0, Math.PI * 2);
+    ctx.fillStyle = "#0b7a53";
+    ctx.fill();
+  });
+
+  ctx.font = "11px sans-serif";
+  axes.forEach((axis, i) => {
+    const angle = angleAt(i);
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const [lx, ly] = pointAt(i, radius + 14);
+    ctx.fillStyle = "#7a847e";
+    ctx.textAlign = Math.abs(cos) < 0.35 ? "center" : (cos > 0 ? "left" : "right");
+    ctx.textBaseline = Math.abs(sin) < 0.35 ? "middle" : (sin > 0 ? "top" : "bottom");
+    ctx.fillText(axis.label, lx, ly);
+  });
+}
+
+// 散点图画法：零轴（0%）是暗盘/首日涨跌天然的破发分界线，画成虚线；点数
+// 少（通常只有"本股"和"样本均值"两个），标签直接贴着点摆，不用图例。
+function paintScatterChart(ctx, width, height, points, xLabel, yLabel) {
+  ctx.clearRect(0, 0, width, height);
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
+  const padTop = 14, padBottom = 22, padLeft = 8, padRight = 8;
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+  const xMin = Math.min(0, ...xs);
+  const xMax = Math.max(0, ...xs);
+  const yMin = Math.min(0, ...ys);
+  const yMax = Math.max(0, ...ys);
+  const xPad = Math.max(xMax - xMin, 1e-6) * 0.25;
+  const yPad = Math.max(yMax - yMin, 1e-6) * 0.25;
+  const xLo = xMin - xPad, xHi = xMax + xPad;
+  const yLo = yMin - yPad, yHi = yMax + yPad;
+  const xAt = (v) => padLeft + ((v - xLo) / (xHi - xLo)) * plotW;
+  const yAt = (v) => padTop + (1 - (v - yLo) / (yHi - yLo)) * plotH;
+
+  ctx.strokeStyle = "#e4ebe6";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(padLeft, padTop, plotW, plotH);
+
+  ctx.setLineDash([2, 2]);
+  if (xLo < 0 && xHi > 0) {
+    ctx.beginPath();
+    ctx.moveTo(xAt(0), padTop);
+    ctx.lineTo(xAt(0), padTop + plotH);
+    ctx.stroke();
+  }
+  if (yLo < 0 && yHi > 0) {
+    ctx.beginPath();
+    ctx.moveTo(padLeft, yAt(0));
+    ctx.lineTo(padLeft + plotW, yAt(0));
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  ctx.font = "10px sans-serif";
+  const pixelPoints = points.map((point) => ({ x: xAt(point.x), y: yAt(point.y) }));
+  points.forEach((point, i) => {
+    const { x, y } = pixelPoints[i];
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = point.tone === "cohort" ? "#d99a12" : "#0b7a53";
+    ctx.fill();
+    ctx.fillStyle = "#4d5650";
+    const alignRight = x > padLeft + plotW * 0.6;
+    ctx.textAlign = alignRight ? "right" : "left";
+    // "本股"和"样本均值"数值越接近，两个点在画布上就靠得越近——只按象限判断
+    // 上/下会让两条标签压在一起；离得近时改成按顺序错开到点的上方/下方。
+    const nearAnother = pixelPoints.some((other, j) => j !== i && Math.hypot(other.x - x, other.y - y) < 26);
+    const above = nearAnother ? i % 2 === 0 : y > padTop + plotH * 0.3;
+    ctx.textBaseline = above ? "bottom" : "top";
+    ctx.fillText(point.label, x + (alignRight ? -7 : 7), y + (above ? -6 : 6));
+  });
+
+  ctx.fillStyle = "#7a847e";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "bottom";
+  ctx.fillText(xLabel, padLeft, height - 4);
+  ctx.textBaseline = "top";
+  ctx.fillText(yLabel, padLeft, 2);
+}
+
 function barVisual(rows, title, options = {}) {
   const usable = (rows || []).filter((item) => hasNumber(item.value));
   if (!usable.length) return null;
@@ -474,6 +609,196 @@ function offerBandVisual(raw, offerPriceText) {
   return null;
 }
 
+/** 雷达图：把若干个已经统一到 0–100 量纲的百分比指标画成一个多边形轮廓——
+ * 形状本身就是"哪个维度强、哪个维度弱"的答案，比逐条读数字更快建立整体
+ * 印象。轴数不足三个时多边形退化成线，直接不画。 */
+function radarVisual(axes, title, hint) {
+  const usable = (axes || []).filter((axis) => axis && hasNumber(axis.value));
+  if (usable.length < 3) return null;
+  lineChartSeq += 1;
+  return withChartMeta({
+    kind: "radar",
+    canvasId: `radar-${lineChartSeq}`,
+    title,
+    axes: usable.map((axis) => ({
+      label: axis.label,
+      value: Math.max(0, Math.min(100, Number(axis.value))),
+    })),
+    stats: usable.map((axis) => ({
+      label: axis.label,
+      value: axis.valueText || `${Math.round(Number(axis.value))}`,
+    })),
+  }, hint);
+}
+
+/** 散点图：两个可比的点（通常是"本股"和"历史样本均值"）摆在同一个二维
+ * 平面上，比两根分别站在各自柱状图里的柱子更容易看出相对位置和方向。
+ * 目前只服务"两轴都是百分比涨跌"这一种场景，够用即可，不做成通用坐标系。 */
+function scatterVisual(points, title, xLabel, yLabel, hint) {
+  const usable = (points || []).filter((point) => point && hasNumber(point.x) && hasNumber(point.y));
+  if (usable.length < 2) return null;
+  lineChartSeq += 1;
+  return withChartMeta({
+    kind: "scatter",
+    canvasId: `scatter-${lineChartSeq}`,
+    title,
+    xLabel,
+    yLabel,
+    points: usable.map((point) => ({
+      label: point.label,
+      x: Number(point.x),
+      y: Number(point.y),
+      tone: point.tone || "self",
+    })),
+    stats: usable.map((point) => ({
+      label: point.label,
+      value: `${point.x.toFixed(1)} / ${point.y.toFixed(1)}`,
+    })),
+  }, hint);
+}
+
+/** 上市后表现曲线：把暗盘/首日/五日/五日最高四个独立百分比，串成一条从
+ * 发行价（0%）出发的涨跌路径——复用现成的 line 图表种类和画布画法，不需要
+ * 新的 canvas 逻辑；比四根独立柱子更看得出"越走越强/越走越弱"的走势。 */
+function hkPerformanceCurveVisual(review) {
+  const points = [
+    { label: "发行价", value: 0 },
+    hasNumber(review?.greyMarketChange) ? { label: "暗盘", value: Number(review.greyMarketChange) } : null,
+    hasNumber(review?.firstDayChange) ? { label: "首日", value: Number(review.firstDayChange) } : null,
+    hasNumber(review?.fiveDayChange) ? { label: "五日", value: Number(review.fiveDayChange) } : null,
+    hasNumber(review?.fiveDayHighChange) ? { label: "五日最高", value: Number(review.fiveDayHighChange) } : null,
+  ].filter(Boolean);
+  if (points.length < 3) return null;
+  const values = points.map((point) => point.value);
+  const latest = points[points.length - 1];
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  lineChartSeq += 1;
+  return withChartMeta({
+    kind: "line",
+    canvasId: `price-line-${lineChartSeq}`,
+    title: "上市后表现曲线",
+    values,
+    lowLabel: `最低 ${formatPercent(low)}`,
+    latestLabel: `${latest.label} ${formatPercent(latest.value)}`,
+    highLabel: `最高 ${formatPercent(high)}`,
+    stats: points.map((point) => ({ label: point.label, value: formatPercent(point.value) })),
+  }, "以发行价为基准（0%）；曲线向上表示相对发行价上涨。");
+}
+
+/** 资料完整度 + 认购热度画像：把原来几个独立文字方块（解析度、基石占比、
+ * 认购倍数……）收进一张雷达图——量纲都统一成 0–100，一眼能看出这只新股是
+ * "资料全、热度高"还是"资料缺、冷门"的整体形状，不用逐条读数字。认购倍数
+ * 按用户自己的 100 倍门槛归一（100 倍=满格），到边缘正好对应
+ * buildPersonalIPORule 第五步的判断线。 */
+function hkQualityRadarVisual(raw, announce, prospectus) {
+  const parseRate = (info) => (
+    info && hasNumber(info.matchedFields) && hasNumber(info.totalFields) && Number(info.totalFields) > 0
+  ) ? (Number(info.matchedFields) / Number(info.totalFields)) * 100 : null;
+  const announceRate = parseRate(announce);
+  const prospectusRate = parseRate(prospectus);
+  const axes = [
+    announceRate != null ? { label: "公告解析", value: announceRate, valueText: `${announceRate.toFixed(0)}%` } : null,
+    prospectusRate != null ? { label: "招股书解析", value: prospectusRate, valueText: `${prospectusRate.toFixed(0)}%` } : null,
+    hasNumber(raw.cornerstonePercent)
+      ? { label: "基石占比", value: Number(raw.cornerstonePercent), valueText: `${Number(raw.cornerstonePercent).toFixed(1)}%` }
+      : null,
+    hasNumber(raw.oneLotRate)
+      ? { label: "一手中签", value: Number(raw.oneLotRate), valueText: `${Number(raw.oneLotRate).toFixed(1)}%` }
+      : null,
+    hasNumber(raw.publicOversubscription)
+      ? { label: "公开认购", value: Math.min(100, Number(raw.publicOversubscription)), valueText: `${Number(raw.publicOversubscription).toFixed(1)}倍` }
+      : null,
+  ].filter(Boolean);
+  return radarVisual(axes, "资料与认购画像", "五个维度都换算到 0–100；认购倍数按 100 倍封顶，够到边缘即达标。");
+}
+
+/** 本股 vs 历史样本：把 hkCohortVisual 里两个独立柱状平均值，换成"本股"和
+ * "样本均值"两个点摆在暗盘×首日的平面上——散点比柱状图更容易看出本股相对
+ * 历史样本是偏强还是偏弱、方向是否一致（同涨/同跌/背离）。 */
+function hkCohortScatterVisual(review, evidence) {
+  const hk = evidence && evidence.markets ? evidence.markets.hk : null;
+  if (!hk || !hasNumber(hk.averageGreyMarket) || !hasNumber(hk.averageFirstDay)) return null;
+  if (!hasNumber(review?.greyMarketChange) || !hasNumber(review?.firstDayChange)) return null;
+  const points = [
+    { label: "本股", x: Number(review.greyMarketChange), y: Number(review.firstDayChange), tone: "self" },
+    { label: "样本均值", x: Number(hk.averageGreyMarket), y: Number(hk.averageFirstDay), tone: "cohort" },
+  ];
+  return scatterVisual(
+    points,
+    "暗盘×首日：本股对照样本",
+    "暗盘涨跌%",
+    "首日涨跌%",
+    `样本均值来自 ${hk.points || "多"} 个 IPO 事件，只作对照，不预测本股。`,
+  );
+}
+
+/** 「打中后观察分位」原来是四行密文字，每行把热/冷两档中位、映射价、收正
+ * 只数、区间挤在一句里，读起来很费劲。改成横向柱状图：中位涨跌一眼比出
+ * 超购热门批（≥1000倍）和一般批的差距；收正只数并入柱子自己的数字，历史
+ * 样本量与首日胜率挪到底部 stats。分档口径和原文字版一致——暗盘/首日
+ * 能分档就分档，分不开时退回合并中位；首周历史上从不分档，只有一档。 */
+function hkExitTierBarsVisual(bands) {
+  if (!bands) return null;
+  const rows = [];
+  const addTier = (key, label) => {
+    const hot = bands.hot && bands.hot[key];
+    const cool = bands.cool && bands.cool[key];
+    if (hot && hot.n && hasNumber(hot.p50) && cool && cool.n && hasNumber(cool.p50)) {
+      rows.push({ label: `${label}·热门批`, value: hot.p50, valueText: `${formatPercent(hot.p50)}（${hot.positive}/${hot.n}收正）` });
+      rows.push({ label: `${label}·一般批`, value: cool.p50, valueText: `${formatPercent(cool.p50)}（${cool.positive}/${cool.n}收正）` });
+    } else {
+      const combined = bands[key];
+      if (combined && combined.n && hasNumber(combined.p50)) {
+        rows.push({ label, value: combined.p50, valueText: `${formatPercent(combined.p50)}（${combined.positive}/${combined.n}收正）` });
+      }
+    }
+  };
+  addTier("grey", "暗盘");
+  addTier("firstDay", "首日");
+  const fiveDay = bands.fiveDay;
+  if (fiveDay && fiveDay.n && hasNumber(fiveDay.p50)) {
+    rows.push({ label: "首周", value: fiveDay.p50, valueText: `${formatPercent(fiveDay.p50)}（${fiveDay.positive}/${fiveDay.n}收正）` });
+  }
+  if (rows.length < 2) return null;
+  const chart = barVisual(rows, "打中后同类新股涨跌分布", { stats: false });
+  if (!chart) return null;
+  chart.stats = [
+    { label: "历史样本", value: `${bands.sampleCount || 0}只` },
+    { label: "热门批口径", value: `超购${HK_HOT_OVERSUBSCRIPTION}倍以上` },
+  ];
+  return chart;
+}
+
+/** 用户五步打新规则：用柱状图展示每一步的判定强度，比纯文字列表更快看出
+ * 在哪一步定案——通过/命中=100（决定性正向或放行），不通过=0（一票否决，
+ * 只在第一步出现），未命中=50（不否决，进入下一步）。只有真正跑到的步骤
+ * 才在 personalRule.steps 里，后面步骤因为提前收敛压根没跑，图上不出现——
+ * 不是被隐藏，是没发生。 */
+function personalRuleStepsVisual(personalRule) {
+  const steps = (personalRule && personalRule.steps) || [];
+  if (steps.length < 2) return null;
+  // 不通过用负值而不是 0——solidVisual 按正负分配颜色（down=暖色警示），一票
+  // 否决的那一步理应是满格的暖色柱子，不能矮矮地和"未命中"一样是绿色。
+  const strengthOf = (result) => {
+    if (result === "通过" || result === "命中") return 100;
+    if (result === "不通过") return -100;
+    if (result === "未命中") return 50;
+    return null;
+  };
+  const rows = steps
+    .map((step) => {
+      const strength = strengthOf(step.result);
+      return strength == null ? null : { label: `第${step.step}步`, value: strength, valueText: step.result };
+    })
+    .filter(Boolean);
+  if (rows.length < 2) return null;
+  const chart = solidVisual(rows, "我的五步打新规则", { stats: false });
+  if (!chart) return null;
+  chart.stats = [{ label: "结论", value: personalRule.verdict || "—" }];
+  return chart;
+}
+
 function stockRange(history, currentPrice) {
   const values = (history || []).filter(hasNumber).map(Number);
   if (!values.length) return "近 60 日位置暂缺";
@@ -539,7 +864,7 @@ function baseView(item) {
   };
 }
 
-function buildHKView(base, item) {
+function buildHKView(base, item, snapshot) {
   const raw = item.raw || {};
   const review = raw.historicalReview || {};
   const answer = raw.publicAnswer || {};
@@ -660,45 +985,31 @@ function buildHKView(base, item) {
     ["所属行业", raw.industry || null],
   ].filter((row) => row[1]), "中介与结构", "有披露才展示；空白字段不占位。");
 
+  // 解析字段数、基石占比、一手中签、公开认购这些数字已经并入下面的雷达图；
+  // 这里只留雷达图管不了的分类信息（状态/类型/文字说明/来源），不重复摆数字。
   const qualityTiles = metricTilesVisual([
-    ["公告解析", hasNumber(announce.matchedFields) ? `${announce.matchedFields}/${announce.totalFields || "?"}` : null],
-    ["招股书解析", hasNumber(prospectus.matchedFields) ? `${prospectus.matchedFields}/${prospectus.totalFields || "?"}` : null],
     ["资料状态", raw.researchView?.label || null],
-    ["来源", raw.source || "HKEX"],
-  ].filter((row) => row[1]), "资料完整度", "解析字段越多，公开资料越齐。");
-
-  const statusTiles = metricTilesVisual([
-    ["发行状态", raw.researchView?.label || item.badge || null],
-    ["研究结论", item.badge || answer.verdict || null],
     ["公告类型", announceKindLabel(announce.kind, announce.reason) || null],
     ["资料说明", researchNoteShort(raw.researchView) || null],
-  ].filter((row) => row[1]), "状态一览");
+    ["来源", raw.source || "HKEX"],
+  ].filter((row) => row[1]), "资料说明", "解析字段占比等数字见上方雷达图。");
 
-  const allotBars = solidVisual([
-    hasNumber(raw.oneLotRate)
-      ? { label: "一手中签", value: Number(raw.oneLotRate), valueText: `${Number(raw.oneLotRate).toFixed(1)}%` }
-      : null,
-    hasNumber(raw.cornerstonePercent)
-      ? { label: "基石占比", value: Number(raw.cornerstonePercent), valueText: `${Number(raw.cornerstonePercent).toFixed(1)}%` }
-      : null,
-  ].filter(Boolean), "中签与基石");
-
-  const listingBars = solidVisual([
-    { label: "暗盘", value: review.greyMarketChange, valueText: formatPercent(review.greyMarketChange) },
-    { label: "首日", value: review.firstDayChange, valueText: formatPercent(review.firstDayChange) },
-    { label: "五日", value: review.fiveDayChange, valueText: formatPercent(review.fiveDayChange) },
-    { label: "五日最高", value: review.fiveDayHighChange, valueText: formatPercent(review.fiveDayHighChange) },
-  ].filter((row) => hasNumber(row.value)), "上市涨跌对比", { hint: "暗盘=上市前夜交易；都是涨跌百分比，只用于复盘。" });
+  const qualityRadar = hkQualityRadarVisual(raw, announce, prospectus);
+  const performanceCurve = hkPerformanceCurveVisual(review);
+  const cohortScatter = hkCohortScatterVisual(review, strategyEvidence);
+  const ruleSteps = personalRuleStepsVisual(raw.personalRule);
+  // ended（已上市）看自己这一只的实际结果，走 performanceCurve；非 ended
+  // （还在认购中）没有本股结果，只能看同类历史样本分布，走这张分档柱状图。
+  const exitTierBars = ended ? null : hkExitTierBarsVisual(buildHkExitBands(snapshot));
 
   if (ended) {
     setCharts(
       base,
-      listingBars,
-      statusTiles,
-      hkCohortVisual(strategyEvidence),
+      performanceCurve,
+      cohortScatter || hkCohortVisual(strategyEvidence),
+      qualityRadar,
       capitalTiles,
       structureTiles,
-      allotBars,
       qualityTiles,
       scoreMeter(answer.score, "研究分", item.badge || answer.verdict),
     );
@@ -707,16 +1018,12 @@ function buildHKView(base, item) {
     setCharts(
       base,
       scoreMeter(answer.score, "研究分", item.badge || answer.verdict),
-      statusTiles,
+      ruleSteps,
+      qualityRadar,
       scheduleTiles,
       capitalTiles,
-      allotBars,
-      hasNumber(raw.publicOversubscription)
-        ? metricTilesVisual([
-          ["公开认购", `${Number(raw.publicOversubscription).toFixed(1)} 倍`],
-        ].filter((row) => row[1]), "认购热度")
-        : null,
       offerBandVisual(raw, offerPrice),
+      exitTierBars,
       hkCohortVisual(strategyEvidence),
       structureTiles,
       qualityTiles,
@@ -726,15 +1033,21 @@ function buildHKView(base, item) {
 
   // 四标签下「申购」「卖出」「依据」各自拥有的图表，不再靠标题正则猜归属。
   base.subscribeCharts = (ended
-    ? [capitalTiles, structureTiles, offerBandVisual(raw, offerPrice)]
-    : [scheduleTiles, capitalTiles, offerBandVisual(raw, offerPrice), structureTiles]
+    ? [qualityRadar, capitalTiles, structureTiles, offerBandVisual(raw, offerPrice)]
+    : [ruleSteps, qualityRadar, scheduleTiles, capitalTiles, offerBandVisual(raw, offerPrice), structureTiles]
   ).filter(Boolean);
-  // hkCohortVisual 恒放第一位：即便还没配发结果，卖出 tab 也不能是空的。
+  // hkCohortVisual/cohortScatter 恒放最后一位兜底：即便还没配发结果，卖出
+  // tab 也不能是空的。exitTierBars 放最前——它是「打中后观察分位」原本
+  // 那批文字的直接替代，理应是非 ended 卖出 tab 第一眼看到的内容。
   base.sellCharts = (ended
-    ? [listingBars, hkCohortVisual(strategyEvidence), allotBars]
-    : [hkCohortVisual(strategyEvidence), allotBars]
+    ? [performanceCurve, cohortScatter || hkCohortVisual(strategyEvidence)]
+    : [exitTierBars, hkCohortVisual(strategyEvidence)]
   ).filter(Boolean);
-  base.evidenceCharts = [scoreMeter(answer.score, "研究分", item.badge || answer.verdict), statusTiles, qualityTiles].filter(Boolean);
+  base.evidenceCharts = [
+    scoreMeter(answer.score, "研究分", item.badge || answer.verdict),
+    ruleSteps,
+    qualityTiles,
+  ].filter(Boolean);
 
   base.facts = compactFacts([
     ["公司全称", item.name],
@@ -759,23 +1072,16 @@ function buildHKView(base, item) {
     ["资料来源", raw.source || "港交所公开文件"],
   ]);
 
-  const hkPublicFacts = [
-    offer != null ? `招股价 ${offer.toFixed(2)}港元` : null,
-    raw.listingDate ? `上市日 ${raw.listingDate}` : null,
-    hasNumber(raw.oneLotRate) ? `一手中签率 ${Number(raw.oneLotRate).toFixed(1)}%` : null,
-    hasNumber(raw.publicOversubscription) ? `公开认购 ${Number(raw.publicOversubscription).toFixed(2)}倍` : null,
-    !ended && daysToDeadline != null ? `距截止 ${daysToDeadline}天` : null,
-    ended && hasNumber(review.firstDayChange) ? `首日涨跌 ${formatPercent(review.firstDayChange)}` : null,
-  ].filter(Boolean).join(" · ");
-
+  // 招股价/上市日/一手中签率/公开认购/距截止/首日涨跌这批数字已经在上方
+  // highlights 条和「资料」tab 的 facts 表里各出现过一次，这里不再拼成
+  // 第三份「公开事实」句子——「关键依据」应该只放事实表给不出的判断，
+  // 不是同一批数字的第三种排列。
   base.analysis = ended
     ? [
-        { title: "公开事实", body: hkPublicFacts || "公开资料整理中。" },
         { title: "结果", body: `【望潮研究归纳】暗盘 ${formatPercent(review.greyMarketChange)} · 首日 ${formatPercent(review.firstDayChange)} · 五日 ${formatPercent(review.fiveDayChange)}` },
         { title: "用途", body: "【望潮研究归纳】只复盘学习，不作当前申购依据。" },
       ]
     : [
-        { title: "公开事实", body: hkPublicFacts || "公开资料整理中。" },
         { title: item.badge || "结论", body: "【望潮研究归纳】先核一手金额与截止日；结论≠保证赚钱。" },
         {
           title: "高杠杆观察",
@@ -984,14 +1290,6 @@ function buildUSView(base, item, snapshot) {
     ["财报期", dayText(fund.period)],
   ]);
   base.holdings = holders;
-  const usPublicFacts = [
-    hasNumber(raw.price) ? `现价 ${money(raw.price)}` : null,
-    raw.exchange ? `交易所 ${raw.exchange}` : null,
-    hasNumber(fund.marketCap) ? `市值 ${formatLarge(fund.marketCap)}` : null,
-    hasNumber(fund.pe) ? `市盈率 ${Number(fund.pe).toFixed(1)}倍` : null,
-    raw.asOf ? `行情截至 ${dayText(raw.asOf)}` : null,
-    fund.period ? `财报期 ${dayText(fund.period)}` : null,
-  ].filter(Boolean).join(" · ");
   // 公告是发行人自己提交的备案，不是我们的归纳，所以不加【望潮研究归纳】前缀，
   // 但也绝不写成「因为业绩所以涨」——只说同期发生了什么，因果留给读的人。
   const usFilings = filingsFor(snapshot, raw.symbol || item.code);
@@ -1003,11 +1301,12 @@ function buildUSView(base, item, snapshot) {
     filings: filingBody || "近期未查到新的 SEC 公开备案。",
     mag7Label: mag7Label || "",
   };
+  // 现价/交易所/市值/市盈率/行情截至/财报期这六项，highlights 条和「资料」
+  // tab 的 facts 表已经各展示过一遍；同期公告原文和七姐妹分档标签也在「动态」
+  // tab 的 dynamics.filings/mag7Label 里一字不差地出现过——这里不再拼第三份
+  // 重复句子，「关键依据」只留「动态」tab 给不出的判断。
   base.analysis = [
-    { title: "公开事实", body: usPublicFacts || "公开资料整理中。" },
-    filingBody ? { title: "同期公告（SEC EDGAR）", body: filingBody } : null,
     { title: "位置", body: `【望潮研究归纳】${stockRange(raw.history, raw.price)}` },
-    mag7Label ? { title: "七姐妹/行业分档", body: `【望潮研究归纳】${mag7Label}` } : null,
     {
       title: "怎么用",
       body: `【望潮研究归纳】${item.group === "seven" || mag7tags.length
@@ -1493,16 +1792,10 @@ function buildGuruView(base, item) {
     ["披露滞后", lagDays == null ? null : `${lagDays}天`],
     ["资料来源", raw.source || "SEC 13F"],
   ], 12);
+  // 报告期/披露日/滞后天数已经在「资料」tab 的 facts 表里各出现过一次，
+  // 这里只留 facts 表给不出的口径提示，不重复拼那三个数字。
   base.analysis = [
-    {
-      title: "公开事实",
-      body: [
-        `报告期 ${raw.reportDate || profile.report || "待核"}`,
-        filingDate ? `披露日 ${filingDate}` : null,
-        lagDays != null ? `滞后约 ${lagDays} 天` : null,
-        "法定披露通常只含多头、季频更新",
-      ].filter(Boolean).join(" · "),
-    },
+    { title: "披露口径", body: "法定披露通常只含多头、季频更新。" },
     { title: "为什么看它", body: `【望潮研究归纳】${String(profile.why || "公开业绩与持仓可对照学习。").slice(0, 100)}` },
     { title: "怎么学", body: `【望潮研究归纳】${String(profile.how || "学框架，不照抄持仓。").slice(0, 100)}` },
     {
@@ -1630,27 +1923,36 @@ function buildGoldView(base, item) {
     "宏观指标",
   );
 
-  setCharts(
-    base,
-    scoreMeter(internationalScore, "国际金观察分", action),
+  // 四标签下「价格」只放走势、位置与四口径对照；「驱动」放近期变化和宏观
+  // 指标；「依据」放两个观察分和买卖/风险阈值的深挖图表，跟美股/A股/港股
+  // 新股/机构持仓同一套分装规则，不再靠标题正则猜归属（旧版这里用
+  // setCharts 塞 10 张图再靠正则分类，超出上限的图会被无声丢弃，「驱动」
+  // tab 因此空过）。
+  base.trendCharts = [
     parityTiles,
-    scoreMeter(domesticScore, "人民币金观察分", "国内价格"),
     priceVisual(intlHistory, "国际金轨迹", (value) => Number(value).toFixed(0)),
     meterVisual(intlHistory, international.price, "国际金位置", (value) => Number(value).toFixed(0)),
     domesticHistory.length >= 2
       ? priceVisual(domesticHistory, "人民币金轨迹", (value) => Number(value).toFixed(1))
       : null,
-    solidVisual([
-      hasNumber(returns.day20) ? { label: "20日", value: returns.day20, valueText: formatPercent(returns.day20) } : null,
-      hasNumber(returns.day60) ? { label: "60日", value: returns.day60, valueText: formatPercent(returns.day60) } : null,
-      hasNumber(returns.day180) ? { label: "180日", value: returns.day180, valueText: formatPercent(returns.day180) } : null,
-    ].filter(Boolean), "区间涨跌"),
     hasNumber(international.percentile180)
       ? metricTilesVisual([
           ["半年位置", `${Number(international.percentile180)}%`],
           ["位置解读", Number(international.percentile180) <= 35 ? "偏近低位" : (Number(international.percentile180) >= 65 ? "偏近高位" : "中间区间")],
         ], "半年高低位置")
       : null,
+  ].filter(Boolean);
+  base.dynamicsCharts = [
+    solidVisual([
+      hasNumber(returns.day20) ? { label: "20日", value: returns.day20, valueText: formatPercent(returns.day20) } : null,
+      hasNumber(returns.day60) ? { label: "60日", value: returns.day60, valueText: formatPercent(returns.day60) } : null,
+      hasNumber(returns.day180) ? { label: "180日", value: returns.day180, valueText: formatPercent(returns.day180) } : null,
+    ].filter(Boolean), "区间涨跌"),
+    indicatorTiles,
+  ].filter(Boolean);
+  base.evidenceCharts = [
+    scoreMeter(internationalScore, "国际金观察分", action),
+    scoreMeter(domesticScore, "人民币金观察分", "国内价格"),
     metricTilesVisual([
       ["国际金观察低位", buyIntl],
       ["国际金观察上沿", sellIntl],
@@ -1659,8 +1961,7 @@ function buildGoldView(base, item) {
       ["国际金风险", riskIntl],
       ["人民币金风险", riskCny],
     ].filter((row) => row[1]), "价格观察区"),
-    indicatorTiles,
-  );
+  ].filter(Boolean);
 
   base.facts = compactFacts([
     ["现在动作", action],
@@ -1688,13 +1989,14 @@ function buildGoldView(base, item) {
     ["历史样本区间", internationalRange ? rangeText(internationalRange, international.currency || "USD/oz") : null],
     ...(gold.indicators || []).slice(0, 8).map((entry) => [entry.label, hasNumber(entry.value) ? `${entry.value}${entry.unit || ""}` : null]),
   ]);
+  // 持有观察/观察上沿/现价这三项，「依据」tab 的「价格观察区」图表和 facts
+  // 表已经各展示过一遍，这里不再拼第三份「美元金」「人民币金」句子——
+  // 「双分怎么看」已经把两个观察分的口径说清楚了。
   base.analysis = [
     parity
       ? { title: "四口径怎么对上", body: `${parity.headline}。换算式：${parity.formula}（1 金衡盎司 = 31.1035 克）。四个报价是同一块金子的四种计价方式，不是四个品种。` }
       : null,
     { title: "双分怎么看", body: `国际金 ${Number.isFinite(internationalScore) ? internationalScore : "待核"} 分 · 人民币金 ${Number.isFinite(domesticScore) ? domesticScore : "待核"} 分；前者看国际宏观与美元，后者看上海金、汇率和国内折溢价。` },
-    { title: "美元金", body: `持有观察 ${buyIntl || "暂缺"} · 观察上沿 ${sellIntl || "暂缺"} · 现价 ${hasNumber(international.price) ? Number(international.price).toFixed(0) : "暂缺"}` },
-    { title: "人民币金", body: `持有观察 ${buyCny || "暂缺"} · 观察上沿 ${sellCny || "暂缺"} · 现价 ${hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "暂缺"}` },
     turn
       ? {
         title: "拐点",
@@ -1724,7 +2026,7 @@ function buildGoldView(base, item) {
 // 决策概览：把结论/先看答案/策略信号里重复的判断合并成一句主判断+一句理由，
 // 首屏最多给 3 条依据、1 条风险、1 个下一步关注点，具体口径见 Section 五。
 function buildOverview(base, item) {
-  if (!["us", "a", "hk", "guru"].includes(item.market)) return;
+  if (!["us", "a", "hk", "guru", "gold"].includes(item.market)) return;
   const raw = item.raw || {};
   const strategy = base.strategy || {};
   const evidenceBullets = (base.analysis || [])
@@ -1781,6 +2083,14 @@ function buildOverview(base, item) {
       .filter(([, value]) => value && value !== "—");
     priceCard = highlightPairs.length ? metricTilesVisual(highlightPairs, "本期关键数据") : null;
     if (!priceCard) priceNote = "暂未形成关键数据";
+  } else if (item.market === "gold") {
+    // 黄金没有单一现价，概览卡复用已经算好的 highlights（国际金/人民币金/
+    // 两个观察分），跟 guru 的「本期关键数据」是同一种「关键数据前置」思路。
+    const highlightPairs = (base.highlights || [])
+      .map((tile) => [tile.label, tile.value])
+      .filter(([, value]) => value && value !== "—");
+    priceCard = highlightPairs.length ? metricTilesVisual(highlightPairs, "今日金价") : null;
+    if (!priceCard) priceNote = "暂未形成关键数据";
   }
 
   base.overview = {
@@ -1835,7 +2145,7 @@ function buildSourceLinks(item, snapshot) {
 
 function detailView(item, snapshot) {
   const base = baseView(item);
-  if (item.market === "hk") buildHKView(base, item);
+  if (item.market === "hk") buildHKView(base, item, snapshot);
   else if (item.market === "us") buildUSView(base, item, snapshot);
   else if (item.market === "a") buildAShareView(base, item, snapshot);
   else if (item.market === "gold") buildGoldView(base, item);
@@ -1903,11 +2213,10 @@ function detailView(item, snapshot) {
     const fallback = metricTilesVisual(base.metrics);
     if (fallback) base.charts = [fallback];
   }
-  // 上限从 8 提到 10：这个截断是防"图表无限堆"的兜底，但图表在详情页是分到
-  // 价格/财务/研究三个 tab 里显示的，8 张摊到三个 tab 其实每个只有两三张，
-  // 而超出的部分是无声丢弃的——美股的「估值与热度」「营收趋势」、黄金的
-  // 「价格观察区」「宏观指标」都是这样被砍掉的，黄金的"驱动"tab 因此空掉，
-  // 退化成重复显示金价 tab 的前两张。10 张仍然是硬上限，只是不再误伤。
+  // base.charts/base.visual 现在只喂上面「上限从 8 提到 10」年代的正则分类
+  // 兜底（summary/price/finance/research 那组旧 tab id）——美股/A股/港股
+  // 新股/机构持仓/黄金五个市场都已经改用 trendCharts/dynamicsCharts/...
+  // 精确分装，没有市场会再走到这段截断，留作未注册新市场时的安全网。
   base.charts = base.charts.slice(0, 10);
   base.visual = base.charts[0] || null;
   base.group = item.group;
@@ -1924,12 +2233,10 @@ function detailView(item, snapshot) {
 function detailModules(market) {
   if (market === "gold") {
     return [
-      { id: "summary", label: "结论" },
-      { id: "price", label: "金价" },
-      { id: "finance", label: "驱动" },
-      { id: "source", label: "资料" },
-      { id: "research", label: "研究" },
-      { id: "risk", label: "风险" },
+      { id: "overview", label: "概览" },
+      { id: "trend", label: "价格" },
+      { id: "dynamics", label: "驱动" },
+      { id: "evidence", label: "依据" },
     ];
   }
   if (market === "guru") {
@@ -1967,11 +2274,11 @@ function detailModules(market) {
 }
 
 function buildDetailModules(view, market) {
-  // 美股/A股/港股新股/机构持仓：每个 buildXView 已经把图表直接分装进
+  // 美股/A股/港股新股/机构持仓/黄金：每个 buildXView 已经把图表直接分装进
   // trendCharts/dynamicsCharts/dividendCharts/subscribeCharts/sellCharts/
-  // holdingsCharts/evidenceCharts，不再靠标题正则去猜该进哪个 tab。黄金
-  // 还没排期迁移，仍走下面未改动的正则分类逻辑。
-  if (market === "us" || market === "a" || market === "hk" || market === "guru") {
+  // holdingsCharts/evidenceCharts，不再靠标题正则去猜该进哪个 tab。下面的
+  // 正则分类逻辑现在没有市场会走到，留作未注册新市场时的兜底，不删。
+  if (market === "us" || market === "a" || market === "hk" || market === "guru" || market === "gold") {
     return {
       ...view,
       modules: detailModules(market),
@@ -2190,15 +2497,22 @@ Page({
       detailsExpanded: moduleId === "research" ? this.data.detailsExpanded : false,
     }, () => this.drawActiveLineCharts());
   },
+  // 方法名留着没改（调用点还叫 drawActiveLineCharts），但现在派发三种 canvas
+  // 图表——line/radar/scatter 共用同一套节点探测与重试逻辑，只是画法不同。
   drawActiveLineCharts() {
     (this.data.activeCharts || []).forEach((item) => {
-      if (item && item.kind === "line" && Array.isArray(item.values)) {
+      if (!item) return;
+      if (item.kind === "line" && Array.isArray(item.values)) {
         this.drawLineChart(item.canvasId, item.values);
+      } else if (item.kind === "radar" && Array.isArray(item.axes)) {
+        this.drawRadarChart(item.canvasId, item.axes);
+      } else if (item.kind === "scatter" && Array.isArray(item.points)) {
+        this.drawScatterChart(item.canvasId, item.points, item.xLabel, item.yLabel);
       }
     });
   },
-  drawLineChart(canvasId, values, attempt = 0) {
-    if (!canvasId || !Array.isArray(values) || values.length < 2) return;
+  resolveCanvasNode(canvasId, attempt, onReady) {
+    if (!canvasId) return;
     wx.createSelectorQuery()
       .in(this)
       .select(`#${canvasId}`)
@@ -2211,7 +2525,7 @@ Page({
         // 这里退避重试，不能假设 setData 回调=布局已经就绪。
         if (!hit || !hit.node || !hit.width) {
           if (attempt < 10) {
-            setTimeout(() => this.drawLineChart(canvasId, values, attempt + 1), 40);
+            setTimeout(() => this.resolveCanvasNode(canvasId, attempt + 1, onReady), 40);
           }
           return;
         }
@@ -2221,8 +2535,20 @@ Page({
         canvas.height = hit.height * dpr;
         const ctx = canvas.getContext("2d");
         ctx.scale(dpr, dpr);
-        paintLineChart(ctx, hit.width, hit.height, values);
+        onReady(ctx, hit.width, hit.height);
       });
+  },
+  drawLineChart(canvasId, values) {
+    if (!Array.isArray(values) || values.length < 2) return;
+    this.resolveCanvasNode(canvasId, 0, (ctx, w, h) => paintLineChart(ctx, w, h, values));
+  },
+  drawRadarChart(canvasId, axes) {
+    if (!Array.isArray(axes) || axes.length < 3) return;
+    this.resolveCanvasNode(canvasId, 0, (ctx, w, h) => paintRadarChart(ctx, w, h, axes));
+  },
+  drawScatterChart(canvasId, points, xLabel, yLabel) {
+    if (!Array.isArray(points) || points.length < 2) return;
+    this.resolveCanvasNode(canvasId, 0, (ctx, w, h) => paintScatterChart(ctx, w, h, points, xLabel, yLabel));
   },
   openMember() {
     track("member_open", { from: "detail" });

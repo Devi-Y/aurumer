@@ -928,6 +928,8 @@
 
 .section-card { margin-top: 16rpx; }
 
+.fact-block + .fact-block { margin-top: 14rpx; border-top: 1rpx solid #edf0ee; }
+
 .details-toggle {
   display: flex;
   min-height: 88rpx;

@@ -70,26 +70,6 @@
   padding: 8rpx 0 20rpx;
 }
 
-/* 六个入口顺序、图标、文字都不动，只在本来就自然换行的两行之间插一行极轻的
-   分组小字（比上面「核心研究」那层标题更淡，不跟它抢重量），让"三大市场"
-   和"跟踪与资讯"两簇看着更分明。 */
-.entry-subgroup-label {
-  display: block;
-  flex: 0 0 100%;
-  width: 100%;
-  padding: 0 8rpx;
-  color: #a8afaa;
-  font-size: 20rpx;
-  font-weight: 600;
-  letter-spacing: 1rpx;
-}
-
-.entry-subgroup-label.divider {
-  margin-top: 4rpx;
-  padding-top: 14rpx;
-  border-top: 1rpx solid #eef1ef;
-}
-
 .grid-card {
   box-sizing: border-box;
   display: flex;

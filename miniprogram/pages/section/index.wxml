@@ -502,35 +502,18 @@
     </view>
   </view>
 
-  <!-- 其余四栏：「今日答案/分组浏览/策略摘要/数据出处」原来一张卡接一张卡往下摞，
-       一屏经常要滑好几下才见底。改成分段 tab，同一屏只看一块，点顶部
-       切换——参考的是行情类 App 常见的横向分段控件。 -->
-  <view wx:if="{{market !== 'hk' && market !== 'us' && market !== 'a' && market !== 'gold' && tabs.length > 1}}" class="tab-bar">
-    <view class="tab-track">
-      <view
-        wx:for="{{tabs}}"
-        wx:key="id"
-        class="tab-chip {{activeTab === item.id ? 'is-active' : ''}}"
-        data-id="{{item.id}}"
-        bindtap="switchTab"
-        hover-class="{{activeTab === item.id ? '' : 'tap-active'}}"
-        aria-role="button"
-        aria-selected="{{activeTab === item.id}}"
-      >
-        <image class="tab-chip-icon" src="{{item.icon}}" mode="aspectFit" />
-        <text class="tab-chip-label">{{item.label}}</text>
-        <text class="tab-chip-count">{{item.count}}</text>
-      </view>
-    </view>
-  </view>
+  <!-- 机构持仓原来把「今日答案/分组浏览/策略摘要/数据出处」摞进顶部四个 tab，
+       想看共同方向/机构持仓这些核心内容得先点「分组浏览」再多点一次子tab。
+       现在只有机构持仓栏目还用这套内容，直接摆成竖直顺序：今日答案在最前，
+       中间是共同方向/机构持仓/持仓走势主内容，策略摘要与数据出处收进底部
+       可展开区域——落地就看到该看的，不用先选 tab。 -->
 
   <!-- 今日答案：原来是横向卡片，得滑动才看得全，还看不出到底有几张。
        改成竖排一条接一条的列表，条数一眼看完，问题本身没有减少，
        只是不再靠滑动才能发现内容。 -->
-  <view wx:if="{{market !== 'hk' && market !== 'us' && market !== 'a' && market !== 'gold' && answers.length}}" hidden="{{activeTab !== 'answers'}}" class="page-card answer-panel">
-    <!-- 「今日答案」这四个字紧挨着上面刚点亮的同名 tab，标题就不再重复写
-         一遍，只留这条真正有新信息的操作提示。 -->
+  <view wx:if="{{market !== 'hk' && market !== 'us' && market !== 'a' && market !== 'gold' && answers.length}}" class="page-card answer-panel">
     <view class="answer-head">
+      <text class="answer-title">今日答案</text>
       <text class="answer-meta">不是买卖指令</text>
     </view>
     <view class="answer-track">
@@ -620,7 +603,7 @@
        前五）两个子tab。原型「本期变化」列在其虚构数据里其实是买卖方向，我们的
        changeLabel 字段是披露口径（月报/季度/半年报持有），语义不同，这里如实
        显示成普通文字，不套颜色徽章暗示涨跌方向。 -->
-  <view wx:if="{{market === 'guru'}}" hidden="{{activeTab !== 'groups'}}" class="page-card guru-card">
+  <view wx:if="{{market === 'guru'}}" class="page-card guru-card">
     <view class="a-tabs">
       <view
         class="a-tab {{guruSubTab === 'trend' ? 'is-active' : ''}}"
@@ -849,49 +832,63 @@
     </block>
   </view>
 
-  <view wx:if="{{market !== 'hk' && market !== 'us' && market !== 'a' && market !== 'gold' && playbooks.length}}" hidden="{{activeTab !== 'playbooks'}}" class="page-card playbook-panel">
-    <view class="playbook-head">
-      <text class="playbook-title">大师策略摘要</text>
-      <text class="playbook-meta">只学方法，不照抄仓位</text>
-    </view>
+  <!-- 策略摘要（7条大师打法）和数据出处（栏目来源链接）不是这一栏要立刻看到的
+       东西——核心是上面共同方向/机构持仓/持仓走势。收进底部可展开区域，
+       默认收起，想看的人自己点开，不占首屏。 -->
+  <view wx:if="{{market === 'guru' && (playbooks.length || sourceLinks.length)}}" class="page-card guru-more-panel">
     <view
-      wx:for="{{playbooks}}"
-      wx:key="id"
-      class="playbook-row"
-      data-id="{{item.id}}"
-      bindtap="openPlaybook"
+      class="a-details-toggle guru-more-toggle"
+      bindtap="toggleGuruMore"
       hover-class="tap-active"
       aria-role="button"
-      aria-label="{{item.name}}，{{item.tag}}"
+      aria-label="策略摘要与数据出处"
+      aria-expanded="{{guruMoreOpen}}"
     >
-      <view class="playbook-copy">
-        <view class="playbook-title-row">
-          <text class="playbook-name">{{item.name}}</text>
-          <text class="playbook-tag">{{item.tag}}</text>
-        </view>
-        <text class="playbook-principle">{{item.principle}}</text>
+      <text>策略摘要与数据出处</text>
+      <text>{{guruMoreOpen ? '−' : '+'}}</text>
+    </view>
+    <view wx:if="{{guruMoreOpen}}" class="guru-more-body">
+      <view wx:if="{{playbooks.length}}" class="playbook-head">
+        <text class="playbook-title">大师策略摘要</text>
+        <text class="playbook-meta">只学方法，不照抄仓位</text>
       </view>
-      <text class="arrow">›</text>
-    </view>
-  </view>
+      <view
+        wx:for="{{playbooks}}"
+        wx:key="id"
+        class="playbook-row"
+        data-id="{{item.id}}"
+        bindtap="openPlaybook"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="{{item.name}}，{{item.tag}}"
+      >
+        <view class="playbook-copy">
+          <view class="playbook-title-row">
+            <text class="playbook-name">{{item.name}}</text>
+            <text class="playbook-tag">{{item.tag}}</text>
+          </view>
+          <text class="playbook-principle">{{item.principle}}</text>
+        </view>
+        <text class="arrow">›</text>
+      </view>
 
-  <view wx:if="{{market !== 'hk' && market !== 'us' && market !== 'a' && market !== 'gold' && sourceLinks.length}}" hidden="{{activeTab !== 'sources'}}" class="page-card source-panel">
-    <view class="source-head">
-      <text class="source-title">数据出处</text>
-      <text class="source-meta">点一条复制走自行核对</text>
-    </view>
-    <view
-      wx:for="{{sourceLinks}}"
-      wx:key="url"
-      class="source-link-row"
-      data-url="{{item.url}}"
-      bindtap="copySourceLink"
-      hover-class="tap-active"
-      aria-role="button"
-      aria-label="复制 {{item.name}} 的链接"
-    >
-      <text class="source-link-name">{{item.name}}</text>
-      <text class="source-link-action">复制链接</text>
+      <view wx:if="{{sourceLinks.length}}" class="source-head">
+        <text class="source-title">数据出处</text>
+        <text class="source-meta">点一条复制走自行核对</text>
+      </view>
+      <view
+        wx:for="{{sourceLinks}}"
+        wx:key="url"
+        class="source-link-row"
+        data-url="{{item.url}}"
+        bindtap="copySourceLink"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="复制 {{item.name}} 的链接"
+      >
+        <text class="source-link-name">{{item.name}}</text>
+        <text class="source-link-action">复制链接</text>
+      </view>
     </view>
   </view>
 

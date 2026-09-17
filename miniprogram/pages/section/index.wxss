@@ -154,74 +154,6 @@
   padding-bottom: 18rpx;
 }
 
-/* 分段 tab：今日答案/分组浏览/策略摘要/数据出处四块内容共用一条横向
-   分段控件切换，同一屏只渲染当前选中的一块，不再一张卡接一张卡往下摞。
-   最多 4 块、每个标签都是 4 个字，等宽平分铺满一行，不用横向滚动。 */
-.tab-bar {
-  margin-top: 14rpx;
-}
-
-.tab-track {
-  display: flex;
-  padding: 4rpx;
-  gap: 4rpx;
-  border-radius: 999rpx;
-  background: #e7ece9;
-}
-
-.tab-chip {
-  box-sizing: border-box;
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  padding: 14rpx 8rpx;
-  align-items: center;
-  justify-content: center;
-  gap: 6rpx;
-  border-radius: 999rpx;
-  transition: background-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.tab-chip-icon {
-  flex: none;
-  width: 26rpx;
-  height: 26rpx;
-}
-
-/* 选中态背景变成品牌绿，图标本来是灰色描边，这里直接反相成白色，
-   不用为每个图标再单独存一份白色版本。 */
-.tab-chip.is-active .tab-chip-icon {
-  filter: brightness(0) invert(1);
-}
-
-.tab-chip-label {
-  overflow: hidden;
-  color: #5f6a64;
-  font-size: 25rpx;
-  font-weight: 620;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: color 0.15s ease;
-}
-
-/* 数字是这块内容真实的条目数，点开前先心里有数——不是装饰用的红点。 */
-.tab-chip-count {
-  flex: none;
-  color: #9aa19c;
-  font-size: 20rpx;
-  font-variant-numeric: tabular-nums;
-  transition: color 0.15s ease;
-}
-
-.tab-chip.is-active {
-  background: #0b7a53;
-  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.28);
-}
-
-.tab-chip.is-active .tab-chip-label { color: #ffffff; }
-.tab-chip.is-active .tab-chip-count { color: rgba(255, 255, 255, 0.72); }
-
 .answer-panel {
   margin-top: 14rpx;
 }
@@ -231,7 +163,15 @@
   min-height: 56rpx;
   padding: 0 24rpx;
   align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
   border-bottom: 1rpx solid #edf0ee;
+}
+
+.answer-title {
+  color: #1b211d;
+  font-size: 28rpx;
+  font-weight: 700;
 }
 
 .answer-meta {
@@ -557,10 +497,6 @@
 .tile-card.tone-avoid .tile-title { color: #a33b2b; }
 .tile-card.tone-avoid .tile-icon { background: #f6dad4; }
 
-.playbook-panel {
-  margin-top: 16rpx;
-}
-
 .playbook-head {
   display: flex;
   min-height: 76rpx;
@@ -660,10 +596,6 @@
 
 /* 数据出处。和新闻资讯页每条下面那行"来源 X · 复制链接"是同一件事，
    只是栏目页一次列全栏目的官方入口，不必每行重复一遍。 */
-.source-panel {
-  padding: 20rpx 0 4rpx;
-}
-
 .source-head {
   display: flex;
   padding: 0 24rpx 12rpx;
@@ -1992,4 +1924,22 @@
   color: #8a938d;
   font-size: 22rpx;
   line-height: 1.55;
+}
+
+/* 机构持仓底部可展开区：策略摘要、数据出处不套 .a-details-body 的通用
+   text 样式——里面嵌的是 playbook-row/source-link-row 自己的排版
+   （标题、标签各有各的字号字重），套上会被灰色小字统一覆盖掉。 */
+.guru-more-panel {
+  margin-top: 16rpx;
+}
+
+.guru-more-toggle {
+  padding: 0 24rpx;
+}
+
+.guru-more-body {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 6rpx;
+  border-top: 1rpx solid #edf0ee;
 }

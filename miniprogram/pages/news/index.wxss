@@ -75,47 +75,48 @@
 }
 
 /* 六个类目在 390px 宽的机型上排不进一行（实测总宽 395px > 可用 366px）。
-   换行会让最后一个「美股」孤零零掉到第二行，所以沿用详情页 tab 的横向滚动写法。 */
+   换行会让最后一个「美股」孤零零掉到第二行，所以保留横向滚动；视觉上改用
+   栏目页 .hk-tab 那套灰色分段控件样式（灰底槽 + 选中态白色浮起小块），
+   六个类目还是滚动着看，只是不再是描边药丸。 */
 .news-filters {
   position: relative;
   z-index: 1;
-  margin: -24rpx 0 0;
-  padding: 4rpx 0;
+  margin: 14rpx 20rpx 0;
   white-space: nowrap;
 }
 
 .news-filters-inner {
   display: inline-flex;
-  padding: 0 20rpx;
+  padding: 6rpx;
   align-items: center;
-  gap: 10rpx;
+  gap: 6rpx;
+  border-radius: 16rpx;
+  background: #e7ece9;
 }
 
 .news-filter {
+  box-sizing: border-box;
   flex: 0 0 auto;
-  padding: 10rpx 20rpx;
+  padding: 12rpx 22rpx;
   white-space: nowrap;
-  border: 1rpx solid #e2e8e5;
-  border-radius: 999rpx;
-  background: #ffffff;
-  color: #5a645e;
-  font-size: 24rpx;
-  font-weight: 560;
-  line-height: 1.25;
+  border-radius: 12rpx;
+  color: #5f6a64;
+  font-size: 25rpx;
+  font-weight: 600;
+  line-height: 1.3;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .news-filter.is-new {
-  border-color: #bfe0d0;
-  background: #eef8f2;
-  color: #0b6b49;
+  color: #0b7a53;
   font-weight: 660;
 }
 
 .news-filter.active {
-  border-color: #0b7a53;
-  background: #0b7a53;
-  color: #ffffff;
-  font-weight: 660;
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.14);
+  color: #0b7a53;
+  font-weight: 680;
 }
 
 .news-list,

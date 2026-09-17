@@ -8,26 +8,22 @@
       <text class="group-meta">{{dataAsOf || '同步中'}}</text>
     </view>
     <view class="entry-grid">
-      <block wx:for="{{entries}}" wx:key="id">
-        <!-- 六个入口顺序和图标/文字都不变，只在原来自然换行的两行之间加一行
-             极轻的分组小字，让"三大市场"和"跟踪与资讯"看着更分明。 -->
-        <text wx:if="{{index == 0}}" class="entry-subgroup-label">三大市场</text>
-        <text wx:if="{{index == 3}}" class="entry-subgroup-label divider">跟踪与资讯</text>
-        <view
-          class="grid-card"
-          data-id="{{item.id}}"
-          bindtap="openGridEntry"
-          hover-class="tap-active"
-          hover-stay-time="80"
-          aria-role="button"
-          aria-label="{{item.title}}，{{item.help}}"
-        >
-          <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}}">
-            <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
-          </view>
-          <text class="card-title">{{item.title}}</text>
+      <view
+        wx:for="{{entries}}"
+        wx:key="id"
+        class="grid-card"
+        data-id="{{item.id}}"
+        bindtap="openGridEntry"
+        hover-class="tap-active"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="{{item.title}}，{{item.help}}"
+      >
+        <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}}">
+          <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
         </view>
-      </block>
+        <text class="card-title">{{item.title}}</text>
+      </view>
     </view>
   </view>
 

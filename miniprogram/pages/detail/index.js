@@ -2084,13 +2084,14 @@ function buildOverview(base, item) {
     priceCard = highlightPairs.length ? metricTilesVisual(highlightPairs, "本期关键数据") : null;
     if (!priceCard) priceNote = "暂未形成关键数据";
   } else if (item.market === "gold") {
-    // 黄金没有单一现价，概览卡复用已经算好的 highlights（国际金/人民币金/
-    // 两个观察分），跟 guru 的「本期关键数据」是同一种「关键数据前置」思路。
-    const highlightPairs = (base.highlights || [])
-      .map((tile) => [tile.label, tile.value])
-      .filter(([, value]) => value && value !== "—");
-    priceCard = highlightPairs.length ? metricTilesVisual(highlightPairs, "今日金价") : null;
-    if (!priceCard) priceNote = "暂未形成关键数据";
+    // 黄金没有单一现价，概览卡原来复用 highlights 摆四格数字（国际金/人民币金/
+    // 两个观察分），但这四格和下面「关键依据」、「价格」tab 说的是同一件事。
+    // 换成价格走势图，概览一眼看的是"这段时间涨跌"，不是再摆一次同一批数字。
+    const intlHistory = (raw.history?.international || []).map((entry) => entry.close);
+    const domesticHistory = (raw.history?.domestic || []).map((entry) => entry.close);
+    priceCard = priceVisual(intlHistory, "国际金价走势", (value) => money(value))
+      || priceVisual(domesticHistory, "人民币金价走势", (value) => money(value, "¥"));
+    if (!priceCard) priceNote = "暂未形成价格走势";
   }
 
   base.overview = {
@@ -2313,6 +2314,11 @@ function buildDetailModules(view, market) {
 // 漏改一处。
 function chartsForModule(view, moduleId) {
   const chartMap = {
+    // 概览卡的 priceCard 不走 wx:for 的 activeCharts 循环（它是单独一个
+    // template 调用，见 wxml），但画布同样要靠 drawActiveLineCharts() 才会
+    // 落笔——只有黄金的 priceCard 是 canvas 折线图，其余市场是 meter/tiles，
+    // kind 对不上 line/radar/scatter，drawActiveLineCharts() 里天然跳过。
+    overview: view.overview && view.overview.priceCard ? [view.overview.priceCard] : [],
     price: view.priceCharts,
     finance: view.financeCharts,
     research: view.researchCharts,
@@ -2336,6 +2342,7 @@ Page({
     loading: true,
     loadError: "",
     detailsExpanded: false,
+    moreEvidenceExpanded: false,
     strategyExpanded: false,
     activeModule: "summary",
     activeCharts: [],
@@ -2483,6 +2490,9 @@ Page({
   toggleDetails() {
     this.setData({ detailsExpanded: !this.data.detailsExpanded });
   },
+  toggleMoreEvidence() {
+    this.setData({ moreEvidenceExpanded: !this.data.moreEvidenceExpanded });
+  },
   toggleStrategy() {
     this.setData({ strategyExpanded: !this.data.strategyExpanded });
   },
@@ -2495,6 +2505,7 @@ Page({
       activeModule: moduleId,
       activeCharts: chartsForModule(view, moduleId),
       detailsExpanded: moduleId === "research" ? this.data.detailsExpanded : false,
+      moreEvidenceExpanded: moduleId === "evidence" ? this.data.moreEvidenceExpanded : false,
     }, () => this.drawActiveLineCharts());
   },
   // 方法名留着没改（调用点还叫 drawActiveLineCharts），但现在派发三种 canvas

@@ -407,35 +407,46 @@
           <text wx:else class="collapsed-hint">点击“完整分析”查看研究依据与使用方法。</text>
         </view>
 
-        <view wx:if="{{view.facts.length}}" class="section-card">
-          <view wx:for="{{view.facts}}" wx:key="*this" class="fact-row">
-            <text>{{item[0]}}</text>
-            <text>{{item[1]}}</text>
+        <view wx:if="{{view.facts.length || (view.holdings.length && view.market != 'guru') || view.sourceLinks.length}}" class="section-card">
+          <view class="analysis-head">
+            <text class="block-title">更多依据资料</text>
+            <view class="details-toggle-inline" bindtap="toggleMoreEvidence" hover-class="tap-active">
+              <text>{{moreEvidenceExpanded ? '收起' : '展开'}}</text>
+            </view>
           </view>
-        </view>
-        <view wx:if="{{view.holdings.length && view.market != 'guru'}}" class="section-card">
-          <text class="block-title">机构持仓对照</text>
-          <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
-            <text>{{item.name}}</text>
-            <text>{{item.value}}</text>
-          </view>
-        </view>
-        <view wx:if="{{view.sourceLinks.length}}" class="section-card source-card">
-          <text class="block-title">官方出处</text>
-          <text class="source-help">以下地址均为公开可访问的官方页面或原始文件，点一条复制走自行核对。</text>
-          <view
-            wx:for="{{view.sourceLinks}}"
-            wx:key="url"
-            class="source-link-row"
-            data-url="{{item.url}}"
-            bindtap="copySourceLink"
-            hover-class="tap-active"
-            aria-role="button"
-            aria-label="复制 {{item.name}} 的链接"
-          >
-            <text class="source-link-name">{{item.name}}</text>
-            <text class="source-link-action">复制链接</text>
-          </view>
+          <block wx:if="{{moreEvidenceExpanded}}">
+            <view wx:if="{{view.facts.length}}" class="fact-block">
+              <view wx:for="{{view.facts}}" wx:key="*this" class="fact-row">
+                <text>{{item[0]}}</text>
+                <text>{{item[1]}}</text>
+              </view>
+            </view>
+            <view wx:if="{{view.holdings.length && view.market != 'guru'}}" class="fact-block">
+              <text class="block-title">机构持仓对照</text>
+              <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
+                <text>{{item.name}}</text>
+                <text>{{item.value}}</text>
+              </view>
+            </view>
+            <view wx:if="{{view.sourceLinks.length}}" class="fact-block source-card">
+              <text class="block-title">官方出处</text>
+              <text class="source-help">以下地址均为公开可访问的官方页面或原始文件，点一条复制走自行核对。</text>
+              <view
+                wx:for="{{view.sourceLinks}}"
+                wx:key="url"
+                class="source-link-row"
+                data-url="{{item.url}}"
+                bindtap="copySourceLink"
+                hover-class="tap-active"
+                aria-role="button"
+                aria-label="复制 {{item.name}} 的链接"
+              >
+                <text class="source-link-name">{{item.name}}</text>
+                <text class="source-link-action">复制链接</text>
+              </view>
+            </view>
+          </block>
+          <text wx:else class="collapsed-hint">点击"展开"查看完整数据表、机构对照与官方出处。</text>
         </view>
 
         <view wx:if="{{view.riskItems && view.riskItems.length}}" class="risk-stack">

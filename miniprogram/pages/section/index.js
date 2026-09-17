@@ -69,14 +69,6 @@ const META = {
   },
 };
 
-// 分段 tab 各配一个图标，视觉上像微信「服务」页那样一眼分清四块内容。
-const TAB_ICONS = {
-  answers: "/assets/section/answers.svg",
-  groups: "/assets/section/groups.svg",
-  playbooks: "/assets/section/playbooks.svg",
-  sources: "/assets/section/sources.svg",
-};
-
 // 分组网格里的图标按结论基调走：值得打/暂缓观察/暂不建议三种已有配色的
 // 分组配对应图标，其余分组（以及历史样本对照等跳转入口）用统一的中性图标。
 const TILE_TONE_ICONS = {
@@ -959,10 +951,9 @@ Page({
     guruHistoryHint: "",
     guruHistoryChartEmptyText: "",
     guruEvidenceOpen: false,
-    // 「今日答案/分组浏览/策略摘要/数据出处」四块内容原来从上到下摞在一起，
-    // 现在收进横向 tab，同一屏只看其中一块，切换靠点顶部的分段控件。
-    tabs: [],
-    activeTab: "",
+    // 策略摘要、数据出处不是机构持仓这一栏要立刻看到的内容，收进底部
+    // 可展开区域，默认收起。
+    guruMoreOpen: false,
     dataAsOf: "",
     // 只有黄金栏目页会用到；其余四栏恒为 null，wx:if 直接整块不渲染。
     // 展开层。wx.showModal 会把 content 里的 \n 当成空格吞掉——七姐妹那张卡
@@ -1092,28 +1083,6 @@ Page({
       // 这一栏的数据是从哪儿来的。新闻资讯页每条都挂了官方出处，
       // 五个栏目页一直只有一句"公开资料整理"，核对无门。
       const sourceLinks = marketSources(snapshot, this.data.market);
-      // 四块内容谁有数据谁才出现在 tab 上，空的不占一个位置。数字是各自
-      // 真实的条目数——点开前先知道里面有几条，不是装饰。
-      const tabs = [
-        answers.length ? { id: "answers", label: "今日答案", count: answers.length, icon: TAB_ICONS.answers } : null,
-        (deepLinks.length || groups.length)
-          ? { id: "groups", label: "分组浏览", count: deepLinks.length + groups.length, icon: TAB_ICONS.groups }
-          : null,
-        this.data.playbooks.length
-          ? { id: "playbooks", label: "策略摘要", count: this.data.playbooks.length, icon: TAB_ICONS.playbooks }
-          : null,
-        sourceLinks.length ? { id: "sources", label: "数据出处", count: sourceLinks.length, icon: TAB_ICONS.sources } : null,
-      ].filter(Boolean);
-      // 保留用户已经切到的 tab；只有它不再存在（比如刷新后这一块没数据了）
-      // 才退回第一个可用的 tab。机构持仓和港股/美股/A股/黄金一样是「两视图」
-      // 栏目，落地就该看到共同方向/机构持仓这张卡，不能让它退回今日答案，
-      // 逼用户多点一次分组浏览才看到本该直接显示的内容。
-      const fallbackTab = this.data.market === "guru" && tabs.some((tab) => tab.id === "groups")
-        ? "groups"
-        : (tabs[0]?.id || "");
-      const activeTab = tabs.some((tab) => tab.id === this.data.activeTab)
-        ? this.data.activeTab
-        : fallbackTab;
       const hkModule = this.data.market === "hk" ? buildHkModule(snapshot) : null;
       const hkExitList = hkModule ? hkModule.exitList : [];
       this._hkExitList = hkExitList;
@@ -1131,8 +1100,6 @@ Page({
         overview: buildOverview(snapshot, this.data.market),
         answers,
         deepLinks,
-        tabs,
-        activeTab,
         source,
         freshness: freshnessBanner(source, meta.kind),
         sourceLinks,
@@ -1184,12 +1151,6 @@ Page({
         guruHistoryChartEmptyText: guruSelection.holdings.historyChartEmptyText,
       });
     }, done, { force });
-  },
-  switchTab(event) {
-    const id = event.currentTarget.dataset.id;
-    if (!id || id === this.data.activeTab) return;
-    this.setData({ activeTab: id });
-    track("section_tab", { market: this.data.market, tab: String(id) });
   },
   switchHkSubTab(event) {
     const id = event.currentTarget.dataset.id;
@@ -1319,6 +1280,9 @@ Page({
     const picked = list[Number(event.detail.value)];
     if (!picked) return;
     this.applyGuruInstitution(picked.id);
+  },
+  toggleGuruMore() {
+    this.setData({ guruMoreOpen: !this.data.guruMoreOpen });
   },
   toggleGuruEvidence() {
     this.setData({ guruEvidenceOpen: !this.data.guruEvidenceOpen });

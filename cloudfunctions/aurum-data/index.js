@@ -7,14 +7,18 @@ const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS } = require("./act
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-08-11-multisource-strategy-signals-b4";
+const SOURCE_REVISION = "2026-09-20-drop-stale-fallback-branch";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
-// GitHub Pages 偶发超时不能让前台只能看到旧缓存；备用源仍指向同一份公开快照。
-// 顺序固定：先走发布页，再走 GitHub 原始文件，最后走当前开发分支。
+// GitHub Pages 偶发超时不能让前台只能看到旧缓存；备用源指向同一条 main 分支的
+// 原始文件，两者内容应始终一致。两个源用 Promise.any 并发抢，谁先响应用谁，
+// 不做真正的顺序回退——顺序回退在平台 3 秒预算内会因为叠加超时而更容易超时。
+// 之前这里还有第三个指向早已废弃的 agent/wangchao-risk-gold-member-20260811
+// 分支的源：那个分支的 live-snapshot.json 自 2026-08-12 起再未更新，一旦它在
+// 并发竞速里胜出，就会把 39 天前的旧快照当作"刚刷新"的结果写回缓存。删除后
+// 只保留两个都追踪 main 分支的源，竞速结果永远同样新鲜。
 const SOURCE_URLS = [
   SOURCE_URL,
   "https://raw.githubusercontent.com/Devi-Y/aurumer/main/data/live-snapshot.json",
-  "https://raw.githubusercontent.com/Devi-Y/aurumer/agent/wangchao-risk-gold-member-20260811/data/live-snapshot.json",
 ];
 /** 10 分钟内视为新鲜；超过则后台回源，前台仍先读缓存。 */
 const CACHE_TTL_MS = 10 * 60 * 1000;

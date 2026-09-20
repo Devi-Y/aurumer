@@ -18,6 +18,26 @@
     </view>
   </view>
 
+  <view class="news-search">
+    <input
+      class="news-search-input"
+      type="text"
+      placeholder="搜索标题、标的或代码"
+      value="{{searchQuery}}"
+      bindinput="onSearchInput"
+      confirm-type="search"
+      aria-label="搜索新闻资讯"
+    />
+    <text
+      wx:if="{{searchQuery}}"
+      class="news-search-clear"
+      bindtap="clearSearch"
+      hover-class="tap-active"
+      aria-role="button"
+      aria-label="清空搜索"
+    >×</text>
+  </view>
+
   <scroll-view
     wx:if="{{filters.length > 1}}"
     class="news-filters"
@@ -92,6 +112,10 @@
       aria-role="button"
       aria-label="继续展开更早的 {{restCount}} 条"
     >继续展开更早的 {{restCount}} 条</view>
+  </view>
+  <view wx:elif="{{searchQuery}}" class="page-card news-empty">
+    <text class="news-empty-title">没有匹配「{{searchQuery}}」的条目</text>
+    <text class="news-empty-help">换个关键词，或者清空搜索看看当前分类下的全部条目。</text>
   </view>
   <view wx:else class="page-card news-empty">
     <text class="news-empty-title">暂时没有可核验的公开披露</text>

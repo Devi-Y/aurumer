@@ -78,11 +78,58 @@
    换行会让最后一个「美股」孤零零掉到第二行，所以保留横向滚动；视觉上改用
    栏目页 .hk-tab 那套灰色分段控件样式（灰底槽 + 选中态白色浮起小块），
    六个类目还是滚动着看，只是不再是描边药丸。 */
+.news-search {
+  display: flex;
+  margin: 14rpx 20rpx 0;
+  padding: 0 8rpx 0 20rpx;
+  align-items: center;
+  gap: 8rpx;
+  border-radius: 16rpx;
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(15, 35, 25, 0.06);
+}
+
+.news-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 68rpx;
+  color: #1f2621;
+  font-size: 25rpx;
+}
+
+.news-search-clear {
+  flex: none;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 999rpx;
+  background: #eef2f0;
+  color: #6b7570;
+  font-size: 24rpx;
+  line-height: 44rpx;
+  text-align: center;
+}
+
 .news-filters {
   position: relative;
   z-index: 1;
   margin: 14rpx 20rpx 0;
   white-space: nowrap;
+}
+
+/* 六个类目横滑时右侧看不出还有更多——纯 CSS 加一道渐隐遮罩提示可以继续滑，
+   不改横滑这个交互决定本身（上面注释已经解释过为什么不用换行）。遮罩挂在
+   scroll-view 容器本身（不随内容滚动），颜色接口 .news-filters-inner 的
+   槽底色，看起来像槽的边缘自然虚化，不是一块颜色对不上的补丁。 */
+.news-filters::after {
+  content: "";
+  position: absolute;
+  top: 6rpx;
+  right: 0;
+  bottom: 6rpx;
+  width: 56rpx;
+  background: linear-gradient(to right, rgba(231, 236, 233, 0), #e7ece9);
+  border-radius: 0 16rpx 16rpx 0;
+  pointer-events: none;
 }
 
 .news-filters-inner {
@@ -248,9 +295,13 @@
   gap: 12rpx;
 }
 
+/* 之前是 flex:1，把这半行的可点区域撑到整行空白处，点空白也会触发
+   下面的复制来源，而不是跳到落点。改成跟着文字内容收窄，多出来的
+   空白就不再属于任何一个点击目标。 */
 .news-source {
   min-width: 0;
-  flex: 1;
+  flex: 0 1 auto;
+  max-width: 68%;
   overflow: hidden;
   color: #858c87;
   font-size: 22rpx;

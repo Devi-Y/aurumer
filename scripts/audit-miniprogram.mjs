@@ -38,9 +38,10 @@ const forbiddenKeys = new Set([
   "valueScore",
   "finalScore",
   "qualityEligible",
-  "trackingScore",
-  "trackingSummary",
 ]);
+// trackingScore/trackingSummary 特意不在上面这份"内部字段"名单里：它们描述的是
+// 这位大师的公开持仓披露完不完整、好不好跟踪，是数据来源说明，不是买卖建议或
+// 目标价一类的投资建议，产品上刻意要展示给用户（见 buildGuruModule 的"跟踪可靠度"文案）。
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -221,7 +222,7 @@ assert(allAShareQuotes.length >= 20, `小程序 A 股详情覆盖门槛应至少
 assert(allAShareQuotes.every((quote) => answers.findItem(snapshot, "a", quote.code)), "小程序 A 股 20 只行情标的必须均可打开详情");
 assert(Number.isFinite(snapshot.gold?.answer?.scores?.international?.score), "小程序缺少国际金观察分");
 assert(Number.isFinite(snapshot.gold?.answer?.scores?.domestic?.score), "小程序缺少人民币金观察分");
-for (const [group, count] of [["hk", 3], ["us", 5], ["a", 3]]) {
+for (const [group, count] of [["hk", 3], ["us", 9], ["a", 3]]) {
   const profiles = smartMoneyProfiles.filter((item) => item.group === group);
   const items = miniGuruItems.filter((item) => item.group === group);
   assert(profiles.length === count && items.length === count, `小程序聪明人 ${group} 分组应有 ${count} 个`);
@@ -230,7 +231,14 @@ for (const [group, count] of [["hk", 3], ["us", 5], ["a", 3]]) {
   assert(annualized.every((value, index) => index === 0 || value <= annualized[index - 1]), `小程序聪明人 ${group} 没有按表观长期年化从高到低排列`);
   for (const profile of profiles) {
     const rendered = items.find((item) => item.id === profile.id);
-    assert(profile.why && profile.how && profile.performanceDetail && profile.performanceBasis, `${profile.name} 缺少业绩口径、WHY 或 HOW`);
+    assert(profile.why && profile.how, `${profile.name} 缺少 WHY 或 HOW`);
+    // 业绩三件套（表观年化/区间/口径）要么一起写全，要么一起空着走「业绩待核」
+    // 兜底（detail/index.js 的 base.score 就是这么处理的）——不能只写年化数字却
+    // 不给口径来源，那是无凭据的数字；也不该编一个数字只为了让这里通过。
+    const perfFields = [profile.performanceValue, profile.performanceDetail, profile.performanceBasis];
+    const perfComplete = perfFields.every(Boolean);
+    const perfAllEmpty = perfFields.every((value) => !value);
+    assert(perfComplete || perfAllEmpty, `${profile.name} 业绩口径三个字段（年化/区间/口径）必须同时出现或同时空缺`);
     assert(rendered && rendered.raw.holdings.length >= 3, `${profile.name} 缺少至少 3 项公开持仓`);
     assert(
       (rendered.one.includes("原因：") && rendered.one.includes("学法："))
@@ -371,7 +379,7 @@ for (const name of ["李嘉诚", "潘石屹", "沈南鹏", "桥水基金", "文�
   assert(playbookSource.includes(name), `大师策略摘要缺少：${name}`);
 }
 assert(playbookSource.includes("不可照抄") || playbookSource.includes("copyHoldings: false"), "大师策略必须标明不可照抄仓位");
-assert((pageTemplatesByPath.get("pages/section/index") || "").includes("大师策略摘要"), "机构持仓栏目应露出大师策略摘要");
+assert((pageTemplatesByPath.get("pages/section/index") || "").includes("大师策略摘要"), "聪明钱跟踪栏目应露出大师策略摘要");
 assert(!appConfig.tabBar, "首页已去掉记录/会员后不应再保留底部 tabBar");
 assert(indexStyles.includes("width: 33.333%") && indexStyles.includes("font-size: 27rpx"), "小程序首页方向标签或标题没有使用清晰统一尺寸");
 // 首页顶部的四列 hero-matrix（品类+标的值）已被 2bbaa38 拆成独立的「今日重点」
@@ -450,7 +458,7 @@ assert(indexSource.includes('"365天 · ¥1288"'), "小程序年度会员入口�
 const gridDefinition = indexSource.match(/const CORE_ENTRIES = \[([\s\S]*?)\n\];/)?.[1] || "";
 assert((gridDefinition.match(/\n\s+id: /g) || []).length === 6, "小程序首页应只保留 6 个核心入口");
 // 年费会员已按产品要求从宫格里挪到下方独立横幅，宫格是六个真实模块。
-for (const title of ["港股打新", "美股投资", "A股收息", "黄金追踪", "机构持仓", "新闻资讯"]) {
+for (const title of ["港股打新", "美股投资", "A股收息", "黄金追踪", "聪明钱跟踪", "新闻资讯"]) {
   assert(gridDefinition.includes(`title: "${title}"`), `小程序首页缺少准确入口标题：${title}`);
 }
 assert(!gridDefinition.includes('title: "年费会员"'), "年费会员不应再占用六宫格的位置");
@@ -459,8 +467,8 @@ const homeEntryIcons = [...gridDefinition.matchAll(/icon: "([^"]+)"/g)].map((mat
 assert(homeEntryIcons.length === 6 && new Set(homeEntryIcons).size === 6, "小程序首页六个入口必须使用六个不同图标");
 const miniEntryOrder = ["id: \"hk\"", "id: \"us\"", "id: \"a\"", "id: \"gold\"", "id: \"guru\"", "id: \"news\""]
   .map((marker) => gridDefinition.indexOf(marker));
-assert(miniEntryOrder.every((position, index) => position >= 0 && (index === 0 || position > miniEntryOrder[index - 1])), "小程序首页顺序必须是港股、美股、A股、黄金、机构持仓、新闻资讯");
-assert(gridDefinition.trimEnd().endsWith("},") && gridDefinition.lastIndexOf('id: "guru"') > gridDefinition.lastIndexOf('id: "member"'), "机构持仓必须位于核心入口最下面的最后一格");
+assert(miniEntryOrder.every((position, index) => position >= 0 && (index === 0 || position > miniEntryOrder[index - 1])), "小程序首页顺序必须是港股、美股、A股、黄金、聪明钱跟踪、新闻资讯");
+assert(gridDefinition.trimEnd().endsWith("},") && gridDefinition.lastIndexOf('id: "guru"') > gridDefinition.lastIndexOf('id: "member"'), "聪明钱跟踪必须位于核心入口最下面的最后一格");
 for (const removedId of ['id: "today"', 'id: "watch"', 'id: "decision"']) {
   assert(!gridDefinition.includes(removedId), `低频入口仍占用首页核心网格：${removedId}`);
 }
@@ -532,7 +540,7 @@ assert(
   detailSource.includes("公开事实")
     && detailSource.includes("跟随边界")
     && detailSource.includes("【望潮研究归纳】"),
-  "机构持仓详情应区分公开事实与望潮研究归纳，并展示跟随边界",
+  "聪明钱跟踪详情应区分公开事实与望潮研究归纳，并展示跟随边界",
 );
 for (const label of ["近 60 日最低", "近 60 日中位数", "近 60 日最高", "历史样本区间", "自由现金流", "公开持仓", "完整分析", "为什么看它", "怎么学"]) {
   assert(detailContract.includes(label), `小程序详情缺少关键内容：${label}`);

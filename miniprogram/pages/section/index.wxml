@@ -469,6 +469,31 @@
       <text class="gold-risk-line">{{goldRiskLine}}</text>
     </view>
 
+    <!-- 宏观指标原来只在详情页 buildGoldView() 里算好摆着，首屏看不到。
+         这里把 gold.indicators 的 6 项原样搬上来，不筛选——用户明确要
+         全部看到，不要精简版。 -->
+    <view class="gold-panel" wx:if="{{goldIndicatorTiles.length}}">
+      <view class="gold-row-between">
+        <text class="gold-headline">宏观驱动指标</text>
+      </view>
+      <view class="gold-indicator-grid">
+        <view wx:for="{{goldIndicatorTiles}}" wx:key="id" class="gold-indicator-tile">
+          <text class="gold-indicator-label">{{item.label}}</text>
+          <text class="gold-indicator-value">{{item.valueText}}</text>
+          <text class="gold-indicator-note">{{item.note}}</text>
+        </view>
+      </view>
+      <view
+        class="gold-detail-link"
+        bindtap="openInsightTarget"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="查看四口径金价与宏观指标"
+      >
+        <text>查看四口径金价与宏观指标 ›</text>
+      </view>
+    </view>
+
     <view class="gold-panel">
       <view class="gold-row-between">
         <text class="gold-headline">最近一次趋势变化</text>
@@ -749,17 +774,33 @@
           <text>持仓截至：{{guruReportDate}}</text>
           <text>披露于：{{guruFilingDate}}</text>
         </view>
+        <view class="hk-row-meta" wx:if="{{guruSourceKindText}}">
+          <text>{{guruSourceKindText}}</text>
+        </view>
+        <view class="a-hint" wx:if="{{guruTrackingScore !== null}}">
+          <text>跟踪可靠度 {{guruTrackingScore}} 分 · {{guruTrackingSummary}}</text>
+        </view>
 
-        <view class="a-table" wx:if="{{guruHoldingsRows.length}}">
+        <view class="a-table" wx:if="{{guruHoldingsRowsShown.length}}">
           <view class="a-table-head">
             <text class="a-col-name">标的</text>
             <text class="a-col-metric">占比</text>
             <text class="guru-col-move">披露口径</text>
           </view>
-          <view wx:for="{{guruHoldingsRows}}" wx:key="name" class="a-table-row">
+          <view wx:for="{{guruHoldingsRowsShown}}" wx:key="name" class="a-table-row">
             <view class="a-col-name"><text class="a-stock-name">{{item.name}}</text></view>
             <text class="a-col-metric">{{item.weightText}}</text>
             <text class="guru-col-move">{{item.moveText}}</text>
+          </view>
+          <view
+            wx:if="{{!guruHoldingsExpanded && guruHoldingsRows.length > guruHoldingsRowsShown.length}}"
+            class="a-table-row guru-holdings-more"
+            bindtap="toggleGuruHoldingsMore"
+            hover-class="tap-active"
+            aria-role="button"
+            aria-label="展开其余持仓"
+          >
+            <text class="a-col-name guru-institution-more-text">展开其余 {{guruHoldingsRows.length - guruHoldingsRowsShown.length}} 项</text>
           </view>
         </view>
         <view class="a-empty" wx:else><text>该机构持仓证据不足，暂不展示对照持仓表。</text></view>
@@ -835,7 +876,7 @@
           </view>
         </view>
 
-        <text class="a-risk-line">季度披露之间的具体调仓时点看不到，图表只能反映披露日快照的规模变化，不代表持续走势。</text>
+        <text class="a-risk-line" wx:if="{{guruHistoryChart}}">季度披露之间的具体调仓时点看不到，图表只能反映披露日快照的规模变化，不代表持续走势。</text>
 
         <view class="a-details">
           <view

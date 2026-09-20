@@ -40,7 +40,7 @@ const KIND_LABEL = {
 // 两条分支一一对应，不会点了才发现去的是别处。
 const MODULE_LABEL = {
   hk: "港股打新",
-  guru: "机构持仓",
+  guru: "聪明钱跟踪",
   gold: "黄金追踪",
   a: "A股收息",
   us: "美股投资",
@@ -564,17 +564,18 @@ function buildNewsFeed(snapshot) {
     }));
 
   // 黄金那类里五条披露全指向同一个标的，「落到标的」会连着印五遍同一句话——
-  // 那时它已经不是指路牌而是一句水印。同一类下所有结论都一样时整类去掉这一行，
-  // 结论本身在黄金栏目页里说得更全。
-  const impactSeen = {};
+  // 原来整类一起清空，读起来像这条莫名缺了字段。改成同一市场下同一句结论
+  // 只在最新那条（feed 已按日期倒序）保留一次，后面重复的清空，视觉上读成
+  // 「说过一次，后面不重复」而不是随机缺内容。
+  const impactSeen = new Set();
   feed.forEach((item) => {
     if (!item.impact) return;
-    const seen = impactSeen[item.market] || (impactSeen[item.market] = new Set());
-    seen.add(item.impact);
-  });
-  feed.forEach((item) => {
-    const seen = impactSeen[item.market];
-    if (seen && seen.size === 1) item.impact = "";
+    const key = `${item.market}::${item.impact}`;
+    if (impactSeen.has(key)) {
+      item.impact = "";
+    } else {
+      impactSeen.add(key);
+    }
   });
 
   const filters = [{ id: "all", label: "全部", count: feed.length }];

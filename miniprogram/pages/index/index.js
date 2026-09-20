@@ -40,7 +40,7 @@ const CORE_ENTRIES = [
     id: "guru",
     action: "section",
     icon: "/assets/home/guru.svg",
-    title: "机构持仓",
+    title: "聪明钱跟踪",
     help: "持仓·动向·趋势",
   },
   {

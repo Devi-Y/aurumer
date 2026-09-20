@@ -27,6 +27,16 @@ function filterItems(items, filterId) {
   return items.filter((item) => item.kind === filterId);
 }
 
+// 搜索关键词/股票代码：只在标题、正文、落到标的、来源这几个已经渲染在
+// 卡片上的字段里做子串匹配，不引入没在界面上出现过的内容。
+function matchesQuery(item, query) {
+  const q = String(query || "").trim().toLowerCase();
+  if (!q) return true;
+  return [item.title, item.body, item.impact, item.sourceName]
+    .filter(Boolean)
+    .some((text) => String(text).toLowerCase().includes(q));
+}
+
 function readSeenKeys() {
   try {
     const raw = wx.getStorageSync(SEEN_KEY);
@@ -44,6 +54,7 @@ Page({
     sections: [],
     filters: [],
     activeFilter: "all",
+    searchQuery: "",
     shown: PAGE_SIZE,
     restCount: 0,
     matchCount: 0,
@@ -128,7 +139,8 @@ Page({
   // 过滤 → 截断 → 按新鲜度分段。分段只在已展开的这批上算，
   // 段头写的条数就是它下面真实渲染的条数，不会出现"标 7 条只看到 2 条"。
   applyView(filterId, shown) {
-    const matched = filterItems(this.data.items || [], filterId);
+    const byCategory = filterItems(this.data.items || [], filterId);
+    const matched = byCategory.filter((item) => matchesQuery(item, this.data.searchQuery));
     const limit = Math.min(shown, matched.length);
     this.setData({
       sections: groupFeedByAge(matched.slice(0, limit), new Date()),
@@ -147,6 +159,16 @@ Page({
     if (id === this.data.activeFilter) return;
     this.setData({ activeFilter: id });
     this.applyView(id, PAGE_SIZE);
+  },
+  onSearchInput(event) {
+    const value = String((event.detail && event.detail.value) || "");
+    this.setData({ searchQuery: value });
+    this.applyView(this.data.activeFilter, PAGE_SIZE);
+  },
+  clearSearch() {
+    if (!this.data.searchQuery) return;
+    this.setData({ searchQuery: "" });
+    this.applyView(this.data.activeFilter, PAGE_SIZE);
   },
   loadMore() {
     if (!this.data.restCount) return;

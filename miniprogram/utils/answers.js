@@ -442,7 +442,7 @@ function usItems(snapshot) {
 
 function smartMoneyItems(snapshot) {
   const liveById = new Map((snapshot.investors || []).map((item) => [item.id, item]));
-  const counts = { hk: 3, us: 5, a: 3 };
+  const counts = { hk: 3, us: 9, a: 3 };
   return SMART_MONEY_PROFILES.map((profile) => {
     const live = liveById.get(profile.id);
     const holdings = live && Array.isArray(live.holdings)

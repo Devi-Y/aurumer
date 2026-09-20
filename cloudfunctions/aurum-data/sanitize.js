@@ -272,7 +272,9 @@ function sanitizeInvestor(item = {}) {
     modelValidation,
     ...rest
   } = item;
-  return rest;
+  // trackingScore/trackingSummary 是望潮对披露质量的公开评分，要展示给用户；
+  // 后三个字段是内部模型评估，不对外暴露。
+  return { ...rest, trackingScore, trackingSummary };
 }
 
 function assertSourceSnapshot(snapshot) {

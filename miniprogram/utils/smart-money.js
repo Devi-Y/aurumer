@@ -48,6 +48,31 @@ const SMART_MONEY_PROFILES = [
     performanceValue: "12.18% 年化", performanceDetail: "ARKK 2014–2026Q1 · 近五年年化 -10.63%", performanceBasis: "ARKK 官方 NAV；长期年化必须和近五年负回报一起看。",
     why: "每日披露且聚焦颠覆式创新，适合观察高成长主题方向与拥挤度。", how: "只把名单当高风险研究池；用小仓、分散和估值纪律约束波动。", sourceName: "ARKK 2026Q1 报告",
   },
+  // 以下 4 位在 13F 快照（data/live-snapshot.json 的 investors[]）里本来就有真实
+  // 公开持仓，只是没进这份名单，界面上一直没露过面。不编年化收益率——
+  // 公开可核验的准确数字暂时没拿到，宁可让 performanceValue 空着走
+  // "业绩待核"兜底文案（detail/index.js:1693 已经支持这个状态），也不写一个
+  // 编出来的百分比。
+  {
+    id: "lilu", group: "us", order: 6, name: "李录", org: "Himalaya Capital Management", marketLabel: "美股（中概股为主）",
+    why: "查理·芒格公开背书的价值投资者，持仓集中在中概股与全球优质公司，按季公开披露可核验。",
+    how: "极度集中、长期持有，只在深入研究后下重仓；不要只抄票不学他的研究深度。", sourceName: "SEC EDGAR 13F",
+  },
+  {
+    id: "dalio", group: "us", order: 7, name: "雷·达利欧", org: "Bridgewater Associates", marketLabel: "美股",
+    why: "全球规模最大对冲基金之一的创始人，全天候/纯阿尔法策略的公开季度持仓可用来交叉验证宏观判断。",
+    how: "把持仓当宏观观点的侧面印证，不当直接买卖信号；桥水常用衍生品对冲，13F只反映多头股票部分。", sourceName: "SEC EDGAR 13F",
+  },
+  {
+    id: "munger", group: "us", order: 8, name: "查理·芒格", org: "Daily Journal Corporation", marketLabel: "美股",
+    why: "芒格生前长期主导 Daily Journal 的证券投资组合；2023年11月芒格去世后，公司延续既有持仓并按季披露，仍是观察其投资框架的公开样本。",
+    how: "学他的集中持仓与逆向判断逻辑；本人已去世，持仓变化现由公司延续管理，不代表新的主动决策。", sourceName: "SEC EDGAR 13F",
+  },
+  {
+    id: "leopold", group: "us", order: 9, name: "Leopold Aschenbrenner", org: "Situational Awareness LP", marketLabel: "美股（AI/半导体主题）",
+    why: "前 OpenAI 研究员，2024年创立，持仓集中在AI算力与半导体产业链，成立时间短，暂无长期业绩可参考。",
+    how: "当作AI主题的研究样本，不当成熟业绩验证过的策略；仓位集中度高，波动通常更大。", sourceName: "SEC EDGAR 13F",
+  },
   {
     id: "chinaamc-largecap", group: "a", order: 1, name: "华夏大盘精选", org: "华夏基金 · 屠环宇", marketLabel: "A股",
     performanceValue: "约 18.7% 年化", performanceDetail: "2004–2026Q1 · 累计 +3,984.2%", performanceBasis: "基金历史净值；现任经理自 2024-03-26 起任职，历史收益不能全归因于现任。",

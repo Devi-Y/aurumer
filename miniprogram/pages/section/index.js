@@ -60,7 +60,7 @@ const META = {
     kicker: "价格观察",
   },
   guru: {
-    title: "机构持仓",
+    title: "聪明钱跟踪",
     // 思路与借鉴收进了「未来持仓趋势」的展开层，副标题跟着答案卡走。
     one: "持仓 · 本季加减 · 方向与边界",
     tone: "guru",
@@ -365,6 +365,25 @@ function goldChartColumns(history, digits) {
   };
 }
 
+// 数字里免不了 118.2126、-0.4 这种长尾小数，两位小数四舍五入后再去掉多余的
+// 尾零——2.60% 不用留成 2.60，直接读 2.6。
+function trimTrailingZeros(text) {
+  return String(text).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+}
+
+// 详情页 buildGoldView() 已经把这 6 个宏观指标算好，这里原样搬到栏目页
+// 首屏，不重新计算、不筛选——用户明确要求 6 个全都摆出来。
+function goldIndicatorTiles(gold) {
+  const indicators = Array.isArray(gold.indicators) ? gold.indicators : [];
+  return indicators.map((item) => {
+    const value = Number(item.value);
+    const valueText = Number.isFinite(value)
+      ? `${trimTrailingZeros(value.toFixed(2))}${item.unit || ""}`
+      : "待更新";
+    return { id: item.id, label: item.label || item.id, valueText, note: item.note || "" };
+  });
+}
+
 function buildGoldModule(snapshot) {
   const gold = snapshot.gold || {};
   const answer = gold.answer || {};
@@ -448,7 +467,9 @@ function buildGoldModule(snapshot) {
     Number.isFinite(domesticScore) ? `人民币观察分 ${domesticScore}` : null,
   ].filter(Boolean).join(" · ") || "观察分暂缺";
 
-  return { quotes, perCurrency, scoreText, trendTone, trendBadge, trendTitle, trendDetail };
+  const indicatorTiles = goldIndicatorTiles(gold);
+
+  return { quotes, perCurrency, scoreText, trendTone, trendBadge, trendTitle, trendDetail, indicatorTiles };
 }
 
 // 币种/周期切换只在这两个预计算好的结构里挑数据，不重新访问快照或重算——
@@ -590,7 +611,9 @@ function buildGuruModule(snapshot) {
   const holdingsByInstitution = {};
   profiles.forEach((item) => {
     const holdings = Array.isArray(item.raw?.holdings) ? item.raw.holdings : [];
-    const rows = holdings.slice(0, 5).map((holding) => ({
+    // 13F/十大重仓最多给到 10 条（answers.js 的 smartMoneyItems 已 slice(0,10)），
+    // 这里跟着展示到 10，默认只露前 5，其余靠「展开」按需加载，不新取数。
+    const rows = holdings.slice(0, 10).map((holding) => ({
       name: holdingLabel(holding),
       weightText: Number.isFinite(Number(holding.weight)) ? `${Number(holding.weight).toFixed(1)}%` : "待更新",
       moveText: holding.changeLabel || "待更新",
@@ -598,11 +621,20 @@ function buildGuruModule(snapshot) {
     // 美股 13F 经理（group:us/hk）披露单位是美元，东方财富A股基金（group:a）是人民币。
     const currency = item.group === "a" ? "¥" : "$";
     const history = Array.isArray(item.raw?.history) ? item.raw.history : [];
+    // isLive 为真代表这条数据来自 investors[] 的实时 13F 快照；为假的 6 家
+    // （3 港股 + 3 A股样本基金）用的是静态定期报告样本，不是 13F，要诚实标注，
+    // 复用 detail/index.js 里已经在用的同一套 isLive 判断。
+    const isLive = Boolean(item.raw?.isLive);
+    const trackingScore = Number.isFinite(Number(item.raw?.trackingScore)) ? Number(item.raw.trackingScore) : null;
     holdingsByInstitution[item.id] = {
       rows,
       hint: rows.length ? `重仓前 ${rows.length} · 按披露顺序排列` : "暂无持仓披露",
       reportDate: item.raw?.reportDate || "以最新公开报告为准",
       filingDate: item.raw?.filingDate || "以原始文件为准",
+      isLive,
+      sourceKindText: isLive ? "SEC 13F 实时披露" : "基金定期报告样本，非 13F",
+      trackingScore,
+      trackingSummary: item.raw?.trackingSummary || "",
       historyChart: guruHistoryChart(history, currency),
       historyRowsData: guruHistoryRows(history, currency),
       historyHint: history.length >= 2
@@ -629,6 +661,10 @@ const GURU_EMPTY_HOLDINGS = {
   hint: "持仓证据不足，暂不展示",
   reportDate: "",
   filingDate: "",
+  isLive: false,
+  sourceKindText: "",
+  trackingScore: null,
+  trackingSummary: "",
   historyChart: null,
   historyRowsData: [],
   historyHint: "机构样本待更新",
@@ -642,6 +678,13 @@ const GURU_INSTITUTION_PREVIEW_COUNT = 4;
 function institutionListShown(list, expanded) {
   if (expanded) return list;
   return list.slice(0, GURU_INSTITUTION_PREVIEW_COUNT);
+}
+
+// 「重仓前十」默认只露前 5 条，跟机构列表同一套「展开」模式，不新发明交互。
+const GURU_HOLDINGS_PREVIEW_COUNT = 5;
+function holdingsRowsShown(rows, expanded) {
+  if (expanded) return rows;
+  return rows.slice(0, GURU_HOLDINGS_PREVIEW_COUNT);
 }
 
 // 机构切换（「跟着谁看」点行 / 「重仓前五」下拉选）共用同一份「预先算好
@@ -882,6 +925,7 @@ Page({
     goldTrendDetail: "",
     goldScoreText: "",
     goldEvidenceOpen: false,
+    goldIndicatorTiles: [],
     // 机构持仓专属：原型的「共同方向/机构持仓」两个视图，只有 market==='guru' 时渲染。
     guruSubTab: "trend",
     // 共同方向条形图默认折叠——今日答案摘要卡已经把「谁在同向加/减」说过
@@ -896,9 +940,15 @@ Page({
     guruInstitutionName: "",
     guruInstitutionOrg: "",
     guruHoldingsRows: [],
+    guruHoldingsRowsShown: [],
+    guruHoldingsExpanded: false,
     guruHoldingsHint: "",
     guruReportDate: "",
     guruFilingDate: "",
+    guruIsLive: false,
+    guruSourceKindText: "",
+    guruTrackingScore: null,
+    guruTrackingSummary: "",
     guruHistoryChart: null,
     guruHistoryRowsData: [],
     guruHistoryHint: "",
@@ -1078,6 +1128,7 @@ Page({
         goldTrendBadge: goldModule ? goldModule.trendBadge : "",
         goldTrendTitle: goldModule ? goldModule.trendTitle : "",
         goldTrendDetail: goldModule ? goldModule.trendDetail : "",
+        goldIndicatorTiles: goldModule ? goldModule.indicatorTiles : [],
         goldPeriod: goldView.period,
         goldBadgeText: goldView.badgeText,
         goldZoneTone: goldView.zoneTone,
@@ -1099,9 +1150,14 @@ Page({
         guruInstitutionName: guruSelection.name,
         guruInstitutionOrg: guruSelection.org,
         guruHoldingsRows: guruSelection.holdings.rows,
+        guruHoldingsRowsShown: holdingsRowsShown(guruSelection.holdings.rows, this.data.guruHoldingsExpanded),
         guruHoldingsHint: guruSelection.holdings.hint,
         guruReportDate: guruSelection.holdings.reportDate,
         guruFilingDate: guruSelection.holdings.filingDate,
+        guruIsLive: guruSelection.holdings.isLive,
+        guruSourceKindText: guruSelection.holdings.sourceKindText,
+        guruTrackingScore: guruSelection.holdings.trackingScore,
+        guruTrackingSummary: guruSelection.holdings.trackingSummary,
         guruHistoryChart: guruSelection.holdings.historyChart,
         guruHistoryRowsData: guruSelection.holdings.historyRowsData,
         guruHistoryHint: guruSelection.holdings.historyHint,
@@ -1213,9 +1269,16 @@ Page({
       guruInstitutionName: selection.name,
       guruInstitutionOrg: selection.org,
       guruHoldingsRows: selection.holdings.rows,
+      // 切换机构时收起「展开」，避免上一家展开到10条的状态带到下一家。
+      guruHoldingsExpanded: false,
+      guruHoldingsRowsShown: holdingsRowsShown(selection.holdings.rows, false),
       guruHoldingsHint: selection.holdings.hint,
       guruReportDate: selection.holdings.reportDate,
       guruFilingDate: selection.holdings.filingDate,
+      guruIsLive: selection.holdings.isLive,
+      guruSourceKindText: selection.holdings.sourceKindText,
+      guruTrackingScore: selection.holdings.trackingScore,
+      guruTrackingSummary: selection.holdings.trackingSummary,
       guruHistoryChart: selection.holdings.historyChart,
       guruHistoryRowsData: selection.holdings.historyRowsData,
       guruHistoryHint: selection.holdings.historyHint,
@@ -1252,6 +1315,13 @@ Page({
     this.setData({
       guruInstitutionExpanded: expanded,
       guruInstitutionListShown: institutionListShown(this.data.guruInstitutionList, expanded),
+    });
+  },
+  toggleGuruHoldingsMore() {
+    const expanded = !this.data.guruHoldingsExpanded;
+    this.setData({
+      guruHoldingsExpanded: expanded,
+      guruHoldingsRowsShown: holdingsRowsShown(this.data.guruHoldingsRows, expanded),
     });
   },
   openMetric(event) {

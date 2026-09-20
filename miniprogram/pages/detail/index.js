@@ -44,7 +44,7 @@ const DETAIL_META = {
   us: { label: "美股投资", icon: "/assets/home/us.svg", tone: "us" },
   a: { label: "A股收息", icon: "/assets/home/a.svg", tone: "a" },
   gold: { label: "黄金追踪", icon: "/assets/home/gold.svg", tone: "gold" },
-  guru: { label: "机构持仓", icon: "/assets/home/guru.svg", tone: "guru" },
+  guru: { label: "聪明钱跟踪", icon: "/assets/home/guru.svg", tone: "guru" },
 };
 
 function hasNumber(value) {

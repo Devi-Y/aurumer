@@ -87,7 +87,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{hkSubTab === 'exit'}}"
-      >中签后</view>
+      >申购结束</view>
     </view>
 
     <block wx:if="{{hkSubTab === 'apply'}}">
@@ -123,7 +123,7 @@
 
     <block wx:if="{{hkSubTab === 'exit'}}">
       <block wx:if="{{hkExitOptions.length}}">
-        <text class="hk-picker-label">选择中签新股</text>
+        <text class="hk-picker-label">选择已结束申购的新股</text>
         <picker
           class="hk-picker"
           mode="selector"
@@ -176,7 +176,7 @@
           </view>
         </view>
       </block>
-      <view class="hk-empty" wx:else><text>当前没有可选的中签新股。</text></view>
+      <view class="hk-empty" wx:else><text>当前没有已结束申购的新股可选。</text></view>
     </block>
   </view>
 
@@ -632,20 +632,34 @@
     </view>
 
     <block wx:if="{{guruSubTab === 'trend'}}">
-      <block wx:if="{{guruTrendRows.length}}">
-        <block wx:for="{{guruTrendRows}}" wx:key="key">
-          <view class="guru-direction">
-            <text>{{item.label}}</text>
-            <text class="a-badge tone-{{item.tone}}">{{item.badge}}</text>
-          </view>
-          <view class="guru-bar-track">
-            <view class="guru-bar-fill tone-{{item.tone}}" style="width: {{item.widthPct}}%;"></view>
-          </view>
-        </block>
-      </block>
-      <view class="a-empty" wx:else><text>本季公开申报的变化标注不足，方向暂不下判断。</text></view>
-
-      <text class="a-risk-line">条形长度示意机构同向程度，不代表资金流入规模；样本仅覆盖已接入的公开 13F 申报。</text>
+      <view class="a-details guru-bars-details">
+        <view
+          class="a-details-toggle"
+          bindtap="toggleGuruBars"
+          hover-class="tap-active"
+          aria-role="button"
+          aria-label="共同方向条形图"
+          aria-expanded="{{guruBarsOpen}}"
+        >
+          <text>共同方向条形图</text>
+          <text>{{guruBarsOpen ? '−' : '+'}}</text>
+        </view>
+        <view wx:if="{{guruBarsOpen}}" class="guru-bars-body">
+          <block wx:if="{{guruTrendRows.length}}">
+            <block wx:for="{{guruTrendRows}}" wx:key="key">
+              <view class="guru-direction">
+                <text>{{item.label}}</text>
+                <text class="a-badge tone-{{item.tone}}">{{item.badge}}</text>
+              </view>
+              <view class="guru-bar-track">
+                <view class="guru-bar-fill tone-{{item.tone}}" style="width: {{item.widthPct}}%;"></view>
+              </view>
+            </block>
+          </block>
+          <view class="a-empty" wx:else><text>本季公开申报的变化标注不足，方向暂不下判断。</text></view>
+          <text class="a-risk-line">条形长度示意机构同向程度，不代表资金流入规模；样本仅覆盖已接入的公开 13F 申报。</text>
+        </view>
+      </view>
 
       <view class="a-details">
         <view
@@ -667,7 +681,7 @@
       <text class="hk-picker-label">跟着谁看</text>
       <view class="guru-institution-list">
         <view
-          wx:for="{{guruInstitutionList}}"
+          wx:for="{{guruInstitutionListShown}}"
           wx:key="id"
           class="guru-institution-row"
           data-id="{{item.id}}"
@@ -679,6 +693,19 @@
           <view class="guru-institution-copy">
             <text class="guru-institution-name">{{item.name}}</text>
             <text class="guru-institution-org">{{item.org}}</text>
+          </view>
+          <text class="arrow">›</text>
+        </view>
+        <view
+          wx:if="{{!guruInstitutionExpanded && guruInstitutionList.length > guruInstitutionListShown.length}}"
+          class="guru-institution-row guru-institution-more"
+          bindtap="toggleGuruInstitutionMore"
+          hover-class="tap-active"
+          aria-role="button"
+          aria-label="展开其余机构"
+        >
+          <view class="guru-institution-copy">
+            <text class="guru-institution-name guru-institution-more-text">展开其余 {{guruInstitutionList.length - guruInstitutionListShown.length}} 家</text>
           </view>
           <text class="arrow">›</text>
         </view>

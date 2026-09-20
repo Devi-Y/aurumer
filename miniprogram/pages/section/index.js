@@ -105,7 +105,7 @@ function hkDeadlineLabel(value) {
   return `${dateText} 截止 · ${offset}天后`;
 }
 
-const HK_APPLY_GUIDANCE_READY = "打中后可参考下方分位观察成交强弱，再决定是否分批卖出。";
+const HK_APPLY_GUIDANCE_READY = "申购结束后可参考下方分位观察成交强弱，再决定是否分批卖出。";
 const HK_APPLY_GUIDANCE_EMPTY = "证据不足，暂不形成价格判断。";
 
 function hkTone(group) {
@@ -635,6 +635,15 @@ const GURU_EMPTY_HOLDINGS = {
   historyChartEmptyText: "机构样本待更新",
 };
 
+// 「跟着谁看」默认只露前 4 家，其余折进「展开」——11 家机构一次铺开，
+// 这一屏最占地方的就是它。折叠只影响默认展示条数，「机构持仓」picker
+// 里的 guruInstitutionList 仍然是全量，不受这个截断影响。
+const GURU_INSTITUTION_PREVIEW_COUNT = 4;
+function institutionListShown(list, expanded) {
+  if (expanded) return list;
+  return list.slice(0, GURU_INSTITUTION_PREVIEW_COUNT);
+}
+
 // 机构切换（「跟着谁看」点行 / 「重仓前五」下拉选）共用同一份「预先算好
 // 全部、只挑一个」的模式，和 resolveHkExitSelection、resolveGoldView 一路。
 function resolveGuruInstitution(guruModule, institutionId) {
@@ -698,36 +707,18 @@ function buildOverview(snapshot, market) {
       : (lead && matchesGroup(lead, "risk7") ? "risk7" : "seven");
     const scored = scoreForItem(lead);
     const leadId = lead ? String(lead.id || lead.code || "") : "";
+    // 「七姐妹 7」「热度前三 3」这两格原来单独占一整排，可两个数都是固定的
+    // ——七姐妹恒定 7 只、热度前三恒定取 3 只，点开又是下面「七姐妹近期怎么了」
+    // 「最热的三只」两张答案卡、以及「分组浏览」里同一个分组，同一件事印三遍。
+    // 数字和入口都留给答案卡和分组浏览，这里的结论行只补答案卡没有的：综合分。
     return {
-      metrics: [
-        {
-          label: "七姐妹",
-          value: `${seven.length}`,
-          action: "group",
-          group: "seven",
-          enabled: seven.length > 0,
-        },
-        {
-          label: "热度前三",
-          value: `${hot.length}`,
-          action: "group",
-          group: "hot",
-          enabled: hot.length > 0,
-        },
-        {
-          label: "综合分",
-          value: scored.score != null ? `${scored.score}` : "—",
-          action: "detail",
-          id: leadId,
-          enabled: Boolean(leadId),
-        },
-      ],
+      metrics: [],
       // 页头写代码（MA、GOOGL）就得读的人自己翻译一遍，其它四栏的结论行
       // 写的都是中文名，这里跟上。
       target: lead ? shortCompanyName(lead.name, lead.code || "美股", 6) : "待更新",
       targetId: leadId,
       grade: lead
-        ? (leadLens === "cheap7" ? "低估可买入" : (leadLens === "risk7" ? "风险要减" : "七姐妹"))
+        ? `${leadLens === "cheap7" ? "低估可买入" : (leadLens === "risk7" ? "风险要减" : "七姐妹")}${scored.score != null ? ` · 综合分${scored.score}` : ""}`
         : "—",
       gradeGroup: leadLens,
       canOpenTarget: Boolean(leadId),
@@ -744,35 +735,15 @@ function buildOverview(snapshot, market) {
     const top = ranked[0]?.item || items[0];
     const scored = scoreForItem(top);
     const topId = top ? String(top.id || "") : "";
-    const primeCount = items.filter((item) => item.group === "prime").length;
+    // 「收息样本 12」「优等收息 1」这两格原来单独占一整排，可两个数在分组浏览里
+    // 一点就能看到、跟这里说的是同一件事，同一个数字印两遍。数字和入口都留给
+    // 分组浏览，这里的结论行只补分组浏览没有的：收息分。
     return {
-      metrics: [
-        {
-          // 同上：这一格数的是全部 10 只样本，落地页却和右边那格一样固定在
-          // 「优等收息」的 1 只。
-          label: "收息样本",
-          value: `${items.length}`,
-          action: "group",
-          group: "sample",
-          enabled: items.length > 0,
-        },
-        {
-          label: "优等收息",
-          value: `${primeCount}`,
-          action: "group",
-          group: "prime",
-          enabled: primeCount > 0,
-        },
-        {
-          label: "收息分",
-          value: scored.score != null ? `${scored.score}` : "—",
-          action: "detail",
-          id: topId,
-          enabled: Boolean(topId),
-        },
-      ],
+      metrics: [],
       target: top ? shortCompanyName(top.name, top.code || "—", 6) : "—",
-      grade: top ? (top.badge || "—") : "—",
+      grade: top
+        ? `${top.badge || "待定"}${scored.score != null ? ` · 收息分${scored.score}` : ""}`
+        : "—",
       targetId: topId,
       gradeGroup: top?.group || "prime",
       canOpenTarget: Boolean(topId),
@@ -783,42 +754,19 @@ function buildOverview(snapshot, market) {
   if (market === "gold") {
     const gold = snapshot.gold || {};
     const answer = gold.answer || {};
-    const international = gold.quotes?.international || {};
-    const domestic = gold.quotes?.domestic || {};
     const scored = scoreForItem({ market: "gold", raw: gold });
+    // 「国际金/盎司 $4416」「人民币金/克 ¥947.1」这两格是裸数字，往下一屏
+    // 「现在怎么做」面板里同样两个价、外加一张真实走势图已经摆在那——数字印两遍，
+    // 走势图反而要往下翻才看得到。去掉这两格数字，让走势图成为进页面后第一眼
+    // 看到的黄金内容。「观察分」不是裸重复（下面拆成国际/人民币两个分），
+    // 折进结论行说清是两者综合的一个分。
     return {
-      metrics: [
-        {
-          // 「国际金 4519」「人民币金 957.5」都是裸数字，一个是美元每盎司、
-          // 一个是人民币每克，同一行摆着看不出是两套口径。详情页那四格已经
-          // 写成「国际金/盎司 $4473」，栏目页跟上同一种写法。
-          label: "国际金/盎司",
-          value: hasNumber(international.price) ? `$${Number(international.price).toFixed(0)}` : "—",
-          action: "detail",
-          id: "track",
-          enabled: true,
-        },
-        {
-          label: "观察分",
-          value: scored.score != null ? `${scored.score}` : "—",
-          action: "detail",
-          id: "track",
-          enabled: true,
-        },
-        {
-          label: "人民币金/克",
-          value: hasNumber(domestic.price) ? `¥${Number(domestic.price).toFixed(1)}` : "—",
-          action: "detail",
-          id: "plan",
-          enabled: true,
-        },
-      ],
-      // 结论行原来写「人民币金 957.5」，可这个数字紧接着又在下面的关键数值行
-      // 出现一次、在四口径卡里再出现一次，同一屏印三遍。结论行只说这条结论
-      // 是关于谁的，数字交给下面两块。
+      metrics: [],
       target: "黄金",
       targetId: "track",
-      grade: answer.action || "继续观察",
+      // 结论徽章一行装不下「综合观察分」5个字再加分数，会被截断到看不见分数，
+      // 跟着 us/a 「综合分」「收息分」的三字长度来，同一个徽章位置装得下。
+      grade: `${answer.action || "继续观察"}${scored.score != null ? ` · 观察分${scored.score}` : ""}`,
       gradeGroup: "track",
       canOpenTarget: true,
       canOpenGrade: true,
@@ -936,8 +884,13 @@ Page({
     goldEvidenceOpen: false,
     // 机构持仓专属：原型的「共同方向/机构持仓」两个视图，只有 market==='guru' 时渲染。
     guruSubTab: "trend",
+    // 共同方向条形图默认折叠——今日答案摘要卡已经把「谁在同向加/减」说过
+    // 一遍，条形图是给想看明细的人的，不用默认占首屏。
+    guruBarsOpen: false,
     guruTrendRows: [],
     guruInstitutionList: [],
+    guruInstitutionListShown: [],
+    guruInstitutionExpanded: false,
     guruInstitutionIndex: 0,
     guruInstitutionId: "",
     guruInstitutionName: "",
@@ -1029,7 +982,7 @@ Page({
         {
           id: "settled",
           group: "settled",
-          title: "中签后观察",
+          title: "申购结束观察",
           help: settledCount > 0 ? `已配发 ${settledCount} 只 · 暗盘/首日观察中` : "暂无已配发新股",
           enabled: settledCount > 0,
         },
@@ -1137,6 +1090,10 @@ Page({
         goldRiskLine: goldView.riskLine,
         guruTrendRows: guruModule ? guruModule.trendRows : [],
         guruInstitutionList: guruModule ? guruModule.institutionList : [],
+        guruInstitutionListShown: institutionListShown(
+          guruModule ? guruModule.institutionList : [],
+          this.data.guruInstitutionExpanded,
+        ),
         guruInstitutionIndex: guruSelection.index,
         guruInstitutionId: guruSelection.id,
         guruInstitutionName: guruSelection.name,
@@ -1286,6 +1243,16 @@ Page({
   },
   toggleGuruEvidence() {
     this.setData({ guruEvidenceOpen: !this.data.guruEvidenceOpen });
+  },
+  toggleGuruBars() {
+    this.setData({ guruBarsOpen: !this.data.guruBarsOpen });
+  },
+  toggleGuruInstitutionMore() {
+    const expanded = !this.data.guruInstitutionExpanded;
+    this.setData({
+      guruInstitutionExpanded: expanded,
+      guruInstitutionListShown: institutionListShown(this.data.guruInstitutionList, expanded),
+    });
   },
   openMetric(event) {
     const { action, group, id, enabled } = event.currentTarget.dataset;

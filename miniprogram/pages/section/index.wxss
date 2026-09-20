@@ -186,19 +186,24 @@
 .answer-track {
   display: flex;
   flex-direction: column;
-  padding: 0 24rpx 18rpx;
-  gap: 14rpx;
+  padding: 0 24rpx 8rpx;
 }
 
+/* 4 条今日答案原来各自一张卡（边框+圆角+底色），卡中卡看着比实际内容
+   更复杂。合并成一张卡内的 4 行摘要，行间用分隔线，和下面
+   .guru-institution-row 一个路数——点开详情的 openAnswer 行为不变。 */
 .answer-card {
   box-sizing: border-box;
   display: flex;
   width: 100%;
   flex-direction: column;
-  padding: 20rpx 22rpx;
-  border: 1rpx solid #e7ece9;
-  border-radius: 18rpx;
-  background: #fafcfb;
+  padding: 18rpx 2rpx;
+  border-bottom: 1rpx solid #edf0ee;
+}
+
+.answer-card:last-child {
+  padding-bottom: 4rpx;
+  border-bottom: none;
 }
 
 .answer-card.is-empty {
@@ -1521,8 +1526,19 @@
 .guru-bar-fill.tone-caution { background: #8b5b20; }
 .guru-bar-fill.tone-avoid { background: #a33b2b; }
 
+/* 折叠状态下的条形图明细——不套 .a-details-body 的通用 text 样式，
+   道理和下面 .guru-more-body 那条注释一样：.guru-direction/.a-badge
+   自己有字号字重，套上会被灰色小字统一覆盖掉。 */
+.guru-bars-body {
+  padding-bottom: 4rpx;
+}
+
 .guru-institution-list {
   margin-top: 8rpx;
+}
+
+.guru-institution-more-text {
+  color: #0b7a53;
 }
 
 .guru-institution-row {

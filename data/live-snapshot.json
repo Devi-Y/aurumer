@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-09-22T21:18:11.444Z",
-  "durationMs": 44874,
+  "updatedAt": "2026-09-22T23:37:58.305Z",
+  "durationMs": 36467,
   "sources": [
     {
       "id": "yahoo",
@@ -6886,7 +6886,7 @@
             "close": 1.423
           }
         ],
-        "retrievedAt": "2026-09-22T21:17:31.469Z",
+        "retrievedAt": "2026-09-22T23:37:27.481Z",
         "dataStatus": "live",
         "historyStatus": "live",
         "historyFallbackReason": null
@@ -6897,21 +6897,21 @@
   },
   "gold": {
     "status": "live",
-    "updatedAt": "2026-09-22T21:17:28.181Z",
+    "updatedAt": "2026-09-22T23:37:23.682Z",
     "quotes": {
       "international": {
         "symbol": "GC=F",
         "name": "COMEX 黄金",
-        "price": 4396.2,
+        "price": 4401.1,
         "currency": "USD/oz",
-        "changePercent": 0.28,
-        "asOf": "2026-09-22T20:59:59.000Z",
+        "changePercent": 0.39,
+        "asOf": "2026-09-22T23:27:13.000Z",
         "returns": {
-          "day20": -6.4,
-          "day60": 7.3,
-          "day180": 1.5
+          "day20": -6.3,
+          "day60": 7.4,
+          "day180": 1.7
         },
-        "percentile180": 27
+        "percentile180": 29
       },
       "domestic": {
         "symbol": "Au99.99",
@@ -6930,9 +6930,9 @@
       },
       "usdCny": {
         "symbol": "USD/CNY",
-        "price": 6.7,
-        "changePercent": 0.06,
-        "asOf": "2026-09-22T20:01:48.000Z"
+        "price": 6.69,
+        "changePercent": -0.12,
+        "asOf": "2026-09-22T22:44:24.000Z"
       }
     },
     "indicators": [
@@ -6980,7 +6980,7 @@
       {
         "id": "domesticPremium",
         "label": "上海金折算溢价",
-        "value": -1.6,
+        "value": -1.5,
         "unit": "%",
         "asOf": "2026-09-22",
         "note": "比较 Au99.99 与国际金价人民币折算值。"
@@ -7024,33 +7024,33 @@
       "pricePlan": {
         "status": "research",
         "internationalWatch": {
-          "low": 4247,
-          "high": 4376,
+          "low": 4246,
+          "high": 4375,
           "currency": "USD/oz"
         },
         "internationalUpper": {
-          "low": 4615,
-          "high": 4746,
+          "low": 4613,
+          "high": 4740,
           "currency": "USD/oz"
         },
         "internationalRisk": {
-          "low": 4186,
-          "high": 4186,
+          "low": 4189,
+          "high": 4189,
           "currency": "USD/oz"
         },
         "domesticWatch": {
-          "low": 900.2,
-          "high": 927.6,
+          "low": 899.6,
+          "high": 926.9,
           "currency": "CNY/g"
         },
         "domesticUpper": {
-          "low": 978.2,
-          "high": 1006,
+          "low": 977.3,
+          "high": 1004.2,
           "currency": "CNY/g"
         },
         "domesticRisk": {
-          "low": 887.3,
-          "high": 887.3,
+          "low": 887.5,
+          "high": 887.5,
           "currency": "CNY/g"
         }
       }
@@ -7775,7 +7775,7 @@
         },
         {
           "date": "2026-09-22",
-          "close": 4396.2
+          "close": 4401.1
         }
       ],
       "domestic": [

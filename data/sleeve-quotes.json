@@ -1,57 +1,49 @@
 {
-  "updatedAt": "2026-09-22T20:00:00.000Z",
+  "updatedAt": "2026-09-23T17:51:48.000Z",
   "source": "Yahoo Finance",
   "quotes": [
     {
-      "symbol": "VOO",
-      "price": 712.78,
-      "previousClose": 696.2,
-      "changePercent": 2.3814995690893292,
-      "currency": "USD",
-      "asOf": "2026-09-22T20:00:00.000Z",
-      "source": "Yahoo Finance",
-      "name": "Vanguard 标普500 ETF"
-    },
-    {
       "symbol": "JEPQ",
-      "price": 61.17,
-      "previousClose": 59.08,
-      "changePercent": 3.53757616790793,
+      "price": 61.08,
+      "previousClose": 59.09,
+      "changePercent": 3.3677441191402924,
       "currency": "USD",
-      "asOf": "2026-09-22T20:00:01.000Z",
+      "asOf": "2026-09-23T17:51:48.000Z",
       "source": "Yahoo Finance",
       "name": "JPMorgan 纳指备兑 ETF"
     },
     {
       "symbol": "SCHD",
-      "price": 33.74,
-      "previousClose": 34.33,
-      "changePercent": -1.7186134576172352,
+      "price": 33.415,
+      "previousClose": 33.84,
+      "changePercent": -1.2559101654846416,
       "currency": "USD",
-      "asOf": "2026-09-22T20:00:00.000Z",
+      "asOf": "2026-09-23T17:52:26.000Z",
       "source": "Yahoo Finance",
       "name": "Schwab 美股红利 ETF"
     },
     {
       "symbol": "O",
-      "price": 56.53,
-      "previousClose": 58.71,
-      "changePercent": -3.713166411173563,
+      "price": 55.57,
+      "previousClose": 57.15,
+      "changePercent": -2.7646544181977206,
       "currency": "USD",
-      "asOf": "2026-09-22T20:00:02.000Z",
+      "asOf": "2026-09-23T17:52:26.000Z",
       "source": "Yahoo Finance",
       "name": "Realty Income"
     },
     {
       "symbol": "SGOV",
-      "price": 100.61,
-      "previousClose": 100.53,
-      "changePercent": 0.07957823535262865,
+      "price": 100.62,
+      "previousClose": 100.55,
+      "changePercent": 0.06961710591746328,
       "currency": "USD",
-      "asOf": "2026-09-22T20:05:22.000Z",
+      "asOf": "2026-09-23T17:52:28.000Z",
       "source": "Yahoo Finance",
       "name": "iShares 短债 ETF"
     }
   ],
-  "errors": []
+  "errors": [
+    "VOO: fetch failed"
+  ]
 }

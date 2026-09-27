@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-09-25T21:34:49.635Z",
-  "durationMs": 50854,
+  "updatedAt": "2026-09-27T09:55:49.971Z",
+  "durationMs": 52745,
   "sources": [
     {
       "id": "yahoo",
@@ -94,7 +94,7 @@
     {
       "id": "gold-sge",
       "name": "上海黄金交易所 Au99.99",
-      "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-26&end_date=2026-09-25",
+      "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-28&end_date=2026-09-27",
       "ok": true,
       "error": null
     }
@@ -106,8 +106,8 @@
         "price": 225.1,
         "changePercent": 0.22,
         "weeklyChange": 1.26,
-        "volumeRatio": 0.7,
-        "heatScore": 28,
+        "volumeRatio": 0.71,
+        "heatScore": 29,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
@@ -189,8 +189,8 @@
         "price": 516.2,
         "changePercent": 3.66,
         "weeklyChange": 4.53,
-        "volumeRatio": 1.78,
-        "heatScore": 93,
+        "volumeRatio": 1.79,
+        "heatScore": 94,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
@@ -258,9 +258,9 @@
           516.2
         ],
         "technicalPlan": {
-          "atr": 10.97,
+          "atr": 10.98,
           "buy": 491.1,
-          "stop": 478.5,
+          "stop": 478.4,
           "tp": [
             538.1,
             551.3
@@ -272,8 +272,8 @@
         "price": 341.1,
         "changePercent": 1.53,
         "weeklyChange": 1.47,
-        "volumeRatio": 0.69,
-        "heatScore": 36,
+        "volumeRatio": 0.7,
+        "heatScore": 37,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
@@ -355,7 +355,7 @@
         "price": 343.9,
         "changePercent": 0.46,
         "weeklyChange": -1.61,
-        "volumeRatio": 0.79,
+        "volumeRatio": 0.81,
         "heatScore": 34,
         "currency": "USD",
         "exchange": "NasdaqGS",
@@ -438,8 +438,8 @@
         "price": 249.7,
         "changePercent": 0.12,
         "weeklyChange": -1.59,
-        "volumeRatio": 0.93,
-        "heatScore": 36,
+        "volumeRatio": 0.97,
+        "heatScore": 38,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
@@ -604,8 +604,8 @@
         "price": 372.1,
         "changePercent": -1.54,
         "weeklyChange": 2.15,
-        "volumeRatio": 1.15,
-        "heatScore": 54,
+        "volumeRatio": 1.18,
+        "heatScore": 55,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
@@ -687,7 +687,7 @@
         "price": 630.6,
         "changePercent": 0.22,
         "weeklyChange": 12.65,
-        "volumeRatio": 0.81,
+        "volumeRatio": 0.82,
         "heatScore": 55,
         "currency": "USD",
         "exchange": "NasdaqGS",
@@ -770,7 +770,7 @@
         "price": 352.8,
         "changePercent": 0.7,
         "weeklyChange": -1.34,
-        "volumeRatio": 0.57,
+        "volumeRatio": 0.59,
         "heatScore": 27,
         "currency": "USD",
         "exchange": "NasdaqGS",
@@ -853,7 +853,7 @@
         "price": 189.7,
         "changePercent": -1.52,
         "weeklyChange": 6.77,
-        "volumeRatio": 0.64,
+        "volumeRatio": 0.65,
         "heatScore": 45,
         "currency": "USD",
         "exchange": "NasdaqGS",
@@ -1019,7 +1019,7 @@
         "price": 310.3,
         "changePercent": 1.3,
         "weeklyChange": 12.59,
-        "volumeRatio": 1.34,
+        "volumeRatio": 1.35,
         "heatScore": 80,
         "currency": "USD",
         "exchange": "NasdaqGS",
@@ -1351,7 +1351,7 @@
         "price": 158.6,
         "changePercent": -1.86,
         "weeklyChange": 3.05,
-        "volumeRatio": 0.7,
+        "volumeRatio": 0.71,
         "heatScore": 42,
         "currency": "USD",
         "exchange": "NasdaqGS",
@@ -1434,7 +1434,7 @@
         "price": 252.1,
         "changePercent": -2.9,
         "weeklyChange": 6.09,
-        "volumeRatio": 0.57,
+        "volumeRatio": 0.59,
         "heatScore": 50,
         "currency": "USD",
         "exchange": "NasdaqGS",
@@ -1517,8 +1517,8 @@
         "price": 135.6,
         "changePercent": -1.57,
         "weeklyChange": 0.11,
-        "volumeRatio": 0.48,
-        "heatScore": 26,
+        "volumeRatio": 0.51,
+        "heatScore": 28,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
@@ -1600,7 +1600,7 @@
         "price": 367.4,
         "changePercent": -0.16,
         "weeklyChange": -0.25,
-        "volumeRatio": 0.74,
+        "volumeRatio": 0.75,
         "heatScore": 28,
         "currency": "USD",
         "exchange": "NYSE",
@@ -1683,7 +1683,7 @@
         "price": 567.6,
         "changePercent": 0.28,
         "weeklyChange": 0.43,
-        "volumeRatio": 0.89,
+        "volumeRatio": 0.91,
         "heatScore": 34,
         "currency": "USD",
         "exchange": "NYSE",
@@ -1832,14 +1832,14 @@
           72.16,
           71.36,
           71.72,
-          71.14
+          71.15
         ],
         "technicalPlan": {
           "atr": 2.16,
           "buy": 69.96,
           "stop": 68.38,
           "tp": [
-            75.47,
+            75.48,
             78.07
           ]
         }
@@ -1849,7 +1849,7 @@
         "price": 137.1,
         "changePercent": -1.75,
         "weeklyChange": -7.12,
-        "volumeRatio": 0.69,
+        "volumeRatio": 0.7,
         "heatScore": 49,
         "currency": "USD",
         "exchange": "NYSE",
@@ -1932,8 +1932,8 @@
         "price": 234,
         "changePercent": -1.76,
         "weeklyChange": -1.64,
-        "volumeRatio": 0.5,
-        "heatScore": 31,
+        "volumeRatio": 0.52,
+        "heatScore": 32,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
@@ -2098,8 +2098,8 @@
         "price": 142.3,
         "changePercent": -2,
         "weeklyChange": 10.7,
-        "volumeRatio": 0.54,
-        "heatScore": 52,
+        "volumeRatio": 0.57,
+        "heatScore": 53,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
@@ -2264,8 +2264,8 @@
         "price": 343.1,
         "changePercent": 1.33,
         "weeklyChange": -1.89,
-        "volumeRatio": 1.33,
-        "heatScore": 58,
+        "volumeRatio": 1.55,
+        "heatScore": 66,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
@@ -2347,8 +2347,8 @@
         "price": 505.5,
         "changePercent": 0.06,
         "weeklyChange": -0.84,
-        "volumeRatio": 0.61,
-        "heatScore": 23,
+        "volumeRatio": 0.62,
+        "heatScore": 24,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
@@ -2430,7 +2430,7 @@
         "price": 1183.5,
         "changePercent": 0.13,
         "weeklyChange": 2.65,
-        "volumeRatio": 0.8,
+        "volumeRatio": 0.81,
         "heatScore": 34,
         "currency": "USD",
         "exchange": "NYSE",
@@ -2513,7 +2513,7 @@
         "price": 922.8,
         "changePercent": 2.93,
         "weeklyChange": 3.07,
-        "volumeRatio": 2.09,
+        "volumeRatio": 2.1,
         "heatScore": 97,
         "currency": "USD",
         "exchange": "NasdaqGS",
@@ -3026,7 +3026,7 @@
         "shortTermInvestments": 0,
         "liquidAssets": 88090800,
         "netIncome": 53949600,
-        "marketCap": 2335846213614,
+        "marketCap": 2337090974791,
         "pe": 43.3,
         "targetPrice": 507.5,
         "targetUpside": 12.6,
@@ -3201,7 +3201,7 @@
         "shortTermInvestments": 2558000,
         "liquidAssets": 6284000,
         "netIncome": 1748000,
-        "marketCap": 140251760000,
+        "marketCap": 140231080000,
         "pe": 80.2,
         "targetPrice": 150,
         "targetUpside": 10.6,
@@ -3236,7 +3236,7 @@
         "shortTermInvestments": 1833000,
         "liquidAssets": 21987000,
         "netIncome": 20058000,
-        "marketCap": 656096518620,
+        "marketCap": 656418134561,
         "pe": 32.7,
         "targetPrice": 420,
         "targetUpside": 14.3,
@@ -3271,7 +3271,7 @@
         "shortTermInvestments": 332000,
         "liquidAssets": 13580000,
         "netIncome": 14968000,
-        "marketCap": 497503565125,
+        "marketCap": 497267042441,
         "pe": 33.2,
         "targetPrice": 667,
         "targetUpside": 17.5,
@@ -3341,7 +3341,7 @@
         "shortTermInvestments": 605000,
         "liquidAssets": 31894000,
         "netIncome": 17087000,
-        "marketCap": 414493730880,
+        "marketCap": 414554205600,
         "pe": 24.3,
         "targetPrice": 240,
         "targetUpside": 75.1,
@@ -3376,7 +3376,7 @@
         "shortTermInvestments": 2238000,
         "liquidAssets": 9565000,
         "netIncome": 7457000,
-        "marketCap": 192647840000,
+        "marketCap": 192598460000,
         "pe": 25.8,
         "targetPrice": 289,
         "targetUpside": 23.5,
@@ -3411,7 +3411,7 @@
         "shortTermInvestments": 1201523,
         "liquidAssets": 4029686,
         "netIncome": -1331616,
-        "marketCap": 118660752000,
+        "marketCap": 118519632000,
         "pe": null,
         "targetPrice": 448.5,
         "targetUpside": 33.5,
@@ -3481,7 +3481,7 @@
         "shortTermInvestments": 528000,
         "liquidAssets": 8264000,
         "netIncome": 10053000,
-        "marketCap": 142182610023,
+        "marketCap": 142203035624,
         "pe": 14.1,
         "targetPrice": 103,
         "targetUpside": 47.9,
@@ -3516,7 +3516,7 @@
         "shortTermInvestments": 0,
         "liquidAssets": 679764000,
         "netIncome": 57048000,
-        "marketCap": 911505337196,
+        "marketCap": 911917356057,
         "pe": 16,
         "targetPrice": 370,
         "targetUpside": 7.8,
@@ -3551,8 +3551,8 @@
         "shortTermInvestments": 321434000,
         "liquidAssets": 373311000,
         "netIncome": 66968000,
-        "marketCap": 1114136574604,
-        "pe": 16.6,
+        "marketCap": 1115666283564,
+        "pe": 16.7,
         "targetPrice": 792000,
         "targetUpside": 156576.6,
         "revenueHistory": [
@@ -3586,7 +3586,7 @@
         "shortTermInvestments": 109100,
         "liquidAssets": 7377100,
         "netIncome": 20640000,
-        "marketCap": 1114303184982,
+        "marketCap": 1114058432145,
         "pe": 54,
         "targetPrice": 1392.5,
         "targetUpside": 17.7,
@@ -3604,8 +3604,8 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 41,
-        "finalScore": 82,
+        "valueScore": 42,
+        "finalScore": 83,
         "qualityEligible": true
       },
       {
@@ -3908,56 +3908,6 @@
           "年度报告"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000022/smci-20260630.htm"
-      },
-      {
-        "symbol": "CRWD",
-        "form": "10-Q",
-        "filingDate": "2026-08-27",
-        "items": "",
-        "labels": [
-          "季度报告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1535527/000153552726000031/crwd-20260731.htm"
-      },
-      {
-        "symbol": "CRM",
-        "form": "10-Q",
-        "filingDate": "2026-08-27",
-        "items": "",
-        "labels": [
-          "季度报告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1108524/000110852426000190/crm-20260731.htm"
-      },
-      {
-        "symbol": "NVDA",
-        "form": "10-Q",
-        "filingDate": "2026-08-26",
-        "items": "",
-        "labels": [
-          "季度报告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000075/nvda-20260726.htm"
-      },
-      {
-        "symbol": "NVDA",
-        "form": "8-K",
-        "filingDate": "2026-08-26",
-        "items": "2.02,9.01",
-        "labels": [
-          "业绩公告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000073/nvda-20260826.htm"
-      },
-      {
-        "symbol": "CRWD",
-        "form": "8-K",
-        "filingDate": "2026-08-26",
-        "items": "2.02,9.01",
-        "labels": [
-          "业绩公告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1535527/000153552726000029/crwd-20260826.htm"
       }
     ],
     "temperature": {
@@ -6861,7 +6811,7 @@
             "close": 1.409
           }
         ],
-        "retrievedAt": "2026-09-25T21:34:03.219Z",
+        "retrievedAt": "2026-09-27T09:55:04.185Z",
         "dataStatus": "live",
         "historyStatus": "live",
         "historyFallbackReason": null
@@ -6872,17 +6822,17 @@
   },
   "gold": {
     "status": "live",
-    "updatedAt": "2026-09-25T21:34:00.831Z",
+    "updatedAt": "2026-09-27T09:54:59.683Z",
     "quotes": {
       "international": {
         "symbol": "GC=F",
         "name": "COMEX 黄金",
-        "price": 4320.5,
+        "price": 4321.2,
         "currency": "USD/oz",
-        "changePercent": 0.52,
+        "changePercent": 0.54,
         "asOf": "2026-09-25T20:59:59.000Z",
         "returns": {
-          "day20": -7.4,
+          "day20": -7.3,
           "day60": 5.8,
           "day180": -3.2
         },
@@ -6905,9 +6855,9 @@
       },
       "usdCny": {
         "symbol": "USD/CNY",
-        "price": 6.7,
-        "changePercent": -0.11,
-        "asOf": "2026-09-25T21:32:11.000Z"
+        "price": 6.71,
+        "changePercent": 0.02,
+        "asOf": "2026-09-27T03:30:32.000Z"
       }
     },
     "indicators": [
@@ -6955,7 +6905,7 @@
       {
         "id": "domesticPremium",
         "label": "上海金折算溢价",
-        "value": -0.5,
+        "value": -0.7,
         "unit": "%",
         "asOf": "2026-09-24",
         "note": "比较 Au99.99 与国际金价人民币折算值。"
@@ -7014,18 +6964,18 @@
           "currency": "USD/oz"
         },
         "domesticWatch": {
-          "low": 900.4,
-          "high": 927.8,
+          "low": 899.9,
+          "high": 927.4,
           "currency": "CNY/g"
         },
         "domesticUpper": {
-          "low": 969.6,
-          "high": 995.8,
+          "low": 969.1,
+          "high": 995.3,
           "currency": "CNY/g"
         },
         "domesticRisk": {
-          "low": 898.5,
-          "high": 898.5,
+          "low": 898,
+          "high": 898,
           "currency": "CNY/g"
         }
       }
@@ -7750,7 +7700,7 @@
         },
         {
           "date": "2026-09-25",
-          "close": 4320.5
+          "close": 4321.2
         }
       ],
       "domestic": [
@@ -7790,7 +7740,7 @@
       {
         "id": "gold-sge",
         "name": "上海黄金交易所 Au99.99",
-        "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-26&end_date=2026-09-25",
+        "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-28&end_date=2026-09-27",
         "ok": true,
         "error": null
       }

@@ -33,15 +33,19 @@
     </view>
   </view>
 
-  <!-- 第二块：九宫格。六个研究栏目 + 服务格（config/offers.js），
-       一格只有图标和名字，不用先读一行说明。
+  <!-- 第二块：九宫格。五个研究栏目 + 预留格 + 服务格（config/offers.js），
+       一格只有图标和名字，不用先读一行说明。预留格是新闻资讯删掉后空出来的位置，
+       只画一个虚线框，不能点。
        年费条（我的会员）已按产品要求从首页撤掉；开通入口在记录页「复盘」和详情页的会员提示里。 -->
   <view class="page-card home-panel">
     <text class="group-label">核心研究</text>
     <view class="entry-grid">
+      <block wx:for="{{entries}}" wx:key="id">
+      <view wx:if="{{item.reserved}}" class="grid-card is-reserved" aria-hidden="true">
+        <view class="entry-icon-chip is-reserved"></view>
+      </view>
       <view
-        wx:for="{{entries}}"
-        wx:key="id"
+        wx:else
         class="grid-card"
         data-id="{{item.id}}"
         bindtap="openGridEntry"
@@ -55,6 +59,7 @@
         </view>
         <text class="card-title">{{item.title}}</text>
       </view>
+      </block>
     </view>
   </view>
 

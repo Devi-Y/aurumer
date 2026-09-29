@@ -422,9 +422,10 @@ assert(
   && indexSource.includes("数据截至"),
   "首页数据截至时间应只保留一处",
 );
-// 首页改成蓝白灰主色调（2026-09-29）后，六宫格六个入口图标统一用品牌蓝 #1d5fd1
-// （原来是 711b420 定的墨绿/墨金）；member/today/watch/decision 不在六宫格里，
+// 首页改成蓝白灰主色调（2026-09-29）后，九宫格里五个研究栏目图标统一用品牌蓝 #1d5fd1
+// （原来是 711b420 定的墨绿/墨金）；member/today/watch/decision 不在九宫格里，
 // 保留原色未变——这里核对现在这套统一色，而不是被替换掉的旧色。
+// 新闻资讯（news）2026-09-29 整页删掉，图标一起删了，不再核对。
 const expectedIconStrokes = {
   hk: "#1d5fd1",
   us: "#1d5fd1",
@@ -432,7 +433,6 @@ const expectedIconStrokes = {
   gold: "#1d5fd1",
   member: "#9B5DE5",
   guru: "#1d5fd1",
-  news: "#1d5fd1",
   today: "#07C160",
   watch: "#07C160",
   decision: "#07C160",
@@ -473,17 +473,33 @@ for (const page of ["pages/section/index", "pages/list/index"]) {
 }
 // 首页已不挂年费入口（2026-09-29），唯一年费价格由 audit-payment.mjs 在会员页核对。
 const gridDefinition = indexSource.match(/const CORE_ENTRIES = \[([\s\S]*?)\n\];/)?.[1] || "";
-assert((gridDefinition.match(/\n\s+id: /g) || []).length === 6, "小程序首页应只保留 6 个核心入口");
-// 年费会员已按产品要求从宫格里挪到下方独立横幅，宫格是六个真实模块。
-for (const title of ["港股打新", "美股投资", "A股收息", "黄金追踪", "聪明钱跟踪", "新闻资讯"]) {
+assert((gridDefinition.match(/\n\s+id: /g) || []).length === 5, "小程序首页应只保留 5 个核心入口");
+// 年费会员已按产品要求从宫格里撤掉；新闻资讯 2026-09-29 整页删掉，宫格是五个研究栏目。
+for (const title of ["港股打新", "美股投资", "A股收息", "黄金追踪", "聪明钱跟踪"]) {
   assert(gridDefinition.includes(`title: "${title}"`), `小程序首页缺少准确入口标题：${title}`);
 }
 assert(!gridDefinition.includes('title: "年费会员"'), "年费会员不应再占用六宫格的位置");
 const homeEntryIcons = [...gridDefinition.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
-assert(homeEntryIcons.length === 6 && new Set(homeEntryIcons).size === 6, "小程序首页六个入口必须使用六个不同图标");
-const miniEntryOrder = ["id: \"hk\"", "id: \"us\"", "id: \"a\"", "id: \"gold\"", "id: \"guru\"", "id: \"news\""]
+assert(homeEntryIcons.length === 5 && new Set(homeEntryIcons).size === 5, "小程序首页五个入口必须使用五个不同图标");
+const miniEntryOrder = ["id: \"hk\"", "id: \"us\"", "id: \"a\"", "id: \"gold\"", "id: \"guru\""]
   .map((marker) => gridDefinition.indexOf(marker));
-assert(miniEntryOrder.every((position, index) => position >= 0 && (index === 0 || position > miniEntryOrder[index - 1])), "小程序首页顺序必须是港股、美股、A股、黄金、聪明钱跟踪、新闻资讯");
+assert(miniEntryOrder.every((position, index) => position >= 0 && (index === 0 || position > miniEntryOrder[index - 1])), "小程序首页顺序必须是港股、美股、A股、黄金、聪明钱跟踪");
+// 新闻资讯删掉后它那一格原位留空：宫格里紧跟五个研究栏目放一个预留格，
+// 只画虚线框、不能点，也不能悄悄把新闻资讯的路由、入口或图标带回来。
+assert(!appConfig.pages.includes("pages/news/index"), "新闻资讯页已删除，不应再注册路由");
+assert(
+  !gridDefinition.includes('id: "news"') && !indexSource.includes("/pages/news/") && !indexSource.includes("news.svg"),
+  "首页九宫格不应再有新闻资讯入口",
+);
+assert(
+  /\.\.\.CORE_ENTRIES\.map\([^\n]*\),\n\s*\{ id: "reserved", reserved: true \},\n\s*\.\.\.SERVICES/.test(indexSource),
+  "九宫格应在五个研究栏目之后、服务格之前保留一个预留格",
+);
+assert(
+  /<view wx:if="\{\{item\.reserved\}\}" class="grid-card is-reserved" aria-hidden="true">/.test(indexTemplate)
+    && !/wx:if="\{\{item\.reserved\}\}"[^>]*bindtap/.test(indexTemplate),
+  "预留格应只占位、对读屏隐藏且不可点",
+);
 assert(gridDefinition.trimEnd().endsWith("},") && gridDefinition.lastIndexOf('id: "guru"') > gridDefinition.lastIndexOf('id: "member"'), "聪明钱跟踪必须位于核心入口最下面的最后一格");
 for (const removedId of ['id: "today"', 'id: "watch"', 'id: "decision"']) {
   assert(!gridDefinition.includes(removedId), `低频入口仍占用首页核心网格：${removedId}`);
@@ -587,7 +603,7 @@ for (const label of ["近 60 日最低", "近 60 日中位数", "近 60 日最�
 // 原来那个装饰图标撤掉了（它比数据本身还显眼）。所以这里认的是「有没有说清
 // 这份数据是什么时候的、有没有数据条」，不再认那几个已经不存在的类名。
 for (const [template, labels] of [
-  [pageTemplatesByPath.get("pages/section/index") || "", ["dataAsOf", "hero-help", "结论", "page-card", "hero-metrics"]],
+  [pageTemplatesByPath.get("pages/section/index") || "", ["dataAsOf", "hero-title", "结论", "page-card", "hero-metrics"]],
   [pageTemplatesByPath.get("pages/list/index") || "", ["dataAsOf", "list-hero-help", "item-bar", "item-panel"]],
   [detailTemplate, ["结论", "visual-card", "metric-panel", "chart-stats"]],
 ]) {
@@ -642,9 +658,28 @@ assert(
     && !indexTemplate.includes("today-sub"),
   "首页应通过读屏标签保留入口与走势卡的帮助信息",
 );
-// group-help 已在 711b420 里随栏目页头部重做改名为 hero-help（与前面
-// 「后续页面缺少图片、数据、分析或结论层级」断言认的是同一个类名）。
-assert((pageTemplatesByPath.get("pages/section/index") || "").includes("meta.one") && (pageTemplatesByPath.get("pages/section/index") || "").includes("hero-help"), "栏目页应露出本页用途与分组说明");
+// group-help 在 711b420 里改名为 hero-help；2026-09-29 按产品要求（字太多）
+// 标题下那行说明整行撤掉，栏目用途 meta.one 只留在标题的读屏标签里。
+assert(
+  (pageTemplatesByPath.get("pages/section/index") || "").includes('aria-label="{{meta.title}}：{{meta.one}}"')
+    && !(pageTemplatesByPath.get("pages/section/index") || "").includes("hero-help"),
+  "栏目页标题下不应再挂说明小字，栏目用途应保留在读屏标签里",
+);
+// 同一轮减字：黄金栏目页不再摆 6 个宏观指标和均线拐点那段话，改成一个进详情的口子；
+// 这些内容仍在黄金详情页里（buildGoldView 读 gold.indicators），不是删掉了。
+assert(
+  !(pageTemplatesByPath.get("pages/section/index") || "").includes("goldIndicatorTiles")
+    && /class="gold-detail-link"\s+bindtap="openInsightTarget"/.test(pageTemplatesByPath.get("pages/section/index") || "")
+    && detailSource.includes("gold.indicators"),
+  "黄金宏观指标应收进详情页，栏目页只留进详情的入口",
+);
+// 聪明钱「本季在加/减什么」两张答案卡和下面「本季共同方向」条形图是同一批票，
+// 栏目页只留条形图；答案卡本身还在 daily-answers 里给别处用。
+assert(
+  (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes('item.id !== "guru-add" && item.id !== "guru-cut"')
+    && (pageTemplatesByPath.get("pages/section/index") || "").includes("本季共同方向"),
+  "聪明钱栏目页不应把加/减仓同一批票印两遍",
+);
 assert((pageTemplatesByPath.get("pages/list/index") || "").includes("groupHelp"), "列表页应露出当前分组说明");
 assert(!detailSource.includes('label: "半年分位"') || !detailSource.includes("收益与位置"), "黄金图表不应把涨跌百分比与分位混在同一柱图");
 assert(detailSource.includes("期间现金流") && detailSource.includes("现金存量"), "美股现金图应按流量/存量分开展示");

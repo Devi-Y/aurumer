@@ -90,9 +90,16 @@
   background: #edf2fb;
 }
 
-/* 服务格不是研究栏目，底色退成灰，和六个栏目分得开。 */
+/* 服务格不是研究栏目，底色退成灰，和研究栏目分得开。 */
 .entry-icon-chip.svc {
   background: #f1f3f6;
+}
+
+/* 预留格：只留一个虚线框占住位置。 */
+.entry-icon-chip.is-reserved {
+  box-sizing: border-box;
+  border: 2rpx dashed #d3dae5;
+  background: transparent;
 }
 
 .entry-icon {

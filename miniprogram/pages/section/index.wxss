@@ -75,14 +75,6 @@
   white-space: nowrap;
 }
 
-.hero-help {
-  display: block;
-  margin-top: 10rpx;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 23rpx;
-  line-height: 1.45;
-}
-
 /* 结论与关键数值那张卡向上压住绿带下沿。 */
 .hero-body {
   position: relative;
@@ -2592,80 +2584,6 @@
 .gold-ladder-key.is-risk .gold-ladder-key-value { color: #a33b2b; }
 .gold-ladder-key.is-watch .gold-ladder-key-value { color: #1d5fd1; }
 .gold-ladder-key.is-upper .gold-ladder-key-value { color: #8b5b20; }
-
-.gold-trend-line {
-  display: flex;
-  margin-top: 16rpx;
-  align-items: flex-start;
-  gap: 12rpx;
-}
-
-.gold-dot {
-  flex: none;
-  width: 16rpx;
-  height: 16rpx;
-  margin-top: 6rpx;
-  border-radius: 50%;
-  background: #999ca2;
-}
-
-.gold-dot.tone-worth { background: #1d5fd1; }
-.gold-dot.tone-caution { background: #d99a12; }
-.gold-dot.tone-avoid { background: #a33b2b; }
-
-.gold-trend-body {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.gold-trend-title {
-  color: #1a1d22;
-  font-size: 26rpx;
-  font-weight: 680;
-}
-
-.gold-trend-detail {
-  color: #797d85;
-  font-size: 22rpx;
-  line-height: 1.5;
-}
-
-.gold-indicator-grid {
-  display: grid;
-  margin-top: 16rpx;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12rpx;
-}
-
-.gold-indicator-tile {
-  box-sizing: border-box;
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 8rpx;
-  padding: 16rpx 14rpx;
-  border-radius: 16rpx;
-  background: #f4f5f8;
-}
-
-.gold-indicator-label {
-  display: block;
-  color: #696d75;
-  font-size: 20rpx;
-  line-height: 1.35;
-}
-
-.gold-indicator-value {
-  display: block;
-  color: #1a1d22;
-  font-size: 30rpx;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
 
 .gold-detail-link {
   display: flex;

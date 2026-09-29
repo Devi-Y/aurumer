@@ -2,7 +2,7 @@ const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
 const { allItems, groupDefinitions, shortCompanyName, money, aShareDividendStability, tickerZhLabel } = require("../../utils/answers");
 // 结论行要按「低估 / 风险」这两个透镜选人，和今日答案用同一个判断。
-const { matchesGroup, parseOfferPrice, yieldImpliedPlan, goldZoneForPrice, goldTurningPoint } = require("../../utils/market-lenses");
+const { matchesGroup, parseOfferPrice, yieldImpliedPlan, goldZoneForPrice } = require("../../utils/market-lenses");
 // 港股打新「中签后」每只股票自己的观察分位——已经是详情页在用的同一份
 // 真实数据计算，这里原样复用，不重新写一遍价格逻辑。
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
@@ -15,7 +15,7 @@ const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { MASTER_PLAYBOOKS } = require("../../utils/master-playbooks");
 const { buildHkHistoryStats, hkFirstDaySeries } = require("../../utils/hk-history-stats");
-const { buildDailyAnswers, goldMonthDay } = require("../../utils/daily-answers");
+const { buildDailyAnswers } = require("../../utils/daily-answers");
 const { listHoldings } = require("../../utils/local-holdings");
 const { marketSources } = require("../../utils/sources");
 // 「机构持仓」的共识加减仓聚合，和今日答案卡片（未来持仓趋势）同一份计算，
@@ -653,25 +653,6 @@ function paintGoldLineChart(ctx, width, height, values) {
   dot(lastIdx, "#1d5fd1", 2.8);
 }
 
-// 数字里免不了 118.2126、-0.4 这种长尾小数，两位小数四舍五入后再去掉多余的
-// 尾零——2.60% 不用留成 2.60，直接读 2.6。
-function trimTrailingZeros(text) {
-  return String(text).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
-}
-
-// 详情页 buildGoldView() 已经把这 6 个宏观指标算好，这里原样搬到栏目页
-// 首屏，不重新计算、不筛选——用户明确要求 6 个全都摆出来。
-function goldIndicatorTiles(gold) {
-  const indicators = Array.isArray(gold.indicators) ? gold.indicators : [];
-  return indicators.map((item) => {
-    const value = Number(item.value);
-    const valueText = Number.isFinite(value)
-      ? `${trimTrailingZeros(value.toFixed(2))}${item.unit || ""}`
-      : "待更新";
-    return { id: item.id, label: item.label || item.id, valueText };
-  });
-}
-
 function buildGoldModule(snapshot) {
   const gold = snapshot.gold || {};
   const answer = gold.answer || {};
@@ -732,21 +713,7 @@ function buildGoldModule(snapshot) {
     },
   };
 
-  // 拐点判断和今日答案卡片（gold-turn）同一套真实20/60日均线计算，措辞照抄
-  // buildGoldAnswers 里 turnAnswer/crossText 的公式，不重新编一套话术。
-  const turn = goldTurningPoint(gold.history?.international, international.price);
-  const trendTone = turn ? (turn.above ? "worth" : "avoid") : "caution";
-  const trendBadge = turn ? (turn.above ? "均线上行" : "均线下行") : "样本不足";
-  const trendTitle = turn ? (turn.above ? "均线转上行" : "均线转下行") : "拐点暂不下判断";
-  const trendDetail = turn
-    ? (turn.crossDate
-      ? `${goldMonthDay(turn.crossDate)} 20日线${turn.above ? "上穿" : "下穿"}60日线，已 ${turn.crossDays} 个交易日未反向`
-      : `近半年 20日线一直在 60日线${turn.above ? "上方" : "下方"}`)
-    : "半年收盘价样本不足 60 天，拐点暂不下判断";
-
-  const indicatorTiles = goldIndicatorTiles(gold);
-
-  return { quotes, perCurrency, trendTone, trendBadge, trendTitle, trendDetail, indicatorTiles };
+  return { quotes, perCurrency };
 }
 
 // 观察分（0–100）画成币种卡片里的一根细条，原来藏在「查看判断依据」折叠里。
@@ -1038,8 +1005,10 @@ function buildOverview(snapshot, market) {
       metrics: [],
       target: lead ? shortCompanyName(lead.name, "新股", 6) : "暂无在售",
       targetId: leadId,
+      // 资料不够时公开研究分是 0，「资料不够 · 研究分0」读起来像被打了零分，
+      // 这种只留徽章。
       grade: lead
-        ? `${lead.badge || "待定"}${scored.score != null ? ` · 研究分${scored.score}` : ""}`
+        ? `${lead.badge || "待定"}${scored.score != null && lead.badge !== "资料不够" ? ` · 研究分${scored.score}` : ""}`
         : "—",
       gradeGroup: lead?.group || "worth",
       canOpenTarget: Boolean(leadId),
@@ -1232,11 +1201,6 @@ Page({
     goldChart: null,
     goldChartNote: "",
     goldLadder: null,
-    goldTrendTone: "caution",
-    goldTrendBadge: "",
-    goldTrendTitle: "",
-    goldTrendDetail: "",
-    goldIndicatorTiles: [],
     // 机构持仓专属：原型的「共同方向/机构持仓」两个视图，只有 market==='guru' 时渲染。
     guruSubTab: "trend",
     guruTrendRows: [],
@@ -1404,7 +1368,11 @@ Page({
       this.setData({
         groups,
         overview: buildOverview(snapshot, this.data.market),
-        answers,
+        // 聪明钱「本季他们在加/减什么」两张卡和下面「本季共同方向」那张条形图
+        // 是同一批票、同一个家数，上下印两遍；2026-09-29 按产品要求只留下面那张。
+        answers: this.data.market === "guru"
+          ? answers.filter((item) => item.id !== "guru-add" && item.id !== "guru-cut")
+          : answers,
         deepLinks,
         source,
         freshness: freshnessBanner(source, meta.kind),
@@ -1426,11 +1394,6 @@ Page({
         aYieldList: aModule ? aModule.yieldList : [],
         aFund: aModule ? aModule.fund : null,
         goldQuotes: goldModule ? goldModule.quotes : [],
-        goldTrendTone: goldModule ? goldModule.trendTone : "caution",
-        goldTrendBadge: goldModule ? goldModule.trendBadge : "",
-        goldTrendTitle: goldModule ? goldModule.trendTitle : "",
-        goldTrendDetail: goldModule ? goldModule.trendDetail : "",
-        goldIndicatorTiles: goldModule ? goldModule.indicatorTiles : [],
         goldPeriod: goldView.period,
         goldBadgeText: goldView.badgeText,
         goldZoneTone: goldView.zoneTone,

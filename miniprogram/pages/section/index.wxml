@@ -1,12 +1,11 @@
 <view class="page-shell section-shell">
-  <!-- 页头照新闻资讯页的写法：绿带里放栏目名、数据截至、一句说明和范围标签。
-       原来是一张白卡，页面上看不到这份数据是什么时候的，装饰图标反而最显眼。 -->
+  <!-- 页头只放栏目名和数据截至。标题下那行「上新 / 值得打 / 避雷…」
+       2026-09-29 按产品要求撤掉（字太多），只留作读屏标签。 -->
   <view class="section-hero">
     <view class="hero-top">
-      <text class="hero-title">{{meta.title}}</text>
+      <text class="hero-title" aria-label="{{meta.title}}：{{meta.one}}">{{meta.title}}</text>
       <text class="hero-meta">{{dataAsOf || '同步中'}}</text>
     </view>
-    <text class="hero-help">{{meta.one}}</text>
     <!-- 原来这里还有一块「今日答案 N 条」徽章，跟正下方 tab 上的
          「今日答案 N」离得很近、说的是同一件事，删掉这块，数字交给 tab。 -->
   </view>
@@ -544,41 +543,17 @@
       </view>
     </view>
 
-    <!-- gold.indicators 的 6 项原样搬上来，不筛选；每格只留名字和数值，
-         三列两行一屏看完，解释性小字交给详情页。 -->
-    <view class="gold-panel" wx:if="{{goldIndicatorTiles.length}}">
-      <view class="gold-row-between">
-        <text class="gold-headline">宏观驱动指标</text>
-      </view>
-      <view class="gold-indicator-grid">
-        <view wx:for="{{goldIndicatorTiles}}" wx:key="id" class="gold-indicator-tile">
-          <text class="gold-indicator-label">{{item.label}}</text>
-          <text class="gold-indicator-value">{{item.valueText}}</text>
-        </view>
-      </view>
-      <view
-        class="gold-detail-link"
-        bindtap="openInsightTarget"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-label="查看四口径金价与宏观指标"
-      >
-        <text>查看四口径金价与宏观指标 ›</text>
-      </view>
-    </view>
-
-    <view class="gold-panel">
-      <view class="gold-row-between">
-        <text class="gold-headline">最近一次趋势变化</text>
-        <text class="gold-badge tone-{{goldTrendTone}}">{{goldTrendBadge}}</text>
-      </view>
-      <view class="gold-trend-line">
-        <view class="gold-dot tone-{{goldTrendTone}}"></view>
-        <view class="gold-trend-body">
-          <text class="gold-trend-title">{{goldTrendTitle}}</text>
-          <text class="gold-trend-detail">{{goldTrendDetail}}</text>
-        </view>
-      </view>
+    <!-- 6 个宏观指标和「均线上穿/下穿」那段话原来也摆在这里，读起来全是术语；
+         2026-09-29 按产品要求挪回黄金详情页（buildGoldView 里本来就有），
+         这一栏只留金价、走势和买卖区间，再给一个进详情的口子。 -->
+    <view
+      class="gold-detail-link"
+      bindtap="openInsightTarget"
+      hover-class="tap-active"
+      aria-role="button"
+      aria-label="查看黄金宏观指标与拐点"
+    >
+      <text>更多指标 ›</text>
     </view>
   </view>
 

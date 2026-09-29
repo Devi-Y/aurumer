@@ -1,6 +1,5 @@
 const { loadSnapshot } = require("../../data/store");
 const { track, trackHomeVisit } = require("../../utils/analytics");
-const { openPage } = require("../../utils/nav");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const { MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const OFFERS = require("../../config/offers");
@@ -11,7 +10,7 @@ const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
 // 点了只说「即将开放」，不编链接）；其余不上九宫格，也不拿别的入口凑数。
 const SERVICES = OFFERS.filter((item) => item && (item.copy || item.pending));
 
-// 九宫格的前六格是这六个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
+// 九宫格的前五格是这五个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
 // 没有副标题也没有箭头。help 不再上屏，但留着当读屏标签用。
 const CORE_ENTRIES = [
   {
@@ -49,19 +48,13 @@ const CORE_ENTRIES = [
     title: "聪明钱跟踪",
     help: "持仓·动向·趋势",
   },
-  {
-    id: "news",
-    action: "page",
-    url: "/pages/news/index",
-    icon: "/assets/home/news.svg",
-    title: "新闻资讯",
-    help: "披露·公告·影响",
-  },
 ];
 
-// 九宫格 = 六个研究栏目 + 已有物料的服务格。服务格点一下是复制，不跳页。
+// 九宫格 = 五个研究栏目 + 一个预留格 + 已有物料的服务格。服务格点一下是复制，不跳页。
+// 新闻资讯（2026-09-29）按产品要求整页删掉，它那一格原位留空，等以后放新栏目。
 const GRID_ENTRIES = [
   ...CORE_ENTRIES.map((item) => ({ ...item })),
+  { id: "reserved", reserved: true },
   ...SERVICES.map(({ id, icon, title, copy }) => ({ id, action: "copy", icon, title, help: copy ? "点击复制" : "即将开放" })),
 ];
 
@@ -212,10 +205,6 @@ Page({
       track("section_open", { market: String(entry.id), from: "grid" });
       wx.navigateTo({ url: `/pages/section/index?market=${entry.id}` });
       return;
-    }
-    // 新闻资讯不是行情栏目，走自己的页面。
-    if (entry.action === "page" && entry.url) {
-      openPage(entry.url);
     }
   },
   openTrend(event) {

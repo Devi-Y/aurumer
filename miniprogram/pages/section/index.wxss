@@ -902,7 +902,7 @@
 .hk-fd-figs {
   display: flex;
   align-items: baseline;
-  gap: 8rpx;
+  gap: 20rpx;
   font-variant-numeric: tabular-nums;
 }
 
@@ -914,16 +914,6 @@
 
 .hk-fd-value.is-up { color: #c2412d; }
 .hk-fd-value.is-down { color: #0b7a53; }
-
-.hk-fd-k {
-  margin-right: 14rpx;
-  color: #999ca2;
-  font-size: 21rpx;
-}
-
-.hk-fd-k:last-child {
-  margin-right: 0;
-}
 
 .hk-fd-bars {
   position: relative;
@@ -2321,42 +2311,6 @@
   margin-top: 4rpx;
   color: #999ca2;
   font-size: 20rpx;
-}
-
-.gold-score {
-  margin: 14rpx 8rpx 0;
-}
-
-.gold-score-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.gold-score-k {
-  color: #999ca2;
-  font-size: 19rpx;
-}
-
-.gold-score-v {
-  color: #1a1d22;
-  font-size: 22rpx;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.gold-score-track {
-  height: 6rpx;
-  margin-top: 6rpx;
-  overflow: hidden;
-  border-radius: 999rpx;
-  background: rgba(26, 29, 34, 0.08);
-}
-
-.gold-score-fill {
-  height: 100%;
-  border-radius: 999rpx;
-  background: linear-gradient(90deg, #e2b458, #1d5fd1);
 }
 
 .gold-change {

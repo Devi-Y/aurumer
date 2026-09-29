@@ -3,6 +3,7 @@
  * 只产出时间与事实，不生成买卖指令。
  */
 const { allItems } = require("./answers");
+const { sourceName } = require("./sources");
 
 function parseDay(value) {
   if (!value) return null;
@@ -80,7 +81,7 @@ function buildResearchEvents(snapshot, watchItems = []) {
       detail: item.entryFee != null ? `一手约 ${Math.round(Number(item.entryFee))} 港元` : "",
       code,
       date: parseDay(item.offerDeadline),
-      source: item.source || "港交所公开文件",
+      source: sourceName(item.source) || "港交所公开文件",
       paywallHint: "开通后可把截止/上市日放进日历，并自动保存申购记录与上市后对照。",
     });
     pushEvent(events, {
@@ -91,7 +92,7 @@ function buildResearchEvents(snapshot, watchItems = []) {
       detail: item.entryFee != null ? `一手约 ${Math.round(Number(item.entryFee))} 港元` : "",
       code,
       date: parseDay(item.listingDate),
-      source: item.source || "港交所公开文件",
+      source: sourceName(item.source) || "港交所公开文件",
       paywallHint: "开通后可在上市日提醒你回看申购记录与公开表现。",
     });
   });
@@ -106,7 +107,7 @@ function buildResearchEvents(snapshot, watchItems = []) {
       detail: item.reportDate ? `报告期 ${item.reportDate}` : "",
       code: item.id || "",
       date: parseDay(item.filingDate),
-      source: item.source || "SEC 13F / 公开披露",
+      source: sourceName(item.source) || "美国证监会持仓申报",
       lagNote: "披露滞后，研究观察用",
       paywallHint: "开通后可追踪季度变化，并始终标注披露滞后。",
     });
@@ -139,7 +140,7 @@ function buildResearchEvents(snapshot, watchItems = []) {
         detail: "来自你的关注清单",
         code: watch.code || "",
         date: parseDay(raw[field]),
-        source: raw.source || "港交所公开文件",
+        source: sourceName(raw.source) || "港交所公开文件",
         paywallHint: "开通后可把关注事件纳入每日日历摘要。",
       });
       seen.add(id);

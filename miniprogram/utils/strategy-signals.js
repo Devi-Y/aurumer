@@ -46,6 +46,16 @@ function toneFor(label) {
   return "good";
 }
 
+// 认购截止日在今天之前 → 已经申购不了。group 要等配发结果出来才变，
+// 这段空档里只看 group 会给出「可研究申购」，和同屏的「已截止」打架。
+function deadlinePassed(value) {
+  const match = String(value || "").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (!match) return false;
+  const target = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const today = new Date();
+  return target.getTime() < new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+}
+
 function hkSignal(item, evidence = {}) {
   const raw = item?.raw || {};
   const answer = raw.publicAnswer || {};
@@ -93,6 +103,15 @@ function hkSignal(item, evidence = {}) {
       basis: "以港交所/公司公告为准",
     };
   }
+  if (deadlinePassed(raw.offerDeadline || raw.offerEnd)) {
+    return {
+      label: "已截止",
+      tone: "muted",
+      action: "认购已经截止，这只现在申购不了。",
+      trigger: "配发结果出来后看中没中签；上市首日再决定留不留。",
+      basis: "按认购截止日",
+    };
+  }
   if (missing > 0 || verdict === "待核验") {
     return {
       label: "等待补齐",
@@ -116,7 +135,7 @@ function hkSignal(item, evidence = {}) {
     return {
       label: "可研究申购",
       tone: "good",
-      action: "只在一手资金可承受、公告字段无冲突时考虑一手，不因历史胜率加杠杆。",
+      action: "亏得起一手的钱再打一手，不因为过去常涨就多打或借钱打。",
       trigger: riskReasons.length
         ? `出现${riskReasons.join("、")}时降级为等待。`
         : `若截止前结论、招股价或市场热度变化，重新核验${winRate !== null ? `；历史样本首日胜率约 ${winRate.toFixed(1)}% 仅作背景` : ""}。`,
@@ -132,6 +151,16 @@ function hkSignal(item, evidence = {}) {
   };
 }
 
+// position 是现价落在近60日最低到最高之间的百分位（0 最低、100 最高）。
+// 「近60日位置 96%」读者看不懂是什么的 96%，直接说离高点/低点多近。
+function positionText(position) {
+  if (position >= 85) return "股价贴近近60日最高";
+  if (position >= 72) return "股价在近60日偏高处";
+  if (position <= 15) return "股价贴近近60日最低";
+  if (position <= 35) return "股价在近60日偏低处";
+  return "股价在近60日中间";
+}
+
 function usSignal(item) {
   const raw = item?.raw || {};
   const fund = raw.fund || {};
@@ -144,8 +173,8 @@ function usSignal(item) {
   const weekly = number(raw.weeklyChange);
   const position = historyPosition(raw.history, raw.price);
   const risks = [];
-  if (pe !== null && pe >= 55) risks.push(`PE ${pe.toFixed(1)} 倍偏高`);
-  if (position !== null && position >= 85) risks.push(`近60日位置 ${position}%`);
+  if (pe !== null && pe >= 55) risks.push(`市盈率 ${pe.toFixed(1)} 倍偏高`);
+  if (position !== null && position >= 85) risks.push(positionText(position));
   if (weekly !== null && weekly <= -8) risks.push(`7日跌幅 ${formatPercent(weekly)}`);
   if (growth !== null && growth < 0) risks.push(`营收增长 ${formatPercent(growth)}`);
   if (ocf !== null && capex !== null && ocf + capex <= 0) risks.push("经营现金流覆盖不了资本开支");
@@ -158,7 +187,7 @@ function usSignal(item) {
       label: "资料不足",
       tone: "warn",
       action: "财报、估值或价格位置缺一项，不给出追涨判断。",
-      trigger: "补齐 PE、盈利质量和近60日位置后再评估。",
+      trigger: "补齐市盈率、盈利质量和近60日股价后再评估。",
       basis: "质量 + 估值 + 趋势三道门",
     };
   }
@@ -170,27 +199,27 @@ function usSignal(item) {
       // 里的每只股票在列表上完全同文，读者分不出谁是因为什么被降级。
       // 这里把已经算好的 risks 拼进去，不新增任何计算，也不新增结论。
       action: `${risks.join("、")}；先停追，优先查财报和估值，价格下跌时不把热度当支撑。`,
-      trigger: `${risks.join("、")}；任一经营信号继续恶化时降低风险敞口。`,
+      trigger: `${risks.join("、")}；任一经营信号继续恶化就减仓。`,
       basis: "经营质量优先于热度",
     };
   }
   if (risks.length || position >= 72 || pe >= 40) {
     const why = risks.length
       ? risks.join("、")
-      : (position >= 72 ? `近60日位置 ${position}%` : `PE ${pe.toFixed(1)} 倍`);
+      : (position >= 72 ? positionText(position) : `市盈率 ${pe.toFixed(1)} 倍`);
     return {
       label: "等回撤",
       tone: "warn",
-      action: `质量尚可，但${why}；等位置回落或财报继续验证，不追高。`,
-      trigger: `回到近60日位置 72% 以下且盈利未恶化，再重新观察${pe >= 40 ? "；PE 下降也更重要" : ""}。`,
+      action: `质量尚可，但${why}；等股价回落或财报继续验证，不追高。`,
+      trigger: `股价回到近60日中间一带、且盈利没变差，再重新观察${pe >= 40 ? "；市盈率降下来也很重要" : ""}。`,
       basis: "质量通过，估值与位置控回撤",
     };
   }
   return {
     label: "可分批观察",
     tone: "good",
-    action: `PE ${pe.toFixed(1)} 倍、近60日位置 ${position}%，质量与位置暂未冲突；分批观察，不一次性追高。`,
-    trigger: "PE 快速上升、位置超过 85%，或营收/利润/现金流同时转弱时降级。",
+    action: `市盈率 ${pe.toFixed(1)} 倍、${positionText(position)}，质量和价格没有冲突；分批观察，不一次性追高。`,
+    trigger: "市盈率快速上升、股价冲到近60日最高附近，或营收/利润/现金流同时转弱时降级。",
     basis: "质量 + 估值 + 趋势确认",
   };
 }
@@ -279,8 +308,8 @@ function goldSignal(item) {
     return {
       label: "触及风险下沿",
       tone: "bad",
-      action: "先核对实际利率、美元、汇率和国内折溢价，再考虑降低风险敞口。",
-      trigger: "风险下沿失守且宏观驱动未改善时，不追跌、不摊平。",
+      action: "先核对美国利率、美元、人民币汇率和国内比国际贵多少，再考虑减仓。",
+      trigger: "跌破风险下沿、利率和美元也没好转时，不抄底、不越跌越买。",
       basis: "国际金与人民币金分别设风险下沿",
     };
   }
@@ -288,35 +317,35 @@ function goldSignal(item) {
     return {
       label: "接近上沿",
       tone: "warn",
-      action: "不追高；等价格回到观察区，或等宏观驱动再次确认。",
-      trigger: "任一维度接近观察上沿后，先锁定观察，不把上涨外推。",
-      basis: "价格区间优先于单一观察分",
+      action: "不追高；等价格回到观察区再看。",
+      trigger: "国际金或人民币金到了观察上沿，先观察，不当成还会接着涨。",
+      basis: "先看价位，再看评分",
     };
   }
   if (disagreement) {
     return {
-      label: "双金分歧",
+      label: "国内外不一致",
       tone: "warn",
-      action: "国际金与人民币金信号不一致，仓位以较弱一侧为准，不用综合分掩盖分歧。",
-      trigger: "两侧观察分重新收敛，且都未跌破各自风险下沿后再评估。",
-      basis: `国际 ${intlScore ?? "待核"} 分 · 人民币 ${domesticScore ?? "待核"} 分`,
+      action: "国际金和人民币金评分差得多，按低的那个来，不看平均分。",
+      trigger: "两个评分重新接近、且都没跌破各自风险下沿，再重新评估。",
+      basis: `国际金 ${intlScore ?? "待核"} 分 · 人民币金 ${domesticScore ?? "待核"} 分`,
     };
   }
   if (intlScore !== null && domesticScore !== null && intlScore >= 65 && domesticScore >= 65) {
     return {
-      label: "双金共振",
+      label: "国内外都偏强",
       tone: "good",
-      action: "两侧观察分暂时同向，只适合分批观察，不把共振当成收益保证。",
-      trigger: "任一观察分跌破 50 或价格跌破各自风险下沿时降级。",
-      basis: "国际金 + 人民币金双维度",
+      action: "国际金和人民币金评分都偏高，也只适合分批买，不代表一定赚钱。",
+      trigger: "任一评分跌破 50，或价格跌破各自风险下沿，就降一级。",
+      basis: "国际金、人民币金两个评分",
     };
   }
   return {
     label: "继续观察",
     tone: "warn",
-    action: "驱动不足或两侧分数未形成优势，先看位置和风险下沿。",
-    trigger: "观察分改善且价格仍在观察区，再考虑分批；不追单日上涨。",
-    basis: "双维度未形成明确优势",
+    action: "暂时没有明显买点，先看现价离风险下沿还有多远。",
+    trigger: "评分回升、价格仍在观察低位时再分批考虑；不追单日上涨。",
+    basis: `国际金 ${intlScore ?? "待核"} 分 · 人民币金 ${domesticScore ?? "待核"} 分`,
   };
 }
 
@@ -331,9 +360,9 @@ function guruSignal(item) {
     return {
       label: "披露滞后",
       tone: "bad",
-      action: `披露已滞后 ${lagDays} 天，只当历史研究样本，不能把旧持仓当成当前买入信号。`,
-      trigger: "等新的 13F/季报披露，且结合现价与公司基本面重新核验。",
-      basis: `${lagDays} 天披露滞后`,
+      action: `这份持仓是 ${lagDays} 天前公布的，太旧了，只能当历史参考，不能照着买。`,
+      trigger: "等新的持仓申报或季报公布，且结合现价与公司基本面重新核验。",
+      basis: `${lagDays} 天前公布`,
     };
   }
   const top = holdings
@@ -345,7 +374,7 @@ function guruSignal(item) {
       tone: "warn",
       // 这一档以前每家机构一模一样，列表上分不出谁是谁。补一句本来就在
       // 页面别处展示的披露事实：披露了几只、其中权重最高的是谁。
-      action: `${top ? `已披露 ${holdings.length} 只，权重最高 ${top.name || top.ticker} ${Number(top.weight).toFixed(1)}%；` : ""}持仓变化不足，先学习组合结构，不照抄静态名单。`,
+      action: `${top ? `已披露 ${holdings.length} 只，权重最高 ${top.shortName || top.name || top.ticker} ${Number(top.weight).toFixed(1)}%；` : ""}这期没标出增减，先看它重仓什么，不照着买。`,
       trigger: "新增、增持、减持或退出出现后，再看变化是否有持续逻辑。",
       basis: `${profile.name || "公开机构"} · ${holdings.length} 只持仓`,
     };
@@ -355,7 +384,7 @@ function guruSignal(item) {
     tone: "good",
     // 同上：只报一个数字时，同一档的机构在列表里完全同文。把已经算好的
     // 前两项变化点出来，读者一眼能看出这家和那家变的不是同一批仓位。
-    action: `本期 ${changed.length} 项仓位变化：${changed.slice(0, 2).map((holding) => `${holding.ticker || holding.name} ${holding.changeLabel}`).join("、")}${changed.length > 2 ? " 等" : ""}；先研究变化原因，再决定是否纳入自己的观察池。`,
+    action: `本期 ${changed.length} 项仓位变化：${changed.slice(0, 2).map((holding) => `${holding.shortName || holding.ticker || holding.name} ${holding.changeLabel}`).join("、")}${changed.length > 2 ? " 等" : ""}；先研究变化原因，再决定是否纳入自己的观察池。`,
     trigger: "下一期披露若方向反转，或公司基本面无法印证机构逻辑，取消跟踪。",
     basis: `${profile.name || "公开机构"} · 仅供对照学习`,
   };

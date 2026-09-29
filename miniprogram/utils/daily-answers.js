@@ -9,6 +9,7 @@ const { buildGuruTrend } = require("./guru-trend");
 const { instrumentSuffix } = require("./guru-changes");
 const { hasFilingFeed, filingsBySymbol, formatFilingLine } = require("./us-filings");
 const { toDay } = require("./dates");
+const { withLatestQuote, recentChange } = require("./gold-series");
 const {
   buildHkExitBands, formatExitBand, formatExitMedian, formatExitPositive,
   mapOfferBand, mapOfferMedian, formatTierSplit, tierForListing,
@@ -19,6 +20,7 @@ const {
   hkHistoricalCrowdEligible,
   yieldImpliedPlan,
   goldZoneForPrice,
+  goldPlanView,
   goldTurningPoint,
   matchesGroup,
   parseOfferPrice,
@@ -38,9 +40,19 @@ function impliedPrice(offer, change) {
   return Math.round(Number(offer) * (1 + Number(change) / 100));
 }
 
+function halfYearWhere(pct) {
+  if (pct >= 85) return "最高附近";
+  if (pct >= 65) return "偏高位置";
+  if (pct <= 15) return "最低附近";
+  if (pct <= 35) return "偏低位置";
+  return "中间位置";
+}
+
 function signedPct(value) {
   if (!hasNumber(value)) return null;
   const amount = Number(value);
+  // -0.04 四舍五入成「-0.0%」，读者会问到底跌没跌；不到 0.05 一律写 0.0%。
+  if (Math.abs(amount) < 0.05) return "0.0%";
   return `${amount >= 0 ? "+" : ""}${amount.toFixed(1)}%`;
 }
 
@@ -135,6 +147,14 @@ function card({
 }
 
 // 条形图的名字栏放不下「TSM（台积电）」这种全称，有中文名就只留中文名。
+// 季末日 → 「2026年二季度」；不是季末日就原样返回日期。
+function quarterText(reportPeriod) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(reportPeriod || ""));
+  if (!match) return reportPeriod ? String(reportPeriod) : "";
+  const quarter = { "03-31": "一", "06-30": "二", "09-30": "三", "12-31": "四" }[`${match[2]}-${match[3]}`];
+  return quarter ? `${match[1]}年${quarter}季度` : String(reportPeriod);
+}
+
 function barLabel(text) {
   const match = String(text || "").match(/^[A-Z.]{1,6}（(.+)）$/u);
   return match ? match[1] : String(text || "");
@@ -520,10 +540,10 @@ function buildUsAnswers(snapshot) {
       }),
       "",
       hold.length
-        ? `质量门通过 ${hold.length}/7：${hold.map((item) => shortCompanyName(item.name, item.code, 4)).join("、")}——可长期观察的名单从这里来。`
-        : "本轮没有一只通过质量门，先不谈长期观察。",
+        ? `七只里 ${hold.length} 只质量达标：${hold.map((item) => shortCompanyName(item.name, item.code, 4)).join("、")}——可长期观察的名单从这里来。`
+        : "这次七只都没达到质量标准，先不谈长期观察。",
       hasFilings
-        ? "涨跌与财季来自公开行情，「同期公告」取自 SEC EDGAR 官方备案。公告与当周涨跌是同期发生，不等于因果——详情页可复制原文链接自己核对。"
+        ? "涨跌与财季来自公开行情，「同期公告」取自美国证监会官方备案。公告与当周涨跌是同期发生，不等于因果——详情页可复制原文链接自己核对。"
         : "只汇总公开行情与已披露财季。本轮快照未带公司公告字段，不写「因为某某消息」——没有可核对的原文就不下原因结论。",
     ].join("\n")
     : "";
@@ -544,7 +564,7 @@ function buildUsAnswers(snapshot) {
             shortCompanyName(item.name, item.code || "标的", 5),
             Number.isFinite(heat) ? String(Math.round(heat)) : "—",
             // 卡面这一格只放结论词，完整口径仍在展开层和 attentionNote 里。
-            eligible === true ? "过质量门" : (eligible === false ? "未过质量门" : "质量数据不足"),
+            eligible === true ? "质量达标" : (eligible === false ? "质量不达标" : "质量数据不足"),
           ],
           note: item.heatDriver || "驱动数据不足",
           tone: eligible === true ? "good" : (eligible === false ? "bad" : "muted"),
@@ -559,8 +579,8 @@ function buildUsAnswers(snapshot) {
       question: "七姐妹近期怎么了",
       answer: sevenAnswer,
       names: sevenFiledCount !== null
-        ? `质量门 ${hold.length}/7 通过 · ${sevenFiledCount} 家近 30 天有公告`
-        : `质量门 ${hold.length}/7 通过`,
+        ? `七只里${hold.length}只质量达标 · ${sevenFiledCount}只近30天有公告`
+        : `七只里${hold.length}只质量达标`,
       // 涨跌本身没有好坏，这一格只是把这一周发生的事说清楚。
       tone: weekRanked.length ? "warn" : "muted",
       action: "group",
@@ -599,9 +619,9 @@ function buildUsAnswers(snapshot) {
       // 不再把同一串名字印两遍。
       answer: hot.length
         ? (hotQualified.length
-          ? `${hotQualified.length}/${hot.length} 过质量门，可进观察名单`
+          ? `${hot.length}只里${hotQualified.length}只质量达标，可进观察名单`
           : (hotJudged.length
-            ? `${hot.length} 只都没过质量门，只当热度看`
+            ? `${hot.length}只质量都不达标，只当热度看`
             : `${hot.length} 只都缺质量数据，暂不给关注结论`))
         : "热度数据不足",
       names: hot.length ? "热度只由公开成交量比与涨跌幅算出，不指方向" : "",
@@ -632,7 +652,7 @@ function buildUsAnswers(snapshot) {
           }),
           "",
           hasFilings
-            ? "热度只由公开成交量比与涨跌幅算出。「同期公告」取自 SEC EDGAR 官方备案，只说明同期发生了什么，不等于当天涨跌的原因——详情页可复制原文链接自己核对。"
+            ? "热度只由公开成交量比与涨跌幅算出。「同期公告」取自美国证监会官方备案，只说明同期发生了什么，不等于当天涨跌的原因——详情页可复制原文链接自己核对。"
             : "热度只由公开成交量比与涨跌幅算出。本轮快照未带公司公告字段，所以这里不写「因为某某消息」——没有可核对的原文就不下原因结论。",
           "放量下跌和放量上涨都会让热度变高，热度本身不指方向，更不是买入信号。",
         ].join("\n")
@@ -880,8 +900,11 @@ function goldMonthDay(date) {
 function buildGoldAnswers(snapshot) {
   const gold = snapshot.gold || {};
   const answer = gold.answer || {};
-  const plan = answer.pricePlan || {};
+  const plan = goldPlanView(answer.pricePlan);
   const intl = gold.quotes?.international || {};
+  const intlSeries = withLatestQuote(gold.history?.international, intl);
+  const intlDay20 = recentChange(intlSeries, 20);
+  const intlDay60 = recentChange(intlSeries, 60);
   const domestic = gold.quotes?.domestic || {};
   const intlZone = goldZoneForPrice(intl.price, plan.internationalWatch, plan.internationalUpper, plan.internationalRisk);
   const cnyZone = goldZoneForPrice(domestic.price, plan.domesticWatch, plan.domesticUpper, plan.domesticRisk);
@@ -896,71 +919,81 @@ function buildGoldAnswers(snapshot) {
 
   // 一、现在什么价。两个口径一行说完，日内涨跌和半年位置放第二行。
   const priceLine = [
-    hasIntl ? `美元金 ${intlPrice} 美元/盎司` : null,
+    hasIntl ? `国际金 ${intlPrice} 美元/盎司` : null,
     hasCny ? `人民币金 ${cnyPrice} 元/克` : null,
   ].filter(Boolean).join(" · ") || "行情待核验";
   // 单位跟着上面那行的数字走，这行只说涨跌和位置——把「美元/盎司」拆到这里，
   // 会变成一串没有主语的单位。
   const priceDetail = [
     hasIntl || hasCny ? `日内 ${[
-      hasIntl ? `美元金 ${signedPct(intl.changePercent)}` : null,
+      hasIntl ? `国际金 ${signedPct(intl.changePercent)}` : null,
       hasCny ? `人民币金 ${signedPct(domestic.changePercent)}` : null,
     ].filter(Boolean).join(" · ")}` : null,
-    hasNumber(intl.percentile180) ? `美元金半年分位 ${Number(intl.percentile180)}%` : null,
+    // 「半年分位 18%」读者不知道是什么的 18%，换成它在近半年高低之间的位置。
+    hasNumber(intl.percentile180) ? `国际金处在近半年${halfYearWhere(Number(intl.percentile180))}` : null,
   ].filter(Boolean).join(" · ");
 
   // 二、是否值得买入。两个口径谁进了观察低位就说谁，都没进就直说都没到——
   // 「到了什么价才值得买」本来就是这张卡要回答的，所以把低位区间写在第二行。
   const buyIn = [
-    intlZone.hold ? "美元金" : null,
+    intlZone.hold ? "国际金" : null,
     cnyZone.hold ? "人民币金" : null,
   ].filter(Boolean);
   const buyRanges = [
-    holdIntl ? `美元金观察低位 ${holdIntl}` : null,
+    holdIntl ? `国际金观察低位 ${holdIntl}` : null,
     holdCny ? `人民币金观察低位 ${holdCny}` : null,
   ].filter(Boolean).join(" · ");
+  // 价格进了观察低位，只说明价到了。评分不够时引擎的结论是「等待更好价格」，
+  // 这张卡再说「可分批加大」，同一个黄金页上两句话就打架了——
+  // 只有引擎给出「可分批关注」才说可加大；引擎没给结论时只按价位说。
+  const engineAction = String(answer.action || "").trim();
+  const scoreAgrees = !engineAction || engineAction === "可分批关注";
   const buyAnswer = buyIn.length
-    ? `${buyIn.join("与")}已在观察低位，可分批加大`
-    : (buyRanges ? "两个口径都未到观察低位，暂不加大" : "观察低位待核验");
+    ? (scoreAgrees ? `${buyIn.join("与")}已在观察低位，可分批加大` : `${buyIn.join("与")}已在观察低位，但评分偏低，先不加大`)
+    : (buyRanges ? "国际金和人民币金都没到观察低位，暂不加大" : "观察低位待核验");
+  const buyState = buyIn.length ? (scoreAgrees ? "buy" : "wait") : "";
 
   // 三、是否应该卖出。触及风险下沿要先说风险——那是比「该不该卖」更靠前的事。
   const sellIn = [
-    intlZone.sell ? "美元金" : null,
+    intlZone.sell ? "国际金" : null,
     cnyZone.sell ? "人民币金" : null,
   ].filter(Boolean);
   const riskIn = [
-    intlZone.label === "触及风险下沿" ? "美元金" : null,
+    intlZone.label === "触及风险下沿" ? "国际金" : null,
     cnyZone.label === "触及风险下沿" ? "人民币金" : null,
   ].filter(Boolean);
   const sellRanges = [
-    sellIntl ? `美元金观察上沿 ${sellIntl}` : null,
+    sellIntl ? `国际金观察上沿 ${sellIntl}` : null,
     sellCny ? `人民币金观察上沿 ${sellCny}` : null,
   ].filter(Boolean).join(" · ");
   let sellAnswer = "观察上沿待核验";
   if (riskIn.length) sellAnswer = `${riskIn.join("与")}触及风险下沿，先停手复核`;
   else if (sellIn.length) sellAnswer = `${sellIn.join("与")}进入观察上沿，可兑现一部分`;
-  else if (sellRanges) sellAnswer = "两个口径都未到观察上沿，暂不兑现";
+  else if (sellRanges) sellAnswer = "国际金和人民币金都没到观察上沿，暂不兑现";
 
+  const aboveOrBelow = (pct) => (hasNumber(pct) ? `${Number(pct) < 0 ? "低" : "高"} ${Math.abs(Number(pct)).toFixed(1)}%` : "待核");
   // 四、拐点。只用真实收盘价算得出的三件事：均线在哪一侧、最近一次穿越是哪天、
   // 现价离半年高低点还有多远。算不出就如实说算不出，不拿短样本充半年趋势。
   const turn = goldTurningPoint(gold.history?.international, intl.price);
-  const crossText = turn && turn.crossDate
-    ? `${goldMonthDay(turn.crossDate)} 20日线${turn.above ? "上穿" : "下穿"}60日线，已 ${turn.crossDays} 个交易日未反向`
-    : (turn ? `近半年 20日线一直在 60日线${turn.above ? "上方" : "下方"}` : "");
+  // 「20日线上穿60日线」是看盘术语，直接说成两段时间的平均价谁高谁低。
   const turnAnswer = turn
-    ? `${turn.above ? "均线转上行" : "均线转下行"}：${crossText}`
+    ? (turn.crossDate
+      ? `${goldMonthDay(turn.crossDate)}起，近20日均价${turn.above ? "高于" : "低于"}近60日均价，已 ${turn.crossDays} 个交易日`
+      : `近半年，近20日均价一直${turn.above ? "高于" : "低于"}近60日均价`)
     : "半年收盘价样本不足 60 天，拐点暂不下判断";
   // 高低点谁离今天更近，就先说谁——那一头才是这轮走势的起点。
   const extremes = turn
     ? [
-      { text: `${goldMonthDay(turn.peak.date)}半年高点 ${turn.peak.close.toFixed(0)}（现价 ${signedPct(turn.fromPeak)}）`, date: turn.peak.date },
-      { text: `${goldMonthDay(turn.trough.date)}半年低点 ${turn.trough.close.toFixed(0)}（现价 ${signedPct(turn.fromTrough)}）`, date: turn.trough.date },
+      // 「半年高点 5318（现价 -21.67%）」读者要猜 -21.67% 是谁比谁，直接写成「现价低 21.7%」。
+      { text: `${goldMonthDay(turn.peak.date)}半年最高 ${turn.peak.close.toFixed(0)}，现价${aboveOrBelow(turn.fromPeak)}`, date: turn.peak.date },
+      { text: `${goldMonthDay(turn.trough.date)}半年最低 ${turn.trough.close.toFixed(0)}，现价${aboveOrBelow(turn.fromTrough)}`, date: turn.trough.date },
     ].sort((left, right) => (left.date < right.date ? 1 : -1)).map((row) => row.text)
     : [];
   const turnDetail = [
     ...extremes,
-    hasNumber(intl.returns?.day20) ? `20日 ${signedPct(intl.returns.day20)}` : null,
-    hasNumber(intl.returns?.day60) ? `60日 ${signedPct(intl.returns.day60)}` : null,
+    // 跟首页、黄金页同一条序列（日线 + 最新报价）算涨跌，不用引擎另给的 returns。
+    hasNumber(intlDay20) ? `近20日 ${signedPct(intlDay20)}` : null,
+    hasNumber(intlDay60) ? `近60日 ${signedPct(intlDay60)}` : null,
   ].filter(Boolean).join(" · ");
 
   return [
@@ -980,11 +1013,11 @@ function buildGoldAnswers(snapshot) {
       question: "是否值得买入",
       answer: buyAnswer,
       names: buyRanges,
-      tone: buyIn.length ? "good" : "muted",
+      tone: buyState === "buy" ? "good" : (buyState === "wait" ? "warn" : "muted"),
       action: "detail",
       targetId: "plan",
       enabled: Boolean(buyRanges),
-      state: buyIn.length ? "buy" : "",
+      state: buyState,
     }),
     card({
       id: "gold-sell",
@@ -1017,11 +1050,12 @@ function buildGuruAnswers(snapshot) {
     .map((group) => items.find((item) => item.group === group))
     .filter(Boolean);
   const top = leaders[0];
+  // smartMoneyItems 的持仓行没有 issuer 字段，发行人全称放在 name 里。
   const holdings = (top?.raw?.holdings || []).slice(0, 3);
   // 这张卡刻意代码优先（不像详情表格那样发行人全称优先），裸代码在这里
   // 括注中文名——「TSM 5.4%」对没炒过美股的读者不成句子。
   const holdingLine = holdings
-    .map((row) => `${tickerZhLabel(row.ticker || row.name)}${instrumentSuffix(row.putCall)}${Number.isFinite(Number(row.weight)) ? ` ${Number(row.weight).toFixed(1)}%` : ""}`)
+    .map((row) => `${tickerZhLabel(row.ticker || row.name, row.issuer || row.name)}${instrumentSuffix(row.putCall)}${Number.isFinite(Number(row.weight)) ? ` ${Number(row.weight).toFixed(1)}%` : ""}`)
     .join(" · ");
   const firstSentence = (value) => {
     const text = String(value || "").replace(/\s+/gu, " ").trim();
@@ -1040,7 +1074,7 @@ function buildGuruAnswers(snapshot) {
   // 覆盖每只标的恰好一次，consensusAdds/consensusCuts 是同一批对象的
   // 子集引用，这里改一次全链路都跟着更新。
   [...trend.adds, ...trend.cuts, ...trend.split].forEach((row) => {
-    row.name = tickerZhLabel(row.name);
+    row.name = tickerZhLabel(row.name, row.issuer);
   });
   // 家数逐只写在名字后面。三只并列却共用第一名的家数，会把 2 家的说成 3 家。
   const listCounts = (rows, key, limit = 3) => rows.slice(0, limit)
@@ -1064,7 +1098,8 @@ function buildGuruAnswers(snapshot) {
   // 9 家机构的 13F 报告期并不都一样；buildGuruTrend 已经按报告期对齐，只留
   // 同一期的机构再数「几家在加/几家在减」，这里把具体是哪一期写出来，
   // 不用「本季」含糊带过——不然读的人会以为这几家指的是同一个当季。
-  const trendPeriod = trend.reportPeriod ? `${trend.reportPeriod} 报告期` : "本季";
+  // 13F 报告期都是季末日，「2026-06-30 报告期」读起来像某一天的事，写成「2026年二季度」。
+  const trendPeriod = quarterText(trend.reportPeriod) || "本季";
   const addAnswer = trend.consensusAdds.length
     ? `${listCounts(trend.consensusAdds, "adders")} 同向加仓`
     : (trend.adds.length
@@ -1077,7 +1112,7 @@ function buildGuruAnswers(snapshot) {
       : `${trendPeriod}公开申报里未见减持标注`);
   // 加与减取自持仓行的标注，退出取自 sold 名单，两份口径不同，不合并成一个净值。
   const trendAnswer = trend.totals.up + trend.totals.new + trend.totals.down > 0
-    ? `${trendPeriod} ${trend.investorCount} 家里，增持/新建 ${trend.totals.up + trend.totals.new} 项、减持 ${trend.totals.down} 项，另有 ${trend.totals.exit} 项整仓退出`
+    ? `${trendPeriod} ${trend.investorCount} 家机构里，增持/新建 ${trend.totals.up + trend.totals.new} 项、减持 ${trend.totals.down} 项，另有 ${trend.totals.exit} 项清仓`
     : `${trendPeriod}公开申报的变化标注不足，方向暂不下判断`;
   // 卡面小图用的数，都是上面那几句话里已经说出来的同一批数，不另算。
   const weightBars = holdings
@@ -1089,7 +1124,7 @@ function buildGuruAnswers(snapshot) {
       kind: "bars",
       items: weightBars.map(({ row, index, weight }) => ({
         key: `h${index}`,
-        label: `${barLabel(tickerZhLabel(row.ticker || row.name))}${instrumentSuffix(row.putCall)}`,
+        label: `${row.shortName || barLabel(tickerZhLabel(row.ticker || row.name, row.issuer || row.name))}${instrumentSuffix(row.putCall)}`,
         valueText: `${weight.toFixed(1)}%`,
         width: Math.max(4, Math.round((weight / maxWeight) * 100)),
       })),
@@ -1112,16 +1147,16 @@ function buildGuruAnswers(snapshot) {
   const trendChart = trend.totals.up + trend.totals.new + trend.totals.down > 0 && mixTotal > 0
     ? {
       kind: "mix",
-      headline: `${trend.investorCount} 家 · ${trend.reportPeriod || "本季"}`,
+      headline: `${trend.investorCount}家机构 · ${trendPeriod}`,
       items: [
         { key: "add", label: "增持/新建", count: trend.totals.up + trend.totals.new, tone: "add" },
         { key: "cut", label: "减持", count: trend.totals.down, tone: "cut" },
-        { key: "exit", label: "退出", count: trend.totals.exit, tone: "exit" },
-      ].map((seg) => ({ ...seg, width: Math.round((seg.count / mixTotal) * 1000) / 10 })),
+        { key: "exit", label: "清仓", count: trend.totals.exit, tone: "exit" },
+      ].map((seg) => ({ ...seg, countText: `${seg.count}项`, width: Math.round((seg.count / mixTotal) * 1000) / 10 })),
     }
     : null;
   const splitLine = trend.split.length
-    ? `分歧：${trend.split.slice(0, 3).map((row) => `${row.name}（${row.adders.length}加${row.cutters.length}减）`).join(" · ")}`
+    ? `分歧：${trend.split.slice(0, 3).map((row) => `${row.name}（${row.adders.length}家加·${row.cutters.length}家减）`).join(" · ")}`
     : "";
 
   return [
@@ -1181,12 +1216,12 @@ function buildGuruAnswers(snapshot) {
         how.length ? `我们如何借鉴\n${how.join("\n")}` : "学框架、能力圈和风险边界，不按报告期仓位下单。",
         [
           "要避免什么",
-          "不照抄仓位、不把滞后披露当实时单、不复制机构杠杆。",
-          "13F/季报有滞后，且通常只含多头。",
+          "不照抄仓位；滞后披露的持仓不等于今天的操作；不学机构加杠杆。",
+          "持仓申报和季报都有滞后，且通常只含多头。",
           "表观年化不可跨市场、跨币种横比。",
           ...avoid,
         ].join("\n"),
-        "WHY/HOW 是望潮研究归纳，不是投资人实时表述。",
+        "「他们怎么想」「我们如何借鉴」是望潮研究归纳，不是投资人原话。",
       ].filter(Boolean).join("\n\n"),
     }),
   ];
@@ -1323,9 +1358,12 @@ function buildHomeDigest(snapshot, options = {}) {
       ? "偏高"
       : (goldState === "buy"
         ? "可加大"
-        // 另外三格都是标的名或结论词，黄金这格却是个没口径的裸数字「958」，
-        // 首页上读不出这是什么价。加单位即可，不编造它没有的结论。
-        : (Number.isFinite(cnyPrice) ? `${Math.round(cnyPrice)}元/克` : "观望")));
+        // 价到了观察低位但评分不够：跟黄金页的「等待更好价格」同一个意思。
+        : (goldState === "wait"
+          ? "先不加大"
+          // 另外三格都是标的名或结论词，黄金这格却是个没口径的裸数字「958」，
+          // 首页上读不出这是什么价。加单位即可，不编造它没有的结论。
+          : (Number.isFinite(cnyPrice) ? `${Math.round(cnyPrice)}元/克` : "观望"))));
 
   // 卡片文案分享出去只留两句：现在什么价，再加一句该不该动。买卖两侧都没到
   // 观察区时，两句「都未到……」并排贴出来是同一个意思说两遍，合成一句。

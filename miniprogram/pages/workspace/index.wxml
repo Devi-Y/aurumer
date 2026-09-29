@@ -46,7 +46,7 @@
       <view class="brief-stats">
         <view class="brief-stat {{changeCenter.summary.highCount ? 'is-alert' : ''}}">
           <text class="brief-stat-v">{{changeCenter.summary.highCount || 0}}</text>
-          <text class="brief-stat-k">需重评</text>
+          <text class="brief-stat-k">要重看</text>
         </view>
         <view class="brief-stat">
           <text class="brief-stat-v">{{changeCenter.summary.mediumCount || 0}}</text>
@@ -430,7 +430,7 @@
       </view>
 
       <view class="record-panel">
-        <view class="panel-tools"><text>聪明人持仓季度变化</text></view>
+        <view class="panel-tools"><text>聪明钱持仓变化</text></view>
         <view wx:for="{{guruChanges}}" wx:key="id" class="record-row">
           <view class="record-top"><text class="record-tag">{{item.filingDate || '披露日待核'}}</text><text class="record-date">{{item.lagLabel}}</text></view>
           <text class="record-title">{{item.name}}</text>

@@ -40,6 +40,7 @@ const { buildResearchEvents } = require("../../utils/research-events");
 const { freshnessBanner } = require("../../utils/freshness-ui");
 const { memberGate } = require("../../utils/member-gate");
 const { buildGuruChanges } = require("../../utils/guru-changes");
+const { SMART_MONEY_PROFILES } = require("../../utils/smart-money");
 const { yearCashflow } = require("../../utils/dividend-math");
 const { requestEventSubscribe } = require("../../utils/subscribe");
 const { buildHomeDigest } = require("../../utils/daily-answers");
@@ -560,7 +561,11 @@ Page({
         calendarPast: withMark(events.past.slice(0, 12)),
         calendarNextCount: events.nextCount || 0,
         weeklyReview: review,
-        guruChanges: buildGuruChanges(snapshot).slice(0, 9),
+        // 快照里的机构名是英文登记名（Berkshire Hathaway），换成栏目页同一个中文名。
+        guruChanges: buildGuruChanges(snapshot).slice(0, 9).map((item) => {
+          const profile = SMART_MONEY_PROFILES.find((entry) => entry.id === item.id);
+          return profile ? { ...item, name: profile.name } : item;
+        }),
         dailyCardText: state.active ? dailyCardText(snapshot) : "",
         dividendSummary,
         settingsForm: {

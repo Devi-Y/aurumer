@@ -158,6 +158,21 @@ assert(answerText.includes("谷歌-A") && answerText.includes("Meta"), "美股�
 assert(answerText.includes("特斯拉"), "美股每日答案必须回答特斯拉风险观察");
 assert(answerText.includes("不照抄仓位") && answerText.includes("滞后披露"), "机构每日答案必须保留跟随边界");
 assert(!/strategyAssessment|modelEstimate|breakProbability/.test(JSON.stringify(digest)), "今日答案摘要泄露内部字段");
+// 价格进了观察低位、引擎结论却是「等待更好价格」时，买入卡不能说「可分批加大」——
+// 2026-09-29 黄金页顶上写「等待更好价格」，今日答案和记录页却写「可加大」。
+{
+  const watch = miniSnapshot.gold?.answer?.pricePlan?.internationalWatch;
+  if (watch && Number.isFinite(Number(watch.low)) && Number.isFinite(Number(watch.high))) {
+    const inZone = JSON.parse(JSON.stringify(miniSnapshot));
+    inZone.gold.quotes.international.price = Number(watch.high) - 0.5;
+    const goldBuy = (action) => {
+      inZone.gold.answer.action = action;
+      return (buildDailyDigestDocument(inZone).markets.gold || []).find((card) => card.question === "是否值得买入")?.answer || "";
+    };
+    assert(!goldBuy("等待更好价格").includes("可分批加大"), "黄金引擎结论是等待时，买入卡不应说可分批加大");
+    assert(goldBuy("可分批关注").includes("可分批加大"), "黄金引擎结论是可分批关注且进了观察低位时，买入卡应说可分批加大");
+  }
+}
 
 try {
   const sleeveQuotes = JSON.parse(await readFile(resolve(root, "data/sleeve-quotes.json"), "utf8"));

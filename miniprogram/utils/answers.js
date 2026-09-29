@@ -10,6 +10,8 @@ const {
   yieldImpliedPlan,
   industryWatchEligible,
   matchesGroup,
+  goldPlanView,
+  readableChangeLabel,
 } = require("./market-lenses");
 
 // 前台只保留 10 个收息研究样本：用户指定的 5 只股票 + 1 只 ETF，另 4 只由当前快照自动筛选。
@@ -28,9 +30,47 @@ const US_NAMES = {
   META: "Meta", TSLA: "特斯拉", AMD: "超威半导体", AVGO: "博通", PLTR: "Palantir",
   SMCI: "超微电脑", ARM: "Arm", TSM: "台积电", ASML: "阿斯麦", COIN: "Coinbase",
   MSTR: "Strategy", CRWD: "CrowdStrike", NOW: "ServiceNow", V: "Visa", MA: "万事达",
-  NFLX: "奈飞", ORCL: "甲骨文", CRM: "Salesforce", SNOW: "Snowflake", SHOP: "Shopify",
+  NFLX: "奈飞", ORCL: "甲骨文", CRM: "赛富时", SLM: "萨利美", HRB: "H&R Block", SNOW: "Snowflake", SHOP: "Shopify",
   UBER: "优步", JPM: "摩根大通", "BRK.B": "伯克希尔", LLY: "礼来", COST: "好市多",
+  // 聪明钱持仓里出现的代码。只收有通行中文名的；没有公认译名的（NTRA、TEM 这类）
+  // 保留代码，不自己起名。
+  GOOG: "谷歌-C", AXP: "美国运通", KO: "可口可乐", BAC: "美国银行", CVX: "雪佛龙",
+  OXY: "西方石油", CB: "安达保险", MCO: "穆迪", STZ: "星座品牌", BN: "布鲁克菲尔德",
+  QSR: "餐饮品牌国际", HHH: "霍华德休斯", HTZ: "赫兹租车", HLT: "希尔顿", PFE: "辉瑞",
+  HAL: "哈里伯顿", MOH: "莫利纳医疗", LULU: "露露乐蒙", UNH: "联合健康", REGN: "再生元",
+  EL: "雅诗兰黛", SPCX: "SpaceX", HOOD: "Robinhood", ICE: "洲际交易所", PANW: "派拓网络",
+  PDD: "拼多多", EWBC: "华美银行", CROX: "卡骆驰", TME: "腾讯音乐", SPGI: "标普全球",
+  STM: "意法半导体", LSCC: "莱迪思半导体", LRCX: "泛林集团", CSCO: "思科", ASX: "日月光",
+  CRWV: "CoreWeave", WFC: "富国银行", BABA: "阿里巴巴", USB: "美国合众银行", SNDK: "闪迪",
+  MU: "美光科技", YPF: "阿根廷YPF",
+  // 三只都跟踪标普500，同一家同时持有两只时（达利欧：SPY 增持、IVV 增持）只写「标普500ETF」会读成同一只，按发行商分开。
+  SPY: "SPDR标普500ETF", IVV: "安硕标普500ETF", VOO: "先锋标普500ETF", RSP: "标普500等权ETF",
+  EWZ: "巴西ETF", EWY: "韩国ETF", SMH: "半导体ETF",
 };
+
+// 港股、A 股、台股基金的月报里没有代码，只有英文公司名（「Tencent Holdings Ltd」）。
+// 按去掉公司后缀后的名字对中文名；对不上就原样显示。
+const COMPANY_NAMES = {
+  "tencent": "腾讯控股", "alibaba": "阿里巴巴", "alibaba group": "阿里巴巴",
+  "pdd": "拼多多", "contemporary amperex technology": "宁德时代",
+  "ping an insurance h": "中国平安", "netease": "网易", "zhongji innolight": "中际旭创",
+  "taiwan semiconductor": "台积电", "taiwan semiconductor manufacturing": "台积电",
+  "china merchants bank": "招商银行", "kweichow moutai": "贵州茅台", "douyin": "抖音",
+  "china res ld": "华润置地", "elite material": "台光电子", "zijin mining": "紫金矿业",
+  "zijin mining group": "紫金矿业", "mediatek": "联发科", "taiwan union technology": "台燿科技",
+  "wiwynn": "纬颖", "delta electronics": "台达电子", "honeywell international": "霍尼韦尔",
+  "bruker": "布鲁克",
+};
+
+function companyZhName(name) {
+  const key = String(name || "")
+    .toLowerCase()
+    .replace(/[.,]/g, " ")
+    .replace(/\b(holdings?|group|co|corp|corporation|inc|ltd|limited|plc)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return COMPANY_NAMES[key] || COMPANY_NAMES[key.replace(/ group$/, "")] || "";
+}
 
 // 裸代码对没炒过美股的读者不成句子（"TSM" "AMD"），括注中文名才是——
 // 「TSM（台积电）」。只在代码正好对得上 US_NAMES 时补，查不到就原样返回，
@@ -38,17 +78,38 @@ const US_NAMES = {
 // require 这个文件，把括注逻辑放在这里，不要下沉到 guru-changes.js /
 // guru-trend.js 这两个反过来被这个文件间接依赖的叶子模块，否则会绕出一个
 // 真实的循环依赖（answers → market-lenses → strategy-signals → guru-changes）。
-function tickerZhLabel(code) {
+// 13F 发行人全称（「NATERA INC」「10X GENOMICS INC」）去掉公司后缀、全大写改首字母大写，
+// 查不到中文名时给读者看公司名而不是裸代码——富途对没有通行中文名的小盘股也是这么写。
+const ISSUER_SUFFIX_RE = /\b(holdings?|group|co|corp|corporation|inc|ltd|limited|plc|n\.? ?v|ag|sa|new)\b\.?/giu;
+const ISSUER_ABBR = { entmt: "entertainment", svcs: "services" };
+function issuerShortName(issuer) {
+  const raw = String(issuer || "");
+  const isUpper = raw === raw.toUpperCase();
+  const text = raw.replace(/,/g, " ").replace(ISSUER_SUFFIX_RE, " ")
+    .replace(/\b(entmt|svcs)\b/giu, (word) => ISSUER_ABBR[word.toLowerCase()])
+    .replace(/\s+/g, " ").trim();
+  if (!text) return "";
+  return isUpper ? text.toLowerCase().replace(/\b[a-z]/g, (ch) => ch.toUpperCase()) : text;
+}
+
+function tickerZhLabel(code, issuer) {
   const key = String(code || "").trim().toUpperCase();
-  if (!/^[A-Z]{1,5}$/u.test(key)) return code || "";
-  const zh = US_NAMES[key];
-  return zh ? `${key}（${zh}）` : key;
+  if (!/^[A-Z]{1,5}(\.[A-Z])?$/u.test(key)) return companyZhName(code) || code || "";
+  if (US_NAMES[key]) return `${key}（${US_NAMES[key]}）`;
+  const name = companyZhName(issuer) || issuerShortName(issuer);
+  return name && name.toUpperCase() !== key ? `${key}（${name}）` : key;
+}
+
+// 图表柱下空间只够四五个字：有中文名只写中文名，没有就写公司名，再没有才写代码。
+function tickerShortZh(code, issuer) {
+  const key = String(code || "").trim().toUpperCase();
+  return US_NAMES[key] || companyZhName(code) || companyZhName(issuer) || issuerShortName(issuer) || String(code || "");
 }
 
 const INVESTOR_NAMES = {
   buffett: "巴菲特 / 伯克希尔", munger: "查理·芒格（历史参考）", lilu: "李录 / 喜马拉雅",
   ackman: "比尔·阿克曼", wood: "凯茜·伍德", burry: "迈克尔·伯里",
-  druckenmiller: "德鲁肯米勒", dalio: "瑞·达利欧", leopold: "Leopold Aschenbrenner",
+  druckenmiller: "德鲁肯米勒", dalio: "雷·达利欧", leopold: "利奥波德·阿申布伦纳",
 };
 
 const HK_VERDICT_MAP = {
@@ -331,9 +392,9 @@ function usAttentionNote(stock) {
   const fund = (stock && stock.fund) || {};
   if (fund.qualityEligible === true) {
     const score = Number(fund.finalScore);
-    return Number.isFinite(score) ? `质量门通过 · 综合 ${Math.round(score)} 分` : "质量门通过";
+    return Number.isFinite(score) ? `质量达标 · 综合 ${Math.round(score)} 分` : "质量达标";
   }
-  if (fund.qualityEligible === false) return "未过质量门，热度不等于可关注";
+  if (fund.qualityEligible === false) return "质量不达标，热度高也不代表值得关注";
   return "质量数据不足，暂不给关注结论";
 }
 
@@ -461,12 +522,14 @@ function smartMoneyItems(snapshot) {
       ? live.holdings.slice(0, 10).map((holding) => ({
           ticker: holding.ticker,
           name: holding.issuer || holding.ticker,
+          // 结论句里点名用的短名（NTRA → Natera、TSM → 台积电）；strategy-signals 不能 require 本文件。
+          shortName: tickerShortZh(holding.ticker, holding.issuer),
           weight: holding.weight,
-          changeLabel: holding.changeLabel || "变化待核验",
+          changeLabel: readableChangeLabel(holding.changeLabel) || "变化待核验",
           interpretation: "报告有滞后，只能当学习样本，不能当明天的买卖单。",
           putCall: holding.putCall || null,
         }))
-      : (profile.holdings || []).map(([ticker, name, weight, changeLabel, interpretation]) => ({ ticker, name, weight, changeLabel, interpretation, putCall: null }));
+      : (profile.holdings || []).map(([ticker, name, weight, changeLabel, interpretation]) => ({ ticker, name, shortName: tickerShortZh(ticker, name), weight, changeLabel, interpretation, putCall: null }));
     return {
       id: profile.id,
       market: "guru",
@@ -498,7 +561,7 @@ function goldItems(snapshot) {
   const scores = answer.scores || {};
   const internationalScore = Number(scores.international?.score ?? answer.internationalScore);
   const domesticScore = Number(scores.domestic?.score ?? answer.domesticScore);
-  const plan = answer.pricePlan || {};
+  const plan = goldPlanView(answer.pricePlan);
   const international = gold.quotes?.international;
   const domestic = gold.quotes?.domestic;
   const intlPrice = Number(international?.price);
@@ -535,8 +598,8 @@ function goldItems(snapshot) {
       [
         // 这四段取的是 pricePlan 的 watch / upper，产品别处一律叫「观察低位」
         // 「观察上沿」，只有这一行写成了「持有 / 卖出」，读起来像在给买卖指令。
-        buyIntl ? `美元金观察低位 ${buyIntl}` : null,
-        sellIntl ? `美元金观察上沿 ${sellIntl}` : null,
+        buyIntl ? `国际金观察低位 ${buyIntl}` : null,
+        sellIntl ? `国际金观察上沿 ${sellIntl}` : null,
         buyCny ? `人民币金观察低位 ${buyCny}` : null,
         sellCny ? `人民币金观察上沿 ${sellCny}` : null,
       ].filter(Boolean).join(" · ") || quoteLine,
@@ -857,7 +920,7 @@ function groupDefinitions(snapshot, market) {
       ["seven", "七姐妹", "长期关注七巨头"],
       ["cheap7", "低估七姐妹", "质量过关且估值相对不贵", false],
       ["risk7", "风险七姐妹", "估值/位置/质量冲突", false],
-      ["hold7", "长期观察", "质量门通过，可作长期样本", false],
+      ["hold7", "长期观察", "质量达标，可作长期样本", false],
       ["hot", "热度前三", "近期热度最高"],
       ["hot10", "热度前十", "公开热度横向比较，热度≠买入信号"],
       ["value", "性价比观察", "质量·估值·热度综合排序，非收益承诺"],
@@ -936,6 +999,7 @@ module.exports = {
   // 的公司比分组多）。名字只能有一份，所以从这里导出，不要在别处再抄一张表。
   US_NAMES,
   tickerZhLabel,
+  tickerShortZh,
   allItems,
   findItem,
   groupDefinitions,

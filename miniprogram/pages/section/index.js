@@ -2,7 +2,7 @@ const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
 const { allItems, groupDefinitions, shortCompanyName, money, aShareDividendStability, tickerZhLabel } = require("../../utils/answers");
 // 结论行要按「低估 / 风险」这两个透镜选人，和今日答案用同一个判断。
-const { matchesGroup, parseOfferPrice, yieldImpliedPlan, goldZoneForPrice } = require("../../utils/market-lenses");
+const { parseOfferPrice, yieldImpliedPlan, goldZoneForPrice, goldPlanView } = require("../../utils/market-lenses");
 // 港股打新「中签后」每只股票自己的观察分位——已经是详情页在用的同一份
 // 真实数据计算，这里原样复用，不重新写一遍价格逻辑。
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
@@ -24,6 +24,7 @@ const { buildGuruTrend } = require("../../utils/guru-trend");
 const { holdingLabel, instrumentSuffix } = require("../../utils/guru-changes");
 // 页头那句「数据截至 …」和新闻资讯页共用同一个写法。
 const { asOfText } = require("../../utils/dates");
+const { withLatestQuote } = require("../../utils/gold-series");
 // 美股每行、红利 ETF 卡的小走势图，和首页走势卡同一套画法。
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 
@@ -114,14 +115,18 @@ function hkDeadlineLabel(value) {
 }
 
 // 「2,665.8百万港元」→「HK$26.7亿」；认不出单位就不显示，不猜。
-function hkCornerstoneText(raw) {
+// 有占比写「基石占比 35.2%」，只有金额写「基石金额 HK$1.2亿」——同一列不能一行是百分比、
+// 一行是钱数还共用一个「基石」，读者分不清哪个是哪个。
+function hkCornerstoneStat(raw) {
   const percent = finiteOrNull(raw.cornerstonePercent);
-  if (percent != null) return `${percent.toFixed(1)}%`;
+  if (percent != null) return { label: "基石占比", value: `${percent.toFixed(1)}%` };
   const match = String(raw.cornerstoneAmount || "").replace(/,/g, "").match(/([\d.]+)\s*(百万|亿)/);
-  if (!match) return "—";
-  const value = Number(match[1]) * (match[2] === "亿" ? 1e8 : 1e6);
-  if (!Number.isFinite(value) || value <= 0) return "—";
-  return value >= 1e8 ? `HK$${(value / 1e8).toFixed(1)}亿` : `HK$${Math.round(value / 1e4)}万`;
+  const value = match ? Number(match[1]) * (match[2] === "亿" ? 1e8 : 1e6) : NaN;
+  if (!Number.isFinite(value) || value <= 0) return { label: "基石投资", value: "未公布" };
+  return {
+    label: "基石金额",
+    value: value >= 1e8 ? `HK$${(value / 1e8).toFixed(1)}亿` : `HK$${Math.round(value / 1e4)}万`,
+  };
 }
 
 function hkTone(group) {
@@ -147,19 +152,21 @@ function buildHkModule(snapshot) {
     const offer = parseOfferPrice(raw.offerPrice || raw.priceHigh || raw.priceLow);
     const entryFee = finiteOrNull(raw.entryFee);
     const score = finiteOrNull(raw.publicAnswer && raw.publicAnswer.score);
+    // 过了截止日还挂「值得打」，读者会以为还能打；和详情页结论一样改成「已截止」。
+    const closed = (hkDeadlineOffset(raw.offerDeadline || raw.offerEnd) ?? 0) < 0;
     return {
       id: item.id,
       name: shortCompanyName(item.name, item.code || "新股", 10),
       code: String(item.code || "").replace(/\.HK$/i, ""),
-      badgeText: item.badge || "待定",
-      tone: hkTone(item.group),
+      badgeText: closed ? "已截止" : (item.badge || "待定"),
+      tone: closed ? "settled" : hkTone(item.group),
       reason: item.one || "",
       deadlineLabel: hkDeadlineLabel(raw.offerDeadline || raw.offerEnd),
-      closed: (hkDeadlineOffset(raw.offerDeadline || raw.offerEnd) ?? 0) < 0,
+      closed,
       stats: [
         { label: "招股价", value: offer != null ? `HK$${offer}` : "待更新" },
-        { label: "一手", value: entryFee != null ? `HK$${Math.round(entryFee).toLocaleString("en-US")}` : "待更新" },
-        { label: "基石", value: hkCornerstoneText(raw) },
+        { label: "一手金额", value: entryFee != null ? `HK$${Math.round(entryFee).toLocaleString("en-US")}` : "待更新" },
+        hkCornerstoneStat(raw),
       ],
       score: score && score > 0 ? Math.round(score) : null,
     };
@@ -199,14 +206,12 @@ function buildHkModule(snapshot) {
 function hkFirstDayChart(snapshot) {
   const changes = hkFirstDaySeries(snapshot).map((item) => item.change);
   if (changes.length < 3) return null;
-  const sorted = [...changes].sort((left, right) => left - right);
-  const mid = Math.floor(sorted.length / 2);
-  const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  // 不写「5/12 收涨 +0.0% 中位」：斜杠像日期，「中位」是统计词。直接数只数。
+  const up = changes.filter((value) => value > 0).length;
   return {
     count: changes.length,
-    upText: `${changes.filter((value) => value > 0).length}/${changes.length}`,
-    medianText: signedPct(median),
-    medianTone: toneOf(median),
+    upText: `${up}只涨`,
+    flatDownText: `${changes.length - up}只没涨`,
     ...zeroAxisBars(changes),
   };
 }
@@ -367,7 +372,7 @@ function buildUsModule(snapshot) {
     let takeText = "质量待核";
     let takeTone = "caution";
     if (fund.qualityEligible === true) { takeText = "质量达标"; takeTone = "worth"; }
-    else if (fund.qualityEligible === false) { takeText = "未过质量门"; takeTone = "avoid"; }
+    else if (fund.qualityEligible === false) { takeText = "质量不达标"; takeTone = "avoid"; }
     const heat = finiteOrNull(raw.heatScore);
     return {
       id: item.id,
@@ -475,8 +480,9 @@ function aFundView(item) {
     name: item.name,
     code: item.code,
     badgeText: item.badge || "红利ETF",
-    priceText: price != null ? price.toFixed(3) : "—",
-    changeText: signedPct(change, 2),
+    // 大字旁边两个百分比，一个是今天、一个是近 N 日，不写明就分不清哪个是哪个。
+    priceText: price != null ? `¥${price.toFixed(3)}` : "—",
+    changeText: change != null ? `今日 ${signedPct(change, 2)}` : "",
     changeTone: toneOf(change || 0),
     stats,
     ...historySpark(item, A_FUND_SPARK_SIZE),
@@ -487,9 +493,10 @@ function aFundView(item) {
 // 能画出有意义的走势图，人民币金只有2天真实数据，画不出图，让用户先看数据
 // 撑得起的口径。原型的「1年」周期也改叫「全部」：国际金历史目前不到一年，
 // 编一个「1年」标签但只有180天数据，是拿数据长度撒谎。
+// 「1月」「3月」会被看成一月份、三月份，写成「1个月」「3个月」。
 const GOLD_PERIODS = [
-  { id: "month", label: "1月", days: 30 },
-  { id: "quarter", label: "3月", days: 90 },
+  { id: "month", label: "1个月", days: 30 },
+  { id: "quarter", label: "3个月", days: 90 },
   { id: "all", label: "全部", days: 9999 },
 ];
 
@@ -567,7 +574,7 @@ function goldLineChart(history, digits, periodLabel) {
   return {
     canvasId: "gold-price-line",
     values: samples,
-    changeText: `${periodLabel === "全部" ? `${values.length}日` : periodLabel} ${signedPct(change, 1)}`,
+    changeText: `近${periodLabel === "全部" ? `${values.length - 1}日` : periodLabel} ${signedPct(change, 1)}`,
     changeTone: change > 0 ? "up" : change < 0 ? "down" : "flat",
     lowLabel: `最低 ${low.toFixed(digits)}`,
     latestLabel: `最新 ${latest.toFixed(digits)}`,
@@ -656,21 +663,19 @@ function paintGoldLineChart(ctx, width, height, values) {
 function buildGoldModule(snapshot) {
   const gold = snapshot.gold || {};
   const answer = gold.answer || {};
-  const plan = answer.pricePlan || {};
+  const plan = goldPlanView(answer.pricePlan);
   const international = gold.quotes?.international || {};
   const domestic = gold.quotes?.domestic || {};
-  const scoreBundle = answer.scores || {};
-  const internationalScore = Number(scoreBundle.international?.score);
-  const domesticScore = Number(scoreBundle.domestic?.score);
 
   const intlZone = goldZoneForPrice(international.price, plan.internationalWatch, plan.internationalUpper, plan.internationalRisk);
   const cnyZone = goldZoneForPrice(domestic.price, plan.domesticWatch, plan.domesticUpper, plan.domesticRisk);
 
-  const intlHistory = gold.history?.international || [];
+  // 走势线末端接上最新报价，图下「最新」才和上面的大数字是同一个价。
+  const intlHistory = withLatestQuote(gold.history?.international, international);
   const cnyHistory = gold.history?.domestic || [];
   const chartsByPeriod = {};
   GOLD_PERIODS.forEach((period) => {
-    chartsByPeriod[period.id] = goldLineChart(intlHistory.slice(-period.days), 0, period.label);
+    chartsByPeriod[period.id] = goldLineChart(intlHistory.slice(-(period.days + 1)), 0, period.label);
   });
 
   const quotes = [
@@ -679,14 +684,12 @@ function buildGoldModule(snapshot) {
       label: "国际金",
       priceText: hasNumber(international.price) ? Number(international.price).toFixed(0) : "待更新",
       unit: "美元 / 盎司",
-      ...goldScoreMeter(internationalScore),
     },
     {
       id: "cny",
       label: "人民币金",
       priceText: hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "待更新",
       unit: "元 / 克",
-      ...goldScoreMeter(domesticScore),
     },
   ];
 
@@ -716,13 +719,6 @@ function buildGoldModule(snapshot) {
   return { quotes, perCurrency };
 }
 
-// 观察分（0–100）画成币种卡片里的一根细条，原来藏在「查看判断依据」折叠里。
-function goldScoreMeter(score) {
-  if (!Number.isFinite(score)) return { hasScore: false, scoreText: "", scoreWidth: 0 };
-  const clamped = Math.max(0, Math.min(100, score));
-  return { hasScore: true, scoreText: String(score), scoreWidth: Math.max(4, Math.round(clamped)) };
-}
-
 // 币种/周期切换只在这两个预计算好的结构里挑数据，不重新访问快照或重算——
 // 和 resolveHkExitSelection 同一个思路。
 function resolveGoldView(goldModule, currency, periodId) {
@@ -748,12 +744,21 @@ function resolveGoldView(goldModule, currency, periodId) {
   };
 }
 
-// 持仓表只剩裸代码（没有 issuer/name）时括注中文名——「TSM 5.4%」对没炒过
-// 美股的读者不成句子，「TSM（台积电）5.4%」才是。有全称的不动。
+// 持仓表先找中文名：代码对得上就「TSM（台积电）」，基金月报只有英文全称的
+// 就按全称对（「Tencent Holdings Ltd」→「腾讯控股」）。都对不上才原样显示。
+const HAS_HAN = /[\u4e00-\u9fa5]/u;
 function guruHoldingName(holding) {
-  const hasFullName = Boolean(holding && (holding.issuer || holding.name));
-  if (hasFullName || !holding || !holding.ticker) return holdingLabel(holding);
-  return `${tickerZhLabel(holding.ticker)}${instrumentSuffix(holding.putCall)}`;
+  if (!holding) return holdingLabel(holding);
+  const suffix = instrumentSuffix(holding.putCall);
+  const byTicker = holding.ticker ? tickerZhLabel(holding.ticker) : "";
+  if (HAS_HAN.test(byTicker)) return `${byTicker}${suffix}`;
+  const byName = tickerZhLabel(holding.issuer || holding.name || "");
+  if (HAS_HAN.test(byName)) return `${byName}${suffix}`;
+  // 没有中文名的美股小盘：「NTRA（Natera）」，和有中文名的「TSM（台积电）」同一个写法。
+  if (/^[A-Z]{1,5}(\.[A-Z])?$/u.test(String(holding.ticker || ""))) {
+    return `${tickerZhLabel(holding.ticker, holding.issuer || holding.name)}${suffix}`;
+  }
+  return holdingLabel(holding);
 }
 
 // 「机构持仓」跟随原型的「共同方向/机构持仓」两个视图，数据全部来自
@@ -763,7 +768,7 @@ function guruTrendRow(row, investorCount) {
   const adderCount = (row.adders || []).length;
   const cutterCount = (row.cutters || []).length;
   let tone = "caution";
-  let badge = `${adderCount}加${cutterCount}减`;
+  let badge = `${adderCount}家加·${cutterCount}家减`;
   if (adderCount && !cutterCount) {
     tone = "worth";
     badge = `${adderCount}家增持`;
@@ -778,7 +783,7 @@ function guruTrendRow(row, investorCount) {
     ? Math.max(8, Math.min(100, Math.round((totalTouch / investorCount) * 100)))
     : 8;
   // 裸代码（TSM/AMD…）括注中文名，「TSM」对没炒过美股的读者不成句子。
-  const label = tickerZhLabel(row.name || row.symbol) || "待更新";
+  const label = tickerZhLabel(row.name || row.symbol, row.issuer) || "待更新";
   return { key: row.symbol || row.name, label, tone, badge, widthPct };
 }
 
@@ -794,12 +799,13 @@ function guruTrendRowsFrom(trend) {
   return rows.map((row) => guruTrendRow(row, trend.investorCount || 0));
 }
 
-// 报告期"2026-06-30" → "26Q2"，8 期历史挤在一条横向图表里，完整日期放不下。
+// 报告期"2026-06-30" → "26年2季"，8 期历史挤在一条横向图表里，完整日期放不下；
+// 「26Q2」是行内缩写，读者不认。
 function guruQuarterLabel(reportDate) {
   const match = /^(\d{4})-(\d{2})-\d{2}$/.exec(String(reportDate || ""));
   if (!match) return reportDate || "待更新";
   const quarter = Math.ceil(Number(match[2]) / 3);
-  return `${match[1].slice(2)}Q${quarter}`;
+  return `${match[1].slice(2)}年${quarter}季`;
 }
 
 // 机构持仓规模用"亿/万亿"这类中文财经媒体惯用单位，不是原始美元/人民币数字。
@@ -913,7 +919,7 @@ function buildGuruModule(snapshot) {
       stats: [
         { label: "报告期", value: shortDate(item.raw?.reportDate) },
         { label: "披露日", value: shortDate(item.raw?.filingDate) },
-        { label: "来源", value: isLive ? "SEC 13F" : "定期报告" },
+        { label: "来源", value: isLive ? "美国证监会" : "基金定期报告" },
         { label: "可靠度", value: trackingScore != null ? String(trackingScore) : "—" },
       ],
       isLive,
@@ -996,20 +1002,17 @@ function buildOverview(snapshot, market) {
       .filter((item) => item.group !== "cancelled" && stillOpen(item))
       .sort((left, right) => (rank[left.group] ?? 3) - (rank[right.group] ?? 3));
     const lead = live[0];
-    const scored = scoreForItem(lead);
     const leadId = lead ? String(lead.id || "") : "";
     // 「在售」「值得打」这两格原来在结论行下面单独占一整排，可是今日答案里
     // 的「近期上新」「哪些值得打」两张卡说的是同一件事，同一个数字印两遍。
-    // 数字留给答案卡，这里的结论行只补一个答案卡没有的：研究分。
+    // 结论行只写名字和徽章：分数在下面列表里已经标着「评分」，这里再叫一个
+    // 「研究分」，读者会以为是两个不同的分。
     return {
       metrics: [],
-      target: lead ? shortCompanyName(lead.name, "新股", 6) : "暂无在售",
+      // 6 个字会把「北京奕斯伟计算技术」削成「北京奕斯伟计」，读着像错字。
+      target: lead ? shortCompanyName(lead.name, "新股", 10) : "暂无在售",
       targetId: leadId,
-      // 资料不够时公开研究分是 0，「资料不够 · 研究分0」读起来像被打了零分，
-      // 这种只留徽章。
-      grade: lead
-        ? `${lead.badge || "待定"}${scored.score != null && lead.badge !== "资料不够" ? ` · 研究分${scored.score}` : ""}`
-        : "—",
+      grade: lead ? (lead.badge || "待定") : "—",
       gradeGroup: lead?.group || "worth",
       canOpenTarget: Boolean(leadId),
       canOpenGrade: Boolean(lead?.group),
@@ -1022,20 +1025,24 @@ function buildOverview(snapshot, market) {
     const seven = items.filter((item) => item.group === "seven");
     // 结论行原来取「全样本综合分最高的那一只」，选出来的是行业观察里的
     // 万事达——底下四张答案卡讲的全是七姐妹和热度三只，页头却挂着一只
-    // 一次都没出现过的票，徽章还写着「七姐妹」。这一栏的结论只能从这四张卡
-    // 覆盖得到的范围里选：先低估（可买入的那侧），再风险（要减的那侧），
-    // 都没有才退回七姐妹本身。
+    // 一次都没出现过的票，徽章还写着「七姐妹」。这一栏的结论只从七姐妹里选，
+    // 七姐妹缺数据时才退到热度三只。
     const best = (list) => [...list]
       .map((item) => ({ item, score: scoreForItem(item).score }))
       .filter((entry) => entry.score != null)
       .sort((left, right) => right.score - left.score)[0]?.item || list[0] || null;
-    const cheap = seven.filter((item) => matchesGroup(item, "cheap7"));
-    const risk = seven.filter((item) => matchesGroup(item, "risk7"));
-    const lead = best(cheap) || best(risk) || best(seven) || hot[0] || null;
-    const leadLens = lead && matchesGroup(lead, "cheap7")
-      ? "cheap7"
-      : (lead && matchesGroup(lead, "risk7") ? "risk7" : "seven");
-    const scored = scoreForItem(lead);
+    // 徽章原来按「属于低估七姐妹」写死成「低估可买入」，可下面列表给同一只 Meta
+    // 标的是「等回撤」——同一屏两个相反的说法。现在徽章直接用列表里那个策略
+    // 结论，挑人也按列表的结论排：可分批观察 > 等回撤 > 风险升高，同档看评分。
+    const toneRank = { good: 0, warn: 1, bad: 2 };
+    const signalled = seven.map((item) => ({ item, signal: buildStrategySignal(item), score: scoreForItem(item).score }));
+    signalled.sort((left, right) => (
+      ((toneRank[left.signal.tone] ?? 3) - (toneRank[right.signal.tone] ?? 3))
+      || ((right.score ?? -1) - (left.score ?? -1))
+    ));
+    const leadEntry = signalled[0] || null;
+    const lead = leadEntry ? leadEntry.item : (best(hot) || null);
+    const leadLabel = leadEntry ? leadEntry.signal.label : (lead ? buildStrategySignal(lead).label : "");
     const leadId = lead ? String(lead.id || lead.code || "") : "";
     // 「七姐妹 7」「热度前三 3」这两格原来单独占一整排，可两个数都是固定的
     // ——七姐妹恒定 7 只、热度前三恒定取 3 只，点开又是下面「七姐妹近期怎么了」
@@ -1047,10 +1054,8 @@ function buildOverview(snapshot, market) {
       // 写的都是中文名，这里跟上。
       target: lead ? shortCompanyName(lead.name, lead.code || "美股", 6) : "待更新",
       targetId: leadId,
-      grade: lead
-        ? `${leadLens === "cheap7" ? "低估可买入" : (leadLens === "risk7" ? "风险要减" : "七姐妹")}${scored.score != null ? ` · 综合分${scored.score}` : ""}`
-        : "—",
-      gradeGroup: leadLens,
+      grade: lead ? (leadLabel || "待定") : "—",
+      gradeGroup: leadEntry ? "seven" : "hot",
       canOpenTarget: Boolean(leadId),
       canOpenGrade: Boolean(lead),
     };
@@ -1063,17 +1068,15 @@ function buildOverview(snapshot, market) {
       .filter((entry) => entry.score != null)
       .sort((left, right) => right.score - left.score);
     const top = ranked[0]?.item || items[0];
-    const scored = scoreForItem(top);
     const topId = top ? String(top.id || "") : "";
     // 「收息样本 12」「优等收息 1」这两格原来单独占一整排，可两个数在分组浏览里
-    // 一点就能看到、跟这里说的是同一件事，同一个数字印两遍。数字和入口都留给
-    // 分组浏览，这里的结论行只补分组浏览没有的：收息分。
+    // 一点就能看到、跟这里说的是同一件事，同一个数字印两遍。
+    // 结论行原来还挂「收息分75」，下面列表同一只写的是「83分」（分红稳定性），
+    // 两个分并排读者会问哪个对；结论行只留徽章。
     return {
       metrics: [],
-      target: top ? shortCompanyName(top.name, top.code || "—", 6) : "—",
-      grade: top
-        ? `${top.badge || "待定"}${scored.score != null ? ` · 收息分${scored.score}` : ""}`
-        : "—",
+      target: top ? shortCompanyName(top.name, top.code || "—", 10) : "—",
+      grade: top ? (top.badge || "待定") : "—",
       targetId: topId,
       gradeGroup: top?.group || "prime",
       canOpenTarget: Boolean(topId),
@@ -1103,7 +1106,7 @@ function buildOverview(snapshot, market) {
   }
 
   const profiles = allItems(snapshot, "guru");
-  // leader 原本取 profiles[0]，也就是数组里排头的那条（港股组的价值伙伴经典
+  // leader 原本取 profiles[0]，也就是数组里排头的那条（港股组的惠理价值
   // 13.2% 年化）；而正下方第一行「业绩靠前持仓」用的是 daily-answers 里
   // 美股→港股→A股 的取法（德鲁肯米勒 约 30% 年化）。同一屏两处各说一个「领头」，
   // 数还不一样。这里按 daily-answers 的同一条规则取，两处说的是同一个人。
@@ -1117,12 +1120,15 @@ function buildOverview(snapshot, market) {
   const topPerf = leader?.badge || leader?.raw?.profile?.performanceValue || "—";
   return {
     metrics: [
-      { label: "港股", value: `${hkCount}`, action: "group", group: "hk", enabled: hkCount > 0 },
-      { label: "美股", value: `${usCount}`, action: "group", group: "us", enabled: usCount > 0 },
-      { label: "A股", value: `${aCount}`, action: "group", group: "a", enabled: aCount > 0 },
+      // 光写「3」不知道是 3 什么；跟下面「展开其余 11 家」同一个量词。
+      { label: "港股", value: `${hkCount}家`, action: "group", group: "hk", enabled: hkCount > 0 },
+      { label: "美股", value: `${usCount}家`, action: "group", group: "us", enabled: usCount > 0 },
+      { label: "A股", value: `${aCount}家`, action: "group", group: "a", enabled: aCount > 0 },
     ],
     // 6 个字会把「斯坦利·德鲁肯米勒」削成「斯坦利·德鲁」，看着像个完整名字，
     // 其实是另一个人。放宽到 10 字，真放不下时交给 CSS 的省略号，至少能看出被截了。
+    // 一个人名加年化不是「结论」，读者会问结论是什么；跟下面答案卡「业绩靠前持仓」同一个说法。
+    label: "业绩靠前",
     target: leader ? shortCompanyName(leader.name, "机构", 10) : "待更新",
     targetId: leaderId,
     grade: topPerf,
@@ -1194,7 +1200,6 @@ Page({
     goldCurrency: "usd",
     goldPeriod: "month",
     goldQuotes: [],
-    goldBadgeText: "",
     goldZoneTone: "caution",
     goldCurrencyLabel: "",
     goldPeriods: [],
@@ -1395,7 +1400,6 @@ Page({
         aFund: aModule ? aModule.fund : null,
         goldQuotes: goldModule ? goldModule.quotes : [],
         goldPeriod: goldView.period,
-        goldBadgeText: goldView.badgeText,
         goldZoneTone: goldView.zoneTone,
         goldCurrencyLabel: goldView.currencyLabel,
         goldPeriods: goldView.periods,
@@ -1478,7 +1482,6 @@ Page({
     this.setData({
       goldCurrency: currency,
       goldPeriod: view.period,
-      goldBadgeText: view.badgeText,
       goldZoneTone: view.zoneTone,
       goldCurrencyLabel: view.currencyLabel,
       goldPeriods: view.periods,

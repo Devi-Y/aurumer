@@ -3,16 +3,16 @@ const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER, RISK_LABEL } = require("../../utils/disclaimer");
 const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction, usHeatDriver } = require("../../utils/answers");
+const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction, usHeatDriver, tickerZhLabel, tickerShortZh } = require("../../utils/answers");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
 const { isPositionChange, instrumentSuffix } = require("../../utils/guru-changes");
-const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lenses, MAGNIFICENT_SEVEN, goldTurningPoint } = require("../../utils/market-lenses");
+const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lenses, MAGNIFICENT_SEVEN, goldTurningPoint, goldPlanView } = require("../../utils/market-lenses");
 const { goldMonthDay } = require("../../utils/daily-answers");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
-const { marketSources, dedupeSources } = require("../../utils/sources");
+const { marketSources, dedupeSources, sourceName } = require("../../utils/sources");
 const { filingsFor, formatFiling, formatFilingLine } = require("../../utils/us-filings");
 // 「毛利率 43%」本身不回答"这算高还是低"。望潮池子里 30 只美股、20 只 A 股
 // 的同口径字段就摆在快照里，把它算成「池内第 6/30」是零新增数据的一次密度提升。
@@ -21,6 +21,7 @@ const { sparklineSvg } = require("../../utils/sparkline");
 const { annualRank } = require("../../utils/smart-money");
 // 黄金四个报价之间唯一那条换算（1 金衡盎司 = 31.1035 克），栏目页和详情页共用。
 const { goldParity } = require("../../utils/gold-parity");
+const { withLatestQuote, recentChange } = require("../../utils/gold-series");
 // 快照给的日期有 ISO 时间戳、M/D/YYYY、YYYY-MM-DD 三种写法混着来。新闻资讯页
 // 一进门就归一到 YYYY-MM-DD，这一页以前没做，于是同一屏并排出现「行情截至
 // 2026-09-02T20:00:00.000Z」和「披露日期 2026-08-14」。共用同一个归一函数。
@@ -177,15 +178,12 @@ let lineChartSeq = 0;
 // 也不用等节点量尺寸再重画。600×200 和 .line-chart-img 的 100%×200rpx 大致同比例。
 const LINE_SVG = { width: 600, height: 200, grid: true };
 
-function priceVisual(history, title, formatter = (value) => Number(value).toFixed(2), hint) {
+function priceVisual(history, title, formatter = (value) => Number(value).toFixed(2), hint, changeLabel = "涨跌") {
   const values = (history || []).filter(hasNumber).map(Number);
   if (values.length < 2) return null;
   const low = Math.min(...values);
   const high = Math.max(...values);
   const latest = values[values.length - 1];
-  const sorted = values.slice().sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
   const change = values[0] ? ((latest - values[0]) / Math.abs(values[0])) * 100 : 0;
   return withChartMeta({
     kind: "line",
@@ -194,11 +192,10 @@ function priceVisual(history, title, formatter = (value) => Number(value).toFixe
     lowLabel: `最低 ${formatter(low)}`,
     latestLabel: `最新 ${formatter(latest)}`,
     highLabel: `最高 ${formatter(high)}`,
-    // 三格就够：均价和中位几乎一样，高低差就是图下两端标签之差；五格在窄屏会把金价截成「$4543....」。
+    // 只留涨跌一格：时间段写在标题里（「近180日国际金价」），最低/最新/最高在图下；
+    // 「中位」是统计词，「样本 181」读者不知道是什么的 181，都撤掉。
     stats: [
-      { label: "区间涨跌", value: `${change >= 0 ? "+" : ""}${change.toFixed(1)}%` },
-      { label: "中位", value: formatter(median) },
-      { label: "样本", value: `${values.length}` },
+      { label: changeLabel, value: `${change >= 0 ? "+" : ""}${change.toFixed(1)}%` },
     ],
   }, hint || "曲线越靠上价格越高；只看历史，不预测明天。");
 }
@@ -832,21 +829,21 @@ function buildHKView(base, item, snapshot) {
         // 退成「研究分」又会和标题下那枚「研究分 77」胶囊在同一屏撞第二次。
         // 中签率、公开认购倍数要等配售结果才有，有就优先显示；都没有时改放上市
         // 日——打新的人这一屏真正缺的是钱要锁到哪天，而它只躺在「资料」里。
-        // 另外「一手 3949」「招股 19.55」都没有单位，把口径写进标签。
+        // 另外「一手 3949」「招股 19.55」都没有单位，单位直接写进数字。
         hasNumber(raw.oneLotRate)
           ? { label: "一手中签", value: `${Number(raw.oneLotRate).toFixed(1)}%` }
           : (hasNumber(raw.publicOversubscription)
-            ? { label: "公开认购·倍", value: `${Number(raw.publicOversubscription).toFixed(1)}` }
-            : { label: "上市日", value: raw.listingDate ? String(raw.listingDate).slice(5) : "—" }),
-        { label: "一手·港元", value: hasNumber(raw.entryFee) ? `${Number(raw.entryFee).toFixed(0)}` : "—" },
-        { label: "招股·港元", value: offer != null ? offer.toFixed(2) : "—" },
+            ? { label: "公开认购", value: `${Number(raw.publicOversubscription).toFixed(1)}倍` }
+            : { label: "上市日", value: raw.listingDate ? String(raw.listingDate).slice(5) : "待公布" }),
+        { label: "一手金额", value: hasNumber(raw.entryFee) ? `${Number(raw.entryFee).toFixed(0)}港元` : "待公布" },
+        { label: "招股价", value: offer != null ? `${offer.toFixed(2)}港元` : "待公布" },
         // 「截止 0天」读起来像已经结束了，其实是今天最后一天；负数则是
         // 认购期已过、配发结果还没出来的空档，写「已截止」而不是「-2天」。
         {
-          label: "截止",
+          label: "认购截止",
           value: daysToDeadline == null
-            ? (raw.offerDeadline || "—")
-            : deadlineLabel(daysToDeadline),
+            ? (raw.offerDeadline || "待公布")
+            : (daysToDeadline > 0 ? `还剩${daysToDeadline}天` : deadlineLabel(daysToDeadline)),
         },
       ];
 
@@ -884,7 +881,7 @@ function buildHKView(base, item, snapshot) {
     ["资料状态", raw.researchView?.label || null],
     ["公告类型", announceKindLabel(announce.kind, announce.reason) || null],
     ["资料说明", researchNoteShort(raw.researchView) || null],
-    ["来源", raw.source || "HKEX"],
+    ["来源", sourceName(raw.source) || "港交所"],
   ].filter((row) => row[1]), "资料说明", "解析字段占比等数字见上方雷达图。");
 
   const qualityRadar = hkQualityRadarVisual(raw, announce, prospectus);
@@ -962,7 +959,7 @@ function buildHKView(base, item, snapshot) {
     ["公开认购", hasNumber(raw.publicOversubscription) ? `${Number(raw.publicOversubscription).toFixed(2)}倍` : null],
     ["一手中签率", hasNumber(raw.oneLotRate) ? `${Number(raw.oneLotRate).toFixed(2)}%` : null],
     ["A+H", raw.isAH === true ? "是" : (raw.isAH === false ? "否" : null)],
-    ["资料来源", raw.source || "港交所公开文件"],
+    ["资料来源", sourceName(raw.source) || "港交所公开文件"],
   ]);
 
   // 招股价/上市日/一手中签率/公开认购/距截止/首日涨跌这批数字已经在上方
@@ -973,12 +970,13 @@ function buildHKView(base, item, snapshot) {
     ? [
         { title: "结果", body: `暗盘 ${formatPercent(review.greyMarketChange)} · 首日 ${formatPercent(review.firstDayChange)} · 五日 ${formatPercent(review.fiveDayChange)}` },
       ]
-    : [
+    : (deadlinePassed ? [] : [
+        // 已截止就没有「要不要融资打」这个问题了，整行不出。
         {
-          title: "高杠杆观察",
-          body: hkLeverageEligible(item) ? "达到十倍融资观察门槛" : "未达十倍融资观察门槛",
+          title: "融资申购",
+          body: hkLeverageEligible(item) ? "可以考虑融资，仍只打一手" : "不适合融资，只用自有资金",
         },
-      ];
+      ]);
   base.actions = [];
   base.riskItems = ended
     ? [
@@ -989,7 +987,7 @@ function buildHKView(base, item, snapshot) {
       ];
   base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   if (ended && item.rank) base.score = `首日涨幅第 ${item.rank} 名`;
-  base.sourceNote = raw.source || "港交所公开文件与历史结果整理";
+  base.sourceNote = sourceName(raw.source) || "港交所公开文件与历史结果整理";
   // 供 buildOverview 拼「阶段与关键节点」卡片，避免重算一遍 ended/截止/上市日逻辑。
   base.stageInfo = {
     ended,
@@ -1026,13 +1024,15 @@ function buildUSView(base, item, snapshot) {
     ["成交量比", hasNumber(raw.volumeRatio) ? `${Number(raw.volumeRatio).toFixed(2)}倍` : null],
   ];
   base.metrics = compactFacts(base.metrics, 14);
+  const listScore = scoreForItem(item);
   base.highlights = [
     { label: "现价", value: money(raw.price) },
     { label: "今日", value: formatPercent(raw.changePercent) },
-    // 「PE 45.9」「热度 48」都是裸数字，而同样两项在「财务」里写的是「45.9 倍」
-    // 「48 分」。口径提到标签上，值这一行才不至于被当成价格或百分比。
-    { label: "PE·倍", value: hasNumber(fund.pe) ? Number(fund.pe).toFixed(1) : "—" },
-    { label: "热度·分", value: hasNumber(raw.heatScore) ? `${Number(raw.heatScore)}` : "—" },
+    // 单位写进数字（「45.9倍」），不用「PE·倍」这种要解码的标签。
+    // 分数这一格和列表行用同一个分（scoreForItem），原来放的是热度分——
+    // 列表写 63、点进来写 54，读者会问哪个才对。
+    { label: "市盈率", value: hasNumber(fund.pe) ? `${Number(fund.pe).toFixed(1)}倍` : "暂缺" },
+    { label: listScore.label, value: listScore.score != null ? `${listScore.score}` : "暂缺" },
   ];
 
   const marginBars = solidVisual([
@@ -1088,7 +1088,7 @@ function buildUSView(base, item, snapshot) {
 
   const revenueHistory = Array.isArray(fund.revenueHistory) ? fund.revenueHistory.filter(hasNumber).map(Number) : [];
   const revenueVisual = revenueHistory.length >= 2
-    ? priceVisual(revenueHistory.slice().reverse(), "营收趋势", (value) => formatLarge(value), "近几期公开营收金额。")
+    ? priceVisual(revenueHistory.slice().reverse(), "营收趋势", (value) => formatLarge(value), "近几期公开营收金额。", "营收变化")
     : null;
 
   const scoredUS = scoreForItem(item);
@@ -1194,13 +1194,23 @@ function buildUSView(base, item, snapshot) {
   // 重复句子，「关键依据」只留「动态」tab 给不出的判断。
   base.analysis = [
     // 近60日位置已由概览的价格位置图表完整展示，这里不再重复成一行文字。
-    scoredUS.score != null ? { title: "研究观察分", body: `${scoredUS.score} / 100` } : null,
-    scoredUS.score != null ? { title: "评分构成", body: "盈利质量 50% · 估值 30% · 热度 15% · 近周 5%" } : null,
+    // 「盈利质量 50%」单写，读者会当成盈利质量得了 50 分；写成「占 50%」才读得出是权重。
+    scoredUS.score != null ? { title: "研究观察分怎么算", body: `满分 100，盈利质量占 50%、估值占 30%、热度占 15%、近一周涨跌占 5%；这只 ${scoredUS.score} 分。` } : null,
   ].filter(Boolean);
   base.actions = [];
+  // 「历史价格不预测未来」对哪只票都成立，等于没说；换成这只票现价离近60日高低点多远。
+  const gapPct = (from, to) => Math.abs(((from - to) / to) * 100).toFixed(1);
+  let priceRisk = "近60日价格样本不足，位置暂不判断。";
+  if (pricePosition != null && pricePosition >= 80) {
+    priceRisk = `现价离近60日最高 ${money(range.high)} 只差 ${gapPct(Number(raw.price), range.high)}%，追高容易买在高点。`;
+  } else if (pricePosition != null && pricePosition <= 20) {
+    priceRisk = `现价离近60日最低 ${money(range.low)} 只高 ${gapPct(Number(raw.price), range.low)}%，还在跌时不急着接。`;
+  } else if (pricePosition != null) {
+    priceRisk = `现价比近60日最高低 ${gapPct(Number(raw.price), range.high)}%，比最低高 ${gapPct(Number(raw.price), range.low)}%。`;
+  }
   base.riskItems = [
-    { title: "价格风险", body: "历史价格不预测未来。" },
-    { title: "事件风险", body: "财报与事件可能造成跳空。" },
+    { title: "价格风险", body: priceRisk },
+    { title: "事件风险", body: "财报和重大公告前后，股价可能一天大涨大跌。" },
   ];
   base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   base.sourceNote = raw.asOf
@@ -1251,13 +1261,13 @@ function buildAShareFundView(base, item) {
   ], "基金资料");
   setCharts(
     base,
-    history.length >= 2 ? priceVisual(history, "红利ETF轨迹", (value) => `¥${Number(value).toFixed(3)}`) : null,
+    history.length >= 2 ? priceVisual(history, `近${history.length}日红利ETF`, (value) => `¥${Number(value).toFixed(3)}`) : null,
     history.length >= 2 ? meterVisual(history, price, "红利ETF位置", (value) => `¥${Number(value).toFixed(3)}`) : null,
     priceBand,
     fundInfoTiles,
   );
   base.trendCharts = [
-    history.length >= 2 ? priceVisual(history, "红利ETF轨迹", (value) => `¥${Number(value).toFixed(3)}`) : null,
+    history.length >= 2 ? priceVisual(history, `近${history.length}日红利ETF`, (value) => `¥${Number(value).toFixed(3)}`) : null,
     history.length >= 2 ? meterVisual(history, price, "红利ETF位置", (value) => `¥${Number(value).toFixed(3)}`) : null,
     priceBand,
   ].filter(Boolean);
@@ -1327,7 +1337,7 @@ function buildAShareRiskItems(raw = {}, financials = {}) {
       ? `今日跌幅 ${change.toFixed(1)}%，已触发价格警报；先查公告、业绩和行业事件，不在原因未明时补跌。`
       : `今日涨跌 ${change >= 0 ? "+" : ""}${change.toFixed(1)}%；预警线为单日跌幅≤-5%或连续两日收跌，触发后先暂停加仓并复核基本面。`
     : "实时涨跌暂缺；预警线为单日跌幅≤-5%或连续两日收跌，触发后先核实原因。";
-  const exitBody = "价格跌破预警线且伴随经营或行业信号时，优先降低风险敞口；如果只是大盘同步波动，先确认是否有公司层面的新事实。";
+  const exitBody = "价格跌破预警线且伴随经营或行业信号时，优先减仓；如果只是大盘同步波动，先确认是否有公司层面的新事实。";
   return [
     { title: "经营风险", body: operatingBody },
     { title: "行业风险", body: industryBody },
@@ -1370,13 +1380,14 @@ function buildAShareView(base, item, snapshot) {
     // 「分级」这一格和正上方绿色「结论」条是同一个 item.badge，同屏重复；
     // 换成这一页别处才有的现价（拿不到就退到 10 万元一年的估算利息）。
     hasNumber(raw.currentPrice)
-      ? { label: "现价·元", value: Number(raw.currentPrice).toFixed(2) }
+      ? { label: "现价", value: `¥${Number(raw.currentPrice).toFixed(2)}` }
       : { label: "10万年息", value: hasNumber(annualDividend) ? `${Math.round(annualDividend)}元` : "—" },
     // 「观察分」原本在这里和头部/依据 tab 的评分图重复展示三遍；这一格改放
     // 首屏还没出现过的今日涨跌，评分只在「依据」tab 的图表里保留一份。
     { label: "今日", value: formatPercent(raw.changePercent) },
-    { label: "股息", value: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "—" },
-    { label: "可持续", value: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "—" },
+    // 「股息 3.2%」「可持续 2.8%」：后一格单说「可持续」读不出是什么可持续。
+    { label: "股息率", value: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺" },
+    { label: "可持续股息率", value: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺" },
   ];
   base.pageHelp = "";
 
@@ -1544,14 +1555,16 @@ function buildGuruView(base, item) {
   // answers.js 把报告期一并塞进了 filingDate（「2026-05-29 月报」），Date.parse
   // 直接 NaN，于是「滞后」这一格和「披露滞后」这一行对它们永远是「待核」。
   // 先把日期从字符串里取出来；两者口径不同，不能混成一个词——有披露日就说披露
-  // 滞后，只有报告期就说报告期距今；连日期都取不到（「2026Q1 季报」）才留空。
+  // 滞后，只有报告期就说报告期距今；连日期都取不到（「2026年一季报」）才留空。
   const filingDate = raw.filingDate || "";
   const filingDay = (String(filingDate).match(/\d{4}-\d{2}-\d{2}/) || [])[0] || "";
   const filingTime = Date.parse(filingDay);
   const lagDays = Number.isNaN(filingTime)
     ? null
     : Math.max(0, Math.round((Date.now() - filingTime) / (24 * 60 * 60 * 1000)));
-  const lagLabel = raw.isLive ? "披露滞后" : "报告期距今";
+  // 「披露滞后 45天」是行话；说成「持仓公布 45天前」。基金月报没有公布日，只有报告期。
+  const lagLabel = raw.isLive ? "持仓公布" : "报告截至";
+  const lagText = lagDays == null ? null : (lagDays === 0 ? "今天" : `${lagDays}天前`);
   // 港股三只基金的持仓标注是「月报持有」，以前的反向判断会把它当成一次仓位
   // 变化，于是详情页写「本期 3 项仓位变化」——月报根本没说有变化。
   const changed = holdings.filter(isPositionChange);
@@ -1560,7 +1573,9 @@ function buildGuruView(base, item) {
   base.code = profile.org || base.code;
   base.badge = profile.performanceValue || profile.marketLabel || base.badge;
   base.score = profile.performanceValue || "业绩待核";
-  base.rank = annual ? `第 ${annual.rank}/${annual.count}` : "";
+  // 「1/9」会被看成一月九日。
+  const rankText = annual ? `${annual.count}家中第${annual.rank}` : "";
+  base.rank = rankText;
   // 「先看答案」原本只填 profile.marketLabel，渲染出来就是孤零零一个「美股」——
   // 既不是答案，也不是新信息（市场在关键数据里已经单独占了一格）。改成这期 13F
   // 到底说了什么：报告期、第一大持仓、本期有多少项仓位变化，全部取自已算好的字段。
@@ -1572,7 +1587,7 @@ function buildGuruView(base, item) {
   base.answer = [
     (raw.reportDate || profile.report) ? `报告期 ${raw.reportDate || profile.report}` : null,
     topHolding
-      ? `第一大持仓 ${topHolding.ticker}${hasNumber(topHolding.weight) ? ` ${formatNumber(topHolding.weight, "%")}` : ""}${instrumentSuffix(topHolding.putCall)}`
+      ? `第一大持仓 ${tickerZhLabel(topHolding.ticker, topHolding.issuer || topHolding.name)}${instrumentSuffix(topHolding.putCall)}${hasNumber(topHolding.weight) ? ` 占${formatNumber(topHolding.weight, "%")}` : ""}`
       : null,
     changed.length ? `本期 ${changed.length} 项仓位变化` : null,
   ].filter(Boolean).join(" · ") || profile.marketLabel || item.badge;
@@ -1583,32 +1598,33 @@ function buildGuruView(base, item) {
     ["持仓", `${holdings.length} 只`],
     // 和上面的核心数据同一口径：月报、季报没披露过退出，不能写成「0」。
     ["退出", raw.isLive ? `${sold.length} 只` : "未披露"],
-    [lagLabel, lagDays == null ? "待核" : `${lagDays}天`],
+    [lagLabel, lagText || "待核"],
     ["报告期", dayText(raw.reportDate || profile.report) || "待核"],
   ];
   base.highlights = [
     // 第一格原本是 profile.performanceValue，而徽章就是同一个字段，渲染出来是
     // 「年化：13.2% 年化」——同一屏印两遍，「年化」两个字还印了三遍。排名本来
     // 就是按表观年化在同组内排的，把口径写进标签，年化这一格便不必再留一次。
-    { label: "年化排名", value: annual ? `${annual.rank}/${annual.count}` : "—" },
-    { label: "持仓·只", value: `${holdings.length}` },
-    // 退出数只有 13F 真正披露；月报、季报没说过，写「0」会被读成「一只都没卖」。
-    { label: "退出·只", value: raw.isLive ? `${sold.length}` : "未披露" },
-    { label: lagLabel, value: lagDays == null ? "—" : `${lagDays}天` },
+    { label: "年化排名", value: rankText || "暂缺" },
+    { label: "持仓", value: `${holdings.length}只` },
+    // 清仓数只有 13F 真正披露；月报、季报没说过，写「0」会被读成「一只都没卖」。
+    { label: "清仓", value: raw.isLive ? `${sold.length}只` : "未披露" },
+    { label: lagLabel, value: lagText || "暂缺" },
   ];
   base.holdings = holdings.slice(0, 8).map((holding) => ({
-    name: `${holding.ticker}${instrumentSuffix(holding.putCall)}`,
+    name: `${tickerZhLabel(holding.ticker, holding.issuer || holding.name)}${instrumentSuffix(holding.putCall)}`,
     value: `${formatNumber(holding.weight, "%")} · ${holding.changeLabel || "变化待核"}`,
   }));
 
-  // 图表标签空间有限，期权只标 ·PUT/·CALL 短记号，不用完整的括注写法。
-  // 个别 13F 行没有代码只有发行人全名（「CHUBB LIMITED」），柱下会折成两行，只取首词。
+  // 图表标签空间有限：有中文名只写中文名，期权缀「看涨/看跌」两个字，不写 PUT/CALL。
+  // 个别 13F 行没有代码只有发行人全名（「CHUBB LIMITED」），对不上中文名时只取首词。
   const chartTicker = (holding) => {
     const raw = String(holding.ticker || "");
-    const ticker = /\s/.test(raw) && raw.length > 6 ? raw.split(/\s+/)[0] : raw;
+    const zh = tickerShortZh(raw, holding.issuer || holding.name);
+    const ticker = zh !== raw ? zh : (/\s/.test(raw) && raw.length > 6 ? raw.split(/\s+/)[0] : raw);
     const mark = String(holding.putCall || "").trim().toLowerCase();
-    if (mark === "put") return `${ticker}·PUT`;
-    if (mark === "call") return `${ticker}·CALL`;
+    if (mark === "put") return `${ticker}看跌`;
+    if (mark === "call") return `${ticker}看涨`;
     return ticker;
   };
 
@@ -1640,19 +1656,13 @@ function buildGuruView(base, item) {
     // 「研究分 23」——聪明人持仓根本没有研究分，这个 3 倍也没有任何口径依据。
     // 同组年化名次已经在核心数据里，下面几张图又全是真实披露，直接去掉。
     metricTilesVisual([
-      ["持仓只数", `${holdings.length}`],
-      ["退出只数", raw.isLive ? `${sold.length}` : "未披露"],
-      ["披露滞后", lagDays == null ? null : `${lagDays}天`],
-      ["有变化标注", `${changed.length}`],
+      ["持仓", `${holdings.length}只`],
+      ["清仓", raw.isLive ? `${sold.length}只` : "未披露"],
+      [lagLabel, lagText],
+      ["有仓位变化", `${changed.length}只`],
     ].filter((row) => row[1]), "本期摘要"),
-    lagDays != null
-      ? meterVisual(
-        [0, Math.min(180, lagDays), 180],
-        Math.min(180, lagDays),
-        "披露滞后位置",
-        (value) => `${Math.round(value)}天`,
-      )
-      : null,
+    // 原来还有一条 0–180 天的「披露滞后位置」刻度条：180 是随手定的上限，
+    // 条上的位置不对应任何东西，上面一格已经写了「xx天前」，撤掉。
   ].filter(Boolean);
 
   base.facts = compactFacts([
@@ -1662,8 +1672,8 @@ function buildGuruView(base, item) {
     ["业绩区间", profile.performanceDetail],
     ["持仓报告", raw.reportDate || profile.report],
     ["披露日期", dayText(filingDate)],
-    ["披露滞后", lagDays == null ? null : `${lagDays}天`],
-    ["资料来源", raw.source || "SEC 13F"],
+    [lagLabel, lagText],
+    ["资料来源", sourceName(raw.source) || "美国证监会持仓申报"],
   ], 12);
   // 报告期/披露日/滞后天数已经在「资料」tab 的 facts 表里各出现过一次，
   // 「只含多头」在风险卡里单独有一条，这里不重复。
@@ -1672,7 +1682,7 @@ function buildGuruView(base, item) {
     { title: "怎么学", body: `【望潮研究归纳】${String(profile.how || "学框架，不照抄持仓。").slice(0, 100)}` },
     {
       title: "应该避免",
-      body: "不照抄报告期仓位、不把滞后披露当实时单、不复制机构杠杆与集中度。",
+      body: "不照抄旧仓位；几个月前公布的持仓不等于今天的操作；不学它加杠杆、重仓一两只。",
     },
     {
       title: "跟随边界",
@@ -1682,10 +1692,10 @@ function buildGuruView(base, item) {
   base.actions = [];
   base.riskItems = [
     {
-      title: "披露滞后",
+      title: "持仓是旧的",
       body: lagDays == null
-        ? "13F / 公开报告存在滞后，报告期仓位不等于当前仓位。"
-        : `距披露约 ${lagDays} 天；期间仓位可能已大幅变化。`,
+        ? "公开持仓是过去某一天的仓位，不等于现在的仓位。"
+        : `这份持仓 ${lagDays} 天前公布，之后可能已经大幅调仓。`,
     },
     {
       title: "只含多头",
@@ -1694,22 +1704,31 @@ function buildGuruView(base, item) {
   ];
   base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   base.pageHelp = "";
-  base.sourceNote = `${raw.source || profile.sourceName || "公开报告"} · ${filingDate || profile.report || "披露待核"}`;
+  base.sourceNote = `${sourceName(raw.source || profile.sourceName) || "公开报告"} · ${filingDate || profile.report || "披露待核"}`;
 }
 
 function buildGoldView(base, item) {
   const gold = item.raw || {};
   const answer = gold.answer || {};
-  const plan = answer.pricePlan || {};
+  const plan = goldPlanView(answer.pricePlan);
   const international = gold.quotes?.international || {};
   const domestic = gold.quotes?.domestic || {};
   const etf = gold.quotes?.etf || {};
   const usdCny = gold.quotes?.usdCny || {};
-  const returns = international.returns || {};
+  // 涨跌不用引擎单独给的 returns（它和快照里的日线对不上，首页算出 -7.4%、这里写 -6.6%），
+  // 统一从「日线 + 最新报价」这一条序列算，首页、栏目页、详情页同一个数。
+  const intlSeries = withLatestQuote(gold.history?.international, international);
+  const returns = {
+    day20: recentChange(intlSeries, 20),
+    day60: recentChange(intlSeries, 60),
+    day180: recentChange(intlSeries, 180),
+  };
+  // 一位小数，跟首页、栏目页同一个写法；-7.45% 和 -7.4% 并排出现会被当成两个数。
+  const pct = (value) => (hasNumber(value) ? `${Number(value) >= 0 ? "+" : ""}${Number(value).toFixed(1)}%` : "暂缺");
   const scoreBundle = answer.scores || {};
   const internationalScore = Number(scoreBundle.international?.score ?? answer.internationalScore);
   const domesticScore = Number(scoreBundle.domestic?.score ?? answer.domesticScore);
-  const internationalRange = historyStats((gold.history?.international || []).map((entry) => entry.close));
+  const internationalRange = historyStats(intlSeries.map((entry) => entry.close));
   const domesticRange = historyStats((gold.history?.domestic || []).map((entry) => entry.close));
   const rangeText = (range, currency) => range ? `${Number(range.low).toFixed(1)}–${Number(range.high).toFixed(1)} ${currency}` : "待核验";
   const buyIntl = compactRangeText(plan.internationalWatch, 0);
@@ -1720,18 +1739,28 @@ function buildGoldView(base, item) {
   const riskCny = compactRangeText(plan.domesticRisk, 1);
   const action = answer.action || answer.researchLabel || "继续观察";
 
-  base.title = gold.view === "plan" ? "观察区参考" : "现在怎么做";
+  // 标题是这一页说的东西（黄金），不是一个问句——「现在怎么做」当标题，读者会等下面给答案。
+  base.title = gold.view === "plan" ? "黄金价位参考" : "黄金";
+  // 列表条目的 code 是「黄金 / 观察区」，跟在标题后面就成了「黄金 黄金」。
+  // code 还是记录页存档的键，不能清空，只在页头不显示。
+  base.hideCode = true;
   base.badge = action;
   // 「先看答案」原本直接用 item.one，而它那一行六项里有五项就是正上方结论条和
   // 四格核心数据的原样重排（继续观察／国际金 4473／人民币金 938／两个观察分），
-  // 真正新的只有「半年位」一项。列表页没有那四格，item.one 保持不动，只在详情
+  // 真正新的只有位置一项。列表页没有那四格，item.one 保持不动，只在详情
   // 页换成同屏还没说过的位置与动能。
+  // 「半年位 18%」是上游百分位，读者不知道 18% 是什么的 18%；换成离近180日
+  // 最低价还有多远，和「价格」tab 位置条用的是同一组最高最低。
+  const aboveLow = internationalRange && hasNumber(international.price) && internationalRange.low > 0
+    ? ((Number(international.price) - internationalRange.low) / internationalRange.low) * 100
+    : null;
+  const aboveLowLabel = `比近${Math.max(intlSeries.length - 1, 0)}日最低`;
   base.answer = gold.view === "plan"
     ? item.one
     : ([
-      hasNumber(international.percentile180) ? `半年位 ${Number(international.percentile180)}%` : null,
-      hasNumber(returns.day20) ? `20日 ${formatPercent(returns.day20)}` : null,
-      hasNumber(returns.day60) ? `60日 ${formatPercent(returns.day60)}` : null,
+      aboveLow != null ? `${aboveLowLabel}高 ${aboveLow.toFixed(1)}%` : null,
+      hasNumber(returns.day20) ? `近20日 ${pct(returns.day20)}` : null,
+      hasNumber(returns.day60) ? `近60日 ${pct(returns.day60)}` : null,
       buyIntl ? `观察低位 ${buyIntl}` : null,
       riskIntl ? `风险下沿 ${riskIntl}` : null,
     ].filter(Boolean).join(" · ") || item.one);
@@ -1741,11 +1770,11 @@ function buildGoldView(base, item) {
     ["人民币观察分", Number.isFinite(domesticScore) ? `${domesticScore}` : "暂缺"],
     ["国际金", hasNumber(international.price) ? `${Number(international.price).toFixed(0)}` : "暂缺"],
     ["人民币金", hasNumber(domestic.price) ? `${Number(domestic.price).toFixed(1)}` : "暂缺"],
-    ["半年位置", hasNumber(international.percentile180) ? `${Number(international.percentile180)}%` : "暂缺"],
+    [aboveLowLabel, aboveLow != null ? `高 ${aboveLow.toFixed(1)}%` : "暂缺"],
     ["GLD", hasNumber(etf.price) ? `${Number(etf.price).toFixed(1)}` : "暂缺"],
     ["美元兑人民币", hasNumber(usdCny.price) ? `${Number(usdCny.price).toFixed(2)}` : "暂缺"],
-    ["20日涨跌", formatPercent(returns.day20)],
-    ["60日涨跌", formatPercent(returns.day60)],
+    ["近20日涨跌", pct(returns.day20)],
+    ["近60日涨跌", pct(returns.day60)],
     ["观察低位", buyIntl || buyCny || "暂缺"],
     ["观察上沿", sellIntl || sellCny || "暂缺"],
     ["风险下沿", riskIntl || riskCny || "暂缺"],
@@ -1754,8 +1783,8 @@ function buildGoldView(base, item) {
     // 这两个价一个是美元/盎司、一个是元/克，差三个数量级，原来都只有裸数字。
     { label: "国际金/盎司", value: hasNumber(international.price) ? `$${Number(international.price).toFixed(0)}` : "—" },
     { label: "人民币金/克", value: hasNumber(domestic.price) ? `¥${Number(domestic.price).toFixed(1)}` : "—" },
-    { label: "国际分", value: Number.isFinite(internationalScore) ? `${internationalScore}` : "—" },
-    { label: "人民币分", value: Number.isFinite(domesticScore) ? `${domesticScore}` : "—" },
+    // 两个观察分不上首屏：没有满分、没说高好低好，读者只会问「42 是什么」。分数留在「依据」tab。
+    { label: "近180日", value: hasNumber(returns.day180) ? pct(returns.day180) : "—" },
   ];
   base.pageHelp = "";
 
@@ -1765,7 +1794,7 @@ function buildGoldView(base, item) {
   const parityTiles = parity
     ? {
       kind: "tiles",
-      title: "四口径金价对照",
+      title: "同一块金子的四个报价",
       stats: [
         { label: "国内对国际", value: parity.direction },
         { label: "折算克价", value: `${parity.parity} 元/克` },
@@ -1779,7 +1808,7 @@ function buildGoldView(base, item) {
     }
     : null;
 
-  const intlHistory = (gold.history?.international || []).map((entry) => entry.close);
+  const intlHistory = intlSeries.map((entry) => entry.close);
   const domesticHistory = (gold.history?.domestic || []).map((entry) => entry.close);
   const turn = goldTurningPoint(gold.history?.international, international.price);
   const scoredGold = scoreForItem(item);
@@ -1798,23 +1827,19 @@ function buildGoldView(base, item) {
   // tab 因此空过）。
   base.trendCharts = [
     parityTiles,
-    priceVisual(intlHistory, "国际金轨迹", (value) => Number(value).toFixed(0)),
+    priceVisual(intlHistory, `近${intlHistory.length - 1}日国际金价`, (value) => Number(value).toFixed(0)),
     meterVisual(intlHistory, international.price, "国际金位置", (value) => Number(value).toFixed(0)),
     domesticHistory.length >= 2
-      ? priceVisual(domesticHistory, "人民币金轨迹", (value) => Number(value).toFixed(1))
+      ? priceVisual(domesticHistory, `近${domesticHistory.length - 1}日人民币金价`, (value) => Number(value).toFixed(1))
       : null,
-    hasNumber(international.percentile180)
-      ? metricTilesVisual([
-          ["半年位置", `${Number(international.percentile180)}%`],
-          ["位置解读", Number(international.percentile180) <= 35 ? "偏近低位" : (Number(international.percentile180) >= 65 ? "偏近高位" : "中间区间")],
-        ], "半年高低位置")
-      : null,
+    // 原来这里还有一张「半年位置 xx%」卡，用的是上游的百分位，和正上方位置条
+    // （按最高最低算）是两种算法、两个数，同一屏出两个「位置」，撤掉。
   ].filter(Boolean);
   base.dynamicsCharts = [
     solidVisual([
-      hasNumber(returns.day20) ? { label: "20日", value: returns.day20, valueText: formatPercent(returns.day20) } : null,
-      hasNumber(returns.day60) ? { label: "60日", value: returns.day60, valueText: formatPercent(returns.day60) } : null,
-      hasNumber(returns.day180) ? { label: "180日", value: returns.day180, valueText: formatPercent(returns.day180) } : null,
+      hasNumber(returns.day20) ? { label: "近20日", value: returns.day20, valueText: pct(returns.day20) } : null,
+      hasNumber(returns.day60) ? { label: "近60日", value: returns.day60, valueText: pct(returns.day60) } : null,
+      hasNumber(returns.day180) ? { label: "近180日", value: returns.day180, valueText: pct(returns.day180) } : null,
     ].filter(Boolean), "区间涨跌"),
     indicatorTiles,
   ].filter(Boolean);
@@ -1859,29 +1884,33 @@ function buildGoldView(base, item) {
   ]);
   // 持有观察/观察上沿/现价这三项，「依据」tab 的「价格观察区」图表和 facts
   // 表已经各展示过一遍，这里不再拼第三份「美元金」「人民币金」句子——
-  // 「双分怎么看」已经把两个观察分的口径说清楚了。
+  // 「两个评分」已经把两个观察分的口径说清楚了。
   base.analysis = [
     parity
-      ? { title: "四口径怎么对上", body: `${parity.headline}。换算式：${parity.formula}（1 金衡盎司 = 31.1035 克）。四个报价是同一块金子的四种计价方式，不是四个品种。` }
+      ? { title: "国内外金价对得上吗", body: `${parity.headline}。算法：${parity.formula}（1 盎司 = 31.1035 克）。` }
       : null,
-    { title: "双分怎么看", body: `国际金 ${Number.isFinite(internationalScore) ? internationalScore : "待核"} 分 · 人民币金 ${Number.isFinite(domesticScore) ? domesticScore : "待核"} 分；前者看国际宏观与美元，后者看上海金、汇率和国内折溢价。` },
+    {
+      title: "两个评分",
+      body: `国际金 ${Number.isFinite(internationalScore) ? internationalScore : "待核"} 分、人民币金 ${Number.isFinite(domesticScore) ? domesticScore : "待核"} 分（满分 100）；前者主要看美国利率和美元，后者看上海金价、人民币汇率和国内比国际贵多少。`,
+    },
     turn
       ? {
         title: "拐点",
-        body: `${turn.above ? "均线转上行" : "均线转下行"}：${turn.crossDate
-          ? `${goldMonthDay(turn.crossDate)} 20日线${turn.above ? "上穿" : "下穿"}60日线，已 ${turn.crossDays} 个交易日未反向`
-          : `近半年 20日线一直在 60日线${turn.above ? "上方" : "下方"}`}。${goldMonthDay(turn.peak.date)}半年高点 ${turn.peak.close.toFixed(0)}（现价 ${formatPercent(turn.fromPeak)}），${goldMonthDay(turn.trough.date)}半年低点 ${turn.trough.close.toFixed(0)}（现价 ${formatPercent(turn.fromTrough)}）。`,
+        // 「20日线上穿60日线」是看盘术语，直接说成两段时间的平均价谁高谁低。
+        body: `${turn.crossDate
+          ? `${goldMonthDay(turn.crossDate)}起，近20日均价${turn.above ? "高于" : "低于"}近60日均价，已 ${turn.crossDays} 个交易日`
+          : `近半年，近20日均价一直${turn.above ? "高于" : "低于"}近60日均价`}。半年最高 ${turn.peak.close.toFixed(0)}（${goldMonthDay(turn.peak.date)}），现价${hasNumber(turn.fromPeak) && turn.fromPeak < 0 ? "低" : "高"} ${hasNumber(turn.fromPeak) ? Math.abs(turn.fromPeak).toFixed(1) : "—"}%；半年最低 ${turn.trough.close.toFixed(0)}（${goldMonthDay(turn.trough.date)}），现价${hasNumber(turn.fromTrough) && turn.fromTrough < 0 ? "低" : "高"} ${hasNumber(turn.fromTrough) ? Math.abs(turn.fromTrough).toFixed(1) : "—"}%。`,
       }
       : { title: "拐点", body: "国际金半年收盘价样本不足 60 天，拐点暂不下判断。" },
   ].filter(Boolean);
   base.actions = [];
   base.riskItems = [
-    { title: "国际金风险", body: `国际金观察分 ${Number.isFinite(internationalScore) ? internationalScore : "待核"}；重点看实际利率、美元、投机持仓和国际金风险下沿 ${riskIntl || "待核"}。` },
-    { title: "人民币金风险", body: `人民币金观察分 ${Number.isFinite(domesticScore) ? domesticScore : "待核"}；重点看人民币汇率、上海金折溢价和国内风险下沿 ${riskCny || "待核"}。` },
-    { title: "价格触发", body: "国际金与人民币金不是同一价格；任一维度跌破自己的风险下沿，先核实汇率、国内溢价和宏观驱动，再决定是否降低风险敞口。" },
+    { title: "国际金风险", body: `评分 ${Number.isFinite(internationalScore) ? internationalScore : "待核"} 分；主要看美国利率、美元和投机资金持仓，风险下沿 ${riskIntl || "待核"}。` },
+    { title: "人民币金风险", body: `评分 ${Number.isFinite(domesticScore) ? domesticScore : "待核"} 分；主要看人民币汇率和上海金比国际金贵多少，风险下沿 ${riskCny || "待核"}。` },
+    { title: "跌破怎么办", body: "国际金、人民币金各有各的风险下沿；哪个跌破，先查汇率和国内比国际贵多少，再决定要不要减仓。" },
   ];
   base.risk = `${base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ")} 黄金波动可能很大，以上为观察区，不是买卖指令。`;
-  base.sourceNote = (gold.sources || []).filter((source) => source.ok).map((source) => source.name).join(" · ") || "公开行情与宏观资料";
+  base.sourceNote = (gold.sources || []).filter((source) => source.ok).map((source) => sourceName(source.name)).join(" · ") || "公开行情与宏观资料";
 }
 
 // 「资料」tab 里的官方出处。照新闻资讯页的做法：能核验的地址摆出来，点一下
@@ -1949,10 +1978,11 @@ function buildOverview(base, item) {
     // 黄金没有单一现价，概览卡原来复用 highlights 摆四格数字（国际金/人民币金/
     // 两个观察分），但这四格和下面「关键依据」、「价格」tab 说的是同一件事。
     // 换成价格走势图，概览一眼看的是"这段时间涨跌"，不是再摆一次同一批数字。
-    const intlHistory = (raw.history?.international || []).map((entry) => entry.close);
+    const intlHistory = withLatestQuote(raw.history?.international, raw.quotes?.international).map((entry) => entry.close);
     const domesticHistory = (raw.history?.domestic || []).map((entry) => entry.close);
-    priceCard = priceVisual(intlHistory, "国际金价走势", (value) => money(value))
-      || priceVisual(domesticHistory, "人民币金价走势", (value) => money(value, "¥"));
+    // 位数跟页头「$4166 / ¥900.9」一致；「$4165.70」和「$4166」同屏会被当成两个价。
+    priceCard = priceVisual(intlHistory, `近${intlHistory.length - 1}日国际金价`, (value) => `$${Number(value).toFixed(0)}`)
+      || priceVisual(domesticHistory, `近${domesticHistory.length - 1}日人民币金价`, (value) => `¥${Number(value).toFixed(1)}`);
   }
 
   base.overview = {
@@ -1976,11 +2006,11 @@ function buildSourceLinks(item, snapshot) {
   }
   if (item.market === "guru" && raw.sourceUrl) {
     // 13F 机构（raw.isLive）确实备案在 SEC EDGAR；港股/A 股那几只基金没有 13F，
-    // 走的是基金月报/半年报，硬写「SEC EDGAR 备案」是张冠李戴。有 raw.source
-    // 就用它本来的名字（如「Value Partners 月报」），没有才退回「官方原文」。
+    // 走的是基金月报/半年报，硬写「美国证监会备案」是张冠李戴。有 raw.source
+    // 就用它本来的名字（如「惠理基金月报」），没有才退回「官方原文」。
     const sourceLabel = raw.isLive
-      ? "SEC EDGAR 备案"
-      : raw.source || (raw.profile && raw.profile.sourceName) || "官方原文";
+      ? "美国证监会备案"
+      : sourceName(raw.source || (raw.profile && raw.profile.sourceName)) || "官方原文";
     own.push({ id: "guru-source", name: `${item.name || "该机构"} 的 ${sourceLabel}`, url: raw.sourceUrl });
   }
   if (item.market === "us") {
@@ -2085,10 +2115,13 @@ function detailView(item, snapshot) {
   base.visual = base.charts[0] || null;
   base.group = item.group;
   base.market = item.market;
-  // 标题用简称；全称放在公司资料里。
-  base.title = item.raw?.assetType === "fund"
-    ? (item.raw.shortName || item.name || base.title)
-    : shortCompanyName(item.name || base.title, base.title, 10);
+  // 标题用简称；全称放在公司资料里。黄金条目的 name 是列表里的问句
+  // （「现在怎么做」），buildGoldView 已经给了标题，这里不再盖回去。
+  if (item.market !== "gold") {
+    base.title = item.raw?.assetType === "fund"
+      ? (item.raw.shortName || item.name || base.title)
+      : shortCompanyName(item.name || base.title, base.title, 10);
+  }
   base.fullName = item.name || base.title;
   if (item.market !== "guru") base.rank = "";
   return base;

@@ -5,6 +5,7 @@ const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
+const { goldPlanView } = require("../../utils/market-lenses");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { buildHkHistoryStats, buildHkIndustryStats, buildHkSponsorStats } = require("../../utils/hk-history-stats");
@@ -75,11 +76,14 @@ function comparisonMetric(item, market) {
         return { value: Number(answer.score), label: `观察分 ${Number(answer.score)}` };
       }
       if (hasNumber(international.percentile180)) {
-        return { value: Number(international.percentile180), label: `半年位置 ${Number(international.percentile180)}%` };
+        // percentile180 = 现价在近180日最低到最高之间的百分位；「半年位置 18%」读者不知道是什么的 18%。
+        const pct = Number(international.percentile180);
+        const where = pct >= 85 ? "贴近最高" : pct >= 65 ? "偏高" : pct <= 15 ? "贴近最低" : pct <= 35 ? "偏低" : "居中";
+        return { value: pct, label: `近180日${where}` };
       }
     }
     if (item.id === "plan") {
-      const plan = answer.pricePlan || {};
+      const plan = goldPlanView(answer.pricePlan);
       const buy = Number(plan.internationalWatch?.low || plan.internationalWatch?.high || 0);
       const sell = Number(plan.internationalUpper?.low || plan.internationalUpper?.high || 0);
       if (sell > 0) return { value: sell, label: `观察上沿 ${sell}` };
@@ -328,7 +332,7 @@ Page({
       } else if (activeGroup === "value") {
         statsBanner = {
           title: "性价比观察指数",
-          body: "盈利质量 50% · 估值 30% · 热度 15% · 近周变动 5%。",
+          body: "盈利质量 50% · 估值 30% · 热度 15% · 近一周涨跌 5%。",
         };
       } else if (activeGroup === "overlap") {
         statsBanner = {
@@ -338,17 +342,17 @@ Page({
       } else if (activeGroup === "cheap7") {
         statsBanner = {
           title: "低估七姐妹",
-          body: "质量门通过，且市盈率不高于七姐妹中位、近60日位置未过热。",
+          body: "质量达标，市盈率不高于七姐妹中位数，股价也不在近60日高处。",
         };
       } else if (activeGroup === "risk7") {
         statsBanner = {
           title: "风险七姐妹",
-          body: "估值过高、近60日位置过热，或盈利质量与价格冲突。",
+          body: "估值过高、股价贴近近60日最高，或盈利质量与价格冲突。",
         };
       } else if (activeGroup === "hold7") {
         statsBanner = {
           title: "长期观察七姐妹",
-          body: "营收、利润率、股东回报或经营现金流等质量门通过，且未触发重大风险分档。",
+          body: "营收、利润率、股东回报或经营现金流等质量达标，且没有触发重大风险。",
         };
       } else if (activeGroup === "industry") {
         statsBanner = {

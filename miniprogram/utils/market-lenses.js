@@ -263,6 +263,36 @@ function goldZoneForPrice(price, watch, upper, risk) {
   return { label: "继续观察", tone: "warn", hold: false, sell: false };
 }
 
+// 引擎的观察低位是买点 ±1.5%，风险下沿是近期支撑再往下 0.8 个日均波幅，两者各算各的，
+// 常出现风险下沿落在观察低位里面（4048–4171 中间夹着 4058）。goldZoneForPrice 本来就先判
+// 风险下沿——跌到 4058 已经算「触及风险下沿」，观察低位实际只剩 4058 以上那段。展示时把
+// 下限抬到风险下沿，页面上就不会出现「风险线画在观察区里」这种自相矛盾。判断逻辑不受影响。
+function clipWatchAtRisk(watch, risk) {
+  const low = number(watch?.low);
+  const high = number(watch?.high);
+  const floor = number(risk?.low ?? risk?.high);
+  if (low === null || high === null || floor === null || floor <= low || floor >= high) return watch;
+  return { ...watch, low: floor };
+}
+
+function goldPlanView(plan) {
+  const source = plan || {};
+  return {
+    ...source,
+    internationalWatch: clipWatchAtRisk(source.internationalWatch, source.internationalRisk),
+    domesticWatch: clipWatchAtRisk(source.domesticWatch, source.domesticRisk),
+  };
+}
+
+// 上期只有一点点、这期大举加仓时，13F 算出来是「增持 +27712%」，读者会当成数据出错。
+// 超过 10 倍就改写成倍数：+27712% → 「增持至278倍」（这期股数是上期的 278 倍），数不变。
+function readableChangeLabel(label) {
+  const text = String(label || "");
+  const match = text.match(/^增持\s*\+(\d+(?:\.\d+)?)%$/u);
+  if (!match || Number(match[1]) < 1000) return text;
+  return `增持至${Math.round(1 + Number(match[1]) / 100)}倍`;
+}
+
 function usSleevePlan(sevenItems, industryItems, extraItems = []) {
   const cheap = (sevenItems || []).filter((item) => (item.lenses || []).includes("cheap7")).length;
   const risk = (sevenItems || []).filter((item) => (item.lenses || []).includes("risk7")).length;
@@ -314,7 +344,9 @@ module.exports = {
   yieldImpliedPlan,
   industryWatchEligible,
   goldZoneForPrice,
+  goldPlanView,
   goldTurningPoint,
+  readableChangeLabel,
   usSleevePlan,
   matchesGroup,
 };

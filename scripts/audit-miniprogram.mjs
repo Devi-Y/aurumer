@@ -153,6 +153,21 @@ vm.runInNewContext(guruOverlapSource, {
     throw new Error(`交叉重叠模块出现未知依赖：${request}`);
   },
 });
+// 招股已截止、还没进「已结束」分组的新股，详情页结论不能再挂「可研究申购」。
+const closedOfferSignal = strategySignalsModule.exports.buildStrategySignal({
+  market: "hk",
+  group: "upcoming",
+  raw: { offerPrice: 10, entryFee: 5000, offerDeadline: "2000-01-03", publicAnswer: { verdict: "值得打", score: 80 } },
+});
+assert(closedOfferSignal.label === "已截止", `港股招股截止后信号应为「已截止」，实际是「${closedOfferSignal.label}」`);
+// 风险下沿落在观察低位里时，页面上会出现「风险线画在观察区中间」；展示前要把观察低位的下限抬到风险下沿。
+const clippedGoldPlan = marketLensesModule.exports.goldPlanView({
+  internationalWatch: { low: 4048, high: 4171 },
+  internationalRisk: { low: 4058, high: 4058 },
+});
+assert(clippedGoldPlan.internationalWatch.low === 4058, "黄金观察低位不应把风险下沿包在区间里");
+// 13F 增持超过 10 倍时写成倍数，不出现「增持 +27712%」。
+assert(marketLensesModule.exports.readableChangeLabel("增持 +27712%") === "增持至278倍", "超大增持比例应改写成倍数");
 const miniModule = { exports: {} };
 vm.runInNewContext(sectionSource, {
   module: miniModule,
@@ -588,7 +603,7 @@ for (const question of [
 assert(miniUsItems.filter((item) => item.group === "industry").length >= 1, "美股行业观察榜不能为空");
 assert(miniAShareItems.some((item) => (item.lenses || []).includes("core")), "A 股收息样本应能分出底仓角色");
 assert(detailSource.includes("参考买入价") && detailSource.includes("参考卖出价"), "A 股详情应展示参考买入/参考卖出价");
-assert(detailSource.includes("美元金") && detailSource.includes("人民币金"), "黄金详情应分美元金与人民币金");
+assert(detailSource.includes("国际金") && detailSource.includes("人民币金"), "黄金详情应分国际金与人民币金");
 assert(detailSource.includes("应该避免"), "机构详情应说明应该避免什么");
 assert(
   detailSource.includes("公开事实")

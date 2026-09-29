@@ -2,6 +2,7 @@
  * 把公开快照压成可保存、可对照的事实卡片；用于变化雷达与决策留档。
  */
 const { allItems, shortCompanyName } = require("./answers");
+const { sourceName } = require("./sources");
 
 const GROUP_OPTIONS = [
   { id: "default", label: "默认" },
@@ -48,7 +49,7 @@ function buildFactFromMatch(market, matched, snapshotUpdatedAt) {
     priceLabel: "",
     metricLabel: "",
     asOf: raw.asOf || raw.priceAsOf || raw.filingDate || raw.offerDeadline || snapshotUpdatedAt || "",
-    source: raw.source || raw.priceSource || "",
+    source: sourceName(raw.source || raw.priceSource),
     snapshotUpdatedAt: snapshotUpdatedAt || "",
   };
 

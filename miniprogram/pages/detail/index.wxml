@@ -82,9 +82,9 @@
       </view>
       <view class="hero-name-row">
         <text class="hero-title">{{view.title}}</text>
-        <text wx:if="{{view.code}}" class="hero-code">{{view.code}}</text>
+        <text wx:if="{{view.code && !view.hideCode}}" class="hero-code">{{view.code}}</text>
       </view>
-      <view wx:if="{{(view.market == 'gold' || view.market == 'guru') && view.researchScore != null}}" class="hero-stats">
+      <view wx:if="{{view.market == 'guru' && view.researchScore != null}}" class="hero-stats">
         <text class="hero-stat">{{view.researchScoreLabel || '评分'}} {{view.researchScore}}</text>
       </view>
     </view>

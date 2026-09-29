@@ -12,13 +12,13 @@
 // 告 PDF、SEC 每家机构的 EDGAR 页）本来就带在快照条目里，优先用那个。
 const OFFICIAL_SOURCES = {
   hkex: { name: "香港交易所新上市资料", url: "https://www2.hkexnews.hk/new-listings/new-listing-information/main-board?sc_lang=zh-HK" },
-  sec: { name: "SEC EDGAR 13F", url: "https://www.sec.gov/edgar/search/" },
-  nasdaq: { name: "Nasdaq 公司财务数据", url: "https://www.nasdaq.com/market-activity/stocks" },
+  sec: { name: "美国证监会公开备案", url: "https://www.sec.gov/edgar/search/" },
+  nasdaq: { name: "纳斯达克公司财务数据", url: "https://www.nasdaq.com/market-activity/stocks" },
   "eastmoney-a-financial": { name: "东方财富 A股公开财务数据", url: "https://data.eastmoney.com/" },
   "tencent-a-quote": { name: "腾讯证券 A股公开行情", url: "https://stockapp.finance.qq.com/mstats/" },
-  "gold-yahoo": { name: "Yahoo Finance 公共行情", url: "https://finance.yahoo.com/quote/GC=F/" },
-  "gold-fred": { name: "FRED 宏观指标", url: "https://fred.stlouisfed.org/" },
-  "gold-cftc": { name: "CFTC 黄金持仓", url: "https://www.cftc.gov/dea/newcot/f_disagg.txt" },
+  "gold-yahoo": { name: "雅虎财经国际金价", url: "https://finance.yahoo.com/quote/GC=F/" },
+  "gold-fred": { name: "美联储宏观数据", url: "https://fred.stlouisfed.org/" },
+  "gold-cftc": { name: "美国期货持仓报告", url: "https://www.cftc.gov/dea/newcot/f_disagg.txt" },
   "gold-sge": { name: "上海黄金交易所 Au99.99", url: "https://www.sge.com.cn/sjzx/quotation_daily_new" },
 };
 
@@ -65,7 +65,7 @@ function marketSources(snapshot, market) {
   if (market === "gold") {
     const live = ((data.gold || {}).sources || []).filter((source) => source && source.ok && source.url);
     if (live.length) {
-      return live.map((source) => ({ id: source.id, name: source.name, url: source.url }));
+      return live.map((source) => ({ id: source.id, name: sourceName(source.name), url: source.url }));
     }
   }
   return ids.map((id) => sourceLink(data, id)).filter(Boolean);
@@ -81,7 +81,27 @@ function dedupeSources(list) {
   });
 }
 
+// 快照条目自带的来源名是抓取端写的英文缩写（「HKEX」「SEC EDGAR 13F」
+// 「… Factsheet」），直接印在页面上读者不认。只换成中文叫法，不改出处本身。
+const SOURCE_NAME_ZH = [
+  [/^HKEX$/i, "港交所"],
+  [/^SEC EDGAR 13F$/i, "美国证监会持仓申报"],
+  [/^FRED 宏观指标$/i, "美联储宏观数据"],
+  [/^CFTC 黄金持仓$/i, "美国期货持仓报告"],
+  [/^Value Partners\s*/i, "惠理"],
+  // Trustnet 只是托管基金月报的网站，月报本身是基金公司出的。
+  [/^Trustnet\s*/i, ""],
+  [/基金月度\s*Factsheet$/i, "基金月报"],
+];
+
+function sourceName(text) {
+  let name = String(text || "").trim();
+  for (const [pattern, zh] of SOURCE_NAME_ZH) name = name.replace(pattern, zh);
+  return name;
+}
+
 module.exports = {
+  sourceName,
   OFFICIAL_SOURCES,
   MARKET_SOURCE_IDS,
   sourceEntry,

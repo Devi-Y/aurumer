@@ -4,11 +4,20 @@
       <text class="news-hero-title">新闻资讯</text>
       <text class="news-hero-meta">{{dataAsOf || '同步中'}}</text>
     </view>
-    <text class="news-hero-help">只汇总带日期、带官方出处的公开披露与数据变化，按时间倒序；不转载媒体报道，不含买卖建议。</text>
-    <view wx:if="{{scopeLabel}}" class="news-hero-stats">
-      <text class="news-stat">{{scopeLabel}}</text>
+    <view wx:if="{{activity.total}}" class="news-activity" aria-label="近 30 天 {{activity.total}} 条">
+      <view class="news-activity-bars">
+        <view wx:for="{{activity.bars}}" wx:key="key" class="news-activity-slot">
+          <view class="news-activity-bar {{item.empty ? 'is-empty' : ''}}" style="{{item.style}}"></view>
+        </view>
+      </view>
+      <view class="news-activity-axis">
+        <text>{{activity.startLabel}}</text>
+        <text class="news-activity-total">近 30 天 {{activity.total}} 条</text>
+        <text>{{activity.endLabel}}</text>
+      </view>
+    </view>
+    <view wx:if="{{newCount}}" class="news-hero-stats">
       <text
-        wx:if="{{newCount}}"
         class="news-stat is-new"
         bindtap="showNewOnly"
         hover-class="news-stat-tap"
@@ -73,7 +82,7 @@
         bindtap="openItem"
         hover-class="tap-active"
         aria-role="button"
-        aria-label="{{item.isNew ? '新增，' : ''}}{{item.title}}，{{item.dateNote}}{{item.dateLabel}}，{{item.body}}{{item.impact ? '，落到标的 ' + item.impact : ''}}，{{item.routeLabel}}"
+        aria-label="{{item.isNew ? '新增，' : ''}}{{item.title}}，{{item.dateNote}}{{item.dateLabel}}，{{item.body}}{{item.impact ? '，' + item.impact : ''}}，{{item.routeLabel}}"
       >
         <view class="news-row-head">
           <text class="news-kind {{item.kind}}">{{item.kindLabel}}</text>
@@ -85,10 +94,9 @@
         </view>
         <text class="news-row-title">{{item.title}}</text>
         <text wx:if="{{item.body}}" class="news-row-body">{{item.body}}</text>
-        <view wx:if="{{item.impact}}" class="news-impact">
-          <text class="news-impact-label">落到标的</text>
-          <text class="news-impact-text">{{item.impact}}</text>
-        </view>
+        <!-- 接回栏目结论的那句（值得打、热度第几、长期业绩）收成一枚小标签，
+             不再单占一行加「现在怎么看」的标题。 -->
+        <text wx:if="{{item.impact}}" class="news-tag">{{item.impact}}</text>
         <view class="news-row-foot">
           <text
             class="news-source"
@@ -115,11 +123,9 @@
   </view>
   <view wx:elif="{{searchQuery}}" class="page-card news-empty">
     <text class="news-empty-title">没有匹配「{{searchQuery}}」的条目</text>
-    <text class="news-empty-help">换个关键词，或者清空搜索看看当前分类下的全部条目。</text>
   </view>
   <view wx:else class="page-card news-empty">
-    <text class="news-empty-title">暂时没有可核验的公开披露</text>
-    <text class="news-empty-help">这一页只放带日期、带官方出处的公开信息。数据同步完成后会自动出现，不会先用占位内容顶上。</text>
+    <text class="news-empty-title">数据同步中</text>
   </view>
 
   <view class="page-note">

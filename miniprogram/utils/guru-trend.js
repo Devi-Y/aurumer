@@ -79,8 +79,8 @@ function buildGuruTrend(snapshot) {
       if (totals[type] != null) totals[type] += 1;
       const row = touch(holding.ticker, holding.issuer);
       if (!row) continue;
-      if (ADD_TYPES.has(type)) row.adders.push({ who, type, weight: Number(holding.weight) });
-      else if (CUT_TYPES.has(type)) row.cutters.push({ who, type, weight: Number(holding.weight) });
+      if (ADD_TYPES.has(type)) row.adders.push({ id: investor.id, who, type, weight: Number(holding.weight) });
+      else if (CUT_TYPES.has(type)) row.cutters.push({ id: investor.id, who, type, weight: Number(holding.weight) });
     }
     for (const gone of investor.sold || []) {
       const key = normalizeSymbol(gone.ticker);
@@ -89,7 +89,7 @@ function buildGuruTrend(snapshot) {
       seen.add(key);
       totals.exit += 1;
       const row = touch(gone.ticker, gone.issuer || gone.name);
-      if (row) row.cutters.push({ who, type: "exit", weight: null });
+      if (row) row.cutters.push({ id: investor.id, who, type: "exit", weight: null });
     }
   }
 

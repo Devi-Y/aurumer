@@ -40,7 +40,6 @@
   <view wx:if="{{statsBanner}}" class="page-card stats-banner">
     <text class="stats-title">{{statsBanner.title}}</text>
     <text class="stats-body">{{statsBanner.body}}</text>
-    <text class="stats-note">{{statsBanner.note}}</text>
   </view>
 
   <view wx:if="{{hkStatsVisual}}" class="page-card hk-stats-panel">
@@ -80,7 +79,6 @@
         <text class="hk-stats-extreme-name">{{hkStatsVisual.minFirstDayName}}</text>
       </view>
     </view>
-    <text class="hk-stats-disclaimer">{{hkStatsVisual.disclaimer}}</text>
   </view>
 
   <view wx:if="{{freshness.show}}" class="page-card freshness-banner tone-{{freshness.tone}}">
@@ -127,7 +125,6 @@
       <text wx:if="{{item.fact}}" class="item-fact">{{item.fact}}</text>
       <view class="item-foot">
         <text wx:if="{{item.strategyLabel}}" class="item-strategy-label tone-{{item.strategyTone}}">策略 {{item.strategyLabel}}</text>
-        <text class="item-strategy-copy">{{item.strategyLine}}</text>
         <text class="arrow">›</text>
       </view>
     </view>
@@ -141,7 +138,6 @@
   <view wx:if="{{sourceLinks.length}}" class="page-card source-panel">
     <view class="source-head">
       <text class="source-title">数据出处</text>
-      <text class="source-meta">点一条复制走自行核对</text>
     </view>
     <view
       wx:for="{{sourceLinks}}"

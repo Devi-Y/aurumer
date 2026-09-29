@@ -4,8 +4,7 @@
       <text class="today-hero-title">今日重点</text>
       <text class="today-hero-meta">{{dataAsOf || '同步中'}}</text>
     </view>
-    <text class="today-hero-help" wx:if="{{memberState === 'active'}}">今天，先看这几件事</text>
-    <text class="today-hero-help" wx:else>一份今日重点的样子 · 完整样例 · 以下事件及结论均为演示</text>
+    <text class="today-hero-help" wx:if="{{memberState !== 'active'}}">样例预览 · 以下内容均为演示</text>
   </view>
 
   <view wx:if="{{memberState === 'loading'}}" class="page-card today-status">
@@ -30,13 +29,6 @@
         </view>
         <text class="today-item-title">{{item.title}}</text>
         <text class="today-item-change">{{item.change}}</text>
-        <text wx:if="{{item.reason}}" class="today-item-reason">{{item.reason}}</text>
-        <view class="today-item-rule"></view>
-        <text class="today-item-next"><text class="today-item-next-label">接下来看</text> {{item.next}}</text>
-        <view class="today-item-risk">
-          <text class="today-item-risk-icon">!</text>
-          <text>{{item.risk}}</text>
-        </view>
         <view
           class="today-item-link"
           data-market="{{item.marketId}}"

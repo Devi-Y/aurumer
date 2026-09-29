@@ -149,7 +149,17 @@ function buildHkSponsorStats(snapshot) {
   return buildGroupedHistoryStats(recent, extractSponsorNames);
 }
 
+// 近期上市新股的首日涨跌，按上市日从早到晚排；首页「港股首日」卡和港股栏目的柱图同一份。
+function hkFirstDaySeries(snapshot) {
+  const recent = Array.isArray(snapshot?.hk?.history) ? snapshot.hk.history : [];
+  return recent
+    .filter((item) => item.listingDate && hasNumber(item.historicalReview?.firstDayChange))
+    .map((item) => ({ date: String(item.listingDate), change: Number(item.historicalReview.firstDayChange) }))
+    .sort((left, right) => left.date.localeCompare(right.date));
+}
+
 module.exports = {
+  hkFirstDaySeries,
   buildHkHistoryStats,
   buildHkIndustryStats,
   buildHkSponsorStats,

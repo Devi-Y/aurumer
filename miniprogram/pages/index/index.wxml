@@ -1,7 +1,7 @@
 <view class="page-shell home-shell">
-  <!-- 第一块：核心研究。照微信「服务」页的分组图标网格，一格只有图标和名字，
-       进哪个栏目一眼认出来，不用先读一行说明。
-       标题栏不写第二遍「望潮 Aurum」——导航栏已经有了，这里让给数据时间。 -->
+  <!-- 第一块：九宫格。六个研究栏目 + 有物料的服务格（config/offers.js），
+       一格只有图标和名字，不用先读一行说明。
+       标题栏不写第二遍「望潮 Aurum」——导航栏已经有了，这里只留分组名和数据时间。 -->
   <view class="page-card home-panel">
     <view class="group-head">
       <text class="group-label">核心研究</text>
@@ -19,7 +19,7 @@
         aria-role="button"
         aria-label="{{item.title}}，{{item.help}}"
       >
-        <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}}">
+        <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}} {{item.action === 'copy' ? 'svc' : ''}}">
           <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
         </view>
         <text class="card-title">{{item.title}}</text>
@@ -27,85 +27,46 @@
     </view>
   </view>
 
-  <!-- 第二块：今日重点。深色卡片照抄原型 .wc-today，年费入口就在这块里，
-       不再单开一张会员卡。非会员看到的是标注为示例的占位条目。 -->
-  <view class="today-card">
-    <view class="today-head">
-      <text class="today-title">今日重点</text>
-      <text class="today-badge {{memberActive ? 'on' : ''}}">{{memberActive ? memberNote : '年度会员'}}</text>
-    </view>
-    <text class="today-sub">{{memberActive ? '今天最值得关注的变化' : '每天一份，筛出真正重要的变化 · 以下为示例'}}</text>
-
-    <view class="today-list">
-      <view
-        wx:for="{{todayItems}}"
-        wx:key="no"
-        class="today-row"
-        data-market="{{item.marketId}}"
-        data-target="{{item.targetId}}"
-        bindtap="openTodayRow"
-        hover-class="today-row-tap"
-        aria-role="button"
-        aria-label="{{item.marketLabel}}，{{item.title}}"
-      >
-        <text class="today-no">{{item.no}}</text>
-        <view class="today-row-body">
-          <text><text class="today-row-market">{{item.marketLabel}} · </text>{{item.title}}</text>
-          <text wx:if="{{memberActive && item.hint}}" class="today-row-hint">{{item.hint}}</text>
+  <!-- 第二块：走势。每张卡一个数 + 一张图，点进去是对应栏目。
+       柱图是零轴柱（红涨绿跌），折线是 SVG 图片，序列不够的卡整张不出。 -->
+  <view wx:if="{{trends.length}}" class="trend-grid">
+    <view
+      wx:for="{{trends}}"
+      wx:key="id"
+      class="trend-card"
+      data-market="{{item.market}}"
+      bindtap="openTrend"
+      hover-class="tap-active"
+      hover-stay-time="80"
+      aria-role="button"
+      aria-label="{{item.title}} {{item.value}} {{item.sub}}"
+    >
+      <text class="trend-title">{{item.title}}</text>
+      <view class="trend-figure">
+        <text class="trend-value">{{item.value}}</text>
+        <text class="trend-sub {{item.tone}}">{{item.sub}}</text>
+      </view>
+      <view wx:if="{{item.kind === 'bars'}}" class="trend-bars" aria-hidden="true">
+        <view class="trend-zero" style="{{item.zeroStyle}}"></view>
+        <view wx:for="{{item.bars}}" wx:for-item="bar" wx:key="key" class="trend-slot">
+          <view class="trend-bar {{bar.tone}}" style="{{bar.style}}"></view>
         </view>
-        <text class="today-row-icon">{{memberActive ? '›' : '🔒'}}</text>
       </view>
-      <view wx:if="{{memberActive && todayEmpty}}" class="today-empty">今天没有特别重要的变化，保持现有判断即可</view>
+      <image wx:else class="trend-line" src="{{item.src}}" mode="scaleToFill" aria-hidden="true"></image>
     </view>
+  </view>
 
-    <block wx:if="{{memberActive}}">
-      <view class="today-foot">
-        <view
-          class="today-btn"
-          bindtap="openTodayPage"
-          hover-class="tap-active"
-          aria-role="button"
-          aria-label="阅读今日完整重点"
-        >阅读今日完整重点</view>
-      </view>
-      <view class="today-between">
-        <text class="today-between-time">{{dataAsOf || '同步中'}}</text>
-        <view
-          class="today-btn ghost"
-          bindtap="openMemberBanner"
-          hover-class="tap-active"
-          aria-role="button"
-          aria-label="打开我的会员"
-        >我的会员</view>
-      </view>
-    </block>
-    <block wx:elif="{{memberQueryFailed}}">
-      <view
-        class="today-cta error"
-        bindtap="refreshMemberCard"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-label="会员状态查询失败，点击重试"
-      >会员状态查询失败 · 点击重试</view>
-    </block>
-    <block wx:else>
-      <view
-        class="today-cta"
-        bindtap="openMemberBanner"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-label="开通年度会员查看今日重点"
-      >开通年度会员 · ¥1,288 / 年</view>
-      <view class="today-sample-link-wrap">
-        <text
-          class="today-sample-link"
-          bindtap="openTodayPage"
-          hover-class="tap-active"
-          aria-role="button"
-          aria-label="先看一份完整样例"
-        >先看一份完整样例</text>
-      </view>
-    </block>
+  <!-- 第三块：年费入口，只占一行。今日重点整块已按产品要求撤掉。 -->
+  <view
+    class="member-bar {{memberQueryFailed ? 'error' : ''}}"
+    bindtap="tapMemberBar"
+    hover-class="tap-active"
+    aria-role="button"
+    aria-label="{{memberQueryFailed ? '会员状态查询失败，点击重试' : (memberActive ? '打开我的会员' : '开通年度会员')}}"
+  >
+    <text class="member-bar-title">{{memberQueryFailed ? '会员状态查询失败' : (memberActive ? '我的会员' : '年度会员')}}</text>
+    <text class="member-bar-note">{{memberQueryFailed ? '点击重试' : memberNote}}</text>
+    <text class="member-bar-go {{memberActive || memberQueryFailed ? 'plain' : ''}}">{{memberActive || memberQueryFailed ? '›' : '开通'}}</text>
   </view>
 
   <view class="page-footer">

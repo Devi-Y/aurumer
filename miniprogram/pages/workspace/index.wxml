@@ -42,7 +42,25 @@
     <view class="brief-card {{state.todayBrief.allClear ? 'is-clear' : ''}}">
       <text class="brief-title">今日变化摘要</text>
       <text class="brief-line">{{changeCenter.summary.headline || state.todayBrief.headline}}</text>
-      <text wx:for="{{state.todayBrief.lines}}" wx:key="*this" class="brief-line">{{item}}</text>
+      <!-- 原来是 3~4 句互相重复的文字（「先保存关注…」说两遍），换成四个数。 -->
+      <view class="brief-stats">
+        <view class="brief-stat {{changeCenter.summary.highCount ? 'is-alert' : ''}}">
+          <text class="brief-stat-v">{{changeCenter.summary.highCount || 0}}</text>
+          <text class="brief-stat-k">需重评</text>
+        </view>
+        <view class="brief-stat">
+          <text class="brief-stat-v">{{changeCenter.summary.mediumCount || 0}}</text>
+          <text class="brief-stat-k">值得关注</text>
+        </view>
+        <view class="brief-stat">
+          <text class="brief-stat-v">{{state.todayBrief.eventCount || 0}}</text>
+          <text class="brief-stat-k">今日到期</text>
+        </view>
+        <view class="brief-stat">
+          <text class="brief-stat-v">{{changeCenter.summary.watchCount || 0}}</text>
+          <text class="brief-stat-k">关注中</text>
+        </view>
+      </view>
       <text wx:if="{{changeCenter.summary.unreadCount}}" class="brief-line">未读变化 {{changeCenter.summary.unreadCount}}{{changeCenter.summary.latestAt ? ' · 最近 ' + changeCenter.summary.latestAt : ''}}</text>
       <button wx:if="{{state.todayBrief.unreadCount}}" class="mini-action" bindtap="markAllInboxRead" disabled="{{saving}}">全部标为已读</button>
     </view>
@@ -171,7 +189,7 @@
           <text class="record-date">{{item.dateLabel}} · {{item.offsetLabel}}</text>
         </view>
         <text class="record-title">{{item.title}}</text>
-        <text class="record-note">{{item.detail}}</text>
+        <text wx:if="{{item.detail}}" class="record-note">{{item.detail}}</text>
         <text class="source-line">来源 {{item.source}}</text>
         <view wx:if="{{!item.marked}}" class="task-actions">
           <button class="mini-action" data-id="{{item.id}}" bindtap="markEvent">提醒我</button>
@@ -336,7 +354,7 @@
       </view>
       <view class="input-row"><text>复核日</text><input class="text-field" maxlength="20" placeholder="YYYY-MM-DD" value="{{decisionForm.nextReviewAt}}" bindinput="inputDecisionNextReview" /></view>
       <label class="switch-row">
-        <switch checked="{{saveEvidence}}" bindchange="toggleSaveEvidence" color="#0b7a53" />
+        <switch checked="{{saveEvidence}}" bindchange="toggleSaveEvidence" color="#1d5fd1" />
         <text>自动保存当时证据（价格/结论/来源/时间）</text>
       </label>
       <button class="primary-button" bindtap="submitDecision" disabled="{{saving}}">{{state.writable ? '保存想法' : (state.freeRemaining.decisions ? '保存想法' : '免费额度已满，开通会员')}}</button>
@@ -463,7 +481,7 @@
     <button wx:if="{{state.watchItems.length || state.decisions.length || state.eventMarks.length}}" class="delete-all-button" bindtap="deleteAllRecords" disabled="{{saving}}"><text>删除全部记录</text><text>›</text></button>
   </view>
 
-  <text class="privacy-note">记录仅当前微信用户可见。到期后仍可只读查看、导出和删除。订单与支付凭证不在导出范围内。{{disclaimer}}</text>
+  <text class="privacy-note">记录仅当前微信用户可见，到期后仍可导出、删除。{{disclaimer}}</text>
 
   <view wx:if="{{answerSheet}}" class="answer-mask" bindtap="closeAnswerSheet" catchtouchmove="true">
     <view class="answer-sheet" catchtap="noop">

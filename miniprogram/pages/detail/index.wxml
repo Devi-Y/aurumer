@@ -87,9 +87,6 @@
       <view wx:if="{{(view.market == 'gold' || view.market == 'guru') && view.researchScore != null}}" class="hero-stats">
         <text class="hero-stat">{{view.researchScoreLabel || '评分'}} {{view.researchScore}}</text>
       </view>
-      <view wx:elif="{{view.overview && view.overview.categoryTag}}" class="hero-stats">
-        <text class="hero-stat hero-category-tag">{{view.overview.categoryTag}}</text>
-      </view>
     </view>
 
     <view class="page-card detail-hero-body">
@@ -140,7 +137,6 @@
             <text class="strategy-card-trigger">触发：{{view.strategy.trigger}}</text>
             <text class="strategy-card-basis">口径：{{view.strategy.basis}}</text>
           </view>
-          <text wx:else class="collapsed-hint">点击"展开"查看触发条件与口径。</text>
         </view>
         <template wx:if="{{view.visual}}" is="chart-visual" data="{{item: view.visual}}" />
         <view wx:if="{{!view.answer}}" class="module-empty">当前没有可展示的结论。</view>
@@ -179,7 +175,6 @@
               </view>
             </view>
           </view>
-          <text wx:else class="collapsed-hint">点击“完整分析”查看研究依据与使用方法。</text>
         </view>
       </view>
 
@@ -200,7 +195,6 @@
         </view>
         <view wx:if="{{view.sourceLinks.length}}" class="section-card source-card">
           <text class="block-title">官方出处</text>
-          <text class="source-help">以下地址均为公开可访问的官方页面或原始文件，点一条复制走自行核对。</text>
           <view
             wx:for="{{view.sourceLinks}}"
             wx:key="url"
@@ -244,14 +238,14 @@
           <button class="member-cta" data-addon="snapshot" bindtap="openWorkspaceAction" aria-label="{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}">
             <view class="cta-copy">
               <text>{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}</text>
-              <text class="cta-sub">{{snapshotSaved ? '对比当时与现在的变化' : '记录当前结论、数据与风险，之后看相对上次哪里变了'}}</text>
+              <text class="cta-sub">{{snapshotSaved ? '对比当时与现在' : '留存结论，之后对比变化'}}</text>
             </view>
             <text class="cta-arrow">›</text>
           </button>
           <button class="member-cta secondary-cta" data-addon="remind" bindtap="openWorkspaceAction" aria-label="提醒我相关事件">
             <view class="cta-copy">
               <text>提醒我相关事件</text>
-              <text class="cta-sub">进入工作台设置复核节点</text>
+              <text class="cta-sub">关键日期到期提醒</text>
             </view>
             <text class="cta-arrow">›</text>
           </button>
@@ -262,10 +256,8 @@
       <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
         <text class="module-title">概览</text>
         <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
-        <text wx:if="{{view.strategy && view.strategy.basis}}" class="collapsed-hint">口径：{{view.strategy.basis}}</text>
 
         <template wx:if="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
-        <view wx:elif="{{view.overview.priceNote}}" class="module-empty">{{view.overview.priceNote}}</view>
 
         <view class="section-card" wx:if="{{view.overview.evidenceBullets.length}}">
           <text class="block-title">关键依据</text>
@@ -404,7 +396,6 @@
               </view>
             </view>
           </view>
-          <text wx:else class="collapsed-hint">点击“完整分析”查看研究依据与使用方法。</text>
         </view>
 
         <view wx:if="{{view.facts.length || (view.holdings.length && view.market != 'guru') || view.sourceLinks.length}}" class="section-card">
@@ -430,7 +421,6 @@
             </view>
             <view wx:if="{{view.sourceLinks.length}}" class="fact-block source-card">
               <text class="block-title">官方出处</text>
-              <text class="source-help">以下地址均为公开可访问的官方页面或原始文件，点一条复制走自行核对。</text>
               <view
                 wx:for="{{view.sourceLinks}}"
                 wx:key="url"
@@ -446,7 +436,6 @@
               </view>
             </view>
           </block>
-          <text wx:else class="collapsed-hint">点击"展开"查看完整数据表、机构对照与官方出处。</text>
         </view>
 
         <view wx:if="{{view.riskItems && view.riskItems.length}}" class="risk-stack">
@@ -477,14 +466,14 @@
           <button class="member-cta" data-addon="snapshot" bindtap="openWorkspaceAction" aria-label="{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}">
             <view class="cta-copy">
               <text>{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}</text>
-              <text class="cta-sub">{{snapshotSaved ? '对比当时与现在的变化' : '记录当前结论、数据与风险，之后看相对上次哪里变了'}}</text>
+              <text class="cta-sub">{{snapshotSaved ? '对比当时与现在' : '留存结论，之后对比变化'}}</text>
             </view>
             <text class="cta-arrow">›</text>
           </button>
           <button class="member-cta secondary-cta" data-addon="remind" bindtap="openWorkspaceAction" aria-label="提醒我相关事件">
             <view class="cta-copy">
               <text>提醒我相关事件</text>
-              <text class="cta-sub">进入工作台设置复核节点</text>
+              <text class="cta-sub">关键日期到期提醒</text>
             </view>
             <text class="cta-arrow">›</text>
           </button>

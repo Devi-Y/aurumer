@@ -93,4 +93,16 @@ const SMART_MONEY_PROFILES = [
   },
 ];
 
-module.exports = { SMART_MONEY_PROFILES };
+// 「年化排名」只在有公开年化数字的组合之间排；后补进来的几位没有可核验年化，
+// 不给名次，分母也不算它们。
+function annualRank(profile) {
+  if (!profile || !profile.performanceValue || !profile.order) return null;
+  const count = SMART_MONEY_PROFILES.filter((item) => item.group === profile.group && item.performanceValue).length;
+  return { rank: profile.order, count };
+}
+
+function groupSize(group) {
+  return SMART_MONEY_PROFILES.filter((item) => item.group === group).length;
+}
+
+module.exports = { SMART_MONEY_PROFILES, annualRank, groupSize };

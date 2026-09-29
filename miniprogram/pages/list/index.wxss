@@ -2,7 +2,7 @@
   min-height: 100vh;
   box-sizing: border-box;
   padding: 20rpx 20rpx calc(28rpx + env(safe-area-inset-bottom));
-  background: #f5f7f6;
+  background: #f5f6f7;
 }.freshness-banner {
   margin-top: 16rpx;
   padding: 16rpx 20rpx;
@@ -16,13 +16,13 @@
 .freshness-banner .freshness-label,
 .freshness-banner .freshness-tip { display: block; }
 .freshness-banner .freshness-label {
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 24rpx;
   font-weight: 650;
 }
 .freshness-banner .freshness-tip {
   margin-top: 4rpx;
-  color: #6a746e;
+  color: #696d75;
   font-size: 22rpx;
   line-height: 1.45;
 }
@@ -36,7 +36,7 @@
   font-weight: 700;
   line-height: 1.35;
 }
-.freshness-banner.tone-ok { background: #eef8f2; border-color: #d7ebe1; }
+.freshness-banner.tone-ok { background: #edf2fb; border-color: #d7dfeb; }
 .freshness-banner.tone-warn { background: #fff7ec; border-color: #f0e0c8; }
 .freshness-banner.tone-bad { background: #fdf0ee; border-color: #f0d5cf; }
 
@@ -46,7 +46,7 @@
 .list-hero {
   margin: -20rpx -20rpx 0;
   padding: 18rpx 24rpx 34rpx;
-  background: linear-gradient(165deg, #0d8a5c 0%, #0b7a53 55%, #096844 100%);
+  background: linear-gradient(165deg, #2466d6 0%, #1d5fd1 55%, #174ea9 100%);
 }
 
 .list-hero-top {
@@ -120,18 +120,18 @@
   padding: 10rpx 20rpx;
   flex: 0 0 auto;
   white-space: nowrap;
-  border: 1rpx solid #e2e8e5;
+  border: 1rpx solid #e1e4e9;
   border-radius: 999rpx;
   background: #ffffff;
-  color: #5a645e;
+  color: #595d65;
   font-size: 24rpx;
   font-weight: 560;
   line-height: 1.25;
 }
 
 .list-filter.active {
-  border-color: #0b7a53;
-  background: #0b7a53;
+  border-color: #1d5fd1;
+  background: #1d5fd1;
   color: #ffffff;
   font-weight: 660;
 }
@@ -144,29 +144,21 @@
 }
 
 .stats-title,
-.stats-body,
-.stats-note {
+.stats-body {
   display: block;
 }
 
 .stats-title {
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 26rpx;
   font-weight: 720;
 }
 
 .stats-body {
   margin-top: 8rpx;
-  color: #3f4742;
+  color: #3e4248;
   font-size: 24rpx;
   line-height: 1.5;
-}
-
-.stats-note {
-  margin-top: 8rpx;
-  color: #7a847e;
-  font-size: 22rpx;
-  line-height: 1.4;
 }
 
 /* 新股统计。只有 hk 已结束分组会渲染，把原来一整句话的历史样本对照
@@ -185,13 +177,13 @@
 }
 
 .hk-stats-title {
-  color: #1f2621;
+  color: #1e2127;
   font-size: 28rpx;
   font-weight: 680;
 }
 
 .hk-stats-meta {
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 22rpx;
 }
 
@@ -209,18 +201,18 @@
   flex-direction: column;
   gap: 4rpx;
   border-radius: 14rpx;
-  background: #f5f7f6;
+  background: #f5f6f7;
 }
 
 .hk-stats-tile-value {
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 34rpx;
   font-weight: 720;
   font-variant-numeric: tabular-nums;
 }
 
 .hk-stats-tile-label {
-  color: #7a847e;
+  color: #797d85;
   font-size: 21rpx;
 }
 
@@ -233,7 +225,7 @@
 }
 
 .hk-stats-legend-item.up { color: #c4473a; }
-.hk-stats-legend-item.flat { color: #8a918c; }
+.hk-stats-legend-item.flat { color: #898c92; }
 .hk-stats-legend-item.down { color: #0b7a53; }
 
 .hk-stats-bar {
@@ -242,11 +234,11 @@
   margin-top: 8rpx;
   height: 14rpx;
   border-radius: 7rpx;
-  background: #eef1ef;
+  background: #eeeff1;
 }
 
 .hk-stats-bar-seg.up { background: #d4452c; }
-.hk-stats-bar-seg.flat { background: #c7cdc9; }
+.hk-stats-bar-seg.flat { background: #c6c9ce; }
 .hk-stats-bar-seg.down { background: #20ad68; }
 
 .hk-stats-extremes {
@@ -264,7 +256,7 @@
 }
 
 .hk-stats-extreme-label {
-  color: #7a847e;
+  color: #797d85;
   font-size: 21rpx;
 }
 
@@ -278,19 +270,11 @@
 .hk-stats-extreme-value.down { color: #0b7a53; }
 
 .hk-stats-extreme-name {
-  color: #4b514d;
+  color: #4a4d52;
   font-size: 22rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.hk-stats-disclaimer {
-  display: block;
-  margin-top: 16rpx;
-  color: #7a847e;
-  font-size: 21rpx;
-  line-height: 1.4;
 }
 
 .item-panel,
@@ -302,7 +286,7 @@
   padding: 22rpx 24rpx;
 }
 
-.item-row + .item-row { border-top: 1rpx solid #edf0ee; }
+.item-row + .item-row { border-top: 1rpx solid #edeef0; }
 
 .item-head {
   display: flex;
@@ -319,8 +303,8 @@
   overflow: hidden;
   flex: none;
   border-radius: 999rpx;
-  background: #eef2f0;
-  color: #4a5550;
+  background: #eeeff3;
+  color: #494e56;
   font-size: 21rpx;
   font-weight: 650;
   line-height: 1.45;
@@ -328,17 +312,17 @@
   white-space: nowrap;
 }
 
-.item-kind.hk { background: #e9f4ee; color: #2c6b4c; }
+.item-kind.hk { background: #e9edf4; color: #1f55b5; }
 .item-kind.us { background: #eaf1fb; color: #2c5a94; }
 .item-kind.a { background: #f6eeee; color: #8a4b4b; }
 .item-kind.gold { background: #f8f1e2; color: #866223; }
 .item-kind.guru { background: #eeeff9; color: #45509a; }
 
 /* 港股和A股的分组自带好坏语义，这几档用好坏色压过类别色。 */
-.item-kind.is-good { background: #eaf8f0; color: #0b7a53; }
+.item-kind.is-good { background: #eaf1fc; color: #1d5fd1; }
 .item-kind.is-warn { background: #fff7ec; color: #93621d; }
 .item-kind.is-bad { background: #fdf0ee; color: #a34b3e; }
-.item-kind.is-muted { background: #f0f2f1; color: #778079; }
+.item-kind.is-muted { background: #f0f1f2; color: #767a81; }
 
 .item-meta {
   display: flex;
@@ -360,14 +344,14 @@
 
 .item-score {
   flex: none;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 22rpx;
   font-variant-numeric: tabular-nums;
 }
 
 .item-metric {
   flex: none;
-  color: #3a433d;
+  color: #393d44;
   font-size: 24rpx;
   font-weight: 660;
   font-variant-numeric: tabular-nums;
@@ -384,13 +368,13 @@
   width: 150rpx;
   height: 6rpx;
   border-radius: 999rpx;
-  background: #eef2ef;
+  background: #eeeff3;
 }
 
 .item-bar-value {
   height: 100%;
   border-radius: 999rpx;
-  background: #0b7a53;
+  background: #1d5fd1;
 }
 
 .item-bar-value.up { background: #d4452c; }
@@ -405,7 +389,7 @@
 
 .item-rank {
   flex: none;
-  color: #b3b9b5;
+  color: #b2b5ba;
   font-size: 22rpx;
   font-variant-numeric: tabular-nums;
 }
@@ -413,7 +397,7 @@
 .item-name {
   min-width: 0;
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 30rpx;
   font-weight: 650;
   line-height: 1.4;
@@ -423,7 +407,7 @@
 
 .item-code {
   flex: none;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 22rpx;
   font-variant-numeric: tabular-nums;
 }
@@ -431,7 +415,7 @@
 .item-fact {
   display: block;
   margin-top: 8rpx;
-  color: #5a645e;
+  color: #595d65;
   font-size: 24rpx;
   line-height: 1.5;
 }
@@ -456,25 +440,14 @@
   white-space: nowrap;
 }
 
-.item-strategy-label.tone-good { background: #eaf8f0; color: #0b7a53; }
+.item-strategy-label.tone-good { background: #eaf1fc; color: #1d5fd1; }
 .item-strategy-label.tone-warn { background: #fff7ec; color: #93621d; }
 .item-strategy-label.tone-bad { background: #fdf0ee; color: #a34b3e; }
-.item-strategy-label.tone-muted { background: #f0f2f1; color: #778079; }
+.item-strategy-label.tone-muted { background: #f0f1f2; color: #767a81; }
 
-/* 策略说明是按档位写的，同一档的行会是同一句话。所以它待遇和新闻资讯页脚行的
-   「来源 xxx」一样：压到最轻、单行截断，在那儿备查而不抢戏。 */
-.item-strategy-copy {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  color: #858c87;
-  font-size: 22rpx;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.item-foot .arrow { margin-left: auto; }
 
-.tap-active { background: #eef8f2; }.empty {
+.tap-active { background: #edf2fb; }.empty {
   display: flex;
   min-height: 260rpx;
   padding: 34rpx 24rpx;
@@ -482,13 +455,13 @@
   align-items: center;
   justify-content: center;
   gap: 6rpx;
-  color: #7c837e;
+  color: #7b7e84;
   font-size: 23rpx;
   text-align: center;
 }
 
 .empty image { width: 66rpx; height: 66rpx; margin-bottom: 8rpx; }
-.empty-title { color: #222823; font-size: 29rpx; font-weight: 760; }
+.empty-title { color: #212429; font-size: 29rpx; font-weight: 760; }
 
 .page-note {
   display: flex;
@@ -496,7 +469,7 @@
   flex-direction: column;
   align-items: center;
   gap: 7rpx;
-  color: #8a918c;
+  color: #898c92;
   font-size: 22rpx;
   line-height: 1.5;
   text-align: center;
@@ -534,14 +507,9 @@
 }
 
 .source-title {
-  color: #1f2621;
+  color: #1e2127;
   font-size: 28rpx;
   font-weight: 680;
-}
-
-.source-meta {
-  color: #9aa19c;
-  font-size: 22rpx;
 }
 
 .source-link-row {
@@ -551,19 +519,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
-  border-top: 1rpx solid #edf0ee;
+  border-top: 1rpx solid #edeef0;
   font-size: 27rpx;
 }
 
 .source-link-name {
   min-width: 0;
   flex: 1;
-  color: #1b211d;
+  color: #1a1d22;
 }
 
 .source-link-action {
   flex: none;
-  color: #0b7a53;
+  color: #1d5fd1;
   font-size: 24rpx;
   font-weight: 620;
 }
@@ -580,7 +548,7 @@
   z-index: 1000;
   display: flex;
   align-items: flex-end;
-  background: rgba(20, 28, 24, 0.42);
+  background: rgba(19, 23, 29, 0.42);
 }
 
 .holder-sheet {
@@ -603,7 +571,7 @@
 
 .holder-sheet-title {
   flex: 1;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 30rpx;
   font-weight: 720;
   line-height: 1.4;
@@ -612,7 +580,7 @@
 .holder-sheet-close {
   flex: none;
   padding: 0 4rpx;
-  color: #5f6a64;
+  color: #5e636b;
   font-size: 26rpx;
   line-height: 1.6;
 }
@@ -630,28 +598,28 @@
   align-items: baseline;
   gap: 12rpx;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #edf0ee;
+  border-bottom: 1rpx solid #edeef0;
 }
 
 .holder-sheet-row:last-child { border-bottom: 0; }
 
 .holder-sheet-name {
   flex: 1;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 26rpx;
   line-height: 1.45;
 }
 
 .holder-sheet-market {
   flex: none;
-  color: #8a938d;
+  color: #898d94;
   font-size: 22rpx;
 }
 
 .holder-sheet-weight {
   flex: none;
   min-width: 96rpx;
-  color: #0f5c43;
+  color: #174ea9;
   font-size: 26rpx;
   font-weight: 700;
   text-align: right;

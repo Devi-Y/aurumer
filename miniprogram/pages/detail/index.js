@@ -17,6 +17,7 @@ const { filingsFor, formatFiling, formatFilingLine } = require("../../utils/us-f
 // 「毛利率 43%」本身不回答"这算高还是低"。望潮池子里 30 只美股、20 只 A 股
 // 的同口径字段就摆在快照里，把它算成「池内第 6/30」是零新增数据的一次密度提升。
 const { poolRankVisual } = require("../../utils/pool-rank");
+const { annualRank } = require("../../utils/smart-money");
 // 黄金四个报价之间唯一那条换算（1 金衡盎司 = 31.1035 克），栏目页和详情页共用。
 const { goldParity } = require("../../utils/gold-parity");
 // 快照给的日期有 ISO 时间戳、M/D/YYYY、YYYY-MM-DD 三种写法混着来。新闻资讯页
@@ -219,7 +220,7 @@ function paintLineChart(ctx, width, height, values) {
   const xAt = (i) => padX + i * stepX;
   const yAt = (v) => padTop + (1 - (v - low) / span) * plotH;
 
-  ctx.strokeStyle = "#e4ebe6";
+  ctx.strokeStyle = "#e3e6ec";
   ctx.lineWidth = 1;
   [0.33, 0.66].forEach((f) => {
     const y = padTop + plotH * f;
@@ -243,8 +244,8 @@ function paintLineChart(ctx, width, height, values) {
   ctx.beginPath();
   tracePath();
   const gradient = ctx.createLinearGradient(0, padTop, 0, height - padBottom);
-  gradient.addColorStop(0, "rgba(11,122,83,0.22)");
-  gradient.addColorStop(1, "rgba(11,122,83,0)");
+  gradient.addColorStop(0, "rgba(29, 95, 209,0.22)");
+  gradient.addColorStop(1, "rgba(29, 95, 209,0)");
   ctx.lineTo(pts[pts.length - 1][0], height - padBottom);
   ctx.lineTo(pts[0][0], height - padBottom);
   ctx.closePath();
@@ -253,7 +254,7 @@ function paintLineChart(ctx, width, height, values) {
 
   ctx.beginPath();
   tracePath();
-  ctx.strokeStyle = "#0b7a53";
+  ctx.strokeStyle = "#1d5fd1";
   ctx.lineWidth = 1.6;
   ctx.lineJoin = "round";
   ctx.stroke();
@@ -265,11 +266,11 @@ function paintLineChart(ctx, width, height, values) {
     ctx.fill();
   }
   dot(values.indexOf(high), "#d99a12", 2.5);
-  dot(values.indexOf(low), "#7eb89a", 2.5);
+  dot(values.indexOf(low), "#8fb2ee", 2.5);
 
   const lastIdx = pts.length - 1;
   ctx.setLineDash([2, 2]);
-  ctx.strokeStyle = "#0b7a53";
+  ctx.strokeStyle = "#1d5fd1";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(pts[lastIdx][0], pts[lastIdx][1]);
@@ -278,9 +279,9 @@ function paintLineChart(ctx, width, height, values) {
   ctx.setLineDash([]);
   ctx.beginPath();
   ctx.arc(pts[lastIdx][0], pts[lastIdx][1], 4, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(11,122,83,0.18)";
+  ctx.fillStyle = "rgba(29, 95, 209,0.18)";
   ctx.fill();
-  dot(lastIdx, "#0b7a53", 2.8);
+  dot(lastIdx, "#1d5fd1", 2.8);
 }
 
 // 雷达图画法：N 边形网格 + 数据多边形，坐标算法和 paintLineChart 一样先用
@@ -299,7 +300,7 @@ function paintRadarChart(ctx, width, height, axes) {
     return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
   };
 
-  ctx.strokeStyle = "#e4ebe6";
+  ctx.strokeStyle = "#e3e6ec";
   ctx.lineWidth = 1;
   [0.25, 0.5, 0.75, 1].forEach((f) => {
     ctx.beginPath();
@@ -314,7 +315,7 @@ function paintRadarChart(ctx, width, height, axes) {
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(x, y);
-    ctx.strokeStyle = "#dbe4de";
+    ctx.strokeStyle = "#dadee5";
     ctx.stroke();
   }
 
@@ -324,9 +325,9 @@ function paintRadarChart(ctx, width, height, axes) {
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.closePath();
-  ctx.fillStyle = "rgba(11,122,83,0.22)";
+  ctx.fillStyle = "rgba(29, 95, 209,0.22)";
   ctx.fill();
-  ctx.strokeStyle = "#0b7a53";
+  ctx.strokeStyle = "#1d5fd1";
   ctx.lineWidth = 1.6;
   ctx.lineJoin = "round";
   ctx.stroke();
@@ -335,7 +336,7 @@ function paintRadarChart(ctx, width, height, axes) {
     const [dotX, dotY] = pointAt(i, radius * (axis.value / 100));
     ctx.beginPath();
     ctx.arc(dotX, dotY, 2.6, 0, Math.PI * 2);
-    ctx.fillStyle = "#0b7a53";
+    ctx.fillStyle = "#1d5fd1";
     ctx.fill();
   });
 
@@ -345,7 +346,7 @@ function paintRadarChart(ctx, width, height, axes) {
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     const [lx, ly] = pointAt(i, radius + 14);
-    ctx.fillStyle = "#7a847e";
+    ctx.fillStyle = "#797d85";
     ctx.textAlign = Math.abs(cos) < 0.35 ? "center" : (cos > 0 ? "left" : "right");
     ctx.textBaseline = Math.abs(sin) < 0.35 ? "middle" : (sin > 0 ? "top" : "bottom");
     ctx.fillText(axis.label, lx, ly);
@@ -372,7 +373,7 @@ function paintScatterChart(ctx, width, height, points, xLabel, yLabel) {
   const xAt = (v) => padLeft + ((v - xLo) / (xHi - xLo)) * plotW;
   const yAt = (v) => padTop + (1 - (v - yLo) / (yHi - yLo)) * plotH;
 
-  ctx.strokeStyle = "#e4ebe6";
+  ctx.strokeStyle = "#e3e6ec";
   ctx.lineWidth = 1;
   ctx.strokeRect(padLeft, padTop, plotW, plotH);
 
@@ -397,9 +398,9 @@ function paintScatterChart(ctx, width, height, points, xLabel, yLabel) {
     const { x, y } = pixelPoints[i];
     ctx.beginPath();
     ctx.arc(x, y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = point.tone === "cohort" ? "#d99a12" : "#0b7a53";
+    ctx.fillStyle = point.tone === "cohort" ? "#d99a12" : "#1d5fd1";
     ctx.fill();
-    ctx.fillStyle = "#4d5650";
+    ctx.fillStyle = "#4c5057";
     const alignRight = x > padLeft + plotW * 0.6;
     ctx.textAlign = alignRight ? "right" : "left";
     // "本股"和"样本均值"数值越接近，两个点在画布上就靠得越近——只按象限判断
@@ -410,7 +411,7 @@ function paintScatterChart(ctx, width, height, points, xLabel, yLabel) {
     ctx.fillText(point.label, x + (alignRight ? -7 : 7), y + (above ? -6 : 6));
   });
 
-  ctx.fillStyle = "#7a847e";
+  ctx.fillStyle = "#797d85";
   ctx.textAlign = "left";
   ctx.textBaseline = "bottom";
   ctx.fillText(xLabel, padLeft, height - 4);
@@ -799,17 +800,6 @@ function personalRuleStepsVisual(personalRule) {
   return chart;
 }
 
-function stockRange(history, currentPrice) {
-  const values = (history || []).filter(hasNumber).map(Number);
-  if (!values.length) return "近 60 日位置暂缺";
-  const low = Math.min(...values);
-  const high = Math.max(...values);
-  const price = Number(currentPrice);
-  if (!Number.isFinite(price) || high === low) return `${money(low)}–${money(high)}`;
-  const position = Math.round(((price - low) / (high - low)) * 100);
-  return `${money(low)}–${money(high)} · 当前约在 ${Math.max(0, Math.min(100, position))}% 位置`;
-}
-
 function historyStats(history) {
   const values = (history || []).filter(hasNumber).map(Number).sort((left, right) => left - right);
   if (!values.length) return null;
@@ -1078,27 +1068,21 @@ function buildHKView(base, item, snapshot) {
   // 不是同一批数字的第三种排列。
   base.analysis = ended
     ? [
-        { title: "结果", body: `【望潮研究归纳】暗盘 ${formatPercent(review.greyMarketChange)} · 首日 ${formatPercent(review.firstDayChange)} · 五日 ${formatPercent(review.fiveDayChange)}` },
-        { title: "用途", body: "【望潮研究归纳】只复盘学习，不作当前申购依据。" },
+        { title: "结果", body: `暗盘 ${formatPercent(review.greyMarketChange)} · 首日 ${formatPercent(review.firstDayChange)} · 五日 ${formatPercent(review.fiveDayChange)}` },
       ]
     : [
-        { title: item.badge || "结论", body: "【望潮研究归纳】先核一手金额与截止日；结论≠保证赚钱。" },
         {
           title: "高杠杆观察",
-          body: hkLeverageEligible(item)
-            ? "【望潮研究归纳】达到十倍融资观察门槛，仍须能承受一手亏损；默认一手，融资会放大破发。"
-            : "【望潮研究归纳】未达十倍融资观察门槛；结论不是值得打、拥挤度高或资料不全时不加杠杆。",
+          body: hkLeverageEligible(item) ? "达到十倍融资观察门槛" : "未达十倍融资观察门槛",
         },
       ];
   base.actions = [];
   base.riskItems = ended
     ? [
         { title: "历史结果仅供复盘", body: "历史表现只用于复盘，不能倒推当时必然值得申购。" },
-        { title: "研究性质说明", body: "公开资料研究观察，供参考；不是买卖指令。" },
       ]
     : [
         { title: "破发/中签风险", body: "可能破发或中签极低，盈亏自负。" },
-        { title: "研究性质说明", body: "公开资料研究观察，供参考；不是买卖指令。" },
       ];
   base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   if (ended && item.rank) base.score = `首日涨幅第 ${item.rank} 名`;
@@ -1290,7 +1274,7 @@ function buildUSView(base, item, snapshot) {
     ["财报期", dayText(fund.period)],
   ]);
   base.holdings = holders;
-  // 公告是发行人自己提交的备案，不是我们的归纳，所以不加【望潮研究归纳】前缀，
+  // 公告是发行人自己提交的备案，不是我们的归纳，
   // 但也绝不写成「因为业绩所以涨」——只说同期发生了什么，因果留给读的人。
   const usFilings = filingsFor(snapshot, raw.symbol || item.code);
   const filingBody = usFilings.length
@@ -1306,23 +1290,9 @@ function buildUSView(base, item, snapshot) {
   // tab 的 dynamics.filings/mag7Label 里一字不差地出现过——这里不再拼第三份
   // 重复句子，「关键依据」只留「动态」tab 给不出的判断。
   base.analysis = [
-    { title: "位置", body: `【望潮研究归纳】${stockRange(raw.history, raw.price)}` },
-    {
-      title: "怎么用",
-      body: `【望潮研究归纳】${item.group === "seven" || mag7tags.length
-        ? "分档来自质量、估值和近60日位置，不是买卖指令。"
-        : item.group === "value"
-          ? "性价比观察分用于横向比较，不是买入信号或收益承诺。"
-          : item.group === "industry"
-            ? "非七姐妹里质量与分数同时过关，只作行业对照。"
-            : "热度高只说明关注多，不等于马上买。"}`,
-    },
-    {
-      title: "研究观察分",
-      body: scoredUS.score != null
-        ? `【望潮研究归纳】${scoredUS.score} 分 · ${scoredUS.basis}`
-        : "【望潮研究归纳】公开行情/财务不足，暂不排序。",
-    },
+    // 近60日位置已由概览的价格位置图表完整展示，这里不再重复成一行文字。
+    scoredUS.score != null ? { title: "研究观察分", body: `${scoredUS.score} / 100` } : null,
+    scoredUS.score != null ? { title: "评分构成", body: "盈利质量 50% · 估值 30% · 热度 15% · 近周 5%" } : null,
   ].filter(Boolean);
   base.actions = [];
   base.riskItems = [
@@ -1431,30 +1401,30 @@ function buildAShareRiskItems(raw = {}, financials = {}) {
   if (Number.isFinite(freeCashFlow) && freeCashFlow <= 0) operatingSignals.push("自由现金流为负");
   if (Number.isFinite(cashConversion) && cashConversion < 1) operatingSignals.push(`现金利润比 ${cashConversion.toFixed(2)}`);
   const operatingBody = operatingSignals.length
-    ? `经营风险：${operatingSignals.join("、")}。股息率再高也不能替代现金流，下一次财报优先核对营收、利润和经营现金流是否继续恶化。`
-    : "经营风险：当前快照未触发负增长或现金流警报，但仍要按财报期复核营收、净利润、经营现金流和自由现金流。";
+    ? `${operatingSignals.join("、")}；下期财报先核是否继续恶化。`
+    : "未触发负增长或现金流警报。";
 
-  let industryBody = "行业风险：行业周期、竞争格局和政策变化可能先于公司财报反映到股价；若行业景气下行与公司数据同时转弱，先降低风险敞口。";
+  let industryBody = "行业周期、竞争格局和政策变化可能先于公司财报反映到股价；若行业景气下行与公司数据同时转弱，先降低风险敞口。";
   if (/银行|金融/u.test(industry)) {
-    industryBody = "行业风险：净息差下行、资产质量恶化和房地产/地方债信用成本上升会压缩银行利润；重点盯净息差、不良率、拨备覆盖率和资本充足率。";
+    industryBody = "净息差下行、资产质量恶化和房地产/地方债信用成本上升会压缩银行利润；重点盯净息差、不良率、拨备覆盖率和资本充足率。";
   } else if (/能源|油气|煤炭/u.test(industry)) {
-    industryBody = "行业风险：油气/煤炭价格、产量、资本开支和能源政策共同决定盈利；商品价格下行与资本开支上升同时出现时，股息可持续性要下调。";
+    industryBody = "油气/煤炭价格、产量、资本开支和能源政策共同决定盈利；商品价格下行与资本开支上升同时出现时，股息可持续性要下调。";
   } else if (/公用事业|水电|电力/u.test(industry)) {
-    industryBody = "行业风险：来水、上网电价、利用小时和大额资本开支会影响现金流；若电价下调或负债扩张，稳定股息不等于没有回撤。";
+    industryBody = "来水、上网电价、利用小时和大额资本开支会影响现金流；若电价下调或负债扩张，稳定股息不等于没有回撤。";
   } else if (/钢铁|水泥|建材/u.test(industry)) {
-    industryBody = "行业风险：地产/基建需求、产能过剩和原材料价格决定利润；产品价格下行而库存或负债上升时，先核现金流再看股息。";
+    industryBody = "地产/基建需求、产能过剩和原材料价格决定利润；产品价格下行而库存或负债上升时，先核现金流再看股息。";
   } else if (/家电|消费|食品|汽车/u.test(industry)) {
-    industryBody = "行业风险：终端需求、价格战、原材料和渠道库存会压缩利润；若营收放缓叠加毛利率下滑，不要只看过去股息。";
+    industryBody = "终端需求、价格战、原材料和渠道库存会压缩利润；若营收放缓叠加毛利率下滑，不要只看过去股息。";
   } else if (/高速|交通|铁路|港口/u.test(industry)) {
-    industryBody = "行业风险：车流/货运量、收费政策、维护资本开支和债务会影响稳定现金流；客流或货运量连续下降时应重新评估分红。";
+    industryBody = "车流/货运量、收费政策、维护资本开支和债务会影响稳定现金流；客流或货运量连续下降时应重新评估分红。";
   }
 
   const priceBody = Number.isFinite(change)
     ? change <= -5
-      ? `价格风险：今日跌幅 ${change.toFixed(1)}%，已触发价格警报；先查公告、业绩和行业事件，不在原因未明时补跌。`
-      : `价格风险：今日涨跌 ${change >= 0 ? "+" : ""}${change.toFixed(1)}%；预警线为单日跌幅≤-5%或连续两日收跌，触发后先暂停加仓并复核基本面。`
-    : "价格风险：实时涨跌暂缺；预警线为单日跌幅≤-5%或连续两日收跌，触发后先核实原因。";
-  const exitBody = "退出触发：价格跌破预警线且伴随经营或行业信号时，优先降低风险敞口；如果只是大盘同步波动，先确认是否有公司层面的新事实。";
+      ? `今日跌幅 ${change.toFixed(1)}%，已触发价格警报；先查公告、业绩和行业事件，不在原因未明时补跌。`
+      : `今日涨跌 ${change >= 0 ? "+" : ""}${change.toFixed(1)}%；预警线为单日跌幅≤-5%或连续两日收跌，触发后先暂停加仓并复核基本面。`
+    : "实时涨跌暂缺；预警线为单日跌幅≤-5%或连续两日收跌，触发后先核实原因。";
+  const exitBody = "价格跌破预警线且伴随经营或行业信号时，优先降低风险敞口；如果只是大盘同步波动，先确认是否有公司层面的新事实。";
   return [
     { title: "经营风险", body: operatingBody },
     { title: "行业风险", body: industryBody },
@@ -1652,11 +1622,7 @@ function buildAShareView(base, item, snapshot) {
     ["资料来源", raw.priceSource || raw.source],
   ]);
   base.analysis = [
-    { title: "资料", body: advice },
     { title: "持仓角色", body: role === "core" ? "现金流较稳，可作为底仓长期收息样本。" : (role === "cycle" ? "景气敏感，只作周期短持观察，不把高息当永续。" : "行业角色不够清晰，先看现金流再决定仓位角色。") },
-    implied
-      ? { title: "参考区间", body: `参考买入 ${money(implied.addPrice, "¥")} · 参考卖出 ${money(implied.trimPrice, "¥")} · 现价 ${money(implied.price, "¥")}（按当前每股分红回推）` }
-      : null,
     { title: "现金流", body: `经营 ${formatLarge(financials.operatingCashFlow)} · 自由 ${formatLarge(financials.freeCashFlow)}` },
   ].filter(Boolean);
   base.actions = [];
@@ -1668,7 +1634,7 @@ function buildAShareView(base, item, snapshot) {
 function buildGuruView(base, item) {
   const raw = item.raw || {};
   const profile = raw.profile || {};
-  const groupCounts = { hk: 3, us: 5, a: 3 };
+  const annual = annualRank(profile);
   const holdings = raw.holdings || [];
   const sold = raw.sold || [];
   // 13F 有真正的披露日；港股/A 股这六只基金只有月报、半年报、季报的报告期，
@@ -1691,7 +1657,7 @@ function buildGuruView(base, item) {
   base.code = profile.org || base.code;
   base.badge = profile.performanceValue || profile.marketLabel || base.badge;
   base.score = profile.performanceValue || "业绩待核";
-  base.rank = profile.order ? `第 ${profile.order}/${groupCounts[profile.group]}` : "";
+  base.rank = annual ? `第 ${annual.rank}/${annual.count}` : "";
   // 「先看答案」原本只填 profile.marketLabel，渲染出来就是孤零零一个「美股」——
   // 既不是答案，也不是新信息（市场在关键数据里已经单独占了一格）。改成这期 13F
   // 到底说了什么：报告期、第一大持仓、本期有多少项仓位变化，全部取自已算好的字段。
@@ -1721,7 +1687,7 @@ function buildGuruView(base, item) {
     // 第一格原本是 profile.performanceValue，而徽章就是同一个字段，渲染出来是
     // 「年化：13.2% 年化」——同一屏印两遍，「年化」两个字还印了三遍。排名本来
     // 就是按表观年化在同组内排的，把口径写进标签，年化这一格便不必再留一次。
-    { label: "年化排名", value: profile.order ? `${profile.order}/${groupCounts[profile.group]}` : "—" },
+    { label: "年化排名", value: annual ? `${annual.rank}/${annual.count}` : "—" },
     { label: "持仓·只", value: `${holdings.length}` },
     // 退出数只有 13F 真正披露；月报、季报没说过，写「0」会被读成「一只都没卖」。
     { label: "退出·只", value: raw.isLive ? `${sold.length}` : "未披露" },
@@ -1733,11 +1699,14 @@ function buildGuruView(base, item) {
   }));
 
   // 图表标签空间有限，期权只标 ·PUT/·CALL 短记号，不用完整的括注写法。
+  // 个别 13F 行没有代码只有发行人全名（「CHUBB LIMITED」），柱下会折成两行，只取首词。
   const chartTicker = (holding) => {
+    const raw = String(holding.ticker || "");
+    const ticker = /\s/.test(raw) && raw.length > 6 ? raw.split(/\s+/)[0] : raw;
     const mark = String(holding.putCall || "").trim().toLowerCase();
-    if (mark === "put") return `${holding.ticker}·PUT`;
-    if (mark === "call") return `${holding.ticker}·CALL`;
-    return holding.ticker;
+    if (mark === "put") return `${ticker}·PUT`;
+    if (mark === "call") return `${ticker}·CALL`;
+    return ticker;
   };
 
   const changeBars = solidVisual(
@@ -1755,10 +1724,11 @@ function buildGuruView(base, item) {
   // 「仓位变化」重复搬进「研究」标签，同一张图显示了两遍。改成显式分组后
   // 每张图只出现一次，也不用再猜。
   base.holdingsCharts = [
+    // 8 根柱每列很窄，两位小数会被截成「22.0…」，柱顶只留一位。
     solidVisual(holdings.slice(0, 8).map((holding) => ({
       label: chartTicker(holding),
       value: holding.weight,
-      valueText: formatNumber(holding.weight, "%"),
+      valueText: hasNumber(holding.weight) ? `${Number(holding.weight).toFixed(1)}%` : "—",
     })), "持仓权重"),
     changeBars,
   ].filter(Boolean);
@@ -1793,14 +1763,13 @@ function buildGuruView(base, item) {
     ["资料来源", raw.source || "SEC 13F"],
   ], 12);
   // 报告期/披露日/滞后天数已经在「资料」tab 的 facts 表里各出现过一次，
-  // 这里只留 facts 表给不出的口径提示，不重复拼那三个数字。
+  // 「只含多头」在风险卡里单独有一条，这里不重复。
   base.analysis = [
-    { title: "披露口径", body: "法定披露通常只含多头、季频更新。" },
     { title: "为什么看它", body: `【望潮研究归纳】${String(profile.why || "公开业绩与持仓可对照学习。").slice(0, 100)}` },
     { title: "怎么学", body: `【望潮研究归纳】${String(profile.how || "学框架，不照抄持仓。").slice(0, 100)}` },
     {
       title: "应该避免",
-      body: "不照抄报告期仓位、不把滞后披露当实时单、不复制机构杠杆与集中度；WHY/HOW 不是投资人本人实时表述。",
+      body: "不照抄报告期仓位、不把滞后披露当实时单、不复制机构杠杆与集中度。",
     },
     {
       title: "跟随边界",
@@ -1818,10 +1787,6 @@ function buildGuruView(base, item) {
     {
       title: "只含多头",
       body: "法定披露通常不包含空头与完整衍生品，不能还原全部策略。",
-    },
-    {
-      title: "不是跟仓信号",
-      body: "WHY/HOW 是望潮基于公开资料的研究归纳，不是投资人本人实时表述，也不构成投资建议。",
     },
   ];
   base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
@@ -2039,13 +2004,11 @@ function buildOverview(base, item) {
   const nextWatch = strategy.trigger || "暂无明确触发条件，留意下一次财报/公告更新。";
 
   let priceCard = null;
-  let priceNote = "";
   if (item.market === "us") {
     const range = historyStats(raw.history);
     priceCard = (range && hasNumber(raw.price))
       ? meterVisual(raw.history, raw.price, "近 60 日价格位置", money, "仅为近 60 日价格位置，不等于估值分位或安全边际。")
       : null;
-    if (!priceCard) priceNote = "暂未形成参考区间";
   } else if (item.market === "a") {
     if (raw.assetType === "fund") {
       const fundHistory = (raw.history || []).map((entry) => entry?.close).filter(hasNumber).map(Number);
@@ -2053,13 +2016,11 @@ function buildOverview(base, item) {
       priceCard = (fundHistory.length >= 2 && fundPrice != null)
         ? meterVisual(fundHistory, fundPrice, "近 60 日价格位置", (value) => money(value, "¥"), "仅为近 60 日价格位置，不是净值折溢价或估值判断。")
         : null;
-      if (!priceCard) priceNote = "暂未形成参考区间";
     } else {
       const implied = yieldImpliedPlan(raw);
       priceCard = (implied && hasNumber(raw.currentPrice))
         ? bandMeterVisual(implied.addPrice, implied.trimPrice, raw.currentPrice, "参考买卖区间", (value) => money(value, "¥"), "按当前每股分红回推的参考区间，不是目标价承诺。")
         : null;
-      if (!priceCard) priceNote = "暂未形成参考区间";
     }
   } else if (item.market === "hk") {
     const stage = base.stageInfo || {};
@@ -2073,16 +2034,13 @@ function buildOverview(base, item) {
     priceCard = metricTilesVisual([
       ["当前阶段", stageLabel],
       [watchLabel, watchValue],
+      ["基石占比", hasNumber(raw.cornerstonePercent) ? `${Number(raw.cornerstonePercent).toFixed(1)}%` : null],
+      ["所属行业", raw.industry || null],
     ], "阶段与关键节点");
-    if (!priceCard) priceNote = "暂未形成参考区间";
   } else if (item.market === "guru") {
-    // guru 没有价格，概览卡复用已经算好的 highlights（年化排名/持仓/退出/
-    // 披露滞后），跟 hk 的「阶段与关键节点」是同一种「关键数据前置」思路。
-    const highlightPairs = (base.highlights || [])
-      .map((tile) => [tile.label, tile.value])
-      .filter(([, value]) => value && value !== "—");
-    priceCard = highlightPairs.length ? metricTilesVisual(highlightPairs, "本期关键数据") : null;
-    if (!priceCard) priceNote = "暂未形成关键数据";
+    // guru 没有价格。年化排名/持仓/退出/披露滞后四格已经在标题下的 highlights
+    // 条里，概览再摆一遍就是同屏重复；改放持仓权重条，一眼看组合集中在哪。
+    priceCard = (base.holdingsCharts || [])[0] || null;
   } else if (item.market === "gold") {
     // 黄金没有单一现价，概览卡原来复用 highlights 摆四格数字（国际金/人民币金/
     // 两个观察分），但这四格和下面「关键依据」、「价格」tab 说的是同一件事。
@@ -2091,13 +2049,10 @@ function buildOverview(base, item) {
     const domesticHistory = (raw.history?.domestic || []).map((entry) => entry.close);
     priceCard = priceVisual(intlHistory, "国际金价走势", (value) => money(value))
       || priceVisual(domesticHistory, "人民币金价走势", (value) => money(value, "¥"));
-    if (!priceCard) priceNote = "暂未形成价格走势";
   }
 
   base.overview = {
-    categoryTag: (DETAIL_META[item.market] || DETAIL_META.hk).label,
     priceCard,
-    priceNote,
     evidenceBullets,
     keyRisk,
     nextWatch,

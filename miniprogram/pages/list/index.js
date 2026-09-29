@@ -9,6 +9,7 @@ const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { buildHkHistoryStats, buildHkIndustryStats, buildHkSponsorStats } = require("../../utils/hk-history-stats");
 const { marketSources } = require("../../utils/sources");
+const { SMART_MONEY_PROFILES } = require("../../utils/smart-money");
 // 页头那句「数据截至 …」和新闻资讯页共用同一个写法：同一份快照在两个页面上
 // 说出来的时间必须是同一个。
 const { asOfText } = require("../../utils/dates");
@@ -283,7 +284,6 @@ Page({
           }),
           strategyLabel: strategy.label,
           strategyTone: strategy.tone,
-          strategyLine: strategy.action,
           // 「交叉重叠」那几条点开是弹窗不是详情页，弹窗内容要用到这个字段。
           overlap: item.raw?.overlap || null,
         };
@@ -299,7 +299,8 @@ Page({
           industries.length ? `行业样本 ${industries.map((item) => `${item.name} ${item.sampleCount}只`).join(" · ")}` : "",
           sponsors.length ? `保荐人 ${sponsors[0].name} 样本 ${sponsors[0].sampleCount}只` : "",
         ].filter(Boolean).join(" · ");
-        groupHelp = extra ? `${stats.summary} · ${extra}` : stats.summary;
+        // 样本数、首日上涨率、暗盘同向率下面的新股统计卡已经画出来，页头只留卡里没有的行业/保荐人。
+        groupHelp = extra || groupHelp;
         // 参考长桥「新股统计」的可视化呈现（大数字 + 涨跌分布条），但数据
         // 只有 12 条样本，撑不起它那种年度榜单，这里只做同一批历史样本的
         // 统计概览，换成条形图代替纯文字，涨/平/跌三档都是真实计数。
@@ -318,79 +319,66 @@ Page({
           maxFirstDayName: stats.maxFirstDay ? stats.maxFirstDay.name : "",
           minFirstDayLabel: stats.minFirstDay ? stats.minFirstDay.label : "—",
           minFirstDayName: stats.minFirstDay ? stats.minFirstDay.name : "",
-          disclaimer: stats.disclaimer,
         };
       } else if (activeGroup === "hot10") {
         statsBanner = {
           title: "热度观察榜算法",
-          body: "按公开热度分从高到低排序；热度只反映关注度，不代表未来涨幅。",
-          note: "研究观察，不构成买卖建议。",
+          body: "按公开热度分从高到低排序。",
         };
       } else if (activeGroup === "value") {
         statsBanner = {
           title: "性价比观察指数",
-          body: "盈利质量 50% · 估值 30% · 热度 15% · 近周变动 5%；分数用于横向比较。",
-          note: "研究排序，不是收益承诺或买入信号。",
+          body: "盈利质量 50% · 估值 30% · 热度 15% · 近周变动 5%。",
         };
       } else if (activeGroup === "overlap") {
         statsBanner = {
           title: "交叉重叠研究工具",
-          body: "统计 11 个可核验机构组合中共同出现的标的；重叠只表示公开披露一致，不是买入推荐。",
-          note: "报告期存在滞后，不构成实时交易信号。",
+          body: `${SMART_MONEY_PROFILES.length} 个公开组合里至少 2 家同时持有的标的。`,
         };
       } else if (activeGroup === "cheap7") {
         statsBanner = {
           title: "低估七姐妹",
           body: "质量门通过，且市盈率不高于七姐妹中位、近60日位置未过热。",
-          note: "相对不便宜不等于低估到该买；研究观察，不是买入信号。",
         };
       } else if (activeGroup === "risk7") {
         statsBanner = {
           title: "风险七姐妹",
           body: "估值过高、近60日位置过热，或盈利质量与价格冲突。",
-          note: "风险升高是观察分档，不是自动卖出指令。",
         };
       } else if (activeGroup === "hold7") {
         statsBanner = {
           title: "长期观察七姐妹",
           body: "营收、利润率、股东回报或经营现金流等质量门通过，且未触发重大风险分档。",
-          note: "可作长期样本，不等于现在加仓。",
         };
       } else if (activeGroup === "industry") {
         statsBanner = {
           title: "行业公司观察",
           body: "从非七姐妹样本里筛质量与研究观察分同时过关的公司。",
-          note: "行业观察榜不是买入清单。",
         };
       } else if (activeGroup === "core") {
         statsBanner = {
           title: "底仓长期",
           body: "水电、银行、通信、家电、红利ETF 等现金流角色，适合作为收息底仓样本。",
-          note: "角色分类来自行业与质量，不是保证分红。",
         };
       } else if (activeGroup === "cycle") {
         statsBanner = {
           title: "周期短持",
           body: "煤炭、油气、钢铁、建材、火电等景气敏感样本，只作短持观察。",
-          note: "高息往往来自商品价格，股息可能随景气消失。",
         };
       } else if (activeGroup === "add") {
         statsBanner = {
           title: "加大观察",
           body: "按当前每股分红回推到更高股息率后的价格区；现价已进入该区才出现在本列表。",
-          note: "观察价不是保证买点。",
         };
       } else if (activeGroup === "trim") {
         statsBanner = {
           title: "兑现观察",
           body: "价格上涨把股息率压到可持续股息之下时，进入兑现观察。",
-          note: "观察价不是自动卖出指令。",
         };
       } else if (activeGroup === "leverage") {
         statsBanner = {
           title: "高杠杆观察",
           body: "仅值得打、研究分≥80、认购拥挤度不高且一手资料齐全时出现。",
-          note: "默认仍是一手；十倍融资会放大破发亏损，不是指令。",
         };
       }
       this.setData({

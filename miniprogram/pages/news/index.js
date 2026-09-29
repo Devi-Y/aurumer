@@ -37,6 +37,40 @@ function matchesQuery(item, query) {
     .some((text) => String(text).toLowerCase().includes(q));
 }
 
+// 页头那张 30 天柱图：每天几条。报告期不是发布日（「2026-06-30 财季」
+// 不是那天发出来的），这类条目不进图，只数真有发布日期的。
+const ACTIVITY_DAYS = 30;
+
+function dayKey(date) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function buildActivity(items, now) {
+  const counts = new Map();
+  items.forEach((item) => {
+    if (item.dateNote === "报告期" || !item.date) return;
+    counts.set(item.date, (counts.get(item.date) || 0) + 1);
+  });
+  const days = Array.from({ length: ACTIVITY_DAYS }, (_, index) => {
+    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    day.setDate(day.getDate() - (ACTIVITY_DAYS - 1 - index));
+    return dayKey(day);
+  });
+  const values = days.map((key) => counts.get(key) || 0);
+  const max = Math.max(1, ...values);
+  return {
+    total: values.reduce((sum, value) => sum + value, 0),
+    startLabel: days[0].slice(5),
+    endLabel: days[days.length - 1].slice(5),
+    bars: values.map((value, index) => ({
+      key: days[index],
+      empty: !value,
+      style: value ? `height:${Math.max(14, Math.round((value / max) * 100))}%` : "",
+    })),
+  };
+}
+
 function readSeenKeys() {
   try {
     const raw = wx.getStorageSync(SEEN_KEY);
@@ -59,7 +93,7 @@ Page({
     restCount: 0,
     matchCount: 0,
     newCount: 0,
-    scopeLabel: "",
+    activity: null,
     dataAsOf: "",
     freshnessKind: "offline",
     footerDisclaimer: FOOTER_DISCLAIMER,
@@ -123,9 +157,6 @@ Page({
             filters,
             activeFilter: active,
             newCount,
-            scopeLabel: items.length
-              ? `共 ${items.length} 条 · ${items[items.length - 1].date} 起`
-              : "",
             dataAsOf: asOfText(data.updatedAt, kind),
             freshnessKind: kind,
           },
@@ -138,12 +169,15 @@ Page({
   },
   // 过滤 → 截断 → 按新鲜度分段。分段只在已展开的这批上算，
   // 段头写的条数就是它下面真实渲染的条数，不会出现"标 7 条只看到 2 条"。
+  // 柱图跟着分类和搜索走，但数的是全部命中的条目，不受「展开更多」影响。
   applyView(filterId, shown) {
     const byCategory = filterItems(this.data.items || [], filterId);
     const matched = byCategory.filter((item) => matchesQuery(item, this.data.searchQuery));
     const limit = Math.min(shown, matched.length);
+    const now = new Date();
     this.setData({
-      sections: groupFeedByAge(matched.slice(0, limit), new Date()),
+      activity: buildActivity(matched, now),
+      sections: groupFeedByAge(matched.slice(0, limit), now),
       shown: limit,
       matchCount: matched.length,
       restCount: matched.length - limit,

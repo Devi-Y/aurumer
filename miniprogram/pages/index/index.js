@@ -2,10 +2,16 @@ const { loadSnapshot } = require("../../data/store");
 const { track, trackHomeVisit } = require("../../utils/analytics");
 const { openPage } = require("../../utils/nav");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
-const { loadWorkspace } = require("../../services/member");
-const { buildHomeDigest } = require("../../utils/daily-answers");
+const { MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
+const OFFERS = require("../../config/offers");
+const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
+const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
 
-// 首页第一块就是这六个入口，照微信「服务」页的分组图标网格：只有图标和名字，
+// 服务格子只放已经拿到真实物料的项，或产品负责人明确要求先占位的项（pending，
+// 点了只说「即将开放」，不编链接）；其余不上九宫格，也不拿别的入口凑数。
+const SERVICES = OFFERS.filter((item) => item && (item.copy || item.pending));
+
+// 九宫格的前六格是这六个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
 // 没有副标题也没有箭头。help 不再上屏，但留着当读屏标签用。
 const CORE_ENTRIES = [
   {
@@ -53,62 +59,119 @@ const CORE_ENTRIES = [
   },
 ];
 
-// 未开通时展示的是标注为示例的占位条目，不是真实结论——今日重点是会员内容，
-// 不该在免费态就已经把真实判断算出来晾在那里等着被扒。
-const SAMPLE_HIGHLIGHTS = [
-  { no: "01", marketLabel: "港股打新", title: "新股临近截止时怎么判断参与" },
-  { no: "02", marketLabel: "美股投资", title: "七姐妹估值状态发生变化时" },
-  { no: "03", marketLabel: "黄金追踪", title: "金价进入参考区间时的提示" },
+// 九宫格 = 六个研究栏目 + 已有物料的服务格。服务格点一下是复制，不跳页。
+const GRID_ENTRIES = [
+  ...CORE_ENTRIES.map((item) => ({ ...item })),
+  ...SERVICES.map(({ id, icon, title, copy }) => ({ id, action: "copy", icon, title, help: copy ? "点击复制" : "即将开放" })),
 ];
+
+// ---------- 首页走势卡：每张只用快照里的真实序列，序列不够整张不出 ----------
+
+function signedPct(value, digits = 1) {
+  if (!Number.isFinite(value)) return "";
+  return `${value > 0 ? "+" : ""}${value.toFixed(digits)}%`;
+}
+
+// 折线卡：首尾涨跌写在数字旁边，线本身出成 SVG 图片（尺寸和 .trend-line 同比例）。
+function lineTrend({ id, market, title, closes, digits }) {
+  const values = closes.map(Number).filter((value) => Number.isFinite(value));
+  if (values.length < 10) return null;
+  const change = values[0] ? ((values[values.length - 1] - values[0]) / values[0]) * 100 : NaN;
+  return {
+    id,
+    market,
+    title,
+    kind: "line",
+    value: values[values.length - 1].toFixed(digits),
+    sub: `${values.length}日 ${signedPct(change)}`,
+    tone: toneOf(change),
+    src: sparklineSvg(sampleSeries(values), { width: 300, height: 104 }),
+  };
+}
+
+function buildHomeTrends(snapshot) {
+  const cards = [];
+
+  const ipos = hkFirstDaySeries(snapshot);
+  if (ipos.length >= 3) {
+    const changes = ipos.map((item) => item.change);
+    cards.push({
+      id: "hk",
+      market: "hk",
+      title: "港股首日",
+      kind: "bars",
+      value: `${changes.filter((value) => value > 0).length}/${changes.length}`,
+      sub: "首日收涨",
+      tone: "flat",
+      ...zeroAxisBars(changes),
+    });
+  }
+
+  const stocks = (snapshot.us && snapshot.us.stocks) || [];
+  const seven = MAGNIFICENT_SEVEN
+    .map((symbol) => stocks.find((item) => item.symbol === symbol))
+    .filter((item) => item && Array.isArray(item.history) && item.history.length >= 10)
+    .map((item) => {
+      const first = Number(item.history[0]);
+      const last = Number(item.history[item.history.length - 1]);
+      return { length: item.history.length, change: first ? ((last - first) / first) * 100 : NaN };
+    })
+    .filter((item) => Number.isFinite(item.change));
+  if (seven.length >= 3) {
+    const changes = seven.map((item) => item.change);
+    cards.push({
+      id: "us",
+      market: "us",
+      title: "美股七姐妹",
+      kind: "bars",
+      value: `${changes.filter((value) => value > 0).length}/${changes.length}`,
+      sub: `${Math.min(...seven.map((item) => item.length))}日收涨`,
+      tone: "flat",
+      ...zeroAxisBars(changes),
+    });
+  }
+
+  const fund = ((snapshot.aShare && snapshot.aShare.funds) || [])[0];
+  const fundCard = fund && lineTrend({
+    id: "a",
+    market: "a",
+    title: fund.shortName || "红利ETF",
+    closes: (fund.history || []).map((item) => item && item.close),
+    digits: 3,
+  });
+  if (fundCard) cards.push(fundCard);
+
+  const goldCard = lineTrend({
+    id: "gold",
+    market: "gold",
+    title: "COMEX 黄金",
+    closes: ((snapshot.gold && snapshot.gold.history && snapshot.gold.history.international) || []).map((item) => item && item.close),
+    digits: 1,
+  });
+  if (goldCard) cards.push(goldCard);
+
+  return cards;
+}
 
 Page({
   data: {
-    entries: CORE_ENTRIES.map((item) => ({ ...item })),
+    entries: GRID_ENTRIES,
+    trends: [],
     dataAsOf: "",
     freshnessKind: "offline",
-    memberActive: false,
-    memberNote: "365天 · ¥1288",
-    memberQueryFailed: false,
-    todayItems: SAMPLE_HIGHLIGHTS.map((item) => ({ ...item })),
-    todayEmpty: false,
     footerDisclaimer: FOOTER_DISCLAIMER,
   },
   onLoad() {
     trackHomeVisit();
     this._snapshot = null;
     this.refreshAnswers();
-    this.refreshMemberCard();
   },
   onShow() {
     // 从详情/section 页返回时结论要跟着同一份数据走，不停在打开小程序那一刻。
     this.refreshAnswers();
-    this.refreshMemberCard();
   },
   onPullDownRefresh() {
     this.refreshAnswers(() => wx.stopPullDownRefresh(), true);
-    this.refreshMemberCard();
-  },
-  refreshMemberCard() {
-    loadWorkspace()
-      .then((workspace) => {
-        const active = !!workspace.active;
-        this.setData({
-          memberActive: active,
-          memberQueryFailed: false,
-          memberNote: active ? this.memberNote(workspace) : "365天 · ¥1288",
-        });
-        this.applyToday();
-      })
-      // 查询失败不能悄悄当成「未开通」——那会把「不知道」冒充成一个确定结论。
-      .catch(() => this.setData({ memberQueryFailed: true }));
-  },
-  memberNote(workspace) {
-    const expires = workspace && workspace.expiresAt ? new Date(workspace.expiresAt) : null;
-    if (expires && !Number.isNaN(expires.getTime())) {
-      const pad = (value) => String(value).padStart(2, "0");
-      return `有效期至 ${expires.getFullYear()}-${pad(expires.getMonth() + 1)}-${pad(expires.getDate())}`;
-    }
-    return "会员已开通";
   },
   refreshAnswers(done, force = false) {
     loadSnapshot(
@@ -118,31 +181,12 @@ Page({
         this.setData({
           dataAsOf: this.formatAsOf(data.updatedAt, kind),
           freshnessKind: kind,
+          trends: buildHomeTrends(data),
         });
-        this.applyToday();
       },
       done,
       { force },
     );
-  },
-  // 今日重点是会员内容：没开通就不算，连算都不算——省掉一次全量摘要，
-  // 首页也就少了一段开屏计算，非会员看到的是标注为示例的占位条目。
-  applyToday() {
-    if (!this.data.memberActive) {
-      if (this.data.todayItems.length !== SAMPLE_HIGHLIGHTS.length || this.data.todayEmpty) {
-        this.setData({
-          todayItems: SAMPLE_HIGHLIGHTS.map((item) => ({ ...item })),
-          todayEmpty: false,
-        });
-      }
-      return;
-    }
-    if (!this._snapshot) return;
-    const digest = buildHomeDigest(this._snapshot, { holdings: [] });
-    this.setData({
-      todayItems: digest.highlights || [],
-      todayEmpty: !(digest.highlights || []).length,
-    });
   },
   formatTime(date) {
     const pad = (value) => String(value).padStart(2, "0");
@@ -156,29 +200,14 @@ Page({
     if (kind === "stale") return `数据截至 ${stamp} · 已偏旧`;
     return `数据截至 ${stamp}`;
   },
-  // 未开通时行数据没有 marketId（示例条目只标了方向文字，不接真实市场），
-  // 点了直接引导去开通,而不是假装能跳转到一个不存在的目标。
-  openTodayRow(event) {
-    const marketId = event.currentTarget.dataset.market;
-    if (!this.data.memberActive || !marketId) {
-      this.openMemberBanner();
-      return;
-    }
-    const targetId = String(event.currentTarget.dataset.target || "");
-    if (targetId) {
-      track("detail_open", { market: String(marketId), from: "today_highlight" });
-      wx.navigateTo({
-        url: `/pages/detail/index?market=${encodeURIComponent(marketId)}&id=${encodeURIComponent(targetId)}`,
-      });
-      return;
-    }
-    track("section_open", { market: String(marketId), from: "today_highlight" });
-    wx.navigateTo({ url: `/pages/section/index?market=${marketId}` });
-  },
   openGridEntry(event) {
     const id = event.currentTarget.dataset.id;
     const entry = this.data.entries.find((item) => item.id === id);
     if (!entry) return;
+    if (entry.action === "copy") {
+      this.copyService(entry.id);
+      return;
+    }
     if (entry.action === "section") {
       track("section_open", { market: String(entry.id), from: "grid" });
       wx.navigateTo({ url: `/pages/section/index?market=${entry.id}` });
@@ -189,22 +218,36 @@ Page({
       openPage(entry.url);
     }
   },
-  openMemberBanner() {
-    track("member_open", { from: this.data.memberActive ? "home_today_member" : "home_today_lock" });
-    openPage("/pages/member/index");
+  openTrend(event) {
+    const market = String(event.currentTarget.dataset.market || "");
+    if (!market) return;
+    track("section_open", { market, from: "home_trend" });
+    wx.navigateTo({ url: `/pages/section/index?market=${market}` });
   },
-  openTodayPage() {
-    track("today_expand", { from: "home_today_foot" });
-    wx.navigateTo({ url: "/pages/today/index" });
+  // 小程序打不开外部网页，服务格一律复制到剪贴板，由用户自己去浏览器或微信里用。
+  copyService(id) {
+    const service = SERVICES.find((item) => item.id === id);
+    if (!service) return;
+    if (!service.copy) {
+      track("service_pending", { id });
+      wx.showToast({ title: service.pendingToast || "即将开放", icon: "none" });
+      return;
+    }
+    track("service_copy", { id });
+    wx.setClipboardData({
+      data: service.copy,
+      success: () => wx.showToast({ title: service.toast || "已复制", icon: "none" }),
+      fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
+    });
   },
   onShareAppMessage() {
     track("share_tap", { page: "home" });
     return {
-      title: "望潮 Aurum｜今日重点与市场研究",
+      title: "望潮 Aurum｜港美A股与黄金走势",
       path: "/pages/index/index",
     };
   },
   onShareTimeline() {
-    return { title: "望潮 Aurum｜今日重点与市场研究" };
+    return { title: "望潮 Aurum｜港美A股与黄金走势" };
   },
 });

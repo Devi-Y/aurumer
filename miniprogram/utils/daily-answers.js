@@ -2,10 +2,11 @@
  * 栏目页「今日答案」：一屏回答用户真正会问的问题。
  * 口径是研究观察，不是买卖指令；没有已验证数据时如实说暂无。
  */
-const { aShareDividendStability, allItems, shortCompanyName } = require("./answers");
+const { aShareDividendStability, allItems, shortCompanyName, tickerZhLabel } = require("./answers");
 const { MASTER_PLAYBOOKS } = require("./master-playbooks");
+const { SMART_MONEY_PROFILES } = require("./smart-money");
 const { buildGuruTrend } = require("./guru-trend");
-const { holdingLabel } = require("./guru-changes");
+const { instrumentSuffix } = require("./guru-changes");
 const { hasFilingFeed, filingsBySymbol, formatFilingLine } = require("./us-filings");
 const { toDay } = require("./dates");
 const {
@@ -97,6 +98,7 @@ function card({
   modal = "",
   state = "",
   rows = null,
+  chart = null,
 }) {
   return {
     id,
@@ -123,7 +125,19 @@ function card({
     // 首页那格摘要要判断黄金现在处在哪个区。原来靠对答案文案做正则，文案一改
     // 就静默失效；这里让卡片直接把区名带出来，文案怎么写都不影响判断。
     state,
+    // 可选的小图，卡面用它代替那一行名单：
+    // { kind: "bars", items: [{ key, label, valueText, width }] } 横条，width 是百分比；
+    // { kind: "mix", items: [{ key, label, count, tone, width }] } 一根分段条带图例。
+    // 可选 headline 在卡面上替掉整句 answer——名字和数字图上都有，不再说两遍。
+    // 只进小程序卡面，publicCard() 不带它，公开摘要照旧只有扁平字段。
+    chart,
   };
+}
+
+// 条形图的名字栏放不下「TSM（台积电）」这种全称，有中文名就只留中文名。
+function barLabel(text) {
+  const match = String(text || "").match(/^[A-Z.]{1,6}（(.+)）$/u);
+  return match ? match[1] : String(text || "");
 }
 
 function buildHkAnswers(snapshot) {
@@ -1004,8 +1018,10 @@ function buildGuruAnswers(snapshot) {
     .filter(Boolean);
   const top = leaders[0];
   const holdings = (top?.raw?.holdings || []).slice(0, 3);
+  // 这张卡刻意代码优先（不像详情表格那样发行人全称优先），裸代码在这里
+  // 括注中文名——「TSM 5.4%」对没炒过美股的读者不成句子。
   const holdingLine = holdings
-    .map((row) => `${holdingLabel({ ...row, issuer: row.ticker || row.name })}${Number.isFinite(Number(row.weight)) ? ` ${Number(row.weight).toFixed(1)}%` : ""}`)
+    .map((row) => `${tickerZhLabel(row.ticker || row.name)}${instrumentSuffix(row.putCall)}${Number.isFinite(Number(row.weight)) ? ` ${Number(row.weight).toFixed(1)}%` : ""}`)
     .join(" · ");
   const firstSentence = (value) => {
     const text = String(value || "").replace(/\s+/gu, " ").trim();
@@ -1020,17 +1036,30 @@ function buildGuruAnswers(snapshot) {
   // 跨机构的方向汇总。「几家在加、几家在减」是从 13F 已披露的 changeType 里数出来的，
   // 不是我们的预测；所以下面每句话都能追到具体是哪几家在动。
   const trend = buildGuruTrend(snapshot);
+  // 裸代码（TSM/AMD…）统一注中文名再往下拼句子；adds/cuts/split 三个桶
+  // 覆盖每只标的恰好一次，consensusAdds/consensusCuts 是同一批对象的
+  // 子集引用，这里改一次全链路都跟着更新。
+  [...trend.adds, ...trend.cuts, ...trend.split].forEach((row) => {
+    row.name = tickerZhLabel(row.name);
+  });
   // 家数逐只写在名字后面。三只并列却共用第一名的家数，会把 2 家的说成 3 家。
   const listCounts = (rows, key, limit = 3) => rows.slice(0, limit)
     .map((row) => `${row.name} ${row[key].length}家`)
     .join(" · ");
   const listNames = (rows, limit = 3) => rows.slice(0, limit).map((row) => row.name).join(" · ");
+  // 13F 申报名是「Duquesne Family Office」这类机构全称，卡片里换成人名的姓
+  // （德鲁肯米勒、达利欧），一行能放下；没有对应 profile 的保留申报名。
+  const surnameById = new Map(SMART_MONEY_PROFILES.map((profile) => {
+    const parts = String(profile.name || "").split(/[·\s]+/u).filter(Boolean);
+    return [profile.id, parts[parts.length - 1] || profile.name];
+  }));
+  const whoLabel = (one) => surnameById.get(one.id) || one.who;
   const listWho = (rows, key, limit = 2) => rows.slice(0, limit)
-    .map((row) => `${row.name}：${row[key].map((one) => one.who).join(" / ")}`)
+    .map((row) => `${row.name}：${row[key].map(whoLabel).join(" / ")}`)
     .join("；");
   // 卡片正文只放前三只，其余的进展开层，一只都不丢。
   const listAll = (rows, key) => rows
-    .map((row) => `${row.name} ${row[key].length}家：${row[key].map((one) => one.who).join(" / ")}`)
+    .map((row) => `${row.name} ${row[key].length}家：${row[key].map(whoLabel).join(" / ")}`)
     .join("\n");
   // 9 家机构的 13F 报告期并不都一样；buildGuruTrend 已经按报告期对齐，只留
   // 同一期的机构再数「几家在加/几家在减」，这里把具体是哪一期写出来，
@@ -1050,6 +1079,47 @@ function buildGuruAnswers(snapshot) {
   const trendAnswer = trend.totals.up + trend.totals.new + trend.totals.down > 0
     ? `${trendPeriod} ${trend.investorCount} 家里，增持/新建 ${trend.totals.up + trend.totals.new} 项、减持 ${trend.totals.down} 项，另有 ${trend.totals.exit} 项整仓退出`
     : `${trendPeriod}公开申报的变化标注不足，方向暂不下判断`;
+  // 卡面小图用的数，都是上面那几句话里已经说出来的同一批数，不另算。
+  const weightBars = holdings
+    .map((row, index) => ({ row, index, weight: Number(row.weight) }))
+    .filter(({ weight }) => Number.isFinite(weight) && weight > 0);
+  const maxWeight = Math.max(0, ...weightBars.map(({ weight }) => weight));
+  const holdingChart = weightBars.length && maxWeight > 0
+    ? {
+      kind: "bars",
+      items: weightBars.map(({ row, index, weight }) => ({
+        key: `h${index}`,
+        label: `${barLabel(tickerZhLabel(row.ticker || row.name))}${instrumentSuffix(row.putCall)}`,
+        valueText: `${weight.toFixed(1)}%`,
+        width: Math.max(4, Math.round((weight / maxWeight) * 100)),
+      })),
+    }
+    : null;
+  // 家数条的满格是这一期参与统计的机构总数，「3 家」就是七分之三那么长。
+  const countChart = (rows, key, headline) => (rows.length && trend.investorCount
+    ? {
+      kind: "bars",
+      headline,
+      items: rows.slice(0, 3).map((row, index) => ({
+        key: `${key}${index}`,
+        label: barLabel(row.name),
+        valueText: `${row[key].length}家`,
+        width: Math.max(4, Math.round((row[key].length / trend.investorCount) * 100)),
+      })),
+    }
+    : null);
+  const mixTotal = trend.totals.up + trend.totals.new + trend.totals.down + trend.totals.exit;
+  const trendChart = trend.totals.up + trend.totals.new + trend.totals.down > 0 && mixTotal > 0
+    ? {
+      kind: "mix",
+      headline: `${trend.investorCount} 家 · ${trend.reportPeriod || "本季"}`,
+      items: [
+        { key: "add", label: "增持/新建", count: trend.totals.up + trend.totals.new, tone: "add" },
+        { key: "cut", label: "减持", count: trend.totals.down, tone: "cut" },
+        { key: "exit", label: "退出", count: trend.totals.exit, tone: "exit" },
+      ].map((seg) => ({ ...seg, width: Math.round((seg.count / mixTotal) * 1000) / 10 })),
+    }
+    : null;
   const splitLine = trend.split.length
     ? `分歧：${trend.split.slice(0, 3).map((row) => `${row.name}（${row.adders.length}加${row.cutters.length}减）`).join(" · ")}`
     : "";
@@ -1066,6 +1136,7 @@ function buildGuruAnswers(snapshot) {
       action: top ? "detail" : "none",
       targetId: top?.id || "",
       enabled: Boolean(top?.id),
+      chart: holdingChart,
     }),
     card({
       id: "guru-add",
@@ -1075,6 +1146,7 @@ function buildGuruAnswers(snapshot) {
       tone: trend.consensusAdds.length ? "good" : "muted",
       action: "none",
       enabled: Boolean(trend.adds.length),
+      chart: trend.consensusAdds.length ? countChart(trend.consensusAdds, "adders", `${trend.consensusAdds.length} 只 2 家以上同向加仓`) : null,
       modal: `本季有增持或新建标注的（共 ${trend.adds.length} 只）\n${listAll(trend.adds, "adders")}`,
     }),
     card({
@@ -1085,6 +1157,7 @@ function buildGuruAnswers(snapshot) {
       tone: trend.consensusCuts.length ? "bad" : "muted",
       action: "none",
       enabled: Boolean(trend.cuts.length),
+      chart: trend.consensusCuts.length ? countChart(trend.consensusCuts, "cutters", `${trend.consensusCuts.length} 只 2 家以上同向减仓`) : null,
       modal: `本季有减持或退出标注的（共 ${trend.cuts.length} 只）\n${listAll(trend.cuts, "cutters")}`,
     }),
     card({
@@ -1096,10 +1169,11 @@ function buildGuruAnswers(snapshot) {
       // 剥掉的扁平字段）传到公开摘要 data/daily-digest.json，网页驾驶舱才读得到。
       // 折进这张卡之后曾经只留在 modal 里，而 modal 会被 publicCard() 剥掉，
       // 边界就从网页端消失了——这里放回 names，让它继续跟着扁平字段走。
-      names: [splitLine, "不照抄仓位、不把滞后披露当实时单、不复制机构杠杆"].filter(Boolean).join(" · "),
+      names: [splitLine, "不照抄仓位 · 滞后披露非实时"].filter(Boolean).join(" · "),
       tone: "warn",
       action: "none",
       enabled: true,
+      chart: trendChart,
       // 「他们怎么想 / 我们如何借鉴」原来各占一张卡，和方向汇总说的是同一件事的
       // 两个层次。收进这张卡的展开层：一屏先给方向，想看理由再点开。
       modal: [

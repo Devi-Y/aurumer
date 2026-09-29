@@ -1,5 +1,5 @@
 const { guruOverlapItems } = require("./guru-overlap");
-const { SMART_MONEY_PROFILES } = require("./smart-money");
+const { SMART_MONEY_PROFILES, annualRank } = require("./smart-money");
 const { usScore } = require("./strategy-score");
 const {
   MAGNIFICENT_SEVEN,
@@ -31,6 +31,19 @@ const US_NAMES = {
   NFLX: "奈飞", ORCL: "甲骨文", CRM: "Salesforce", SNOW: "Snowflake", SHOP: "Shopify",
   UBER: "优步", JPM: "摩根大通", "BRK.B": "伯克希尔", LLY: "礼来", COST: "好市多",
 };
+
+// 裸代码对没炒过美股的读者不成句子（"TSM" "AMD"），括注中文名才是——
+// 「TSM（台积电）」。只在代码正好对得上 US_NAMES 时补，查不到就原样返回，
+// 不瞎猜公司名。调用方（section/index.js、daily-answers.js）已经在安全地
+// require 这个文件，把括注逻辑放在这里，不要下沉到 guru-changes.js /
+// guru-trend.js 这两个反过来被这个文件间接依赖的叶子模块，否则会绕出一个
+// 真实的循环依赖（answers → market-lenses → strategy-signals → guru-changes）。
+function tickerZhLabel(code) {
+  const key = String(code || "").trim().toUpperCase();
+  if (!/^[A-Z]{1,5}$/u.test(key)) return code || "";
+  const zh = US_NAMES[key];
+  return zh ? `${key}（${zh}）` : key;
+}
 
 const INVESTOR_NAMES = {
   buffett: "巴菲特 / 伯克希尔", munger: "查理·芒格（历史参考）", lilu: "李录 / 喜马拉雅",
@@ -442,7 +455,6 @@ function usItems(snapshot) {
 
 function smartMoneyItems(snapshot) {
   const liveById = new Map((snapshot.investors || []).map((item) => [item.id, item]));
-  const counts = { hk: 3, us: 9, a: 3 };
   return SMART_MONEY_PROFILES.map((profile) => {
     const live = liveById.get(profile.id);
     const holdings = live && Array.isArray(live.holdings)
@@ -465,7 +477,7 @@ function smartMoneyItems(snapshot) {
       score: null,
       rank: profile.order,
       scoreText: `${holdings.length}只持仓`,
-      rankText: `第 ${profile.order}/${counts[profile.group]}`,
+      rankText: annualRank(profile) ? `第 ${annualRank(profile).rank}/${annualRank(profile).count}` : "",
       one: `原因：${String(profile.why || "公开可核验").slice(0, 36)}｜学法：${String(profile.how || "学框架不照抄").slice(0, 28)}`,
       raw: {
         ...live,
@@ -872,9 +884,9 @@ function groupDefinitions(snapshot, market) {
   } else {
     definitions = [
       ["hk", "港股 · 3 个", "公开长期年化排序"],
-      ["us", "美股 · 5 个", "公开长期年化排序"],
+      ["us", "美股 · 9 个", "公开长期年化排序"],
       ["a", "A股 · 3 个", "公开长期年化排序"],
-      ["overlap", "交叉重叠", "多机构共同持有，研究对照非推荐"],
+      ["overlap", "交叉重叠", "多机构共同持有"],
     ];
   }
   return definitions.map(([id, title, one, catalog]) => ({
@@ -923,6 +935,7 @@ module.exports = {
   // 资讯流要给「没进任何分组、因而不在 allItems 里」的标的写中文名（公告涵盖
   // 的公司比分组多）。名字只能有一份，所以从这里导出，不要在别处再抄一张表。
   US_NAMES,
+  tickerZhLabel,
   allItems,
   findItem,
   groupDefinitions,

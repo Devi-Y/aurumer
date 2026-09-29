@@ -1,25 +1,33 @@
+/* 首页配色：蓝白灰。品牌蓝 #1d5fd1，文字三档灰，涨跌只在数字和柱子上用红绿。 */
+
 .home-shell {
   min-height: 100vh;
   box-sizing: border-box;
   padding: 0 0 calc(28rpx + env(safe-area-inset-bottom));
   overflow-x: hidden;
-  background: #f5f7f6;
+  background: #f4f6f9;
 }
 
 .home-panel {
-  margin: 20rpx 20rpx 0;
+  margin: 16rpx 20rpx 0;
   padding: 6rpx 0 0;
 }
 
-.home-panel + .home-panel {
-  margin-top: 16rpx;
+/* 走势在最上面：标题行不装进卡片，灰字贴在走势卡上方。 */
+.group-head.home-head {
+  margin: 12rpx 20rpx 0;
+  padding-right: 4rpx;
 }
 
-/* 分组标题照截图里那种灰色小字，不跟正文抢重量。 */
+.home-head .group-label {
+  padding-left: 4rpx;
+}
+
+/* 分组标题是灰色小字，不跟正文抢重量。 */
 .group-label {
   display: block;
   padding: 18rpx 24rpx 4rpx;
-  color: #8b938e;
+  color: #8a929e;
   font-size: 24rpx;
   font-weight: 600;
 }
@@ -40,28 +48,13 @@
   min-width: 0;
   flex: none;
   overflow: hidden;
-  color: #9aa19c;
+  color: #9aa1ab;
   font-size: 22rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.group-tag {
-  flex: none;
-  padding: 4rpx 12rpx;
-  border-radius: 999rpx;
-  background: #f2f4f3;
-  color: #8b938e;
-  font-size: 21rpx;
-  font-weight: 620;
-}
-
-.group-tag.on {
-  background: #eef5f1;
-  color: #0b7a53;
-}
-
-/* ---------- 核心研究：六宫格 ---------- */
+/* ---------- 九宫格 ---------- */
 
 .entry-grid {
   display: flex;
@@ -70,10 +63,12 @@
   padding: 8rpx 0 20rpx;
 }
 
+/* 年费条撤掉后，九宫格是首页主要的点按区；小屏收紧内边距时仍保住 176rpx 的触控高度。 */
 .grid-card {
   box-sizing: border-box;
   display: flex;
   width: 33.333%;
+  min-height: 176rpx;
   min-width: 0;
   flex: 0 0 33.333%;
   flex-direction: column;
@@ -92,11 +87,12 @@
   align-items: center;
   justify-content: center;
   border-radius: 32rpx;
-  background: #edf3ec;
+  background: #edf2fb;
 }
 
-.entry-icon-chip.gold {
-  background: #f6f0e4;
+/* 服务格不是研究栏目，底色退成灰，和六个栏目分得开。 */
+.entry-icon-chip.svc {
+  background: #f1f3f6;
 }
 
 .entry-icon {
@@ -108,211 +104,115 @@
   display: block;
   max-width: 100%;
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1f27;
   font-size: 27rpx;
   font-weight: 620;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ---------- 今日重点：深色卡，照抄原型 .wc-today ---------- */
-
-.today-card {
-  box-sizing: border-box;
-  margin: 20rpx 20rpx 0;
-  padding: 44rpx;
-  border-radius: 40rpx;
-  background: #204937;
-}
-
-.today-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-}
-
-.today-title {
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 48rpx;
-  color: #f4f7ef;
-  letter-spacing: 2rpx;
-}
-
-.today-badge {
-  flex: none;
-  padding: 6rpx 16rpx;
-  border-radius: 14rpx;
-  border: 1rpx solid #edd7ab45;
-  background: #ffffff14;
-  color: #c1d1c5;
-  font-size: 22rpx;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.today-badge.on {
-  color: #e2d2a9;
-}
-
-.today-sub {
-  display: block;
-  margin-top: 14rpx;
-  color: #c1d1c5;
-  font-size: 24rpx;
-}
-
-.today-list {
-  display: flex;
-  margin: 34rpx 0 28rpx;
-  flex-direction: column;
-}
-
-.today-row {
-  box-sizing: border-box;
-  display: grid;
-  min-height: 108rpx;
-  grid-template-columns: 46rpx 1fr 32rpx;
-  align-items: center;
-  gap: 18rpx;
-  padding: 26rpx 0;
-  border-bottom: 1rpx solid #ffffff18;
-}
-
-.today-row:last-child {
-  border-bottom: 0;
-}
-
-.today-row-tap {
-  background: #ffffff0d;
-}
-
-.today-no {
-  font-family: Georgia, serif;
-  font-size: 36rpx;
-  color: #c7b88f;
-}
-
-.today-row-body {
-  min-width: 0;
-  overflow: hidden;
-  color: #f4f7ef;
-  font-size: 27rpx;
-  line-height: 1.5;
-}
-
-.today-row-market {
-  color: #c1d1c5;
-  font-size: 24rpx;
-}
-
-.today-row-hint {
-  display: block;
-  overflow: hidden;
-  margin-top: 8rpx;
-  color: #c1d1c5;
-  font-size: 24rpx;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.today-row-icon {
-  flex: none;
-  color: #c1d1c5;
-  font-size: 30rpx;
-  text-align: right;
-}
-
-.today-empty {
-  padding: 26rpx 0;
-  color: #c1d1c5;
-  font-size: 26rpx;
-}
-
-.today-foot {
-  display: flex;
-  gap: 12rpx;
-}
-
-.today-btn {
-  display: flex;
-  min-height: 76rpx;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  padding: 0 12rpx;
-  border-radius: 14rpx;
-  background: #e3ebdf;
-  color: #244633;
-  font-size: 26rpx;
-  font-weight: 640;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.today-btn.ghost {
-  flex: none;
-  padding: 0 32rpx;
-  background: transparent;
-  color: #c1d1c5;
-  font-size: 25rpx;
-  font-weight: 600;
-}
-
-/* 会员态：主按钮下面照原型再放一行——左边是数据更新时间，右边是「我的会员」。 */
-.today-between {
-  display: flex;
-  margin-top: 18rpx;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12rpx;
-}
-
-.today-between-time {
-  min-width: 0;
-  overflow: hidden;
-  color: #93a399;
-  font-size: 22rpx;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 未开通时这条既是说明也是入口，价格放文案里不用再点进去才知道多少钱。 */
-.today-cta {
-  display: flex;
-  min-height: 84rpx;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14rpx;
-  background: #e3ebdf;
-  color: #244633;
-  font-size: 27rpx;
-  font-weight: 680;
-}
-
-/* 查询失败不能长得跟「未开通」一样自信——换个不确定的底色，文案说清是失败不是拒绝。 */
-.today-cta.error {
-  background: #f7e9c9;
-  color: #6b4a16;
-}
-
-.today-sample-link-wrap {
-  display: flex;
-  margin-top: 16rpx;
-  justify-content: center;
-}
-
-.today-sample-link {
-  padding: 10rpx 20rpx;
-  color: #c1d1c5;
-  font-size: 25rpx;
-  font-weight: 600;
-}
-
 .tap-active {
-  background: #eef8f2;
+  background: #edf2fb;
 }
+
+/* ---------- 走势：2×2，一个数 + 一张图 ---------- */
+
+.trend-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin: 8rpx 20rpx 0;
+}
+
+.trend-card {
+  box-sizing: border-box;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6rpx;
+  padding: 22rpx 22rpx 20rpx;
+  border: 1rpx solid #e6e9ef;
+  border-radius: 24rpx;
+  background: #ffffff;
+}
+
+.trend-title {
+  overflow: hidden;
+  color: #8a929e;
+  font-size: 23rpx;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trend-figure {
+  display: flex;
+  align-items: baseline;
+  gap: 10rpx;
+  min-width: 0;
+}
+
+.trend-value {
+  flex: none;
+  color: #1a1f27;
+  font-size: 38rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-sub {
+  min-width: 0;
+  overflow: hidden;
+  color: #8a929e;
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trend-sub.up { color: #c2412d; }
+.trend-sub.down { color: #0b7a53; }
+
+/* 折线图片的宽高比要和 sparklineSvg 的 300×104 一致，线才不会被拉变形。 */
+.trend-bars,
+.trend-line {
+  display: block;
+  width: 100%;
+  height: 104rpx;
+  margin-top: 8rpx;
+}
+
+.trend-bars {
+  position: relative;
+  display: flex;
+  gap: 6rpx;
+}
+
+.trend-zero {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1rpx;
+  background: #dde2ea;
+}
+
+.trend-slot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.trend-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 3rpx;
+  background: #c8ced8;
+}
+
+.trend-bar.up { background: #c2412d; }
+.trend-bar.down { background: #0b7a53; }
 
 .page-footer {
   display: flex;
@@ -324,26 +224,22 @@
 
 .footer-note {
   max-width: 560rpx;
-  color: #9aa19c;
+  color: #9aa1ab;
   font-size: 22rpx;
   line-height: 1.55;
 }
 
 @media (max-width: 340px) {
   .home-panel { margin-left: 12rpx; margin-right: 12rpx; }
-  .home-panel + .home-panel { margin-top: 12rpx; }
   .grid-card { padding: 16rpx 6rpx; gap: 10rpx; }
   .entry-icon-chip { width: 84rpx; height: 84rpx; }
   .entry-icon { width: 44rpx; height: 44rpx; }
   .card-title { font-size: 24rpx; }
-  .today-card { margin-left: 12rpx; margin-right: 12rpx; padding: 32rpx; }
-  .today-title { font-size: 40rpx; }
-  .today-row-body { font-size: 25rpx; }
+  .trend-grid, .group-head.home-head { margin-left: 12rpx; margin-right: 12rpx; }
 }
 
 @media (min-width: 700px) {
-  .home-panel { margin-right: 32px; margin-left: 32px; }
-  .today-card { margin-right: 32px; margin-left: 32px; }
+  .home-panel, .trend-grid, .group-head.home-head { margin-right: 32px; margin-left: 32px; }
   .entry-icon-chip { width: 49px; height: 49px; }
   .entry-icon { width: 25px; height: 25px; }
 }

@@ -91,7 +91,28 @@
     </view>
 
     <block wx:if="{{hkSubTab === 'apply'}}">
-      <view class="hk-hint"><text>{{hkApplyHint}}</text></view>
+      <!-- 近期上市新股首日涨跌，一根柱一只，从早到晚；红涨绿跌，零轴是发行价。 -->
+      <view
+        wx:if="{{hkFirstDayChart}}"
+        class="hk-fd"
+        aria-label="近{{hkFirstDayChart.count}}只新股首日，{{hkFirstDayChart.upText}}收涨，中位数{{hkFirstDayChart.medianText}}"
+      >
+        <view class="hk-fd-head">
+          <text class="hk-fd-title">近 {{hkFirstDayChart.count}} 只首日</text>
+          <view class="hk-fd-figs">
+            <text class="hk-fd-value">{{hkFirstDayChart.upText}}</text>
+            <text class="hk-fd-k">收涨</text>
+            <text class="hk-fd-value is-{{hkFirstDayChart.medianTone}}">{{hkFirstDayChart.medianText}}</text>
+            <text class="hk-fd-k">中位</text>
+          </view>
+        </view>
+        <view class="hk-fd-bars" aria-hidden="true">
+          <view class="hk-fd-zero" style="{{hkFirstDayChart.zeroStyle}}"></view>
+          <view wx:for="{{hkFirstDayChart.bars}}" wx:for-item="bar" wx:key="key" class="hk-fd-slot">
+            <view class="hk-fd-bar {{bar.tone}}" style="{{bar.style}}"></view>
+          </view>
+        </view>
+      </view>
       <view class="hk-stock-list" wx:if="{{hkApplyList.length}}">
         <view
           wx:for="{{hkApplyList}}"
@@ -108,22 +129,29 @@
               <text class="hk-stock-name">{{item.name}}</text>
               <text class="hk-code">{{item.code}}</text>
             </view>
+            <view class="hk-score" wx:if="{{item.score}}">
+              <text class="hk-score-value">{{item.score}}</text>
+              <text class="hk-score-label">评分</text>
+            </view>
             <text class="hk-badge tone-{{item.tone}}">{{item.badgeText}}</text>
           </view>
-          <text class="hk-row-reason">{{item.reason}}</text>
+          <view class="hk-stats">
+            <view wx:for="{{item.stats}}" wx:for-item="stat" wx:key="label" class="hk-stat">
+              <text class="hk-stat-label">{{stat.label}}</text>
+              <text class="hk-stat-value">{{stat.value}}</text>
+            </view>
+          </view>
           <view class="hk-row-meta">
             <text>{{item.deadlineLabel}}</text>
-            <text>看依据 →</text>
+            <text class="hk-row-caret">›</text>
           </view>
         </view>
       </view>
       <view class="hk-empty" wx:else><text>当前没有在售新股，稍后再来看看。</text></view>
-      <text class="hk-note">发行、截止时间按公开披露更新；缺失字段显示「待更新」，不编内容。</text>
     </block>
 
     <block wx:if="{{hkSubTab === 'exit'}}">
       <block wx:if="{{hkExitOptions.length}}">
-        <text class="hk-picker-label">选择已结束申购的新股</text>
         <picker
           class="hk-picker"
           mode="selector"
@@ -140,11 +168,12 @@
 
         <view class="hk-exit-card" wx:if="{{hkExitView}}">
           <view class="hk-row-between">
-            <text class="hk-exit-name">{{hkExitView.name}}</text>
+            <view class="hk-row-name-wrap">
+              <text class="hk-exit-name">{{hkExitView.name}}</text>
+              <text class="hk-code" wx:if="{{hkExitView.oversubText}}">{{hkExitView.oversubText}}</text>
+            </view>
             <text class="hk-badge tone-{{hkExitView.tone}}">{{hkExitView.badgeText}}</text>
           </view>
-
-          <view class="hk-hint"><text>{{hkExitView.guidance}}</text></view>
 
           <view class="hk-exit-rows" wx:if="{{hkExitView.plan.rows.length}}">
             <view wx:for="{{hkExitView.plan.rows}}" wx:for-item="row" wx:key="label" class="hk-exit-row">
@@ -152,31 +181,34 @@
               <text class="hk-exit-row-value">{{row.value}}</text>
             </view>
           </view>
-          <text wx:else class="hk-empty-text">样本不足，暂不形成分位判断。</text>
-
-          <view class="hk-risk-line" wx:if="{{hkExitView.plan.basis}}">
-            <text>{{hkExitView.plan.basis}}</text>
+        </view>
+      </block>
+      <view class="hk-empty is-compact" wx:else><text>暂无待配发新股</text></view>
+      <view class="hk-tier-chart" wx:if="{{hkExitChart && (!hkExitView || hkExitView.showTierChart)}}">
+        <text class="hk-tier-title">同类新股打中后涨跌</text>
+        <view class="hk-tier-legend">
+          <view wx:for="{{hkExitChart.legend}}" wx:key="key" class="hk-tier-legend-item {{hkExitView.tier === item.key ? 'is-mine' : ''}}">
+            <view class="hk-tier-dot tier-{{item.key}}"></view>
+            <text>{{item.label}}</text>
+            <text wx:if="{{hkExitView.tier === item.key}}" class="hk-tier-mine">本股</text>
           </view>
-
-          <view class="hk-details">
-            <view
-              class="hk-details-toggle"
-              bindtap="toggleHkEvidence"
-              hover-class="tap-active"
-              aria-role="button"
-              aria-label="区间依据与失效条件"
-            >
-              <text>区间依据与失效条件</text>
-              <text>{{hkEvidenceOpen ? '−' : '+'}}</text>
-            </view>
-            <view class="hk-details-body" wx:if="{{hkEvidenceOpen}}">
-              <text>分位数据来自历史新股样本的暗盘/首日/首周涨跌统计，按公开超购倍数分档取中位；整数对照价不是本股的保证卖出价。</text>
-              <text>若认购热度明显降温、或后续披露与预期不同，应重新评估上方分位的参考意义。</text>
+        </view>
+        <view wx:for="{{hkExitChart.groups}}" wx:for-item="group" wx:key="label" class="hk-tier-group">
+          <text class="hk-tier-stage">{{group.label}}</text>
+          <view class="hk-tier-bars">
+            <view wx:for="{{group.bars}}" wx:for-item="bar" wx:key="tier" class="hk-tier-row {{hkExitView.tier && hkExitView.tier !== bar.tier ? 'is-dim' : ''}}">
+              <view class="hk-tier-track">
+                <view class="hk-tier-zero" style="left: {{hkExitChart.zero}}%;"></view>
+                <view class="hk-tier-bar tier-{{bar.tier}} is-{{bar.dir}}" style="left: {{bar.left}}%; width: {{bar.width}}%;"></view>
+              </view>
+              <text class="hk-tier-value is-{{bar.dir}}">{{bar.valueText}}</text>
+              <text class="hk-tier-ratio">{{bar.ratioText}}</text>
             </view>
           </view>
         </view>
-      </block>
-      <view class="hk-empty" wx:else><text>当前没有已结束申购的新股可选。</text></view>
+        <text class="hk-tier-foot">{{hkExitChart.sampleText}}</text>
+      </view>
+      <text wx:if="{{!hkExitChart && !hkExitOptions.length}}" class="hk-empty-text">历史样本不足</text>
     </block>
   </view>
 
@@ -204,7 +236,23 @@
     </view>
 
     <block wx:if="{{usSubTab === 'seven'}}">
-      <view class="us-hint"><text>{{usSevenHint}}</text></view>
+      <view class="us-mix" wx:if="{{usSevenMix.length}}" aria-label="{{usSevenHint}}">
+        <view class="us-mix-bar">
+          <view
+            wx:for="{{usSevenMix}}"
+            wx:key="label"
+            class="us-mix-seg tone-{{item.tone}}"
+            style="flex: {{item.count}};"
+          ></view>
+        </view>
+        <view class="us-mix-legend">
+          <view wx:for="{{usSevenMix}}" wx:key="label" class="us-mix-item">
+            <view class="us-mix-dot tone-{{item.tone}}"></view>
+            <text>{{item.label}}</text>
+            <text class="us-mix-count">{{item.count}}</text>
+          </view>
+        </view>
+      </view>
       <view class="us-stock-list" wx:if="{{usSevenList.length}}">
         <view
           wx:for="{{usSevenList}}"
@@ -216,19 +264,20 @@
           aria-role="button"
           aria-label="{{item.name}}，{{item.badgeText}}，{{item.reason}}"
         >
-          <view class="us-monogram">{{item.monogram}}</view>
-          <view class="us-row-main">
-            <view class="us-row-between">
-              <view class="us-row-name-wrap">
-                <text class="us-stock-name">{{item.name}}</text>
-                <text class="us-code">{{item.code}}</text>
-              </view>
+          <!-- 一行三列：名字 + 判断 | 60 日走势 | 现价 + 今日涨跌。PE、营收和
+               60 日区间点位都在走势图和详情页里，列表不再逐项念一遍。 -->
+          <view class="us-row-name-col">
+            <text class="us-stock-name">{{item.name}}</text>
+            <view class="us-row-tags">
+              <text class="us-code">{{item.code}}</text>
               <text class="us-badge tone-{{item.tone}}">{{item.badgeText}}</text>
             </view>
-            <text class="us-row-reason">{{item.reason}}</text>
           </view>
+          <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
+          <view wx:else class="us-spark"></view>
           <view class="us-right">
-            <text class="us-price">{{item.priceLabel}}</text>
+            <text class="us-price">{{item.priceText}}</text>
+            <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
         </view>
       </view>
@@ -236,47 +285,38 @@
     </block>
 
     <block wx:if="{{usSubTab === 'hot'}}">
-      <view class="us-hint"><text>{{usHotHint}}</text></view>
-      <view class="us-hot-list" wx:if="{{usHotList.length}}">
+      <view class="us-stock-list" wx:if="{{usHotList.length}}">
         <view
           wx:for="{{usHotList}}"
           wx:key="id"
-          class="us-hot-card"
+          class="us-stock-row"
           data-id="{{item.id}}"
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，{{item.why}}"
+          aria-label="{{item.name}}，热度 {{item.heatText}}，{{item.why}}，{{item.takeText}}"
         >
-          <view class="us-row-between">
-            <text class="us-hot-name">{{item.name}}</text>
-            <text class="us-badge tone-{{item.takeTone}}">{{item.takeText}}</text>
+          <view class="us-row-name-col">
+            <text class="us-stock-name">{{item.name}}</text>
+            <view class="us-row-tags">
+              <text class="us-code">{{item.code}}</text>
+              <text class="us-badge tone-{{item.takeTone}}">{{item.takeText}}</text>
+            </view>
           </view>
-          <text class="us-hot-why">{{item.why}}</text>
-          <view class="us-details" wx:if="{{item.note}}">
-            <view
-              class="us-details-toggle"
-              data-id="{{item.id}}"
-              catchtap="toggleUsHotEvidence"
-              hover-class="tap-active"
-              aria-role="button"
-              aria-label="看估值与价格依据"
-            >
-              <text>看估值与价格依据</text>
-              <text>{{item.evidenceOpen ? '−' : '+'}}</text>
-            </view>
-            <view class="us-details-body" wx:if="{{item.evidenceOpen}}">
-              <text>{{item.note}}</text>
-            </view>
+          <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
+          <view wx:else class="us-spark"></view>
+          <view class="us-right">
+            <text class="us-heat-value">{{item.heatText}}</text>
+            <text class="us-heat-label">热度</text>
           </view>
         </view>
       </view>
       <view class="us-empty" wx:else><text>近期没有明显热度突出的美股。</text></view>
-      <text class="us-note">热度、涨跌按公开行情计算；缺失字段显示「待更新」，不编事件原因。</text>
     </block>
   </view>
 
-  <!-- A股收息按原型忠实复刻：「分红稳定性/分红收益性」前五，每行带参考买卖价。
+  <!-- A股收息：「分红稳定性/分红收益性」前五。每行一个大指标 + 指标条，
+       下方是参考买—参考卖区间条，圆点是现价落在区间里的位置。
        原型demo编了「连续分红N年」，真实数据没有这个字段，换成算出来的稳定性分。 -->
   <view wx:if="{{market === 'a'}}" class="page-card a-card">
     <view class="a-tabs">
@@ -299,110 +339,131 @@
     </view>
 
     <block wx:if="{{aSubTab === 'stable'}}">
-      <view class="a-hint"><text>{{aStableHint}}</text></view>
-      <view class="a-table" wx:if="{{aStableList.length}}">
-        <view class="a-table-head">
-          <text class="a-col-name">股票</text>
-          <text class="a-col-metric">稳定性</text>
-          <text class="a-col-buy">参考买</text>
-          <text class="a-col-sell">参考卖</text>
-        </view>
+      <view class="a-rows" wx:if="{{aStableList.length}}">
         <view
           wx:for="{{aStableList}}"
           wx:key="id"
-          class="a-table-row"
+          class="a-row"
           data-id="{{item.id}}"
           bindtap="openADetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，第{{item.rank}}名，稳定性{{item.metricText}}"
+          aria-label="{{item.name}}，第{{item.rank}}名，{{item.metricLabel}}{{item.metricText}}{{item.metricUnit}}"
         >
-          <view class="a-col-name">
-            <view class="a-name-row">
-              <text class="a-stock-name">{{item.name}}</text>
-              <text class="a-badge tone-{{item.tone}}">{{item.badgeText}}</text>
+          <view class="a-row-top">
+            <text class="a-rank">{{item.rank}}</text>
+            <view class="a-row-main">
+              <view class="a-name-row">
+                <text class="a-stock-name">{{item.name}}</text>
+                <text class="a-badge tone-{{item.tone}}">{{item.badgeText}}</text>
+              </view>
+              <text class="a-code">{{item.code}}</text>
             </view>
-            <text class="a-code">{{item.code}} · 第{{item.rank}}名</text>
+            <view class="a-metric">
+              <view class="a-metric-num">
+                <text class="a-metric-value">{{item.metricText}}</text>
+                <text class="a-metric-unit" wx:if="{{item.metricUnit}}">{{item.metricUnit}}</text>
+              </view>
+              <view class="a-metric-track"><view class="a-metric-fill" style="width: {{item.metricBar}}%;"></view></view>
+            </view>
           </view>
-          <text class="a-col-metric">{{item.metricText}}</text>
-          <text class="a-col-buy">{{item.buyText}}</text>
-          <text class="a-col-sell">{{item.sellText}}</text>
+          <view class="a-ladder" wx:if="{{item.hasPricePos}}">
+            <view class="a-ladder-side">
+              <text class="a-ladder-k">参考买</text>
+              <text class="a-ladder-v is-buy">{{item.buyText}}</text>
+            </view>
+            <view class="a-ladder-mid">
+              <text class="a-ladder-now zone-{{item.priceZone}}" style="left: {{item.priceLabelPos}}%;">现价 {{item.priceText}}</text>
+              <view class="a-ladder-track">
+                <view class="a-ladder-dot zone-{{item.priceZone}}" style="left: {{item.pricePos}}%;"></view>
+              </view>
+            </view>
+            <view class="a-ladder-side is-right">
+              <text class="a-ladder-k">参考卖</text>
+              <text class="a-ladder-v is-sell">{{item.sellText}}</text>
+            </view>
+          </view>
         </view>
       </view>
       <view class="a-empty" wx:else><text>分红稳定性榜单暂不足以显示。</text></view>
     </block>
 
     <block wx:if="{{aSubTab === 'yield'}}">
-      <view class="a-hint"><text>{{aYieldHint}}</text></view>
-      <view class="a-table" wx:if="{{aYieldList.length}}">
-        <view class="a-table-head">
-          <text class="a-col-name">股票</text>
-          <text class="a-col-metric">可持续股息率</text>
-          <text class="a-col-buy">参考买</text>
-          <text class="a-col-sell">参考卖</text>
-        </view>
+      <view class="a-rows" wx:if="{{aYieldList.length}}">
         <view
           wx:for="{{aYieldList}}"
           wx:key="id"
-          class="a-table-row"
+          class="a-row"
           data-id="{{item.id}}"
           bindtap="openADetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，第{{item.rank}}名，可持续股息率{{item.metricText}}"
+          aria-label="{{item.name}}，第{{item.rank}}名，{{item.metricLabel}}{{item.metricText}}{{item.metricUnit}}"
         >
-          <view class="a-col-name">
-            <view class="a-name-row">
-              <text class="a-stock-name">{{item.name}}</text>
-              <text class="a-badge tone-{{item.tone}}">{{item.badgeText}}</text>
+          <view class="a-row-top">
+            <text class="a-rank">{{item.rank}}</text>
+            <view class="a-row-main">
+              <view class="a-name-row">
+                <text class="a-stock-name">{{item.name}}</text>
+                <text class="a-badge tone-{{item.tone}}">{{item.badgeText}}</text>
+              </view>
+              <text class="a-code">{{item.code}}</text>
             </view>
-            <text class="a-code">{{item.code}} · 第{{item.rank}}名</text>
+            <view class="a-metric">
+              <view class="a-metric-num">
+                <text class="a-metric-value">{{item.metricText}}</text>
+                <text class="a-metric-unit" wx:if="{{item.metricUnit}}">{{item.metricUnit}}</text>
+              </view>
+              <view class="a-metric-track"><view class="a-metric-fill" style="width: {{item.metricBar}}%;"></view></view>
+            </view>
           </view>
-          <text class="a-col-metric">{{item.metricText}}</text>
-          <text class="a-col-buy">{{item.buyText}}</text>
-          <text class="a-col-sell">{{item.sellText}}</text>
+          <view class="a-ladder" wx:if="{{item.hasPricePos}}">
+            <view class="a-ladder-side">
+              <text class="a-ladder-k">参考买</text>
+              <text class="a-ladder-v is-buy">{{item.buyText}}</text>
+            </view>
+            <view class="a-ladder-mid">
+              <text class="a-ladder-now zone-{{item.priceZone}}" style="left: {{item.priceLabelPos}}%;">现价 {{item.priceText}}</text>
+              <view class="a-ladder-track">
+                <view class="a-ladder-dot zone-{{item.priceZone}}" style="left: {{item.pricePos}}%;"></view>
+              </view>
+            </view>
+            <view class="a-ladder-side is-right">
+              <text class="a-ladder-k">参考卖</text>
+              <text class="a-ladder-v is-sell">{{item.sellText}}</text>
+            </view>
+          </view>
         </view>
       </view>
       <view class="a-empty" wx:else><text>分红收益性榜单暂不足以显示。</text></view>
     </block>
 
-    <text class="a-risk-line">分红可能因经营或政策调整；股息率高不等于风险低，需要结合稳定性一起看。</text>
-
-    <view class="a-details">
-      <view
-        class="a-details-toggle"
-        bindtap="toggleAEvidence"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-label="排序与价格依据"
-      >
-        <text>排序与价格依据</text>
-        <text>{{aEvidenceOpen ? '−' : '+'}}</text>
-      </view>
-      <view class="a-details-body" wx:if="{{aEvidenceOpen}}">
-        <text wx:if="{{aSubTab === 'stable'}}">排序依据分红覆盖率、自由现金流、现金转化率与ROE加权算出的稳定性分，分越高越拿得住。</text>
-        <text wx:else>先排除高息待核（靠不住的高息）标的，剩下的按可持续股息率从高到低排；参考买卖价按可持续股息率区间回推，不是保证成交价。</text>
-        <text>样本仅覆盖已接入实时行情与财务数据的公开公司，缺失字段显示「待更新」，不编内容。</text>
-      </view>
-    </view>
-
+    <!-- 红利 ETF：现价 + 今日 + 90 日走势线，跟踪指数和费率缩成一行小字。 -->
     <view class="a-fund-card" wx:if="{{aFund}}">
       <view class="a-row-between">
         <view class="a-row-name-wrap">
           <text class="a-stock-name">{{aFund.name}}</text>
           <text class="a-code">{{aFund.code}}</text>
         </view>
-        <text class="a-badge tone-caution">基金候补</text>
+        <text class="a-badge tone-caution">{{aFund.badgeText}}</text>
       </view>
-      <text class="a-fund-note">{{aFund.note}}</text>
-      <text class="a-fund-hint">不与股票混排；基金分配率与股票股息率分别计算，仅供参考。</text>
+      <view class="a-fund-figure">
+        <text class="a-fund-price">{{aFund.priceText}}</text>
+        <text class="a-fund-change is-{{aFund.changeTone}}">{{aFund.changeText}}</text>
+        <text wx:if="{{aFund.hasSpark}}" class="a-fund-period is-{{aFund.sparkTone}}">{{aFund.sparkDays}}日 {{aFund.sparkChangeText}}</text>
+      </view>
+      <image wx:if="{{aFund.hasSpark}}" class="a-fund-spark" src="{{aFund.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
+      <view class="a-fund-stats">
+        <text wx:for="{{aFund.stats}}" wx:key="label" class="a-fund-stat"><text class="a-fund-stat-k">{{item.label}}</text> {{item.value}}</text>
+      </view>
     </view>
   </view>
 
   <!-- 黄金追踪按原型忠实复刻：币种切换 + 观察区/走势图 + 拐点判断两块面板。
        原型默认币种是人民币金，这里改成国际金——国际金有180天真实收盘价能画
        走势图，人民币金只有2天真实数据画不出图，让用户先看数据撑得起的口径。
-       走势图沿用详情页 column-chart 的柱状图技术（WXML 没有原生 svg）。 -->
+       走势图沿用详情页 line-chart 的 Canvas 2D 曲线画法（WXML 没有原生 svg），
+       比柱状图更直观地看出价格连续变化的方向。 -->
   <view wx:if="{{market === 'gold'}}" class="page-card gold-card">
     <view class="gold-quotes">
       <view
@@ -418,6 +479,13 @@
         <text class="gold-quote-label">{{item.label}}</text>
         <text class="gold-quote-price">{{item.priceText}}</text>
         <text class="gold-quote-unit">{{item.unit}}</text>
+        <view class="gold-score" wx:if="{{item.hasScore}}">
+          <view class="gold-score-head">
+            <text class="gold-score-k">观察分</text>
+            <text class="gold-score-v">{{item.scoreText}}</text>
+          </view>
+          <view class="gold-score-track"><view class="gold-score-fill" style="width: {{item.scoreWidth}}%;"></view></view>
+        </view>
       </view>
     </view>
 
@@ -427,7 +495,8 @@
         <text class="gold-badge tone-{{goldZoneTone}}">{{goldBadgeText}}</text>
       </view>
       <view class="gold-row-sub">
-        <text class="gold-currency-label">{{goldCurrencyLabel}}</text>
+        <text wx:if="{{goldChart}}" class="gold-change is-{{goldChart.changeTone}}">{{goldChart.changeText}}</text>
+        <text wx:else class="gold-currency-label">{{goldCurrencyLabel}}</text>
         <view class="gold-periods" wx:if="{{goldPeriods.length}}">
           <text
             wx:for="{{goldPeriods}}"
@@ -443,11 +512,7 @@
       </view>
 
       <view wx:if="{{goldChart}}" class="gold-chart">
-        <view class="gold-chart-bars">
-          <view wx:for="{{goldChart.columns}}" wx:for-item="col" wx:key="id" class="gold-chart-slot">
-            <view class="gold-chart-bar {{col.tone}}" style="height: {{col.height}}%;"></view>
-          </view>
-        </view>
+        <canvas type="2d" id="{{goldChart.canvasId}}" class="gold-chart-canvas"></canvas>
         <view class="gold-chart-labels">
           <text>{{goldChart.lowLabel}}</text>
           <text>{{goldChart.latestLabel}}</text>
@@ -456,22 +521,31 @@
       </view>
       <text wx:else class="gold-chart-empty">{{goldChartNote}}</text>
 
-      <view class="gold-zone-grid">
-        <view class="gold-zone">
-          <text class="gold-zone-label">参考观察低位</text>
-          <text class="gold-zone-value">{{goldBuyText}}</text>
+      <!-- 研究价位轴：红线=风险下沿，绿段=观察低位，琥珀段=观察上沿，圆点=现价 -->
+      <view class="gold-ladder" wx:if="{{goldLadder}}">
+        <view class="gold-ladder-axis">
+          <text class="gold-ladder-now tone-{{goldZoneTone}}" style="left: {{goldLadder.priceLabelLeft}}%;">现价 {{goldLadder.priceText}}</text>
+          <view class="gold-ladder-track">
+            <view class="gold-ladder-band is-watch" style="left: {{goldLadder.watchLeft}}%; width: {{goldLadder.watchWidth}}%;"></view>
+            <view class="gold-ladder-band is-upper" style="left: {{goldLadder.upperLeft}}%; width: {{goldLadder.upperWidth}}%;"></view>
+            <view wx:if="{{goldLadder.hasRisk}}" class="gold-ladder-risk" style="left: {{goldLadder.riskLeft}}%;"></view>
+            <view class="gold-ladder-dot tone-{{goldZoneTone}}" style="left: {{goldLadder.priceLeft}}%;"></view>
+          </view>
         </view>
-        <view class="gold-zone warn">
-          <text class="gold-zone-label">参考观察上沿</text>
-          <text class="gold-zone-value">{{goldSellText}}</text>
+        <view class="gold-ladder-legend">
+          <view wx:for="{{goldLadder.tiles}}" wx:key="key" class="gold-ladder-key is-{{item.key}}">
+            <view class="gold-ladder-key-head">
+              <view class="gold-ladder-swatch"></view>
+              <text class="gold-ladder-key-label">{{item.label}}</text>
+            </view>
+            <text class="gold-ladder-key-value">{{item.value}}</text>
+          </view>
         </view>
       </view>
-      <text class="gold-risk-line">{{goldRiskLine}}</text>
     </view>
 
-    <!-- 宏观指标原来只在详情页 buildGoldView() 里算好摆着，首屏看不到。
-         这里把 gold.indicators 的 6 项原样搬上来，不筛选——用户明确要
-         全部看到，不要精简版。 -->
+    <!-- gold.indicators 的 6 项原样搬上来，不筛选；每格只留名字和数值，
+         三列两行一屏看完，解释性小字交给详情页。 -->
     <view class="gold-panel" wx:if="{{goldIndicatorTiles.length}}">
       <view class="gold-row-between">
         <text class="gold-headline">宏观驱动指标</text>
@@ -480,7 +554,6 @@
         <view wx:for="{{goldIndicatorTiles}}" wx:key="id" class="gold-indicator-tile">
           <text class="gold-indicator-label">{{item.label}}</text>
           <text class="gold-indicator-value">{{item.valueText}}</text>
-          <text class="gold-indicator-note">{{item.note}}</text>
         </view>
       </view>
       <view
@@ -506,24 +579,6 @@
           <text class="gold-trend-detail">{{goldTrendDetail}}</text>
         </view>
       </view>
-
-      <view class="gold-details">
-        <view
-          class="gold-details-toggle"
-          bindtap="toggleGoldEvidence"
-          hover-class="tap-active"
-          aria-role="button"
-          aria-label="查看判断依据"
-        >
-          <text>查看判断依据</text>
-          <text>{{goldEvidenceOpen ? '−' : '+'}}</text>
-        </view>
-        <view class="gold-details-body" wx:if="{{goldEvidenceOpen}}">
-          <text>趋势信号结合20/60日均线确认，不把单次穿越当作未来拐点保证。</text>
-          <text>人民币金还需考虑汇率与本地溢价，不直接等同国际金走势。</text>
-          <text>{{goldScoreText}}</text>
-        </view>
-      </view>
     </view>
   </view>
 
@@ -539,7 +594,6 @@
   <view wx:if="{{market !== 'hk' && market !== 'us' && market !== 'a' && market !== 'gold' && answers.length}}" class="page-card answer-panel">
     <view class="answer-head">
       <text class="answer-title">今日答案</text>
-      <text class="answer-meta">不是买卖指令</text>
     </view>
     <view class="answer-track">
       <view
@@ -553,7 +607,28 @@
         aria-label="{{item.question}}，{{item.answer}}{{item.hint ? '。' + item.hint : ''}}"
       >
         <text class="answer-card-q">{{item.question}}</text>
-        <text class="answer-card-a">{{item.answer}}</text>
+        <text class="answer-card-a">{{item.chart.headline || item.answer}}</text>
+        <!-- 聪明钱四张卡带小图：持仓占比、几家在加/减是横条，增持/减持/退出是一根分段条。
+             有图就不再印名单那一行，完整名单点开看。 -->
+        <view wx:if="{{item.chart.kind === 'bars'}}" class="answer-bars">
+          <view wx:for="{{item.chart.items}}" wx:for-item="bar" wx:key="key" class="answer-bar-row">
+            <text class="answer-bar-label">{{bar.label}}</text>
+            <view class="answer-bar-track"><view class="answer-bar-fill" style="width: {{bar.width}}%"></view></view>
+            <text class="answer-bar-value">{{bar.valueText}}</text>
+          </view>
+        </view>
+        <view wx:if="{{item.chart.kind === 'mix'}}" class="answer-mix">
+          <view class="answer-mix-track">
+            <view wx:for="{{item.chart.items}}" wx:for-item="seg" wx:key="key" class="answer-mix-seg {{seg.tone}}" style="width: {{seg.width}}%"></view>
+          </view>
+          <view class="answer-mix-legend">
+            <view wx:for="{{item.chart.items}}" wx:for-item="seg" wx:key="key" class="answer-mix-key">
+              <view class="answer-mix-dot {{seg.tone}}"></view>
+              <text class="answer-mix-label">{{seg.label}}</text>
+              <text class="answer-mix-count">{{seg.count}}</text>
+            </view>
+          </view>
+        </view>
         <!-- 排行榜、最热三只这类答案本身就是表：名次、依据、参考买、参考卖各占一列，
              比「甲 · 乙 · 丙 · 丁 · 戊」一行流水账好读，也省掉一次点开展开层。 -->
         <view wx:if="{{item.rows}}" class="answer-table">
@@ -569,7 +644,7 @@
         </view>
         <!-- namesLine 而不是 names：这一行的名字要是已经整句写在答案里了
              （「特斯拉 $368.20」下面再印一行「特斯拉」），就不再印第二遍。 -->
-        <text wx:if="{{item.namesLine}}" class="answer-card-names">{{item.namesLine}}</text>
+        <text wx:if="{{item.namesLine && !item.chart}}" class="answer-card-names">{{item.namesLine}}</text>
         <text wx:if="{{item.hint}}" class="answer-card-hint">{{item.hint}}</text>
         <!-- 空卡的答案句本身就写着「暂无值得打的新股」，底下再印一行「暂无内容」
              是同一件事说两遍。没有可点的东西时这一行整条不印。 -->
@@ -657,50 +732,21 @@
     </view>
 
     <block wx:if="{{guruSubTab === 'trend'}}">
-      <view class="a-details guru-bars-details">
-        <view
-          class="a-details-toggle"
-          bindtap="toggleGuruBars"
-          hover-class="tap-active"
-          aria-role="button"
-          aria-label="共同方向条形图"
-          aria-expanded="{{guruBarsOpen}}"
-        >
-          <text>共同方向条形图</text>
-          <text>{{guruBarsOpen ? '−' : '+'}}</text>
-        </view>
-        <view wx:if="{{guruBarsOpen}}" class="guru-bars-body">
-          <block wx:if="{{guruTrendRows.length}}">
-            <block wx:for="{{guruTrendRows}}" wx:key="key">
-              <view class="guru-direction">
-                <text>{{item.label}}</text>
-                <text class="a-badge tone-{{item.tone}}">{{item.badge}}</text>
-              </view>
-              <view class="guru-bar-track">
-                <view class="guru-bar-fill tone-{{item.tone}}" style="width: {{item.widthPct}}%;"></view>
-              </view>
-            </block>
+      <!-- 共同方向条形图直接展开：条长 = 同向机构数，颜色 = 加/减方向。 -->
+      <text class="hk-picker-label">本季共同方向</text>
+      <view class="guru-bars-body">
+        <block wx:if="{{guruTrendRows.length}}">
+          <block wx:for="{{guruTrendRows}}" wx:key="key">
+            <view class="guru-direction">
+              <text>{{item.label}}</text>
+              <text class="a-badge tone-{{item.tone}}">{{item.badge}}</text>
+            </view>
+            <view class="guru-bar-track">
+              <view class="guru-bar-fill tone-{{item.tone}}" style="width: {{item.widthPct}}%;"></view>
+            </view>
           </block>
-          <view class="a-empty" wx:else><text>本季公开申报的变化标注不足，方向暂不下判断。</text></view>
-          <text class="a-risk-line">条形长度示意机构同向程度，不代表资金流入规模；样本仅覆盖已接入的公开 13F 申报。</text>
-        </view>
-      </view>
-
-      <view class="a-details">
-        <view
-          class="a-details-toggle"
-          bindtap="toggleGuruEvidence"
-          hover-class="tap-active"
-          aria-role="button"
-          aria-label="这些方向如何得出"
-        >
-          <text>这些方向如何得出</text>
-          <text>{{guruEvidenceOpen ? '−' : '+'}}</text>
-        </view>
-        <view class="a-details-body" wx:if="{{guruEvidenceOpen}}">
-          <text>同一报告期内对比新增、增持、减持与退出标注，2 家以上同向才算共识；只有 1 家动的单独列出，不算共识。</text>
-          <text>13F 为季度披露，反映的是申报期方向，不是实时仓位；退出取自「已清仓」名单，和加减仓不是同一口径，不合并成一个净值。</text>
-        </view>
+        </block>
+        <view class="a-empty" wx:else><text>本季暂无 2 家以上同向信号</text></view>
       </view>
 
       <text class="hk-picker-label">跟着谁看</text>
@@ -713,11 +759,16 @@
           bindtap="switchGuruInstitution"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，{{item.org}}"
+          aria-label="{{item.name}}，{{item.org}}{{item.hasPerf ? '，年化约 ' + item.perfText : ''}}"
         >
+          <text wx:if="{{item.tag}}" class="guru-mkt">{{item.tag}}</text>
           <view class="guru-institution-copy">
             <text class="guru-institution-name">{{item.name}}</text>
             <text class="guru-institution-org">{{item.org}}</text>
+          </view>
+          <view wx:if="{{item.hasPerf}}" class="guru-perf">
+            <text class="guru-perf-v">{{item.perfText}}</text>
+            <text class="guru-perf-k">年化</text>
           </view>
           <text class="arrow">›</text>
         </view>
@@ -741,11 +792,11 @@
           bindtap="openDeepLink"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="交叉重叠，多机构共同持有，仅供研究对照"
+          aria-label="交叉重叠，多机构共同持有"
         >
           <view class="guru-institution-copy">
             <text class="guru-institution-name">交叉重叠</text>
-            <text class="guru-institution-org">多机构共同持有，仅供研究对照</text>
+            <text class="guru-institution-org">多机构共同持有</text>
           </view>
           <text class="arrow">›</text>
         </view>
@@ -769,60 +820,42 @@
           </view>
         </picker>
 
-        <view class="a-hint"><text>{{guruHoldingsHint}}</text></view>
-        <view class="hk-row-meta">
-          <text>持仓截至：{{guruReportDate}}</text>
-          <text>披露于：{{guruFilingDate}}</text>
-        </view>
-        <view class="hk-row-meta" wx:if="{{guruSourceKindText}}">
-          <text>{{guruSourceKindText}}</text>
-        </view>
-        <view class="a-hint" wx:if="{{guruTrackingScore !== null}}">
-          <text>跟踪可靠度 {{guruTrackingScore}} 分 · {{guruTrackingSummary}}</text>
+        <!-- 报告期 / 披露日 / 来源 / 可靠度 四格一排，代替三行说明文字。 -->
+        <view class="guru-stats" wx:if="{{guruHoldingStats.length}}">
+          <view wx:for="{{guruHoldingStats}}" wx:key="label" class="guru-stat">
+            <text class="guru-stat-k">{{item.label}}</text>
+            <text class="guru-stat-v">{{item.value}}</text>
+          </view>
         </view>
 
-        <view class="a-table" wx:if="{{guruHoldingsRowsShown.length}}">
-          <view class="a-table-head">
-            <text class="a-col-name">标的</text>
-            <text class="a-col-metric">占比</text>
-            <text class="guru-col-move">披露口径</text>
+        <!-- 占比画成横条（按本家第一大仓位归一），加仓绿、减仓红。 -->
+        <view class="guru-holds" wx:if="{{guruHoldingsRowsShown.length}}">
+          <view class="guru-holds-head">
+            <text>{{guruHoldingsHint}}</text>
+            <text>占组合</text>
           </view>
-          <view wx:for="{{guruHoldingsRowsShown}}" wx:key="name" class="a-table-row">
-            <view class="a-col-name"><text class="a-stock-name">{{item.name}}</text></view>
-            <text class="a-col-metric">{{item.weightText}}</text>
-            <text class="guru-col-move">{{item.moveText}}</text>
+          <view wx:for="{{guruHoldingsRowsShown}}" wx:key="name" class="guru-hold">
+            <view class="guru-hold-top">
+              <text class="guru-hold-name">{{item.name}}</text>
+              <text class="guru-hold-move {{item.moveTone ? 'tone-' + item.moveTone : ''}}">{{item.moveText}}</text>
+              <text class="guru-hold-weight">{{item.weightText}}</text>
+            </view>
+            <view class="guru-hold-track">
+              <view class="guru-hold-fill" style="width: {{item.weightBar}}%;"></view>
+            </view>
           </view>
           <view
             wx:if="{{!guruHoldingsExpanded && guruHoldingsRows.length > guruHoldingsRowsShown.length}}"
-            class="a-table-row guru-holdings-more"
+            class="guru-holdings-more"
             bindtap="toggleGuruHoldingsMore"
             hover-class="tap-active"
             aria-role="button"
             aria-label="展开其余持仓"
           >
-            <text class="a-col-name guru-institution-more-text">展开其余 {{guruHoldingsRows.length - guruHoldingsRowsShown.length}} 项</text>
+            <text class="guru-institution-more-text">展开其余 {{guruHoldingsRows.length - guruHoldingsRowsShown.length}} 项</text>
           </view>
         </view>
-        <view class="a-empty" wx:else><text>该机构持仓证据不足，暂不展示对照持仓表。</text></view>
-
-        <text class="a-risk-line">披露存在滞后，不代表此刻仍持有相同仓位；报告有滞后，只能当学习样本，不能当明天的买卖单。</text>
-
-        <view class="a-details">
-          <view
-            class="a-details-toggle"
-            bindtap="toggleGuruEvidence"
-            hover-class="tap-active"
-            aria-role="button"
-            aria-label="披露来源与边界"
-          >
-            <text>披露来源与边界</text>
-            <text>{{guruEvidenceOpen ? '−' : '+'}}</text>
-          </view>
-          <view class="a-details-body" wx:if="{{guruEvidenceOpen}}">
-            <text>持仓来自机构依法定期披露的公开报告（如13F），不是券商后台的实时数据。</text>
-            <text>披露截止日与实际持仓变动之间存在滞后，披露之外的仓位调整看不到；样本仅覆盖已接入的机构，缺失字段显示「待更新」，不编内容。</text>
-          </view>
-        </view>
+        <view class="a-empty" wx:else><text>暂无持仓披露</text></view>
       </block>
       <view class="a-empty" wx:else><text>机构样本待更新。</text></view>
     </block>
@@ -844,7 +877,7 @@
           </view>
         </picker>
 
-        <view class="a-hint"><text>{{guruHistoryHint}}</text></view>
+        <view class="a-hint" wx:if="{{guruHistoryHint}}"><text>{{guruHistoryHint}}</text></view>
 
         <view wx:if="{{guruHistoryChart}}" class="guru-history-chart">
           <view class="guru-history-bars">
@@ -873,26 +906,6 @@
             <view class="a-col-name"><text class="a-stock-name">{{row.period}}</text></view>
             <text class="a-col-metric">{{row.valueText}}</text>
             <text class="guru-col-move">{{row.moveText}}</text>
-          </view>
-        </view>
-
-        <text class="a-risk-line" wx:if="{{guruHistoryChart}}">季度披露之间的具体调仓时点看不到，图表只能反映披露日快照的规模变化，不代表持续走势。</text>
-
-        <view class="a-details">
-          <view
-            class="a-details-toggle"
-            bindtap="toggleGuruEvidence"
-            hover-class="tap-active"
-            aria-role="button"
-            aria-label="趋势图怎么来的"
-          >
-            <text>趋势图怎么来的</text>
-            <text>{{guruEvidenceOpen ? '−' : '+'}}</text>
-          </view>
-          <view class="a-details-body" wx:if="{{guruEvidenceOpen}}">
-            <text>SEC 13F 与东方财富基金季报按季更新，取最近可回溯的公开报告期，最多8期；较新的私募基金若成立不满8个季度，图表只画实际有的期数，不用空值凑数。</text>
-            <text>东方财富的十大重仓股接口不披露基金总规模与持仓数，这类机构（华夏大盘精选等3只A股基金）每期只有新增/清仓与前十持仓，规模趋势图暂时画不出来，下方表格如实标注「暂缺」。</text>
-            <text>Trustnet、Value Partners两个来源只提供最新一期PDF快照，没有可访问的历史归档，这两家机构暂时看不到趋势图。</text>
           </view>
         </view>
       </block>

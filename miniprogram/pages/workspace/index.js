@@ -42,6 +42,8 @@ const { memberGate } = require("../../utils/member-gate");
 const { buildGuruChanges } = require("../../utils/guru-changes");
 const { yearCashflow } = require("../../utils/dividend-math");
 const { requestEventSubscribe } = require("../../utils/subscribe");
+const { buildHomeDigest } = require("../../utils/daily-answers");
+const { buildDailyCard } = require("../../utils/daily-card");
 
 const MARKET_OPTIONS = [
   { id: "hk", label: "港股" },
@@ -391,6 +393,18 @@ function applyPrefill(page, options = {}) {
   if (Object.keys(patch).length) page.setData(patch);
 }
 
+// 微信群每日卡片：和公开摘要同一份 buildHomeDigest，数据时间写快照自己的 updatedAt。
+function dailyCardText(snapshot) {
+  if (!snapshot) return "";
+  const digest = buildHomeDigest(snapshot, { holdings: [] });
+  const date = new Date(snapshot.updatedAt);
+  const pad = (value) => String(value).padStart(2, "0");
+  const asOf = Number.isNaN(date.getTime())
+    ? ""
+    : `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return buildDailyCard({ points: digest.points || [], extraLines: digest.cardLines || [], asOf });
+}
+
 Page({
   data: {
     loading: true,
@@ -452,6 +466,7 @@ Page({
     weeklyReview: { count: 0, changedCount: 0, rows: [], headline: "" },
     answerSheet: null,
     guruChanges: [],
+    dailyCardText: "",
     dividendSummary: { expectedNetCny: 0, actualCny: null, count: 0, rows: [] },
     freshness: freshnessBanner("正在读取同步数据", "fresh"),
     addonHint: "",
@@ -546,6 +561,7 @@ Page({
         calendarNextCount: events.nextCount || 0,
         weeklyReview: review,
         guruChanges: buildGuruChanges(snapshot).slice(0, 9),
+        dailyCardText: state.active ? dailyCardText(snapshot) : "",
         dividendSummary,
         settingsForm: {
           taxRatePct: String((state.settings && state.settings.taxRatePct) != null ? state.settings.taxRatePct : 10),
@@ -555,6 +571,20 @@ Page({
         freshness: freshnessBanner(source, meta.kind),
       });
     }, null, { force });
+  },
+  // 「复制群卡片」原在今日重点页，那一页撤掉后挪到这里（2026-09-29），仍只对已开通会员出现。
+  copyDailyCard() {
+    const text = this.data.dailyCardText;
+    if (!text) {
+      wx.showToast({ title: "今日文案尚未就绪", icon: "none" });
+      return;
+    }
+    track("daily_card_copy");
+    wx.setClipboardData({
+      data: text,
+      success: () => wx.showToast({ title: "已复制群卡片", icon: "success" }),
+      fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
+    });
   },
   switchTab(event) {
     const tab = event.currentTarget.dataset.tab;

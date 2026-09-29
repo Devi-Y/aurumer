@@ -2,8 +2,8 @@ page {
   box-sizing: border-box;
   width: 100%;
   min-height: 100%;
-  background: #f5f7f6;
-  color: #1a211c;
+  background: #f5f6f7;
+  color: #191c22;
   font-size: 32rpx;
   line-height: 1.55;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
@@ -22,12 +22,12 @@ button {
   width: 100%;
   min-height: 100vh;
   padding: 0 0 calc(36rpx + env(safe-area-inset-bottom));
-  background: #f5f7f6;
+  background: #f5f6f7;
 }
 
 .page-card {
   overflow: hidden;
-  border: 1rpx solid #e7ece9;
+  border: 1rpx solid #e6e9ed;
   border-radius: 24rpx;
   background: #ffffff;
 }
@@ -35,7 +35,7 @@ button {
 .arrow {
   margin-top: 4rpx;
   flex: none;
-  color: #adb4af;
+  color: #acafb5;
   font-size: 37rpx;
   font-weight: 300;
   line-height: 1;
@@ -48,13 +48,13 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
-  color: #6e7771;
+  color: #6d7178;
   font-size: 28rpx;
   font-weight: 600;
 }
 
 .screen-section-title text:last-child {
-  color: #919994;
+  color: #90949a;
   font-size: 26rpx;
   font-weight: 500;
 }
@@ -74,26 +74,26 @@ button {
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  border: 1rpx solid #d7ddd9;
+  border: 1rpx solid #d6d9de;
   border-radius: 16rpx;
   background: #ffffff;
-  color: #3d4f44;
+  color: #3b4351;
   font-size: 30rpx;
   font-weight: 600;
 }
 
 .page-nav-button:last-child {
-  border-color: #0b7a53;
-  background: #0b7a53;
+  border-color: #1d5fd1;
+  background: #1d5fd1;
   color: #ffffff;
 }
 
 .page-nav-button.tap-active {
-  background: #eef3f0;
+  background: #edf0f4;
 }
 
 .page-nav-button:last-child.tap-active {
-  background: #096844;
+  background: #174ea9;
 }
 
 @media (max-width: 340px) {

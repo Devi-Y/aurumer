@@ -54,15 +54,13 @@ const MODULE_LABEL = {
 // 整类挤掉。分开计数，两种事实各留一半版面。
 const MAX_PER_KIND = { hk: 8, guru: 9, gold: 5, a: 6, us: 6, "us-filing": 6 };
 
-// SEC 表格代号本身不解释含义（8-K/10-Q 这类字母数字对没接触过美股监管的人是
-// 天书），这里只翻成「这是哪一类文件、监管为什么要求报」这一句大白话，不覆盖
-// labels 数组给的具体分类（业绩公告/董事或高管变动等——那些已经是中文、已经
-// 够具体，不需要再解释一遍）。
+// SEC 表格代号（8-K/10-Q）对没接触过美股监管的人是天书，配一个中文短名，
+// 不写监管条文——labels 给的具体分类已经在标题里。
 const FORM_EXPLAIN = {
-  "8-K": "美股重大事件强制披露，规定须4个工作日内公告",
-  "10-Q": "美股季度财报，未经审计",
-  "10-K": "美股年度财报，经审计",
-  "6-K": "境外发行人向SEC提交的定期公告",
+  "8-K": "8-K 重大事件",
+  "10-Q": "10-Q 季报",
+  "10-K": "10-K 年报",
+  "6-K": "6-K 境外发行人公告",
 };
 
 // null / undefined / 空串必须当成「没有这个数」返回 null，不能落进 Number()——
@@ -226,11 +224,9 @@ function buildNewsFeed(snapshot) {
 
     entries.forEach((entry) => {
       const badge = String(entry.badge || "");
-      // 港股：在售那几只的徽章就是结论本身。「资料不够」也是结论，只是话没说完，
-      // 补成一句完整的——读者要知道这是「我们不给结论」，不是「这只票不好」。
+      // 港股：在售那几只的徽章就是结论本身；「资料不够」不是结论，不占这一行。
       if (market === "hk") {
-        if (badge === "资料不够") add("资料不够，暂不给结论");
-        else if (okBadges.has(badge)) add(badge);
+        if (okBadges.has(badge)) add(badge);
         if (entry.group === "ended" || entry.group === "settled") {
           // 刚挂牌的那几只还没有首日/暗盘数据，排不进样本名次；已出配发结果
           // 但还没到暗盘/首日的（settled）同样没有 rank，走的是同一句文案。
@@ -421,7 +417,6 @@ function buildNewsFeed(snapshot) {
       dateNote: "数据日",
       body: joinBits([
         number(indicator.change20) !== null ? `20日变化 ${signedPercent(indicator.change20, 1)}` : "",
-        indicator.note || "",
       ]),
       sourceName: sourceNameOf(data, sourceId, "公开宏观数据"),
       sourceUrl: goldSourceUrl(sourceId),

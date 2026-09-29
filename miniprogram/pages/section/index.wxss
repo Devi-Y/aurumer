@@ -2,7 +2,7 @@
   min-height: 100vh;
   box-sizing: border-box;
   padding: 20rpx 20rpx calc(28rpx + env(safe-area-inset-bottom));
-  background: #f5f7f6;
+  background: #f5f6f7;
 }
 
 .freshness-banner {
@@ -18,13 +18,13 @@
 .freshness-banner .freshness-label,
 .freshness-banner .freshness-tip { display: block; }
 .freshness-banner .freshness-label {
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 24rpx;
   font-weight: 650;
 }
 .freshness-banner .freshness-tip {
   margin-top: 4rpx;
-  color: #6a746e;
+  color: #696d75;
   font-size: 22rpx;
   line-height: 1.45;
 }
@@ -38,7 +38,7 @@
   font-weight: 700;
   line-height: 1.35;
 }
-.freshness-banner.tone-ok { background: #eef8f2; border-color: #d7ebe1; }
+.freshness-banner.tone-ok { background: #edf2fb; border-color: #d7dfeb; }
 .freshness-banner.tone-warn { background: #fff7ec; border-color: #f0e0c8; }
 .freshness-banner.tone-bad { background: #fdf0ee; border-color: #f0d5cf; }
 
@@ -47,7 +47,7 @@
 .section-hero {
   margin: -20rpx -20rpx 0;
   padding: 18rpx 24rpx 40rpx;
-  background: linear-gradient(165deg, #0d8a5c 0%, #0b7a53 55%, #096844 100%);
+  background: linear-gradient(165deg, #2466d6 0%, #1d5fd1 55%, #174ea9 100%);
 }
 
 .hero-top {
@@ -98,7 +98,7 @@
 /* 结论行在的时候，两块之间才需要那道分隔线。 */
 .insight-panel + .hero-metrics {
   padding-top: 16rpx;
-  border-top: 1rpx solid #edf0ee;
+  border-top: 1rpx solid #edeef0;
 }
 
 .hero-metric {
@@ -113,20 +113,20 @@
   text-align: center;
 }
 
-.hero-metric + .hero-metric { border-left: 1rpx solid #edf0ee; }
+.hero-metric + .hero-metric { border-left: 1rpx solid #edeef0; }
 
 .hero-metric.is-disabled {
   opacity: 0.55;
 }
 
 .metric-tap {
-  background: #eef8f2;
+  background: #edf2fb;
 }
 
 .hero-metric text:first-child {
   overflow: hidden;
   max-width: 100%;
-  color: #7e8781;
+  color: #7d8188;
   font-size: 24rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -136,7 +136,7 @@
   overflow: hidden;
   max-width: 100%;
   margin-top: 5rpx;
-  color: #1c3929;
+  color: #304261;
   font-size: 30rpx;
   font-weight: 650;
   text-overflow: ellipsis;
@@ -165,18 +165,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 12rpx;
-  border-bottom: 1rpx solid #edf0ee;
+  border-bottom: 1rpx solid #edeef0;
 }
 
 .answer-title {
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 28rpx;
   font-weight: 700;
-}
-
-.answer-meta {
-  color: #8a918c;
-  font-size: 22rpx;
 }
 
 /* 今日答案竖排卡片，一条接一条往下排，不用滑动就能看全。每张卡内容
@@ -198,7 +193,7 @@
   width: 100%;
   flex-direction: column;
   padding: 18rpx 2rpx;
-  border-bottom: 1rpx solid #edf0ee;
+  border-bottom: 1rpx solid #edeef0;
 }
 
 .answer-card:last-child {
@@ -212,7 +207,7 @@
 
 .answer-card-q {
   display: block;
-  color: #66706a;
+  color: #656971;
   font-size: 23rpx;
   font-weight: 560;
 }
@@ -220,7 +215,7 @@
 .answer-card-a {
   display: block;
   margin-top: 8rpx;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 28rpx;
   font-weight: 700;
   line-height: 1.4;
@@ -229,9 +224,113 @@
 .answer-card-names {
   display: block;
   margin-top: 6rpx;
-  color: #66706a;
+  color: #656971;
   font-size: 22rpx;
   line-height: 1.4;
+}
+
+/* ---------- 卡内小图：聪明钱的横条和分段条 ---------- */
+
+.answer-bars {
+  display: flex;
+  margin-top: 12rpx;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.answer-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.answer-bar-label {
+  flex: 0 0 190rpx;
+  overflow: hidden;
+  color: #4a505a;
+  font-size: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.answer-bar-track {
+  position: relative;
+  height: 14rpx;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #edf0f4;
+}
+
+.answer-bar-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #1d5fd1;
+}
+
+.answer-bar-value {
+  flex: 0 0 76rpx;
+  color: #1a1f27;
+  font-size: 22rpx;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.answer-mix {
+  margin-top: 14rpx;
+}
+
+.answer-mix-track {
+  display: flex;
+  height: 18rpx;
+  overflow: hidden;
+  gap: 4rpx;
+  border-radius: 999rpx;
+}
+
+.answer-mix-seg {
+  height: 100%;
+}
+
+.answer-mix-seg.add,
+.answer-mix-dot.add { background: #1d5fd1; }
+
+.answer-mix-seg.cut,
+.answer-mix-dot.cut { background: #8fb0e8; }
+
+.answer-mix-seg.exit,
+.answer-mix-dot.exit { background: #c9ced6; }
+
+.answer-mix-legend {
+  display: flex;
+  margin-top: 12rpx;
+  flex-wrap: wrap;
+  gap: 8rpx 28rpx;
+}
+
+.answer-mix-key {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.answer-mix-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 4rpx;
+}
+
+.answer-mix-label {
+  color: #8a929e;
+  font-size: 22rpx;
+}
+
+.answer-mix-count {
+  color: #1a1f27;
+  font-size: 24rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- 卡内小表：前五名单、最热三只 ---------- */
@@ -250,7 +349,7 @@
   min-height: 56rpx;
   align-items: center;
   padding: 8rpx 12rpx;
-  border-bottom: 1rpx solid #eef2f0;
+  border-bottom: 1rpx solid #eeeff3;
   /* 到价那行左边加一条色带，行本身不整片染色——五行里一行是重点，
      整片染色会把表读成两张表。没到价的行 border 透明，列不会错位。 */
   border-left: 5rpx solid transparent;
@@ -261,8 +360,8 @@
 }
 
 .answer-th {
-  background: #f4f7f5;
-  color: #8a938d;
+  background: #f4f5f7;
+  color: #898d94;
   font-size: 20rpx;
   font-weight: 600;
 }
@@ -271,7 +370,7 @@
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: #2a322d;
+  color: #292d33;
   font-size: 23rpx;
   text-align: right;
   text-overflow: ellipsis;
@@ -284,16 +383,16 @@
    在等分列里会被切成"1 陕西煤…"。 */
 .answer-td:first-child {
   flex: 1.5;
-  color: #1b211d;
+  color: #1a1d22;
   font-weight: 620;
   text-align: left;
 }
 
-.answer-tr.row-good { border-left-color: #0b7a53; }
+.answer-tr.row-good { border-left-color: #1d5fd1; }
 .answer-tr.row-warn { border-left-color: #b45309; }
 .answer-tr.row-bad { border-left-color: #c4473a; }
 
-.answer-tr.row-good .answer-td:first-child { color: #0b7a53; }
+.answer-tr.row-good .answer-td:first-child { color: #1d5fd1; }
 .answer-tr.row-warn .answer-td:first-child { color: #8b5b20; }
 .answer-tr.row-bad .answer-td:first-child { color: #a33b2b; }
 
@@ -302,9 +401,9 @@
 .answer-tnote {
   display: block;
   padding: 0 12rpx 10rpx 17rpx;
-  border-bottom: 1rpx solid #eef2f0;
+  border-bottom: 1rpx solid #eeeff3;
   background: #ffffff;
-  color: #7f8781;
+  color: #7e8288;
   font-size: 20rpx;
   line-height: 1.45;
 }
@@ -319,8 +418,8 @@
   display: block;
   margin-top: 10rpx;
   padding-left: 14rpx;
-  border-left: 3rpx solid #d6ded8;
-  color: #8a938d;
+  border-left: 3rpx solid #d5d9df;
+  color: #898d94;
   font-size: 21rpx;
   line-height: 1.45;
 }
@@ -329,13 +428,13 @@
   display: block;
   margin-top: 14rpx;
   padding-top: 12rpx;
-  border-top: 1rpx solid #edf0ee;
-  color: #7f8781;
+  border-top: 1rpx solid #edeef0;
+  color: #7e8288;
   font-size: 21rpx;
   font-weight: 620;
 }
 
-.answer-card.tone-good .answer-card-a { color: #0b7a53; }
+.answer-card.tone-good .answer-card-a { color: #1d5fd1; }
 .answer-card.tone-bad .answer-card-a { color: #a33b2b; }
 .answer-card.tone-warn .answer-card-a { color: #8b5b20; }
 
@@ -348,7 +447,7 @@
 
 .insight-label {
   flex: none;
-  color: #6a756e;
+  color: #696e76;
   font-size: 26rpx;
   font-weight: 600;
 }
@@ -357,7 +456,7 @@
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 30rpx;
   font-weight: 700;
   text-overflow: ellipsis;
@@ -365,7 +464,7 @@
 }
 
 .insight-target.is-link {
-  color: #0b7a53;
+  color: #1d5fd1;
 }
 
 .insight-grade {
@@ -374,8 +473,8 @@
   padding: 8rpx 16rpx;
   overflow: hidden;
   border-radius: 999rpx;
-  background: #e8f6ef;
-  color: #0b7a53;
+  background: #e9f0fc;
+  color: #1d5fd1;
   font-size: 28rpx;
   font-weight: 700;
   text-overflow: ellipsis;
@@ -394,13 +493,13 @@
 }
 
 .section-heading text:first-child {
-  color: #3a433d;
+  color: #393d44;
   font-size: 30rpx;
   font-weight: 650;
 }
 
 .section-heading text:last-child {
-  color: #8a918c;
+  color: #898c92;
   font-size: 24rpx;
 }
 
@@ -426,9 +525,9 @@
   padding: 18rpx 20rpx;
   align-items: flex-start;
   gap: 14rpx;
-  border: 1rpx solid #e7ece9;
+  border: 1rpx solid #e6e9ed;
   border-radius: 16rpx;
-  background: #fafcfb;
+  background: #fafbfc;
 }
 
 .tile-card.is-empty { opacity: 0.5; }
@@ -444,7 +543,7 @@
   height: 52rpx;
   padding: 11rpx;
   border-radius: 50%;
-  background: #eef2ef;
+  background: #eeeff3;
 }
 
 .tile-body {
@@ -464,7 +563,7 @@
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 27rpx;
   font-weight: 680;
   text-overflow: ellipsis;
@@ -473,7 +572,7 @@
 
 .tile-count {
   flex: none;
-  color: #7f8781;
+  color: #7e8288;
   font-size: 21rpx;
   font-variant-numeric: tabular-nums;
 }
@@ -485,16 +584,16 @@
   display: -webkit-box;
   margin-top: 6rpx;
   overflow: hidden;
-  color: #6a746e;
+  color: #696d75;
   font-size: 21rpx;
   line-height: 1.4;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
-.tile-card.tone-worth { border-color: #cfe8db; background: #f1f9f4; }
-.tile-card.tone-worth .tile-title { color: #0b7a53; }
-.tile-card.tone-worth .tile-icon { background: #dcf0e4; }
+.tile-card.tone-worth { border-color: #cfd9e8; background: #f1f4f9; }
+.tile-card.tone-worth .tile-title { color: #1d5fd1; }
+.tile-card.tone-worth .tile-icon { background: #dfe9fa; }
 .tile-card.tone-caution { border-color: #ecdcb8; background: #fdf7ec; }
 .tile-card.tone-caution .tile-title { color: #8b5b20; }
 .tile-card.tone-caution .tile-icon { background: #f7e9c9; }
@@ -509,17 +608,17 @@
   align-items: center;
   justify-content: space-between;
   gap: 12rpx;
-  border-bottom: 1rpx solid #edf0ee;
+  border-bottom: 1rpx solid #edeef0;
 }
 
 .playbook-title {
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 28rpx;
   font-weight: 700;
 }
 
 .playbook-meta {
-  color: #8a918c;
+  color: #898c92;
   font-size: 22rpx;
 }
 
@@ -532,7 +631,7 @@
 }
 
 .playbook-row + .playbook-row {
-  border-top: 1rpx solid #edf0ee;
+  border-top: 1rpx solid #edeef0;
 }
 
 .playbook-copy {
@@ -547,7 +646,7 @@
 }
 
 .playbook-name {
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 28rpx;
   font-weight: 650;
 }
@@ -565,12 +664,12 @@
 .playbook-principle {
   display: block;
   margin-top: 6rpx;
-  color: #6a746e;
+  color: #696d75;
   font-size: 23rpx;
   line-height: 1.45;
 }
 
-.tap-active { background: #eef8f2; }
+.tap-active { background: #edf2fb; }
 
 .page-note {
   display: flex;
@@ -578,7 +677,7 @@
   flex-direction: column;
   align-items: center;
   gap: 7rpx;
-  color: #8a918c;
+  color: #898c92;
   font-size: 24rpx;
   line-height: 1.5;
   text-align: center;
@@ -610,13 +709,13 @@
 }
 
 .source-title {
-  color: #1f2621;
+  color: #1e2127;
   font-size: 28rpx;
   font-weight: 680;
 }
 
 .source-meta {
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 22rpx;
 }
 
@@ -627,19 +726,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
-  border-top: 1rpx solid #edf0ee;
+  border-top: 1rpx solid #edeef0;
   font-size: 27rpx;
 }
 
 .source-link-name {
   min-width: 0;
   flex: 1;
-  color: #1b211d;
+  color: #1a1d22;
 }
 
 .source-link-action {
   flex: none;
-  color: #0b7a53;
+  color: #1d5fd1;
   font-size: 24rpx;
   font-weight: 620;
 }
@@ -657,7 +756,7 @@
   z-index: 1000;
   display: flex;
   align-items: flex-end;
-  background: rgba(20, 28, 24, 0.42);
+  background: rgba(19, 23, 29, 0.42);
 }
 
 /* 只让正文滚，标题和「查看」不跟着滚出屏幕：七姐妹那张十七行的卡，
@@ -682,7 +781,7 @@
 
 .answer-sheet-title {
   flex: 1;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 30rpx;
   font-weight: 720;
   line-height: 1.4;
@@ -693,7 +792,7 @@
 .answer-sheet-close {
   flex: none;
   padding: 0 4rpx;
-  color: #5f6a64;
+  color: #5e636b;
   font-size: 26rpx;
   line-height: 1.6;
 }
@@ -707,7 +806,7 @@
 
 .answer-sheet-line {
   display: block;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 27rpx;
   line-height: 1.62;
 }
@@ -717,7 +816,7 @@
 .answer-sheet-sub {
   display: block;
   padding-left: 24rpx;
-  color: #5f6a64;
+  color: #5e636b;
   font-size: 25rpx;
   line-height: 1.6;
 }
@@ -737,13 +836,13 @@
   flex: none;
   margin-top: 20rpx;
   padding-top: 20rpx;
-  border-top: 1rpx solid #edf0ee;
+  border-top: 1rpx solid #edeef0;
 }
 
 .answer-sheet-confirm {
   height: 76rpx;
   border-radius: 16rpx;
-  background: #0f5c43;
+  background: #174ea9;
   color: #fff;
   font-size: 27rpx;
   font-weight: 640;
@@ -763,7 +862,7 @@
   padding: 6rpx;
   gap: 6rpx;
   border-radius: 16rpx;
-  background: #e7ece9;
+  background: #e6e9ed;
 }
 
 .hk-tab {
@@ -772,7 +871,7 @@
   min-height: 72rpx;
   padding: 16rpx 8rpx;
   border-radius: 12rpx;
-  color: #6a746e;
+  color: #696d75;
   font-size: 26rpx;
   font-weight: 600;
   line-height: 40rpx;
@@ -782,20 +881,91 @@
 
 .hk-tab.is-active {
   background: #ffffff;
-  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.14);
-  color: #0b7a53;
+  box-shadow: 0 2rpx 8rpx rgba(29, 95, 209, 0.14);
+  color: #1d5fd1;
   font-weight: 680;
 }
 
-.hk-hint {
+/* 近 N 只首日零轴柱：和首页「港股首日」卡同一套画法，放宽放高一点。 */
+.hk-fd {
   margin-top: 20rpx;
-  padding: 20rpx 22rpx;
+  padding: 20rpx 22rpx 18rpx;
   border-radius: 16rpx;
-  background: #eef8f2;
-  color: #1b211d;
-  font-size: 25rpx;
-  line-height: 1.5;
+  background: #f6f7f8;
 }
+
+.hk-fd-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.hk-fd-title {
+  color: #8a8e94;
+  font-size: 23rpx;
+  font-weight: 600;
+}
+
+.hk-fd-figs {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-fd-value {
+  color: #1a1d22;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.hk-fd-value.is-up { color: #c2412d; }
+.hk-fd-value.is-down { color: #0b7a53; }
+
+.hk-fd-k {
+  margin-right: 14rpx;
+  color: #999ca2;
+  font-size: 21rpx;
+}
+
+.hk-fd-k:last-child {
+  margin-right: 0;
+}
+
+.hk-fd-bars {
+  position: relative;
+  display: flex;
+  height: 120rpx;
+  margin-top: 14rpx;
+  gap: 8rpx;
+}
+
+.hk-fd-zero {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1rpx;
+  background: #d8dbe1;
+}
+
+.hk-fd-slot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.hk-fd-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 3rpx;
+  background: #c8cbd0;
+}
+
+.hk-fd-bar.up { background: #c2412d; }
+.hk-fd-bar.down { background: #0b7a53; }
 
 .hk-stock-list {
   margin-top: 6rpx;
@@ -803,7 +973,7 @@
 
 .hk-stock-row {
   padding: 26rpx 0;
-  border-bottom: 1rpx solid #edf0ee;
+  border-bottom: 1rpx solid #edeef0;
 }
 
 .hk-stock-row:last-child {
@@ -826,7 +996,7 @@
 .hk-stock-name {
   display: block;
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 29rpx;
   font-weight: 650;
   text-overflow: ellipsis;
@@ -836,7 +1006,7 @@
 .hk-code {
   display: block;
   margin-top: 5rpx;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 21rpx;
   letter-spacing: 0.5rpx;
 }
@@ -850,51 +1020,35 @@
   line-height: 1.5;
 }
 
-.hk-badge.tone-worth { background: #dcf0e4; color: #0b7a53; }
+.hk-badge.tone-worth { background: #dfe9fa; color: #1d5fd1; }
 .hk-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
 .hk-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
-.hk-badge.tone-settled { background: #f0f2f1; color: #778079; }
-
-.hk-row-reason {
-  display: block;
-  margin-top: 12rpx;
-  color: #6a746e;
-  font-size: 24rpx;
-  line-height: 1.5;
-}
+.hk-badge.tone-settled { background: #f0f1f2; color: #767a81; }
 
 .hk-row-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 18rpx;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 22rpx;
 }
 
 .hk-empty {
   padding: 48rpx 0;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 25rpx;
   text-align: center;
 }
 
-.hk-note {
-  display: block;
-  margin-top: 20rpx;
-  padding-left: 14rpx;
-  border-left: 3rpx solid #d6ded8;
-  color: #9aa19c;
-  font-size: 21rpx;
-  line-height: 1.45;
+.hk-empty.is-compact {
+  padding: 28rpx 0 4rpx;
+  font-size: 23rpx;
 }
 
-.hk-picker-label {
+.hk-picker {
   display: block;
   margin-top: 20rpx;
-  margin-bottom: 12rpx;
-  color: #6a746e;
-  font-size: 23rpx;
 }
 
 .hk-picker-value {
@@ -905,16 +1059,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 12rpx;
-  border: 1rpx solid #e7ece9;
+  border: 1rpx solid #e6e9ed;
   border-radius: 16rpx;
-  background: #fafcfb;
+  background: #fafbfc;
 }
 
 .hk-picker-value text:first-child {
   overflow: hidden;
   min-width: 0;
   flex: 1;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 27rpx;
   font-weight: 600;
   text-overflow: ellipsis;
@@ -923,7 +1077,7 @@
 
 .hk-picker-caret {
   flex: none;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 22rpx;
 }
 
@@ -931,24 +1085,18 @@
   box-sizing: border-box;
   margin-top: 24rpx;
   padding: 24rpx;
-  border: 1rpx solid #edf0ee;
+  border: 1rpx solid #edeef0;
   border-radius: 20rpx;
-  background: #fafcfb;
+  background: #fafbfc;
 }
 
 .hk-exit-name {
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 29rpx;
   font-weight: 680;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.hk-exit-card .hk-hint {
-  margin-top: 18rpx;
-  background: #ffffff;
-  border: 1rpx solid #edf0ee;
 }
 
 .hk-exit-rows {
@@ -963,7 +1111,7 @@
   justify-content: space-between;
   gap: 16rpx;
   padding: 14rpx 0;
-  border-bottom: 1rpx solid #eef2f0;
+  border-bottom: 1rpx solid #eeeff3;
 }
 
 .hk-exit-row:last-child {
@@ -973,13 +1121,13 @@
 
 .hk-exit-row-label {
   flex: none;
-  color: #6a746e;
+  color: #696d75;
   font-size: 23rpx;
 }
 
 .hk-exit-row-value {
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 26rpx;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
@@ -991,46 +1139,202 @@
 .hk-empty-text {
   display: block;
   margin-top: 20rpx;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 24rpx;
   text-align: center;
 }
 
-.hk-risk-line {
+.hk-score {
   display: flex;
-  margin-top: 20rpx;
-  color: #8b5b20;
-  font-size: 23rpx;
-  line-height: 1.5;
-}
-
-.hk-details {
-  margin-top: 22rpx;
-  padding-top: 4rpx;
-  border-top: 1rpx solid #edf0ee;
-}
-
-.hk-details-toggle {
-  display: flex;
-  min-height: 72rpx;
+  flex: none;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  color: #0b7a53;
+  margin-top: -4rpx;
+}
+
+.hk-score-value {
+  color: #1d5fd1;
+  font-size: 34rpx;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.hk-score-label {
+  color: #999ca2;
+  font-size: 18rpx;
+  letter-spacing: 1rpx;
+}
+
+.hk-stats {
+  display: grid;
+  margin-top: 16rpx;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8rpx;
+}
+
+.hk-stat {
+  display: flex;
+  padding: 12rpx 0 10rpx;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  border-radius: 12rpx;
+  background: #f5f6f8;
+}
+
+.hk-stat-label {
+  color: #999ca2;
+  font-size: 20rpx;
+}
+
+.hk-stat-value {
+  color: #1a1d22;
   font-size: 25rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-row-caret {
+  color: #b6b9bf;
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.hk-tier-chart {
+  margin-top: 22rpx;
+}
+
+.hk-tier-title {
+  display: block;
+  color: #1a1d22;
+  font-size: 25rpx;
+  font-weight: 650;
+}
+
+.hk-tier-legend {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 12rpx;
+  gap: 8rpx 24rpx;
+}
+
+.hk-tier-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  color: #696d75;
+  font-size: 21rpx;
+}
+
+.hk-tier-legend-item.is-mine {
+  color: #1a1d22;
+  font-weight: 650;
+}
+
+.hk-tier-mine {
+  padding: 0 10rpx;
+  border-radius: 999rpx;
+  background: #1a1d22;
+  color: #ffffff;
+  font-size: 18rpx;
+  line-height: 1.6;
+}
+
+.hk-tier-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 4rpx;
+}
+
+.hk-tier-dot.tier-hot { background: #c2412d; }
+.hk-tier-dot.tier-cool { background: #8d96a5; }
+
+.hk-tier-group {
+  display: flex;
+  margin-top: 18rpx;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.hk-tier-stage {
+  flex: none;
+  width: 56rpx;
+  color: #494d55;
+  font-size: 22rpx;
   font-weight: 600;
 }
 
-.hk-details-body {
+.hk-tier-bars {
   display: flex;
+  min-width: 0;
+  flex: 1;
   flex-direction: column;
-  gap: 12rpx;
-  padding-bottom: 18rpx;
+  gap: 8rpx;
 }
 
-.hk-details-body text {
-  color: #8a938d;
+.hk-tier-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.hk-tier-row.is-dim { opacity: 0.4; }
+
+.hk-tier-track {
+  position: relative;
+  flex: 1;
+  height: 22rpx;
+  border-radius: 6rpx;
+  background: #f0f1f3;
+}
+
+.hk-tier-zero {
+  position: absolute;
+  top: -4rpx;
+  bottom: -4rpx;
+  width: 2rpx;
+  background: #b6b9bf;
+}
+
+.hk-tier-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 6rpx;
+}
+
+.hk-tier-bar.tier-hot { background: #c2412d; }
+.hk-tier-bar.tier-cool { background: #8d96a5; }
+.hk-tier-bar.tier-cool.is-down { background: #3f8f6c; }
+
+.hk-tier-value {
+  flex: none;
+  width: 108rpx;
   font-size: 22rpx;
-  line-height: 1.55;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.hk-tier-value.is-up { color: #c2412d; }
+.hk-tier-value.is-down { color: #0b7a53; }
+
+.hk-tier-ratio {
+  flex: none;
+  width: 44rpx;
+  color: #999ca2;
+  font-size: 20rpx;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.hk-tier-foot {
+  display: block;
+  margin-top: 16rpx;
+  color: #999ca2;
+  font-size: 20rpx;
+  text-align: right;
 }
 
 /* ---------- 美股投资：原型的「七姐妹/热门三只」两视图，按原型忠实复刻 ---------- */
@@ -1045,7 +1349,7 @@
   padding: 6rpx;
   gap: 6rpx;
   border-radius: 16rpx;
-  background: #e7ece9;
+  background: #e6e9ed;
 }
 
 .us-tab {
@@ -1054,7 +1358,7 @@
   min-height: 72rpx;
   padding: 16rpx 8rpx;
   border-radius: 12rpx;
-  color: #6a746e;
+  color: #696d75;
   font-size: 26rpx;
   font-weight: 600;
   line-height: 40rpx;
@@ -1064,8 +1368,8 @@
 
 .us-tab.is-active {
   background: #ffffff;
-  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.14);
-  color: #0b7a53;
+  box-shadow: 0 2rpx 8rpx rgba(29, 95, 209, 0.14);
+  color: #1d5fd1;
   font-weight: 680;
 }
 
@@ -1073,8 +1377,8 @@
   margin-top: 20rpx;
   padding: 20rpx 22rpx;
   border-radius: 16rpx;
-  background: #eef8f2;
-  color: #1b211d;
+  background: #edf2fb;
+  color: #1a1d22;
   font-size: 25rpx;
   line-height: 1.5;
 }
@@ -1085,10 +1389,10 @@
 
 .us-stock-row {
   display: flex;
-  padding: 26rpx 0;
-  gap: 16rpx;
-  align-items: flex-start;
-  border-bottom: 1rpx solid #edf0ee;
+  padding: 22rpx 0;
+  gap: 18rpx;
+  align-items: center;
+  border-bottom: 1rpx solid #edeef0;
 }
 
 .us-stock-row:last-child {
@@ -1096,42 +1400,23 @@
   border-bottom: none;
 }
 
-.us-monogram {
-  box-sizing: border-box;
+.us-row-name-col {
+  flex: 0 0 210rpx;
+  min-width: 0;
+}
+
+.us-row-tags {
   display: flex;
-  flex: none;
-  width: 60rpx;
-  height: 60rpx;
+  margin-top: 8rpx;
   align-items: center;
-  justify-content: center;
-  border-radius: 999rpx;
-  background: #eef8f2;
-  color: #0b7a53;
-  font-size: 26rpx;
-  font-weight: 680;
-}
-
-.us-row-main {
+  gap: 10rpx;
   min-width: 0;
-  flex: 1;
-}
-
-.us-row-between {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16rpx;
-}
-
-.us-row-name-wrap {
-  min-width: 0;
-  flex: 1;
 }
 
 .us-stock-name {
   display: block;
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 29rpx;
   font-weight: 650;
   text-overflow: ellipsis;
@@ -1139,122 +1424,131 @@
 }
 
 .us-code {
-  display: block;
-  margin-top: 5rpx;
-  color: #9aa19c;
-  font-size: 21rpx;
+  flex: none;
+  color: #999ca2;
+  font-size: 20rpx;
   letter-spacing: 0.5rpx;
 }
 
 .us-badge {
-  flex: none;
-  padding: 5rpx 16rpx;
+  min-width: 0;
+  overflow: hidden;
+  padding: 2rpx 12rpx;
   border-radius: 999rpx;
-  font-size: 21rpx;
+  font-size: 20rpx;
   font-weight: 620;
   line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.us-badge.tone-worth { background: #dcf0e4; color: #0b7a53; }
+.us-badge.tone-worth { background: #dfe9fa; color: #1d5fd1; }
 .us-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
 .us-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
 
-.us-row-reason {
-  display: block;
-  margin-top: 12rpx;
-  color: #6a746e;
-  font-size: 24rpx;
-  line-height: 1.5;
+/* 60 日收盘走势，占掉名字和价格之间剩下的宽度。 */
+.us-spark {
+  flex: 1;
+  min-width: 0;
+  height: 64rpx;
 }
 
 .us-right {
-  flex: none;
+  flex: 0 0 136rpx;
   text-align: right;
 }
 
 .us-price {
   display: block;
-  color: #1b211d;
-  font-size: 25rpx;
+  color: #1a1d22;
+  font-size: 29rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.us-change {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
   font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 涨跌色按 A 股/港股习惯：涨红跌绿 */
+.us-change.is-up { color: #c2412d; }
+.us-change.is-down { color: #0b7a53; }
+.us-change.is-flat { color: #999ca2; }
+
+.us-mix {
+  margin-top: 20rpx;
+  padding: 18rpx 20rpx 16rpx;
+  border-radius: 16rpx;
+  background: #f5f6f8;
+}
+
+.us-mix-bar {
+  display: flex;
+  height: 14rpx;
+  gap: 4rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+}
+
+.us-mix-seg { min-width: 8rpx; }
+.us-mix-seg.tone-worth, .us-mix-dot.tone-worth { background: #3b78e0; }
+.us-mix-seg.tone-caution, .us-mix-dot.tone-caution { background: #d9a441; }
+.us-mix-seg.tone-avoid, .us-mix-dot.tone-avoid { background: #d0614c; }
+
+.us-mix-legend {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 14rpx;
+  gap: 8rpx 24rpx;
+}
+
+.us-mix-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  color: #494d55;
+  font-size: 22rpx;
+}
+
+.us-mix-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 999rpx;
+}
+
+.us-mix-count {
+  color: #1a1d22;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .us-empty {
   padding: 48rpx 0;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 25rpx;
   text-align: center;
 }
 
-.us-note {
+.us-heat-value {
   display: block;
-  margin-top: 20rpx;
-  padding-left: 14rpx;
-  border-left: 3rpx solid #d6ded8;
-  color: #9aa19c;
-  font-size: 21rpx;
-  line-height: 1.45;
+  color: #c2412d;
+  font-size: 36rpx;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
 }
 
-.us-hot-list {
-  margin-top: 6rpx;
-}
-
-.us-hot-card {
-  padding: 26rpx 0;
-  border-bottom: 1rpx solid #edf0ee;
-}
-
-.us-hot-card:last-child {
-  padding-bottom: 4rpx;
-  border-bottom: none;
-}
-
-.us-hot-name {
-  overflow: hidden;
-  color: #1b211d;
-  font-size: 29rpx;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.us-hot-why {
+.us-heat-label {
   display: block;
-  margin-top: 12rpx;
-  color: #6a746e;
-  font-size: 24rpx;
-  line-height: 1.5;
-}
-
-.us-details {
-  margin-top: 18rpx;
-  padding-top: 4rpx;
-  border-top: 1rpx solid #edf0ee;
-}
-
-.us-details-toggle {
-  display: flex;
-  min-height: 72rpx;
-  align-items: center;
-  justify-content: space-between;
-  color: #0b7a53;
-  font-size: 25rpx;
-  font-weight: 600;
-}
-
-.us-details-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-  padding-bottom: 10rpx;
-}
-
-.us-details-body text {
-  color: #8a938d;
-  font-size: 22rpx;
-  line-height: 1.55;
+  margin-top: 4rpx;
+  color: #999ca2;
+  font-size: 20rpx;
+  letter-spacing: 1rpx;
 }
 
 /* ---------- A股收息：原型的「分红稳定性/分红收益性」前五+参考买卖价，按原型忠实复刻 ---------- */
@@ -1269,7 +1563,7 @@
   padding: 6rpx;
   gap: 6rpx;
   border-radius: 16rpx;
-  background: #e7ece9;
+  background: #e6e9ed;
 }
 
 .a-tab {
@@ -1278,7 +1572,7 @@
   min-height: 72rpx;
   padding: 16rpx 8rpx;
   border-radius: 12rpx;
-  color: #6a746e;
+  color: #696d75;
   font-size: 26rpx;
   font-weight: 600;
   line-height: 40rpx;
@@ -1288,8 +1582,8 @@
 
 .a-tab.is-active {
   background: #ffffff;
-  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.14);
-  color: #0b7a53;
+  box-shadow: 0 2rpx 8rpx rgba(29, 95, 209, 0.14);
+  color: #1d5fd1;
   font-weight: 680;
 }
 
@@ -1297,8 +1591,8 @@
   margin-top: 20rpx;
   padding: 20rpx 22rpx;
   border-radius: 16rpx;
-  background: #eef8f2;
-  color: #1b211d;
+  background: #edf2fb;
+  color: #1a1d22;
   font-size: 25rpx;
   line-height: 1.5;
 }
@@ -1311,8 +1605,8 @@
   display: flex;
   align-items: center;
   padding: 0 4rpx 14rpx;
-  border-bottom: 1rpx solid #edf0ee;
-  color: #9aa19c;
+  border-bottom: 1rpx solid #edeef0;
+  color: #999ca2;
   font-size: 21rpx;
   font-weight: 600;
 }
@@ -1321,7 +1615,7 @@
   display: flex;
   align-items: center;
   padding: 22rpx 4rpx;
-  border-bottom: 1rpx solid #edf0ee;
+  border-bottom: 1rpx solid #edeef0;
 }
 
 .a-table-row:last-child {
@@ -1329,8 +1623,178 @@
   border-bottom: none;
 }
 
+/* A股收息数据行：排名 + 名称 + 大指标（带指标条），下方参考买卖区间条 */
+.a-rows {
+  margin-top: 6rpx;
+}
+
+.a-row {
+  padding: 24rpx 4rpx 22rpx;
+  border-bottom: 1rpx solid #edeef0;
+}
+
+.a-row:last-child {
+  padding-bottom: 6rpx;
+  border-bottom: none;
+}
+
+.a-row-top {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.a-rank {
+  flex: none;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 12rpx;
+  background: #eeeff1;
+  color: #696d75;
+  font-size: 22rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 40rpx;
+  text-align: center;
+}
+
+.a-row:first-child .a-rank {
+  background: #1d5fd1;
+  color: #ffffff;
+}
+
+.a-row-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.a-metric {
+  display: flex;
+  flex: none;
+  width: 150rpx;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8rpx;
+}
+
+.a-metric-num {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+}
+
+.a-metric-value {
+  color: #1a1d22;
+  font-size: 36rpx;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.a-metric-unit {
+  color: #999ca2;
+  font-size: 20rpx;
+}
+
+.a-metric-track {
+  width: 100%;
+  height: 8rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #eeeff1;
+}
+
+.a-metric-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #9dbcf1, #1d5fd1);
+}
+
+.a-ladder {
+  display: flex;
+  margin-top: 18rpx;
+  align-items: flex-end;
+  gap: 16rpx;
+}
+
+.a-ladder-side {
+  display: flex;
+  flex: none;
+  width: 116rpx;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.a-ladder-side.is-right {
+  align-items: flex-end;
+}
+
+.a-ladder-k {
+  color: #999ca2;
+  font-size: 19rpx;
+  letter-spacing: 0.5rpx;
+}
+
+.a-ladder-v {
+  font-size: 23rpx;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.a-ladder-v.is-buy { color: #1d5fd1; }
+.a-ladder-v.is-sell { color: #a33b2b; }
+
+.a-ladder-mid {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+  padding-top: 32rpx;
+  padding-bottom: 10rpx;
+}
+
+.a-ladder-now {
+  position: absolute;
+  top: 0;
+  color: #1a1d22;
+  font-size: 20rpx;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.a-ladder-now.zone-add { color: #1d5fd1; }
+.a-ladder-now.zone-trim { color: #a33b2b; }
+
+.a-ladder-track {
+  position: relative;
+  height: 8rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #cfd9ea 0%, #eeeff1 50%, #f5d2cb 100%);
+}
+
+.a-ladder-dot {
+  position: absolute;
+  top: 50%;
+  width: 22rpx;
+  height: 22rpx;
+  margin-left: -11rpx;
+  margin-top: -11rpx;
+  box-sizing: border-box;
+  border: 4rpx solid #ffffff;
+  border-radius: 999rpx;
+  background: #1a1d22;
+  box-shadow: 0 1rpx 4rpx rgba(26, 29, 34, 0.25);
+}
+
+.a-ladder-dot.zone-add { background: #3b78e0; }
+.a-ladder-dot.zone-trim { background: #d0614c; }
+
 .guru-holdings-more {
+  display: flex;
+  padding: 20rpx 0 4rpx;
   justify-content: center;
+  font-size: 24rpx;
 }
 
 .a-col-name {
@@ -1340,7 +1804,7 @@
 
 .a-col-metric {
   flex: 1;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 25rpx;
   font-weight: 620;
   text-align: right;
@@ -1348,7 +1812,7 @@
 
 .a-col-buy {
   flex: 1;
-  color: #0b7a53;
+  color: #1d5fd1;
   font-size: 23rpx;
   text-align: right;
 }
@@ -1366,12 +1830,12 @@
 .a-table-head .guru-col-move {
   font-size: 21rpx;
   font-weight: 600;
-  color: #9aa19c;
+  color: #999ca2;
 }
 
 .guru-col-move {
   flex: 1;
-  color: #6a746e;
+  color: #696d75;
   font-size: 23rpx;
   text-align: right;
 }
@@ -1387,7 +1851,7 @@
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 27rpx;
   font-weight: 650;
   text-overflow: ellipsis;
@@ -1397,7 +1861,7 @@
 .a-code {
   display: block;
   margin-top: 5rpx;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 21rpx;
   letter-spacing: 0.5rpx;
 }
@@ -1411,29 +1875,21 @@
   line-height: 1.5;
 }
 
-.a-badge.tone-worth { background: #dcf0e4; color: #0b7a53; }
+.a-badge.tone-worth { background: #dfe9fa; color: #1d5fd1; }
 .a-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
 .a-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
 
 .a-empty {
   padding: 40rpx 0;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 24rpx;
   text-align: center;
-}
-
-.a-risk-line {
-  display: block;
-  margin-top: 18rpx;
-  color: #9aa19c;
-  font-size: 22rpx;
-  line-height: 1.55;
 }
 
 .a-details {
   margin-top: 14rpx;
   padding-top: 4rpx;
-  border-top: 1rpx solid #edf0ee;
+  border-top: 1rpx solid #edeef0;
 }
 
 .a-details-toggle {
@@ -1441,7 +1897,7 @@
   min-height: 72rpx;
   align-items: center;
   justify-content: space-between;
-  color: #0b7a53;
+  color: #1d5fd1;
   font-size: 25rpx;
   font-weight: 600;
 }
@@ -1454,7 +1910,7 @@
 }
 
 .a-details-body text {
-  color: #8a938d;
+  color: #898d94;
   font-size: 22rpx;
   line-height: 1.55;
 }
@@ -1463,8 +1919,7 @@
   margin-top: 20rpx;
   padding: 22rpx;
   border-radius: 16rpx;
-  border: 1rpx dashed #cfd8d2;
-  background: #f6f8f6;
+  background: #f6f7f8;
 }
 
 .a-fund-card .a-row-between {
@@ -1479,20 +1934,54 @@
   flex: 1;
 }
 
-.a-fund-note {
-  display: block;
-  margin-top: 12rpx;
-  color: #6a746e;
-  font-size: 24rpx;
-  line-height: 1.5;
+.a-fund-figure {
+  display: flex;
+  margin-top: 14rpx;
+  align-items: baseline;
+  gap: 14rpx;
+  font-variant-numeric: tabular-nums;
 }
 
-.a-fund-hint {
-  display: block;
+.a-fund-price {
+  color: #1a1d22;
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.a-fund-change,
+.a-fund-period {
+  color: #8a8e94;
+  font-size: 23rpx;
+  font-weight: 620;
+}
+
+.a-fund-period {
+  margin-left: auto;
+}
+
+.a-fund-change.is-up,
+.a-fund-period.is-up { color: #c2412d; }
+.a-fund-change.is-down,
+.a-fund-period.is-down { color: #0b7a53; }
+
+.a-fund-spark {
+  width: 100%;
+  height: 120rpx;
   margin-top: 10rpx;
-  color: #9aa19c;
-  font-size: 21rpx;
-  line-height: 1.5;
+}
+
+.a-fund-stats {
+  display: flex;
+  margin-top: 12rpx;
+  gap: 28rpx;
+  color: #1a1d22;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.a-fund-stat-k {
+  color: #999ca2;
+  font-weight: 500;
 }
 
 /* ---------- 机构持仓：原型的「共同方向/机构持仓」两个视图，按原型忠实复刻 ---------- */
@@ -1507,7 +1996,7 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 18rpx;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 26rpx;
   font-weight: 600;
 }
@@ -1521,7 +2010,7 @@
   margin-top: 10rpx;
   height: 14rpx;
   border-radius: 999rpx;
-  background: #edf0ee;
+  background: #edeef0;
 }
 
 .guru-bar-fill {
@@ -1529,15 +2018,12 @@
   border-radius: 999rpx;
 }
 
-.guru-bar-fill.tone-worth { background: #0b7a53; }
+.guru-bar-fill.tone-worth { background: #1d5fd1; }
 .guru-bar-fill.tone-caution { background: #8b5b20; }
 .guru-bar-fill.tone-avoid { background: #a33b2b; }
 
-/* 折叠状态下的条形图明细——不套 .a-details-body 的通用 text 样式，
-   道理和下面 .guru-more-body 那条注释一样：.guru-direction/.a-badge
-   自己有字号字重，套上会被灰色小字统一覆盖掉。 */
 .guru-bars-body {
-  padding-bottom: 4rpx;
+  padding-bottom: 8rpx;
 }
 
 .guru-institution-list {
@@ -1545,7 +2031,7 @@
 }
 
 .guru-institution-more-text {
-  color: #0b7a53;
+  color: #1d5fd1;
 }
 
 .guru-institution-row {
@@ -1554,7 +2040,7 @@
   padding: 20rpx 0;
   align-items: center;
   gap: 12rpx;
-  border-bottom: 1rpx solid #edf0ee;
+  border-bottom: 1rpx solid #edeef0;
 }
 
 .guru-institution-row:last-child {
@@ -1570,7 +2056,7 @@
 .guru-institution-name {
   display: block;
   overflow: hidden;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 27rpx;
   font-weight: 650;
   text-overflow: ellipsis;
@@ -1581,10 +2067,146 @@
   display: block;
   margin-top: 6rpx;
   overflow: hidden;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 22rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 机构行：左侧市场角标，右侧年化大数（没有公开年化的机构不显示）。 */
+.guru-mkt {
+  flex-shrink: 0;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 10rpx;
+  background: #edf0f4;
+  color: #4a515c;
+  font-size: 21rpx;
+  font-weight: 700;
+  line-height: 40rpx;
+  text-align: center;
+}
+
+.guru-perf {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.guru-perf-v {
+  color: #1d5fd1;
+  font-size: 32rpx;
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.guru-perf-k {
+  margin-top: 4rpx;
+  color: #999ca2;
+  font-size: 20rpx;
+}
+
+/* 持仓页：四格数据条 + 占比横条。 */
+.guru-stats {
+  display: grid;
+  margin-top: 18rpx;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10rpx;
+}
+
+.guru-stat {
+  padding: 14rpx 6rpx;
+  border-radius: 14rpx;
+  background: #f4f5f7;
+  text-align: center;
+}
+
+.guru-stat-k {
+  display: block;
+  color: #999ca2;
+  font-size: 20rpx;
+}
+
+.guru-stat-v {
+  display: block;
+  margin-top: 6rpx;
+  color: #1a1d22;
+  font-size: 26rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.guru-holds {
+  margin-top: 20rpx;
+}
+
+.guru-holds-head {
+  display: flex;
+  padding-bottom: 6rpx;
+  justify-content: space-between;
+  color: #999ca2;
+  font-size: 21rpx;
+}
+
+.guru-hold {
+  padding: 14rpx 0 16rpx;
+  border-bottom: 1rpx solid #edeef0;
+}
+
+.guru-hold-top {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.guru-hold-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: #1a1d22;
+  font-size: 26rpx;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guru-hold-move {
+  flex-shrink: 0;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: #eeeff1;
+  color: #656971;
+  font-size: 20rpx;
+}
+
+.guru-hold-move.tone-worth { background: #e3ecfb; color: #1d5fd1; }
+.guru-hold-move.tone-avoid { background: #f8e6e2; color: #a33b2b; }
+
+.guru-hold-weight {
+  flex-shrink: 0;
+  width: 96rpx;
+  color: #1a1d22;
+  font-size: 27rpx;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.guru-hold-track {
+  height: 10rpx;
+  margin-top: 10rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #eeeff1;
+}
+
+.guru-hold-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #8fb2ee, #1d5fd1);
 }
 
 .guru-history-chart {
@@ -1597,9 +2219,9 @@
   padding: 12rpx 6rpx 0;
   align-items: flex-end;
   gap: 6rpx;
-  border-bottom: 1rpx solid #d7e3db;
+  border-bottom: 1rpx solid #d6dbe4;
   border-radius: 12rpx 12rpx 0 0;
-  background: #f7faf8;
+  background: #f7f8fa;
 }
 
 .guru-history-slot {
@@ -1615,12 +2237,12 @@
   width: 70%;
   min-height: 8rpx;
   border-radius: 4rpx 4rpx 0 0;
-  background: #2fba78;
+  background: #3168c0;
 }
 
-.guru-history-bar.latest { background: #0b7a53; }
+.guru-history-bar.latest { background: #1d5fd1; }
 .guru-history-bar.peak { background: #d99a12; }
-.guru-history-bar.floor { background: #7eb89a; }
+.guru-history-bar.floor { background: #8fb2ee; }
 
 .guru-history-ticks {
   display: flex;
@@ -1633,7 +2255,7 @@
   margin-top: 6rpx;
   min-width: 0;
   flex: 1;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 18rpx;
   text-align: center;
   text-overflow: ellipsis;
@@ -1645,11 +2267,11 @@
   margin-top: 8rpx;
   justify-content: space-between;
   gap: 8rpx;
-  color: #7a847e;
+  color: #797d85;
   font-size: 22rpx;
 }
 
-.guru-history-labels text:nth-child(2) { color: #0b7a53; font-weight: 700; text-align: center; }
+.guru-history-labels text:nth-child(2) { color: #1d5fd1; font-weight: 700; text-align: center; }
 .guru-history-labels text:last-child { text-align: right; }
 
 .gold-card {
@@ -1668,51 +2290,97 @@
   min-width: 0;
   padding: 18rpx 16rpx;
   border-radius: 16rpx;
-  background: #f4f8f6;
+  background: #f4f5f8;
   text-align: center;
   transition: background-color 0.15s ease;
 }
 
 .gold-quote-button.is-active {
-  background: #eef8f2;
-  box-shadow: 0 2rpx 8rpx rgba(11, 122, 83, 0.14);
+  background: #edf2fb;
+  box-shadow: 0 2rpx 8rpx rgba(29, 95, 209, 0.14);
 }
 
 .gold-quote-label {
   display: block;
-  color: #6a746e;
+  color: #696d75;
   font-size: 22rpx;
   font-weight: 600;
 }
 
 .gold-quote-button.is-active .gold-quote-label {
-  color: #0b7a53;
+  color: #1d5fd1;
 }
 
 .gold-quote-price {
   display: block;
   margin-top: 6rpx;
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 34rpx;
   font-weight: 720;
   font-variant-numeric: tabular-nums;
 }
 
 .gold-quote-button.is-active .gold-quote-price {
-  color: #0b7a53;
+  color: #1d5fd1;
 }
 
 .gold-quote-unit {
   display: block;
   margin-top: 4rpx;
-  color: #9aa19c;
+  color: #999ca2;
   font-size: 20rpx;
 }
+
+.gold-score {
+  margin: 14rpx 8rpx 0;
+}
+
+.gold-score-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.gold-score-k {
+  color: #999ca2;
+  font-size: 19rpx;
+}
+
+.gold-score-v {
+  color: #1a1d22;
+  font-size: 22rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.gold-score-track {
+  height: 6rpx;
+  margin-top: 6rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: rgba(26, 29, 34, 0.08);
+}
+
+.gold-score-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #e2b458, #1d5fd1);
+}
+
+.gold-change {
+  color: #696d75;
+  font-size: 24rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.gold-change.is-up { color: #c2412d; }
+.gold-change.is-down { color: #0b7a53; }
 
 .gold-panel {
   margin-top: 20rpx;
   padding-top: 20rpx;
-  border-top: 1rpx solid #edf0ee;
+  border-top: 1rpx solid #edeef0;
 }
 
 .gold-row-between {
@@ -1731,7 +2399,7 @@
 }
 
 .gold-headline {
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 27rpx;
   font-weight: 680;
 }
@@ -1745,12 +2413,12 @@
   line-height: 1.5;
 }
 
-.gold-badge.tone-worth { background: #dcf0e4; color: #0b7a53; }
+.gold-badge.tone-worth { background: #dfe9fa; color: #1d5fd1; }
 .gold-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
 .gold-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
 
 .gold-currency-label {
-  color: #7a847e;
+  color: #797d85;
   font-size: 22rpx;
 }
 
@@ -1762,62 +2430,39 @@
 .gold-period {
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
-  background: #f4f8f6;
-  color: #6a746e;
+  background: #f4f5f8;
+  color: #696d75;
   font-size: 21rpx;
   font-weight: 600;
 }
 
 .gold-period.is-active {
-  background: #eef8f2;
-  color: #0b7a53;
+  background: #edf2fb;
+  color: #1d5fd1;
 }
 
 .gold-chart {
   margin-top: 16rpx;
 }
 
-.gold-chart-bars {
-  display: flex;
+.gold-chart-canvas {
+  display: block;
+  width: 100%;
   height: 200rpx;
-  padding: 12rpx 8rpx 0;
-  align-items: flex-end;
-  gap: 3rpx;
-  border-bottom: 1rpx solid #d7e3db;
-  border-radius: 12rpx 12rpx 0 0;
-  background: #f7faf8;
+  border-radius: 12rpx;
+  background: #f7f8fa;
 }
-
-.gold-chart-slot {
-  display: flex;
-  height: 100%;
-  min-width: 0;
-  flex: 1;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.gold-chart-bar {
-  width: 86%;
-  min-height: 8rpx;
-  border-radius: 4rpx 4rpx 0 0;
-  background: #2fba78;
-}
-
-.gold-chart-bar.latest { background: #0b7a53; }
-.gold-chart-bar.peak { background: #d99a12; }
-.gold-chart-bar.floor { background: #7eb89a; }
 
 .gold-chart-labels {
   display: flex;
   margin-top: 8rpx;
   justify-content: space-between;
   gap: 8rpx;
-  color: #7a847e;
+  color: #797d85;
   font-size: 22rpx;
 }
 
-.gold-chart-labels text:nth-child(2) { color: #0b7a53; font-weight: 700; text-align: center; }
+.gold-chart-labels text:nth-child(2) { color: #1d5fd1; font-weight: 700; text-align: center; }
 .gold-chart-labels text:last-child { text-align: right; }
 
 .gold-chart-empty {
@@ -1825,60 +2470,128 @@
   margin-top: 16rpx;
   padding: 20rpx 22rpx;
   border-radius: 16rpx;
-  background: #f4f8f6;
-  color: #9aa19c;
+  background: #f4f5f8;
+  color: #999ca2;
   font-size: 22rpx;
   line-height: 1.5;
 }
 
-.gold-zone-grid {
-  display: flex;
-  margin-top: 16rpx;
-  gap: 12rpx;
+.gold-ladder {
+  margin-top: 22rpx;
 }
 
-.gold-zone {
-  box-sizing: border-box;
-  flex: 1;
-  min-width: 0;
-  padding: 16rpx 18rpx;
-  border-radius: 16rpx;
-  background: #eef8f2;
+.gold-ladder-axis {
+  position: relative;
+  padding-top: 36rpx;
 }
 
-.gold-zone.warn {
-  background: #fdf3e3;
-}
-
-.gold-zone-label {
-  display: block;
-  color: #6a746e;
+.gold-ladder-now {
+  position: absolute;
+  top: 0;
+  color: #1a1d22;
   font-size: 21rpx;
-}
-
-.gold-zone-value {
-  display: block;
-  margin-top: 6rpx;
-  color: #0b7a53;
-  font-size: 28rpx;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
-.gold-zone.warn .gold-zone-value {
-  color: #8b5b20;
+.gold-ladder-now.tone-worth { color: #1d5fd1; }
+.gold-ladder-now.tone-caution { color: #8b5b20; }
+.gold-ladder-now.tone-avoid { color: #a33b2b; }
+
+.gold-ladder-track {
+  position: relative;
+  height: 14rpx;
+  border-radius: 999rpx;
+  background: #edeef2;
 }
 
-.gold-risk-line {
-  display: block;
-  margin-top: 16rpx;
-  padding: 20rpx 22rpx;
-  border-radius: 16rpx;
-  background: #eef8f2;
-  color: #1b211d;
+.gold-ladder-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999rpx;
+}
+
+.gold-ladder-band.is-watch { background: #a9c4f3; }
+.gold-ladder-band.is-upper { background: #ecc47a; }
+
+.gold-ladder-risk {
+  position: absolute;
+  top: -8rpx;
+  bottom: -8rpx;
+  width: 4rpx;
+  margin-left: -2rpx;
+  border-radius: 2rpx;
+  background: #d0614c;
+}
+
+.gold-ladder-dot {
+  position: absolute;
+  top: 50%;
+  width: 26rpx;
+  height: 26rpx;
+  margin-left: -13rpx;
+  margin-top: -13rpx;
+  box-sizing: border-box;
+  border: 5rpx solid #ffffff;
+  border-radius: 999rpx;
+  background: #1a1d22;
+  box-shadow: 0 1rpx 6rpx rgba(26, 29, 34, 0.3);
+}
+
+.gold-ladder-dot.tone-worth { background: #1d5fd1; }
+.gold-ladder-dot.tone-caution { background: #c98a1e; }
+.gold-ladder-dot.tone-avoid { background: #d0614c; }
+
+.gold-ladder-legend {
+  display: grid;
+  margin-top: 22rpx;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10rpx;
+}
+
+.gold-ladder-key {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.gold-ladder-key-head {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.gold-ladder-swatch {
+  flex: none;
+  width: 18rpx;
+  height: 8rpx;
+  border-radius: 999rpx;
+}
+
+.gold-ladder-key.is-risk .gold-ladder-swatch { width: 4rpx; height: 18rpx; background: #d0614c; }
+.gold-ladder-key.is-watch .gold-ladder-swatch { background: #a9c4f3; }
+.gold-ladder-key.is-upper .gold-ladder-swatch { background: #ecc47a; }
+
+.gold-ladder-key-label {
+  color: #999ca2;
+  font-size: 20rpx;
+}
+
+.gold-ladder-key-value {
+  color: #1a1d22;
   font-size: 25rpx;
-  line-height: 1.5;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
+
+.gold-ladder-key.is-risk .gold-ladder-key-value { color: #a33b2b; }
+.gold-ladder-key.is-watch .gold-ladder-key-value { color: #1d5fd1; }
+.gold-ladder-key.is-upper .gold-ladder-key-value { color: #8b5b20; }
 
 .gold-trend-line {
   display: flex;
@@ -1893,10 +2606,10 @@
   height: 16rpx;
   margin-top: 6rpx;
   border-radius: 50%;
-  background: #9aa19c;
+  background: #999ca2;
 }
 
-.gold-dot.tone-worth { background: #0b7a53; }
+.gold-dot.tone-worth { background: #1d5fd1; }
 .gold-dot.tone-caution { background: #d99a12; }
 .gold-dot.tone-avoid { background: #a33b2b; }
 
@@ -1909,53 +2622,49 @@
 }
 
 .gold-trend-title {
-  color: #1b211d;
+  color: #1a1d22;
   font-size: 26rpx;
   font-weight: 680;
 }
 
 .gold-trend-detail {
-  color: #7a847e;
+  color: #797d85;
   font-size: 22rpx;
   line-height: 1.5;
 }
 
 .gold-indicator-grid {
-  display: flex;
+  display: grid;
   margin-top: 16rpx;
-  flex-wrap: wrap;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12rpx;
 }
 
 .gold-indicator-tile {
   box-sizing: border-box;
-  width: calc(50% - 6rpx);
-  padding: 14rpx 16rpx;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8rpx;
+  padding: 16rpx 14rpx;
   border-radius: 16rpx;
-  background: #f4f8f6;
+  background: #f4f5f8;
 }
 
 .gold-indicator-label {
   display: block;
-  color: #6a746e;
+  color: #696d75;
   font-size: 20rpx;
+  line-height: 1.35;
 }
 
 .gold-indicator-value {
   display: block;
-  margin-top: 4rpx;
-  color: #1b211d;
-  font-size: 26rpx;
+  color: #1a1d22;
+  font-size: 30rpx;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-}
-
-.gold-indicator-note {
-  display: block;
-  margin-top: 4rpx;
-  color: #9aa19c;
-  font-size: 19rpx;
-  line-height: 1.4;
 }
 
 .gold-detail-link {
@@ -1965,39 +2674,10 @@
   justify-content: center;
   padding: 18rpx;
   border-radius: 999rpx;
-  background: #eef8f2;
-  color: #0b7a53;
+  background: #edf2fb;
+  color: #1d5fd1;
   font-size: 24rpx;
   font-weight: 640;
-}
-
-.gold-details {
-  margin-top: 14rpx;
-  padding-top: 4rpx;
-  border-top: 1rpx solid #edf0ee;
-}
-
-.gold-details-toggle {
-  display: flex;
-  min-height: 72rpx;
-  align-items: center;
-  justify-content: space-between;
-  color: #0b7a53;
-  font-size: 25rpx;
-  font-weight: 600;
-}
-
-.gold-details-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-  padding-bottom: 10rpx;
-}
-
-.gold-details-body text {
-  color: #8a938d;
-  font-size: 22rpx;
-  line-height: 1.55;
 }
 
 /* 机构持仓底部可展开区：策略摘要、数据出处不套 .a-details-body 的通用
@@ -2015,5 +2695,5 @@
   display: flex;
   flex-direction: column;
   padding-bottom: 6rpx;
-  border-top: 1rpx solid #edf0ee;
+  border-top: 1rpx solid #edeef0;
 }

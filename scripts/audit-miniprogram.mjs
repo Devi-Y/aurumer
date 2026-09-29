@@ -311,7 +311,10 @@ assert(
 assert(detailSource.includes("国际观察分") && detailSource.includes("人民币观察分"), "黄金详情缺少双观察分展示");
 assert(indexSource.includes("pages/section/index"), "小程序首页仍未进入原生二级页");
 assert(appConfig.pages.includes("pages/member/index"), "小程序仍应保留会员页路由");
-assert(indexSource.includes("pages/member/index"), "小程序首页缺少研究会员入口");
+// 首页年费条（我的会员）已按产品要求撤掉（2026-09-29）；开通入口改由详情页的会员功能承担，
+// 这里认详情页仍能进会员页，同时要求首页不再挂会员入口。
+assert(!indexSource.includes("pages/member/index") && !indexTemplate.includes("member-bar"), "首页不应再挂年费会员条");
+assert(detailSource.includes('openPage("/pages/member/index")'), "撤掉首页年费条后，详情页必须仍能进入会员页");
 assert(
   indexTemplate.includes("entry-grid")
     && indexStyles.includes("display: flex")
@@ -325,12 +328,20 @@ assert(
     && appStyles.includes("max-width: none"),
   "小程序全局页面仍被网页式窄容器限制，未铺满实际视口",
 );
-assert(indexTemplate.includes("today-card") || indexTemplate.includes("home-hero"), "小程序首页没有以今日重点和核心入口铺满移动视口");
+// 「今日重点」列表卡已按产品要求从首页整块撤掉（2026-09-29），年费条随后也撤掉；
+// 首屏现在是走势卡在上、九宫格在下，这里认这两块的先后，并要求今日重点卡不再出现。
+assert(
+  indexTemplate.includes("trend-grid")
+    && indexTemplate.includes("entry-grid")
+    && indexTemplate.indexOf("trend-grid") < indexTemplate.indexOf("entry-grid")
+    && !indexTemplate.includes("today-card"),
+  "小程序首页应走势卡在上、九宫格在下",
+);
 assert(
   indexStyles.includes("min-height: 100vh")
     && (indexStyles.includes("min-height: 108rpx") || indexStyles.includes("min-height: 176rpx") || indexStyles.includes("min-height: 188rpx") || indexStyles.includes("min-height: 210rpx"))
-    && (indexTemplate.includes("today-card") || indexTemplate.includes("home-hero")),
-  "小程序首页没有以今日重点和核心入口铺满移动视口",
+    && indexTemplate.includes("trend-grid"),
+  "小程序首页没有以走势卡和核心入口铺满移动视口",
 );
 {
   const gridCardRule = (indexStyles.match(/\.grid-card\s*\{[^}]*\}/) || [""])[0];
@@ -343,20 +354,25 @@ assert(
 assert(indexTemplate.includes('class="entry-icon"') && !indexTemplate.includes('class="entry-badge"'), "小程序核心入口应只保留大图标，不应恢复年度会员角标");
 assert(indexTemplate.includes('aria-label="{{item.title}}，{{item.help}}"') && indexTemplate.includes('aria-hidden="true"'), "小程序核心入口缺少按钮朗读标签或装饰图标隐藏语义");
 assert(indexTemplate.includes('role="button"') && !indexTemplate.includes("<button"), "小程序首页整块入口不应受原生 button 默认宽度干扰");
-for (const label of ["今日重点", "核心研究"]) {
-  assert(
-    indexTemplate.includes(label) || indexSource.includes(`"${label}"`),
-    `小程序首页缺少清晰层级：${label}`,
-  );
-}
-for (const marker of ["港股", "美股", "A股", "黄金"]) {
-  assert(indexSource.includes(marker), `今日重点缺少方向：${marker}`);
-}
 assert(
-  ['id: "hk"', 'id: "us"', 'id: "a"', 'id: "gold"'].every((marker) => indexSource.includes(marker)),
-  "今日重点应覆盖港股、美股、A股、黄金四个方向",
+  indexTemplate.includes("核心研究") || indexSource.includes('"核心研究"'),
+  "小程序首页缺少清晰层级：核心研究",
 );
-// 我的持仓闭环已按产品要求整体从首页撤掉（首页现在只留今日重点 / 六宫格两块），
+// 只看会渲染出来的部分：WXML 注释里记一句「今日重点已撤掉」不算回潮。
+assert(
+  !indexTemplate.replace(/<!--[\s\S]*?-->/g, "").includes("今日重点") && !indexSource.includes('"今日重点"'),
+  "首页今日重点已按产品要求撤掉，不应重新出现",
+);
+for (const marker of ["港股", "美股", "A股", "黄金"]) {
+  assert(indexSource.includes(marker), `首页缺少方向：${marker}`);
+}
+// 四个方向既要在六宫格里有入口，也要各有一张走势卡（market 字段就是点进去的栏目）。
+assert(
+  ['id: "hk"', 'id: "us"', 'id: "a"', 'id: "gold"'].every((marker) => indexSource.includes(marker))
+    && ['market: "hk"', 'market: "us"', 'market: "a"', 'market: "gold"'].every((marker) => indexSource.includes(marker)),
+  "首页入口与走势卡应覆盖港股、美股、A股、黄金四个方向",
+);
+// 我的持仓闭环已按产品要求整体从首页撤掉（首页现在只留六宫格 / 走势卡 / 年费条三块），
 // 滚动思路条 / 本机速记条 / 研究记录条 / 展开速览等历史尝试也都撤掉了，
 // 这里改为要求它们确实都不在首页上，不再要求首页保留持仓闭环。
 assert(
@@ -382,18 +398,20 @@ assert(playbookSource.includes("不可照抄") || playbookSource.includes("copyH
 assert((pageTemplatesByPath.get("pages/section/index") || "").includes("大师策略摘要"), "聪明钱跟踪栏目应露出大师策略摘要");
 assert(!appConfig.tabBar, "首页已去掉记录/会员后不应再保留底部 tabBar");
 assert(indexStyles.includes("width: 33.333%") && indexStyles.includes("font-size: 27rpx"), "小程序首页方向标签或标题没有使用清晰统一尺寸");
-// 首页顶部的四列 hero-matrix（品类+标的值）已被 2bbaa38 拆成独立的「今日重点」
-// 列表卡：每行以 today-row-market 打头的品类标签 + today-row-body 里的结论对照展示，
-// 不再是四列矩阵，这里改为断言这份列表结构确实存在。
+// 「今日重点」列表卡（today-row）撤掉后，首页的品类信息改由走势卡承担：
+// 每张卡一个数 + 一张图（零轴柱或 SVG 折线），序列来自快照、不够就整张不出。
 assert(
-  indexTemplate.includes("today-row")
-    && indexTemplate.includes("today-row-market")
-    && indexTemplate.includes("today-row-body")
-    && indexSource.includes("marketLabel"),
-  "今日重点应展示品类标签与对应结论",
+  indexTemplate.includes("trend-card")
+    && indexTemplate.includes("trend-value")
+    && indexTemplate.includes("trend-line")
+    && indexTemplate.includes("trend-bars")
+    && indexSource.includes("sparklineSvg")
+    && indexSource.includes("zeroAxisBars")
+    && !indexTemplate.includes("today-row"),
+  "首页走势卡应展示一个数加一张走势图，且不应恢复今日重点列表",
 );
-// 这四个品类点位（homePoint）已随 2bbaa38 从首页搬到独立的 pages/today 详情页，
-// 首页只保留精选后的今日重点列表，这里改为在数据源 daily-answers.js 里核对四个品类都还在。
+// 这四个品类点位（homePoint）是群卡片和公开摘要的数据源（pages/today 页已于 2026-09-29 删除），
+// 这里继续在 daily-answers.js 里核对四个品类都还在。
 const dailyAnswersForHomePoints = await readFile(path.join(miniRoot, "utils", "daily-answers.js"), "utf8");
 for (const [marketId, label] of [["hk", "港股"], ["us", "美股"], ["a", "A股"], ["gold", "黄金"]]) {
   assert(dailyAnswersForHomePoints.includes(`homePoint("${marketId}", "${label}"`), `今日重点缺少品类标签：${label}`);
@@ -404,16 +422,17 @@ assert(
   && indexSource.includes("数据截至"),
   "首页数据截至时间应只保留一处",
 );
-// hk/us/a/guru 与 gold 五个首页入口图标已在 711b420（"统一替换首页六入口图标"）
-// 里从各自的语义色统一改成低饱和墨绿/墨金，member/today/watch/decision 不在六宫格里，
-// 保留原色未变——这里改为核对现在这套统一色，而不是被替换掉的旧语义色。
+// 首页改成蓝白灰主色调（2026-09-29）后，六宫格六个入口图标统一用品牌蓝 #1d5fd1
+// （原来是 711b420 定的墨绿/墨金）；member/today/watch/decision 不在六宫格里，
+// 保留原色未变——这里核对现在这套统一色，而不是被替换掉的旧色。
 const expectedIconStrokes = {
-  hk: "#235a43",
-  us: "#235a43",
-  a: "#235a43",
-  gold: "#8c6a31",
+  hk: "#1d5fd1",
+  us: "#1d5fd1",
+  a: "#1d5fd1",
+  gold: "#1d5fd1",
   member: "#9B5DE5",
-  guru: "#235a43",
+  guru: "#1d5fd1",
+  news: "#1d5fd1",
   today: "#07C160",
   watch: "#07C160",
   decision: "#07C160",
@@ -452,9 +471,7 @@ for (const page of ["pages/section/index", "pages/list/index"]) {
   const template = pageTemplatesByPath.get(page) || "";
   assert(template.includes('role="button"') && !template.includes("<button"), `${page} 的整行点击区不应受原生 button 布局影响`);
 }
-// 2bbaa38 把年费入口从宫格外的独立横幅（title/badge 字段）收进了「今日重点」深色卡，
-// 不再单开会员卡（见 index.wxml 里的注释），价格现在落在 memberNote 里。
-assert(indexSource.includes('"365天 · ¥1288"'), "小程序年度会员入口没有显示唯一年费价格");
+// 首页已不挂年费入口（2026-09-29），唯一年费价格由 audit-payment.mjs 在会员页核对。
 const gridDefinition = indexSource.match(/const CORE_ENTRIES = \[([\s\S]*?)\n\];/)?.[1] || "";
 assert((gridDefinition.match(/\n\s+id: /g) || []).length === 6, "小程序首页应只保留 6 个核心入口");
 // 年费会员已按产品要求从宫格里挪到下方独立横幅，宫格是六个真实模块。
@@ -462,7 +479,6 @@ for (const title of ["港股打新", "美股投资", "A股收息", "黄金追踪
   assert(gridDefinition.includes(`title: "${title}"`), `小程序首页缺少准确入口标题：${title}`);
 }
 assert(!gridDefinition.includes('title: "年费会员"'), "年费会员不应再占用六宫格的位置");
-assert(indexSource.includes("openMemberBanner"), "小程序首页缺少年费会员入口");
 const homeEntryIcons = [...gridDefinition.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
 assert(homeEntryIcons.length === 6 && new Set(homeEntryIcons).size === 6, "小程序首页六个入口必须使用六个不同图标");
 const miniEntryOrder = ["id: \"hk\"", "id: \"us\"", "id: \"a\"", "id: \"gold\"", "id: \"guru\"", "id: \"news\""]
@@ -472,27 +488,33 @@ assert(gridDefinition.trimEnd().endsWith("},") && gridDefinition.lastIndexOf('id
 for (const removedId of ['id: "today"', 'id: "watch"', 'id: "decision"']) {
   assert(!gridDefinition.includes(removedId), `低频入口仍占用首页核心网格：${removedId}`);
 }
-// openTodayCategory/openTodayTarget 是旧 hero-matrix 两个各自独立的跳转函数，
-// 2bbaa38 拆成 today-row 列表后合并成一个 openTodayRow：有 targetId 跳详情，没有就回退栏目页。
+// 今日重点列表连同 openTodayRow 一起撤掉后，首页的第二个跳转口是走势卡：
+// 整张卡可点，按 data-market 进对应栏目页。
 assert(
-  indexSource.includes("openTodayRow")
-    && indexTemplate.includes("today-row")
-    && indexTemplate.includes('data-target="{{item.targetId}}"'),
-  "今日重点应支持点击跳转标的详情，无标的时回退品类",
+  indexSource.includes("openTrend")
+    && indexTemplate.includes('bindtap="openTrend"')
+    && indexTemplate.includes('data-market="{{item.market}}"')
+    && indexSource.includes("pages/section/index?market="),
+  "首页走势卡应支持点击进入对应栏目",
 );
 assert(!indexSource.includes("pages/workspace/index"), "首页不应再挂研究记录入口");
-for (const label of ["值得打", "暂缓观察", "暂不建议", "已结束", "高杠杆观察", "七姐妹", "低估七姐妹", "风险七姐妹", "长期观察", "热度前三", "热度前十", "性价比观察", "行业观察", "交叉重叠", "优等收息", "稳健收息", "高息待核", "底仓长期", "周期短持", "加大观察", "兑现观察", "现在怎么做", "观察区参考", "分红稳定性 前五", "分红收益性 前五", "收息样本", "港股 · 3 个", "美股 · 5 个", "A股 · 3 个", "公开长期年化排序"]) {
+for (const label of ["值得打", "暂缓观察", "暂不建议", "已结束", "高杠杆观察", "七姐妹", "低估七姐妹", "风险七姐妹", "长期观察", "热度前三", "热度前十", "性价比观察", "行业观察", "交叉重叠", "优等收息", "稳健收息", "高息待核", "底仓长期", "周期短持", "加大观察", "兑现观察", "现在怎么做", "观察区参考", "分红稳定性 前五", "分红收益性 前五", "收息样本", "港股 · 3 个", "美股 · 9 个", "A股 · 3 个", "公开长期年化排序"]) {
   assert(sectionSource.includes(label), `小程序缺少二级入口：${label}`);
 }
-// 「复制群卡片」已随 2bbaa38 从首页搬进新增的 pages/today 独立页（见其提交说明），
-// 首页现在只留精选后的今日重点列表，这里改为核对 pages/today 里还保留这个功能。
-const todaySource = await readFile(path.join(miniRoot, "pages", "today", "index.js"), "utf8");
-const todayTemplate = await readFile(path.join(miniRoot, "pages", "today", "index.wxml"), "utf8");
+// 分组标题里写死的「N 个」必须等于该组实际的聪明钱档案数，档案增减后标题不能过期。
+for (const [group, label] of [["hk", "港股"], ["us", "美股"], ["a", "A股"]]) {
+  const size = smartMoneyProfiles.filter((item) => item.group === group).length;
+  assert(sectionSource.includes(`"${label} · ${size} 个"`), `聪明钱 ${label} 分组标题数量应为 ${size} 个`);
+}
+// 「复制群卡片」原在 pages/today 独立页；那一页没有入口后于 2026-09-29 删除，
+// 功能挪进记录页「今日」tab（仅已开通会员可见），这里改为核对记录页保留这个功能。
+assert(!appConfig.pages.includes("pages/today/index"), "今日重点页已删除，不应再注册路由");
 assert(
-  todayTemplate.includes("copyDailyCard")
-    && todaySource.includes("buildDailyCard")
-    && todaySource.includes("daily_card_copy"),
-  "今日重点独立页应提供可复制的微信群每日卡片文案",
+  workspaceTemplate.includes('bindtap="copyDailyCard"')
+    && workspaceTemplate.includes("state.active && dailyCardText")
+    && workspaceSource.includes("buildDailyCard")
+    && workspaceSource.includes("daily_card_copy"),
+  "记录页应为已开通会员提供可复制的微信群每日卡片文案",
 );
 assert(
   (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes("buildDeepLinks")
@@ -505,11 +527,27 @@ assert(
     && (pageTemplatesByPath.get("pages/section/index") || "").includes("今日答案"),
   "栏目页应直接回答今日答案问题",
 );
+// 首页不再挂今日重点，buildHomeDigest 只剩记录页群卡片和公开摘要在用，
+// 这里改认这两处仍接入栏目今日答案。
 assert(
-  indexSource.includes("buildHomeDigest")
+  !indexSource.includes("buildHomeDigest")
+    && workspaceSource.includes("buildHomeDigest")
+    && (await readFile(path.join(root, "scripts", "build-daily-digest.mjs"), "utf8")).includes("buildHomeDigest")
     && (await readFile(path.join(miniRoot, "utils", "daily-card.js"), "utf8")).includes("extraLines"),
-  "首页今日重点与群卡片应接入栏目今日答案",
+  "记录页群卡片与公开摘要应接入栏目今日答案",
 );
+// 首页服务格：要么有产品负责人给的真实物料（copy），要么明确 pending 占位且不带任何链接，
+// 不允许出现「看着像能用、其实是编的」格子。
+{
+  const offersModule = { exports: {} };
+  vm.runInNewContext(await readFile(path.join(miniRoot, "config", "offers.js"), "utf8"), { module: offersModule, exports: offersModule.exports });
+  const offers = offersModule.exports;
+  for (const offer of offers) {
+    assert(offer.copy || (offer.pending && !offer.copy), `首页服务格 ${offer.id} 既没有真实物料也没标 pending`);
+    assert(!(offer.pending && offer.copy), `首页服务格 ${offer.id} 已有物料却仍标 pending`);
+  }
+  assert(offers.length <= 3, "九宫格只剩三个服务格位置");
+}
 assert(await access(path.join(miniRoot, "utils", "daily-answers.js")).then(() => true).catch(() => false), "缺少今日答案模块");
 assert(await access(path.join(miniRoot, "utils", "market-lenses.js")).then(() => true).catch(() => false), "缺少分档透镜模块");
 assert(marketLensesSource.includes("hkHistoricalCrowdEligible"), "十倍融资应能回看历史拥挤度对照样本");
@@ -562,13 +600,12 @@ for (const actionField of ["technicalPlan", "targetPrice", "targetUpside", "buy_
   assert(!generatedSource.includes(`\"${actionField}\"`), `小程序离线包仍包含内部价格字段：${actionField}`);
 }
 assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes("pricePlan"), "云函数清洗层应保留公开动作结论与黄金买卖观察区");
-// openTodayCategory/openTodayTarget 已随 2bbaa38 合并成单一的 openTodayRow（见前面
-// 「今日重点应支持点击跳转标的详情」断言），这里同步改认合并后的处理函数。
+// 今日重点标题撤掉后，「数据截至」挂在核心研究那一行的右侧，仍是自动更新的。
 assert(
-  indexTemplate.includes("今日重点")
-  && indexTemplate.includes("openTodayRow")
-  && (indexSource.includes("数据截至") || indexTemplate.includes("dataAsOf")),
-  "今日重点缺少固定标题或自动更新的数据截至时间",
+  indexTemplate.includes("核心研究")
+  && indexTemplate.includes("dataAsOf")
+  && indexSource.includes("数据截至"),
+  "首页缺少固定分组标题或自动更新的数据截至时间",
 );
 
 assert(sectionSource.includes('one: "') || (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes("one:"), "栏目页缺少品类研究摘要文案配置");
@@ -598,12 +635,12 @@ assert(await access(path.join(miniRoot, "utils", "fact-snapshot.js")).then(() =>
 assert(!`${memberPageSource}\n${memberTemplate}`.includes("暗盘/首周出价") && !`${memberPageSource}\n${memberTemplate}`.includes("打新出价观察"), "会员页不应再把精确出价当作付费卖点");
 // todayHelp/card-help 这行常驻可见的入口说明文字已被 2bbaa38 撤掉——首页顶部注释
 // 明确写着「一格只有图标和名字，不用先读一行说明」，help 现在只留作 aria-label
-// 读屏用，今日重点区改用 today-sub 一句话说明，这里改为核对这套现状。
+// 读屏用；today-sub 随今日重点一起撤掉，走势卡同样靠 aria-label 读出数值与涨跌。
 assert(
   indexTemplate.includes("item.help")
-    && indexTemplate.includes("aria-label")
-    && indexTemplate.includes("today-sub"),
-  "首页应通过读屏标签与今日重点说明保留入口帮助信息",
+    && indexTemplate.includes('aria-label="{{item.title}} {{item.value}} {{item.sub}}"')
+    && !indexTemplate.includes("today-sub"),
+  "首页应通过读屏标签保留入口与走势卡的帮助信息",
 );
 // group-help 已在 711b420 里随栏目页头部重做改名为 hero-help（与前面
 // 「后续页面缺少图片、数据、分析或结论层级」断言认的是同一个类名）。

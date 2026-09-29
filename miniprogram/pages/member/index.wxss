@@ -2,7 +2,7 @@
   box-sizing: border-box;
   min-height: 100vh;
   padding: 16rpx 16rpx calc(190rpx + env(safe-area-inset-bottom));
-  background: #f4f6f5;
+  background: #f4f5f6;
 }
 
 .member-shell-active {
@@ -32,7 +32,7 @@
   align-items: flex-start;
   gap: 20rpx;
   border-radius: 40rpx;
-  background: #204937;
+  background: #16305e;
 }
 
 .member-hero-copy { min-width: 0; flex: 1; }
@@ -50,11 +50,11 @@
 
 .status-value,
 .status-detail { display: block; }
-.status-value { color: #c1d1c5; font-size: 23rpx; font-weight: 600; }
+.status-value { color: #bfc6d3; font-size: 23rpx; font-weight: 600; }
 .status-value.active { color: #e2d2a9; }
 .member-title { display: block; margin-top: 8rpx; font-family: "Songti SC", "STSong", serif; color: #f4f7ef; font-size: 42rpx; font-weight: 760; line-height: 1.2; letter-spacing: 1rpx; }
-.status-detail { margin-top: 9rpx; color: #c1d1c5; font-size: 24rpx; line-height: 1.5; }
-.member-subtitle { display: block; margin-top: 9rpx; color: #c1d1c5; font-size: 24rpx; }
+.status-detail { margin-top: 9rpx; color: #bfc6d3; font-size: 24rpx; line-height: 1.5; }
+.member-subtitle { display: block; margin-top: 9rpx; color: #bfc6d3; font-size: 24rpx; }
 
 .member-price-row { margin-top: 28rpx; }
 .member-price {
@@ -63,8 +63,8 @@
   color: #f4f7ef;
   line-height: 1.1;
 }
-.member-price-unit { font-family: -apple-system, sans-serif; font-size: 24rpx; color: #c1d1c5; }
-.member-term { display: block; margin-top: 6rpx; color: #c1d1c5; font-size: 23rpx; }
+.member-price-unit { font-family: -apple-system, sans-serif; font-size: 24rpx; color: #bfc6d3; }
+.member-term { display: block; margin-top: 6rpx; color: #bfc6d3; font-size: 23rpx; }
 
 .member-shortcuts {
   display: flex;
@@ -79,18 +79,18 @@
   flex-direction: column;
   align-items: center;
   gap: 7rpx;
-  border-right: 1rpx solid #e6ebe8;
+  border-right: 1rpx solid #e5e8ec;
 }
 .member-shortcut:last-child { border-right: 0; }
-.member-shortcut text:first-child { color: #1b211d; font-size: 28rpx; font-weight: 720; }
+.member-shortcut text:first-child { color: #1a1d22; font-size: 28rpx; font-weight: 720; }
 /* 第二行原来和第一行一样重（本来是被拆开的半个词），现在它是计数说明，
    降到辅助级，别跟标题抢。 */
-.member-shortcut .shortcut-help { color: #6b736e; font-size: 22rpx; font-weight: 400; line-height: 1.3; text-align: center; }
+.member-shortcut .shortcut-help { color: #6a6e74; font-size: 22rpx; font-weight: 400; line-height: 1.3; text-align: center; }
 
 .state-note {
   display: block;
   padding: 20rpx 24rpx;
-  color: #5f6a64;
+  color: #5e636b;
   font-size: 25rpx;
   line-height: 1.5;
 }
@@ -101,7 +101,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 14rpx;
-  color: #4d5a52;
+  color: #4b515c;
   font-size: 24rpx;
   line-height: 1.4;
 }
@@ -111,8 +111,8 @@
   margin: 0;
   padding: 10rpx 16rpx;
   border-radius: 12rpx;
-  background: #e9f7ef;
-  color: #078d4b;
+  background: #e9eef7;
+  color: #1d5fd1;
   font-size: 23rpx;
   font-weight: 650;
   line-height: 1.4;
@@ -132,24 +132,24 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #078d4b;
+  color: #1d5fd1;
   font-size: 25rpx;
   font-weight: 650;
   line-height: 1.4;
   text-align: left;
 }
-.legal-link text { color: #a6ada9; font-size: 37rpx; font-weight: 300; }
+.legal-link text { color: #a5a8ae; font-size: 37rpx; font-weight: 300; }
 
 .active-entry {
   display: flex;
   padding: 22rpx 24rpx;
   align-items: center;
   justify-content: space-between;
-  color: #078d4b;
+  color: #1d5fd1;
   font-size: 28rpx;
   font-weight: 700;
 }
-.active-entry text:last-child { color: #a6ada9; font-size: 38rpx; font-weight: 300; }
+.active-entry text:last-child { color: #a5a8ae; font-size: 38rpx; font-weight: 300; }
 
 .member-links {
   padding: 2rpx 24rpx;
@@ -166,9 +166,9 @@
   background: #ffffff;
 }
 .order-head { display: flex; align-items: baseline; justify-content: space-between; }
-.order-title { color: #1b211d; font-size: 27rpx; font-weight: 700; }
-.order-meta { color: #8b938e; font-size: 21rpx; }
-.order-row { padding: 18rpx 0; border-bottom: 1rpx solid #edf0ee; }
+.order-title { color: #1a1d22; font-size: 27rpx; font-weight: 700; }
+.order-meta { color: #8a8e94; font-size: 21rpx; }
+.order-row { padding: 18rpx 0; border-bottom: 1rpx solid #edeef0; }
 .order-row:last-child { border-bottom: 0; }
 .order-line {
   display: flex;
@@ -176,28 +176,28 @@
   justify-content: space-between;
   gap: 12rpx;
 }
-.order-status { color: #1b211d; font-size: 25rpx; font-weight: 640; }
+.order-status { color: #1a1d22; font-size: 25rpx; font-weight: 640; }
 .order-status.is-pending { color: #b4691a; }
-.order-amount { color: #1b211d; font-size: 25rpx; font-weight: 640; font-variant-numeric: tabular-nums; }
-.order-sub { display: block; margin-top: 7rpx; color: #78807b; font-size: 21rpx; line-height: 1.5; }
+.order-amount { color: #1a1d22; font-size: 25rpx; font-weight: 640; font-variant-numeric: tabular-nums; }
+.order-sub { display: block; margin-top: 7rpx; color: #777b81; font-size: 21rpx; line-height: 1.5; }
 .order-query {
   margin: 12rpx 0 2rpx;
   padding: 0 22rpx;
-  color: #078d4b;
+  color: #1d5fd1;
   font-size: 23rpx;
   line-height: 58rpx;
-  border: 1rpx solid #cfe6d9;
+  border: 1rpx solid #cfd8e6;
   border-radius: 999rpx;
-  background: #f2faf6;
+  background: #f2f5fa;
 }
 .order-query::after { border: 0; }
-.member-links .legal-link { border-bottom: 1rpx solid #edf0ee; }
+.member-links .legal-link { border-bottom: 1rpx solid #edeef0; }
 .support-link { justify-content: flex-start; }
 
 .disclaimer {
   display: block;
   margin: 18rpx 8rpx;
-  color: #7b847e;
+  color: #7a7e85;
   font-size: 21rpx;
   line-height: 1.55;
 }
@@ -212,7 +212,7 @@
   padding: 18rpx 10rpx;
   border-radius: 14rpx;
   background: #ffffff;
-  color: #59645d;
+  color: #585d65;
   font-size: 24rpx;
   text-align: center;
 }
@@ -231,26 +231,26 @@
   align-items: center;
   gap: 5rpx 14rpx;
   background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 -8rpx 24rpx rgba(26, 55, 41, 0.08);
+  box-shadow: 0 -8rpx 24rpx rgba(46, 65, 96, 0.08);
 }
 .pay-dock-copy { min-width: 0; flex: 1; }
 .pay-dock-copy text { display: block; }
-.pay-dock-copy text:first-child { color: #202421; font-size: 23rpx; font-weight: 650; }
-.pay-dock-copy text:last-child { margin-top: 2rpx; color: #152019; font-size: 27rpx; font-weight: 720; }
-.dock-consent { display: block; width: 100%; color: #707a73; font-size: 21rpx; line-height: 1.4; }
+.pay-dock-copy text:first-child { color: #202125; font-size: 23rpx; font-weight: 650; }
+.pay-dock-copy text:last-child { margin-top: 2rpx; color: #151920; font-size: 27rpx; font-weight: 720; }
+.dock-consent { display: block; width: 100%; color: #6f737b; font-size: 21rpx; line-height: 1.4; }
 .buy-button {
   width: 280rpx;
   min-height: 82rpx;
   margin: 0;
   padding: 17rpx 12rpx;
   border-radius: 14rpx;
-  background: #078d4b;
+  background: #1d5fd1;
   color: #ffffff;
   font-size: 27rpx;
   font-weight: 700;
   line-height: 1.4;
 }
-.buy-button.is-disabled { background: #9ab6a8; }
+.buy-button.is-disabled { background: #96a3ba; }
 
 @media (max-width: 340px) {
   .member-shell { padding-right: 12rpx; padding-left: 12rpx; }

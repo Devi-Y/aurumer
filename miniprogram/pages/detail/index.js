@@ -1913,6 +1913,58 @@ function buildGoldView(base, item) {
   base.sourceNote = (gold.sources || []).filter((source) => source.ok).map((source) => sourceName(source.name)).join(" · ") || "公开行情与宏观资料";
 }
 
+// 美股「下单参考」：参考买入价 / 跌破就卖 / 分批卖出价三档，加两个自己判断用的数。
+// 三档来自引擎的 pricePlan（清洗层从 technicalPlan 挑出来的），这里只算它们离现价多远，
+// 不新造价位；快照过期时 pricePlan 已被剥掉，整张卡不出现。
+// 结论是「风险升高」时不给买入价——同一屏一边说先停追、一边给个买入价，读的人会问到底买不买；
+// 这时另外两档只对手里已经有的人有用，标上「已持有」，免得读的人问「不买哪来的卖」。
+function applyUSOrderPlan(base, item) {
+  const raw = item.raw || {};
+  const plan = raw.pricePlan;
+  const price = Number(raw.price);
+  if (!plan || !(price > 0) || !(plan.buy > 0) || !(plan.stop > 0) || !Array.isArray(plan.sell) || !plan.sell.length) return;
+  const gap = (level) => {
+    const pct = ((level - price) / price) * 100;
+    return `比现价${pct >= 0 ? "高" : "低"} ${Math.abs(pct).toFixed(1)}%`;
+  };
+  const noBuy = base.strategy?.label === "风险升高";
+  // 「离近60日最高差几%」跟关键风险里那句同一个算法（以最高价为底），同一屏不出两个数。
+  const range = historyStats(raw.history);
+  const sell = plan.sell.slice(0, 2);
+  const rows = [
+    noBuy
+      ? { key: "buy", label: "参考买入价", value: "暂不买", note: "风险升高" }
+      : { key: "buy", label: "参考买入价", value: money(plan.buy), note: gap(plan.buy) },
+    { key: "stop", label: noBuy ? "已持有：跌破就卖" : "跌破就卖", value: money(plan.stop), note: gap(plan.stop) },
+    {
+      key: "sell",
+      label: noBuy ? "已持有：分批卖出价" : "分批卖出价",
+      value: sell.map((level) => money(level)).join(" / "),
+      note: `比现价高 ${sell.map((level) => Math.abs(((level - price) / price) * 100).toFixed(1)).join("% / ")}%`,
+    },
+    range && range.high > 0
+      ? { key: "high", label: "离近60日最高", value: price >= range.high ? "已是最高" : `差 ${(((range.high - price) / range.high) * 100).toFixed(1)}%` }
+      : null,
+    plan.dailyMove > 0
+      ? { key: "move", label: "一天大概涨跌", value: `约 ${money(plan.dailyMove)}`, note: `约现价的 ${((plan.dailyMove / price) * 100).toFixed(1)}%` }
+      : null,
+  ].filter(Boolean);
+  base.orderPlan = { title: "下单参考", rows };
+
+  // 有了买入价和跌破就卖的价，「关键风险」换成读的人下单前最想知道的：买错了亏多少。
+  // 这个价挡不住财报跳空，所以写明可能亏更多，不说成「最多亏」。
+  if (!noBuy) {
+    const loss = plan.buy - plan.stop;
+    base.riskItems = [
+      {
+        title: "如果买错",
+        body: `按参考买入价 ${money(plan.buy)} 买、跌破 ${money(plan.stop)} 就卖，每股约亏 ${money(loss)}（${((loss / plan.buy) * 100).toFixed(1)}%）；财报前后大跌可能亏更多。`,
+      },
+      ...(base.riskItems || []),
+    ];
+  }
+}
+
 // 「资料」tab 里的官方出处。照新闻资讯页的做法：能核验的地址摆出来，点一下
 // 复制走。以前这一页只有 sourceNote 一个来源"名字"，还压在风险 tab 最底下，
 // 用户想核对得自己去搜——而快照里其实躺着两类真实深链：港交所每只新股的
@@ -1986,6 +2038,7 @@ function buildOverview(base, item) {
   }
 
   base.overview = {
+    orderPlan: base.orderPlan || null,
     priceCard,
     evidenceBullets,
     keyRisk,
@@ -2043,6 +2096,7 @@ function detailView(item, snapshot) {
 
   base.sourceLinks = buildSourceLinks(item, snapshot);
   base.strategy = buildStrategySignal(item, { snapshot, evidence: strategyEvidence });
+  if (item.market === "us") applyUSOrderPlan(base, item);
   buildOverview(base, item);
 
   const scored = scoreForItem(item);

@@ -257,6 +257,17 @@
         <text class="module-title">概览</text>
         <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
 
+        <view wx:if="{{view.overview.orderPlan}}" class="exit-plan order-plan">
+          <text class="exit-plan-title">{{view.overview.orderPlan.title}}</text>
+          <view wx:for="{{view.overview.orderPlan.rows}}" wx:key="key" class="order-row is-{{item.key}}">
+            <text class="order-label">{{item.label}}</text>
+            <view class="order-value">
+              <text class="order-price">{{item.value}}</text>
+              <text wx:if="{{item.note}}" class="order-note">{{item.note}}</text>
+            </view>
+          </view>
+        </view>
+
         <template wx:if="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
 
         <view class="section-card" wx:if="{{view.overview.evidenceBullets.length}}">

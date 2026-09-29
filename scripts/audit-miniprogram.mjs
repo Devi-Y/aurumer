@@ -2,6 +2,7 @@ import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
+import { createRequire } from "node:module";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const miniRoot = path.join(root, "miniprogram");
@@ -631,6 +632,47 @@ for (const actionField of ["technicalPlan", "targetPrice", "targetUpside", "buy_
   assert(!generatedSource.includes(`\"${actionField}\"`), `小程序离线包仍包含内部价格字段：${actionField}`);
 }
 assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes("pricePlan"), "云函数清洗层应保留公开动作结论与黄金买卖观察区");
+// 美股「下单参考」的买入 / 跌破就卖 / 分批卖出价只能从引擎 technicalPlan 原样挑出来：
+// 清洗层不改数、不补数，离线包跟清洗结果一致；快照过期后整块剥掉，页面上不会挂着过时的价。
+{
+  const requireCjs = createRequire(import.meta.url);
+  const { sanitizeSnapshot } = requireCjs("../cloudfunctions/aurum-data/sanitize.js");
+  const { degradeStaleActions } = requireCjs("../cloudfunctions/aurum-data/action-freshness.js");
+  const sanitized = sanitizeSnapshot(publicSnapshot);
+  const sourceBySymbol = new Map((publicSnapshot.us?.stocks || []).map((stock) => [stock.symbol, stock]));
+  const sanitizedBySymbol = new Map((sanitized.us?.stocks || []).map((stock) => [stock.symbol, stock]));
+  const sameNumbers = (left, right) => left.length === right.length && left.every((value, index) => value === right[index]);
+  for (const [symbol, stock] of sanitizedBySymbol) {
+    const source = sourceBySymbol.get(symbol)?.technicalPlan || {};
+    const sourceSell = (Array.isArray(source.tp) ? source.tp : []).map(Number).filter((value) => Number.isFinite(value) && value > 0);
+    const ordered = Number(source.buy) > 0 && Number(source.stop) > 0 && sourceSell.length
+      && Number(source.stop) < Number(source.buy) && sourceSell[0] > Number(source.buy);
+    if (sanitized.actionsFresh && ordered) assert(stock.pricePlan, `美股 ${symbol} 引擎有完整三档价，清洗后却没有 pricePlan`);
+    if (!stock.pricePlan) continue;
+    assert(
+      stock.pricePlan.buy === Number(source.buy)
+        && stock.pricePlan.stop === Number(source.stop)
+        && sameNumbers(stock.pricePlan.sell, sourceSell),
+      `美股 ${symbol} 的 pricePlan 跟引擎 technicalPlan 对不上`,
+    );
+    assert(stock.pricePlan.stop < stock.pricePlan.buy && stock.pricePlan.sell[0] > stock.pricePlan.buy, `美股 ${symbol} 三档价顺序不对`);
+  }
+  for (const stock of snapshot.us.stocks) {
+    if (!stock.pricePlan) continue;
+    assert(
+      JSON.stringify(stock.pricePlan) === JSON.stringify(sanitizedBySymbol.get(stock.symbol)?.pricePlan),
+      `小程序离线包里 ${stock.symbol} 的 pricePlan 跟云函数清洗结果不一致，请运行 npm run sync:mini`,
+    );
+  }
+  const staleNow = Date.parse(snapshot.updatedAt) + 7 * 24 * 60 * 60 * 1000;
+  for (const [label, degraded] of [
+    ["离线包", degradeStaleActions(snapshot, staleNow)],
+    ["云函数", degradeStaleActions(sanitized, staleNow)],
+  ]) {
+    assert(degraded.actionsFresh === false, `${label}快照过期后应标记为动作过期`);
+    assert(!(degraded.us?.stocks || []).some((stock) => stock.pricePlan), `${label}快照过期后美股仍带参考买卖价`);
+  }
+}
 // 今日重点标题撤掉后，「数据截至」挂在核心研究那一行的右侧，仍是自动更新的。
 assert(
   indexTemplate.includes("核心研究")

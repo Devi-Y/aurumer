@@ -546,8 +546,8 @@ function goldLadder(price, watch, upper, risk, digits) {
   };
 }
 
-// 折线图沿用详情页 paintLineChart() 同一套 Canvas 2D 画法（pages/detail/index.js），
-// 这里只取收盘价数组重新实现一遍，不跨页面导出——和之前的柱状图版本同一个约定。
+// 这张大图带切周期/币种，仍用 Canvas 2D 自己画（paintGoldLineChart）；
+// 详情页和首页的折线已改成 utils/sparkline.js 的 SVG 图片。
 // canvasId 固定不变（这块画布切周期/币种时不会被 wx:if 销毁重建，只是重新画），
 // 每次数据变化后由 drawGoldChart() 重新 paint。
 function goldLineChart(history, digits, periodLabel) {
@@ -575,8 +575,7 @@ function goldLineChart(history, digits, periodLabel) {
   };
 }
 
-// 和 pages/detail/index.js 里的 paintLineChart 同一份画法（house style 明确
-// 要求这类 canvas 画图函数不跨页面导出，见上）：先描浅色网格线，再用二次贝塞尔
+// 画法：先描浅色网格线，再用二次贝塞尔
 // 让折线带一点自然的圆滑弧度，填充渐变色，最后描高/低点和最新点。
 function paintGoldLineChart(ctx, width, height, values) {
   ctx.clearRect(0, 0, width, height);

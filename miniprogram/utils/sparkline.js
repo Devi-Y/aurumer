@@ -1,4 +1,4 @@
-// 小走势图：首页走势卡、美股每行、红利 ETF 卡、黄金指标共用这一套画法；零轴柱首页和港股栏目共用。
+// 走势图：首页走势卡、美股每行、红利 ETF 卡、黄金指标、详情页价格走势共用这一套画法；零轴柱首页和港股栏目共用。
 // 走势线出成 SVG 图片（<image src="data:...">），不走 canvas：canvas 是原生层，
 // 开发者工具里偶尔会画到别的格子上，而且 wx:if 切换后还得重画；图片跟着布局走，不会错位。
 // 线一律品牌蓝（蓝白灰主色调），涨跌只看旁边那个红涨绿跌的数字。
@@ -32,7 +32,7 @@ function asciiBase64(text) {
 const fmt = (value) => String(Math.round(value * 10) / 10);
 
 // width/height 用 rpx 数值，和 WXML 里图片的 CSS 尺寸同比例，线宽 3 ≈ 1.5px 不会被拉变形。
-function sparklineSvg(values, { width = 300, height = 100, color = LINE_COLOR } = {}) {
+function sparklineSvg(values, { width = 300, height = 100, color = LINE_COLOR, grid = false } = {}) {
   const series = (values || []).filter((value) => Number.isFinite(value));
   if (series.length < 2) return "";
   const low = Math.min(...series);
@@ -51,7 +51,12 @@ function sparklineSvg(values, { width = 300, height = 100, color = LINE_COLOR } 
   const end = pts[pts.length - 1];
   line += `L${fmt(end[0])} ${fmt(end[1])}`;
   const area = `${line}L${fmt(end[0])} ${height}L${fmt(pts[0][0])} ${height}Z`;
+  // 详情页大图多两条浅网格线（1/3、2/3 高度），首页小卡不画，保持干净。
+  const gridLines = grid
+    ? [1 / 3, 2 / 3].map((f) => `<path d="M${padX} ${fmt(padTop + plotH * f)}H${width - padX}" stroke="#e3e6ec" stroke-width="1.5" fill="none"/>`).join("")
+    : "";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">`
+    + gridLines
     + `<defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.2"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>`
     + `<path d="${area}" fill="url(#f)"/>`
     + `<path d="${line}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`

@@ -20,7 +20,7 @@
       <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="solid-slot">
         <text class="solid-value">{{col.valueText}}</text>
         <view class="solid-pillar-wrap">
-          <view class="solid-bar {{col.tone}} tone-{{col.colorIndex}}" style="height: {{col.height}}%;"></view>
+          <view class="solid-bar {{col.tone}}" style="height: {{col.height}}%;"></view>
         </view>
         <text class="solid-label">{{col.label}}</text>
       </view>
@@ -30,13 +30,13 @@
       <view wx:for="{{item.items}}" wx:for-item="bar" wx:key="id" class="bar-row">
         <view class="bar-copy"><text>{{bar.label}}</text><text>{{bar.valueText}}</text></view>
         <view class="bar-track">
-          <view class="bar-value {{bar.tone}} tone-{{bar.colorIndex}}" style="width: {{bar.width}}%;"></view>
+          <view class="bar-value {{bar.tone}}" style="width: {{bar.width}}%;"></view>
         </view>
       </view>
     </view>
 
     <view wx:if="{{item.kind == 'line'}}" class="line-chart-wrap">
-      <canvas type="2d" id="{{item.canvasId}}" class="line-chart-canvas"></canvas>
+      <image wx:if="{{item.src}}" class="line-chart-img" src="{{item.src}}" mode="scaleToFill"></image>
       <view class="column-labels">
         <text>{{item.lowLabel}}</text>
         <text>{{item.latestLabel}}</text>

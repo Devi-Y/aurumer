@@ -17,6 +17,7 @@ const { filingsFor, formatFiling, formatFilingLine } = require("../../utils/us-f
 // 「毛利率 43%」本身不回答"这算高还是低"。望潮池子里 30 只美股、20 只 A 股
 // 的同口径字段就摆在快照里，把它算成「池内第 6/30」是零新增数据的一次密度提升。
 const { poolRankVisual } = require("../../utils/pool-rank");
+const { sparklineSvg } = require("../../utils/sparkline");
 const { annualRank } = require("../../utils/smart-money");
 // 黄金四个报价之间唯一那条换算（1 金衡盎司 = 31.1035 克），栏目页和详情页共用。
 const { goldParity } = require("../../utils/gold-parity");
@@ -171,10 +172,11 @@ function withChartMeta(chart, hint) {
 
 let lineChartSeq = 0;
 
-// 券商行情图那种折线走势：型号沿用 chart-visual 模板里现成的 canvas 挂载点，
-// 真正的曲线由 paintLineChart() 在 drawLineChart()（见 Page 定义）里用 Canvas 2D
-// 画出来，这里只负责整理数据——canvasId 只求本页同一时刻不撞名，不要求稳定，
-// 因为每次切 tab 对应的 canvas 节点本来就会被 wx:if 销毁重建。
+// 券商行情图那种折线走势：出成 SVG 图片（utils/sparkline.js，和首页走势卡同一套画法）。
+// 以前用 canvas 原生层，切 tab 后偶尔整张画到页头上、自己的格子空着；图片跟着布局走，
+// 也不用等节点量尺寸再重画。600×200 和 .line-chart-img 的 100%×200rpx 大致同比例。
+const LINE_SVG = { width: 600, height: 200, grid: true };
+
 function priceVisual(history, title, formatter = (value) => Number(value).toFixed(2), hint) {
   const values = (history || []).filter(hasNumber).map(Number);
   if (values.length < 2) return null;
@@ -184,108 +186,25 @@ function priceVisual(history, title, formatter = (value) => Number(value).toFixe
   const sorted = values.slice().sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
   const change = values[0] ? ((latest - values[0]) / Math.abs(values[0])) * 100 : 0;
-  lineChartSeq += 1;
   return withChartMeta({
     kind: "line",
-    canvasId: `price-line-${lineChartSeq}`,
     title,
-    values,
+    src: sparklineSvg(values, LINE_SVG),
     lowLabel: `最低 ${formatter(low)}`,
     latestLabel: `最新 ${formatter(latest)}`,
     highLabel: `最高 ${formatter(high)}`,
+    // 三格就够：均价和中位几乎一样，高低差就是图下两端标签之差；五格在窄屏会把金价截成「$4543....」。
     stats: [
-      { label: "样本", value: `${values.length}` },
-      { label: "中位", value: formatter(median) },
-      { label: "均价", value: formatter(mean) },
-      { label: "高低差", value: formatter(high - low) },
       { label: "区间涨跌", value: `${change >= 0 ? "+" : ""}${change.toFixed(1)}%` },
+      { label: "中位", value: formatter(median) },
+      { label: "样本", value: `${values.length}` },
     ],
   }, hint || "曲线越靠上价格越高；只看历史，不预测明天。");
 }
 
-// 和 chart-prototype.html 浏览器原型里验证过的同一份画法——先在标准 Canvas 2D
-// 里用真实金价/股价数据跑通视觉效果，再原样搬进小程序的 type="2d" canvas，
-// 两边共用一套坐标算法，避免临时改动导致移植后走样。
-function paintLineChart(ctx, width, height, values) {
-  ctx.clearRect(0, 0, width, height);
-  const low = Math.min(...values);
-  const high = Math.max(...values);
-  const span = Math.max(high - low, 1e-6);
-  const padTop = 10, padBottom = 4, padX = 2;
-  const plotH = height - padTop - padBottom;
-  const plotW = width - padX * 2;
-  const stepX = plotW / (values.length - 1);
-  const xAt = (i) => padX + i * stepX;
-  const yAt = (v) => padTop + (1 - (v - low) / span) * plotH;
-
-  ctx.strokeStyle = "#e3e6ec";
-  ctx.lineWidth = 1;
-  [0.33, 0.66].forEach((f) => {
-    const y = padTop + plotH * f;
-    ctx.beginPath();
-    ctx.moveTo(padX, y);
-    ctx.lineTo(width - padX, y);
-    ctx.stroke();
-  });
-
-  const pts = values.map((v, i) => [xAt(i), yAt(v)]);
-  function tracePath() {
-    ctx.moveTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i < pts.length - 1; i++) {
-      const mx = (pts[i][0] + pts[i + 1][0]) / 2;
-      const my = (pts[i][1] + pts[i + 1][1]) / 2;
-      ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
-    }
-    ctx.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
-  }
-
-  ctx.beginPath();
-  tracePath();
-  const gradient = ctx.createLinearGradient(0, padTop, 0, height - padBottom);
-  gradient.addColorStop(0, "rgba(29, 95, 209,0.22)");
-  gradient.addColorStop(1, "rgba(29, 95, 209,0)");
-  ctx.lineTo(pts[pts.length - 1][0], height - padBottom);
-  ctx.lineTo(pts[0][0], height - padBottom);
-  ctx.closePath();
-  ctx.fillStyle = gradient;
-  ctx.fill();
-
-  ctx.beginPath();
-  tracePath();
-  ctx.strokeStyle = "#1d5fd1";
-  ctx.lineWidth = 1.6;
-  ctx.lineJoin = "round";
-  ctx.stroke();
-
-  function dot(i, color, radius) {
-    ctx.beginPath();
-    ctx.arc(pts[i][0], pts[i][1], radius, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-  }
-  dot(values.indexOf(high), "#d99a12", 2.5);
-  dot(values.indexOf(low), "#8fb2ee", 2.5);
-
-  const lastIdx = pts.length - 1;
-  ctx.setLineDash([2, 2]);
-  ctx.strokeStyle = "#1d5fd1";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(pts[lastIdx][0], pts[lastIdx][1]);
-  ctx.lineTo(pts[lastIdx][0], height - padBottom);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.beginPath();
-  ctx.arc(pts[lastIdx][0], pts[lastIdx][1], 4, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(29, 95, 209,0.18)";
-  ctx.fill();
-  dot(lastIdx, "#1d5fd1", 2.8);
-}
-
-// 雷达图画法：N 边形网格 + 数据多边形，坐标算法和 paintLineChart 一样先用
-// 真实数据跑通再搬进小程序 canvas；sin/cos 直接决定文字对齐方向，不需要把
+// 雷达图画法：N 边形网格 + 数据多边形，先用真实数据在浏览器原型里跑通
+// 再搬进小程序 canvas；sin/cos 直接决定文字对齐方向，不需要把
 // 角度先归一化到某个区间。
 function paintRadarChart(ctx, width, height, axes) {
   ctx.clearRect(0, 0, width, height);
@@ -423,23 +342,17 @@ function barVisual(rows, title, options = {}) {
   const usable = (rows || []).filter((item) => hasNumber(item.value));
   if (!usable.length) return null;
   const max = Math.max(...usable.map((item) => Math.abs(Number(item.value))), 1);
-  const showStats = options.stats !== false && usable.length >= 2;
+  // 每行已经写着标签和数值，不再在上面加「对比项/最高项」把同一组数念第二遍。
   return withChartMeta({
     kind: "bars",
     title,
-    stats: showStats
-      ? [
-          { label: "对比项", value: `${usable.length}` },
-          { label: "最高项", value: usable.slice().sort((a, b) => Math.abs(Number(b.value)) - Math.abs(Number(a.value)))[0].label },
-        ]
-      : [],
+    stats: [],
     items: usable.map((item, index) => ({
       id: `${index}-${item.label}`,
       label: item.label,
       valueText: item.valueText,
       width: Math.max(14, Math.round((Math.abs(Number(item.value)) / max) * 100)),
       tone: Number(item.value) < 0 ? "down" : "up",
-      colorIndex: index % 4,
     })),
   }, options.hint);
 }
@@ -478,26 +391,19 @@ function solidVisual(rows, title, options = {}) {
   if (!usable.length) return null;
   const max = Math.max(...usable.map((item) => Math.abs(Number(item.value))), 1);
   const unique = new Set(usable.map((item) => Number(item.value).toFixed(4)));
-  const showStats = options.stats !== false && usable.length >= 2 && unique.size > 1;
+  // 柱顶已经标着数值，多根柱子时不再重复「对比项/最高/最低」；只有全一样高时说一声，免得像没画出来。
   return withChartMeta({
     kind: "solid",
     title,
-    stats: showStats
-      ? [
-          { label: "对比项", value: `${usable.length}` },
-          { label: "最高", value: usable.slice().sort((a, b) => Math.abs(Number(b.value)) - Math.abs(Number(a.value)))[0].valueText },
-          { label: "最低", value: usable.slice().sort((a, b) => Math.abs(Number(a.value)) - Math.abs(Number(b.value)))[0].valueText },
-        ]
-      : (usable.length === 1 || unique.size === 1
-        ? [{ label: "说明", value: unique.size === 1 ? "数值相同" : "单值" }]
-        : []),
+    stats: options.stats !== false && (usable.length === 1 || unique.size === 1)
+      ? [{ label: "说明", value: unique.size === 1 ? "数值相同" : "单值" }]
+      : [],
     items: usable.map((item, index) => ({
       id: `${index}-${item.label}`,
       label: item.label,
       valueText: item.valueText,
       height: Math.max(22, Math.round((Math.abs(Number(item.value)) / max) * 100)),
       tone: Number(item.value) < 0 ? "down" : "up",
-      colorIndex: index % 4,
     })),
   }, options.hint);
 }
@@ -659,8 +565,7 @@ function scatterVisual(points, title, xLabel, yLabel, hint) {
 }
 
 /** 上市后表现曲线：把暗盘/首日/五日/五日最高四个独立百分比，串成一条从
- * 发行价（0%）出发的涨跌路径——复用现成的 line 图表种类和画布画法，不需要
- * 新的 canvas 逻辑；比四根独立柱子更看得出"越走越强/越走越弱"的走势。 */
+ * 发行价（0%）出发的涨跌路径——复用现成的 line 图表种类和画法；比四根独立柱子更看得出"越走越强/越走越弱"的走势。 */
 function hkPerformanceCurveVisual(review) {
   const points = [
     { label: "发行价", value: 0 },
@@ -674,12 +579,10 @@ function hkPerformanceCurveVisual(review) {
   const latest = points[points.length - 1];
   const low = Math.min(...values);
   const high = Math.max(...values);
-  lineChartSeq += 1;
   return withChartMeta({
     kind: "line",
-    canvasId: `price-line-${lineChartSeq}`,
     title: "上市后表现曲线",
-    values,
+    src: sparklineSvg(values, LINE_SVG),
     lowLabel: `最低 ${formatPercent(low)}`,
     latestLabel: `${latest.label} ${formatPercent(latest.value)}`,
     highLabel: `最高 ${formatPercent(high)}`,
@@ -1709,11 +1612,11 @@ function buildGuruView(base, item) {
     return ticker;
   };
 
-  const changeBars = solidVisual(
+  const changeBars = barVisual(
     changed.slice(0, 6).map((holding) => ({
       label: chartTicker(holding),
       value: Number(holding.weight) || 1,
-      valueText: String(holding.changeLabel || "").slice(0, 8),
+      valueText: String(holding.changeLabel || ""),
     })),
     "仓位变化",
   );
@@ -1724,8 +1627,8 @@ function buildGuruView(base, item) {
   // 「仓位变化」重复搬进「研究」标签，同一张图显示了两遍。改成显式分组后
   // 每张图只出现一次，也不用再猜。
   base.holdingsCharts = [
-    // 8 根柱每列很窄，两位小数会被截成「22.0…」，柱顶只留一位。
-    solidVisual(holdings.slice(0, 8).map((holding) => ({
+    // 横条而不是 8 根竖柱：竖柱每列太窄，代码会被截成「RSP-...」，横条一行一个名字放得下。
+    barVisual(holdings.slice(0, 8).map((holding) => ({
       label: chartTicker(holding),
       value: holding.weight,
       valueText: hasNumber(holding.weight) ? `${Number(holding.weight).toFixed(1)}%` : "—",
@@ -2006,15 +1909,16 @@ function buildOverview(base, item) {
   let priceCard = null;
   if (item.market === "us") {
     const range = historyStats(raw.history);
+    // 概览放走势线而不是位置条：现价在区间几成的位置，上面那句判断已经说了，这里给形状。
     priceCard = (range && hasNumber(raw.price))
-      ? meterVisual(raw.history, raw.price, "近 60 日价格位置", money, "仅为近 60 日价格位置，不等于估值分位或安全边际。")
+      ? priceVisual(raw.history, "近 60 日走势", (value) => money(value))
       : null;
   } else if (item.market === "a") {
     if (raw.assetType === "fund") {
       const fundHistory = (raw.history || []).map((entry) => entry?.close).filter(hasNumber).map(Number);
       const fundPrice = hasNumber(raw.currentPrice) ? Number(raw.currentPrice) : null;
       priceCard = (fundHistory.length >= 2 && fundPrice != null)
-        ? meterVisual(fundHistory, fundPrice, "近 60 日价格位置", (value) => money(value, "¥"), "仅为近 60 日价格位置，不是净值折溢价或估值判断。")
+        ? priceVisual(fundHistory, `近 ${fundHistory.length} 日走势`, (value) => money(value, "¥"))
         : null;
     } else {
       const implied = yieldImpliedPlan(raw);
@@ -2158,6 +2062,10 @@ function detailView(item, snapshot) {
       label: row[0],
       value: row[1],
     }));
+  }
+  // 四格全是「—」（如已取消发行的新股）就整条不画，一排空格子看着像页面坏了；结论条已经说清楚了。
+  if (base.highlights.every((cell) => !cell || cell.value == null || cell.value === "" || cell.value === "—")) {
+    base.highlights = [];
   }
   base.factsTitle = base.factsTitle || "已披露资料";
   base.metricsTitle = "关键数据";
@@ -2463,14 +2371,12 @@ Page({
       moreEvidenceExpanded: moduleId === "evidence" ? this.data.moreEvidenceExpanded : false,
     }, () => this.drawActiveLineCharts());
   },
-  // 方法名留着没改（调用点还叫 drawActiveLineCharts），但现在派发三种 canvas
-  // 图表——line/radar/scatter 共用同一套节点探测与重试逻辑，只是画法不同。
+  // 方法名留着没改（调用点还叫 drawActiveLineCharts）。折线已经是 SVG 图片，
+  // 这里只剩 radar/scatter 两种 canvas 图表，共用同一套节点探测与重试逻辑。
   drawActiveLineCharts() {
     (this.data.activeCharts || []).forEach((item) => {
       if (!item) return;
-      if (item.kind === "line" && Array.isArray(item.values)) {
-        this.drawLineChart(item.canvasId, item.values);
-      } else if (item.kind === "radar" && Array.isArray(item.axes)) {
+      if (item.kind === "radar" && Array.isArray(item.axes)) {
         this.drawRadarChart(item.canvasId, item.axes);
       } else if (item.kind === "scatter" && Array.isArray(item.points)) {
         this.drawScatterChart(item.canvasId, item.points, item.xLabel, item.yLabel);
@@ -2503,10 +2409,6 @@ Page({
         ctx.scale(dpr, dpr);
         onReady(ctx, hit.width, hit.height);
       });
-  },
-  drawLineChart(canvasId, values) {
-    if (!Array.isArray(values) || values.length < 2) return;
-    this.resolveCanvasNode(canvasId, 0, (ctx, w, h) => paintLineChart(ctx, w, h, values));
   },
   drawRadarChart(canvasId, axes) {
     if (!Array.isArray(axes) || axes.length < 3) return;

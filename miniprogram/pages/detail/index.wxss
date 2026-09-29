@@ -724,7 +724,7 @@
 .column-labels text:last-child { text-align: right; }
 
 .line-chart-wrap { margin-top: 16rpx; }
-.line-chart-canvas {
+.line-chart-img {
   display: block;
   width: 100%;
   height: 200rpx;
@@ -794,10 +794,7 @@
   transform-origin: center bottom;
   animation: solidBarGrow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.solid-bar.tone-1 { background: linear-gradient(180deg, #8fb8f7 0%, #3b82f6 60%, #2a63c4 100%); box-shadow: 0 2rpx 5rpx rgba(59, 130, 246, 0.2); }
-.solid-bar.tone-2 { background: linear-gradient(180deg, #f0c25e 0%, #d99a12 60%, #a8760a 100%); box-shadow: 0 2rpx 5rpx rgba(217, 154, 18, 0.2); }
-.solid-bar.tone-3 { background: linear-gradient(180deg, #7fa8ee 0%, #3b78e0 60%, #1d5fd1 100%); box-shadow: 0 2rpx 5rpx rgba(59, 120, 224, 0.18); }
-/* 语义色（涨跌）优先于装饰色，跌的柱子不论第几根都要是暖色，不能被 tone-N 盖成蓝/黄 */
+/* 负值柱子用暖色，和同组的蓝柱分开。 */
 .solid-bar.down { background: linear-gradient(180deg, #ef9a78 0%, #d97757 55%, #b25a3f 100%); box-shadow: 0 2rpx 5rpx rgba(217, 119, 87, 0.2); }
 @keyframes solidBarGrow {
   from { transform: scaleY(0); }
@@ -841,10 +838,7 @@
   transform-origin: left center;
   animation: barValueGrow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.bar-value.tone-1 { background: linear-gradient(90deg, #8fb8f7 0%, #3b82f6 100%); }
-.bar-value.tone-2 { background: linear-gradient(90deg, #f0c25e 0%, #d99a12 100%); }
-.bar-value.tone-3 { background: linear-gradient(90deg, #7fa8ee 0%, #3b78e0 100%); }
-/* 语义色（涨跌）优先于装饰色，理由同 .solid-bar.down */
+/* 负值横条同 .solid-bar.down */
 .bar-value.down { background: linear-gradient(90deg, #ef9a78 0%, #d97757 100%); }
 @keyframes barValueGrow {
   from { transform: scaleX(0); }

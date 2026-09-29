@@ -67,7 +67,6 @@ function poolRankVisual(rows, title, options = {}) {
       valueText: `${entry.row.valueText} · 第 ${entry.rank.rank}/${entry.rank.count}`,
       width: Math.max(4, entry.rank.percentile),
       tone: "up",
-      colorIndex: index % 4,
     })),
   };
 }

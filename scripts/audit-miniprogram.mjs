@@ -311,7 +311,10 @@ assert(
 assert(detailSource.includes("国际观察分") && detailSource.includes("人民币观察分"), "黄金详情缺少双观察分展示");
 assert(indexSource.includes("pages/section/index"), "小程序首页仍未进入原生二级页");
 assert(appConfig.pages.includes("pages/member/index"), "小程序仍应保留会员页路由");
-assert(indexSource.includes("pages/member/index"), "小程序首页缺少研究会员入口");
+// 首页年费条（我的会员）已按产品要求撤掉（2026-09-29）；开通入口改由详情页的会员功能承担，
+// 这里认详情页仍能进会员页，同时要求首页不再挂会员入口。
+assert(!indexSource.includes("pages/member/index") && !indexTemplate.includes("member-bar"), "首页不应再挂年费会员条");
+assert(detailSource.includes('openPage("/pages/member/index")'), "撤掉首页年费条后，详情页必须仍能进入会员页");
 assert(
   indexTemplate.includes("entry-grid")
     && indexStyles.includes("display: flex")
@@ -325,17 +328,20 @@ assert(
     && appStyles.includes("max-width: none"),
   "小程序全局页面仍被网页式窄容器限制，未铺满实际视口",
 );
-// 「今日重点」列表卡已按产品要求从首页整块撤掉（2026-09-29），首屏现在是
-// 六宫格 + 四张走势卡 + 一行年费条；这里认这三块，并要求今日重点卡不再出现。
+// 「今日重点」列表卡已按产品要求从首页整块撤掉（2026-09-29），年费条随后也撤掉；
+// 首屏现在是走势卡在上、九宫格在下，这里认这两块的先后，并要求今日重点卡不再出现。
 assert(
-  indexTemplate.includes("trend-grid") && indexTemplate.includes("member-bar") && !indexTemplate.includes("today-card"),
-  "小程序首页没有以核心入口、走势卡和年费条铺满移动视口",
+  indexTemplate.includes("trend-grid")
+    && indexTemplate.includes("entry-grid")
+    && indexTemplate.indexOf("trend-grid") < indexTemplate.indexOf("entry-grid")
+    && !indexTemplate.includes("today-card"),
+  "小程序首页应走势卡在上、九宫格在下",
 );
 assert(
   indexStyles.includes("min-height: 100vh")
     && (indexStyles.includes("min-height: 108rpx") || indexStyles.includes("min-height: 176rpx") || indexStyles.includes("min-height: 188rpx") || indexStyles.includes("min-height: 210rpx"))
     && indexTemplate.includes("trend-grid"),
-  "小程序首页没有以核心入口、走势卡和年费条铺满移动视口",
+  "小程序首页没有以走势卡和核心入口铺满移动视口",
 );
 {
   const gridCardRule = (indexStyles.match(/\.grid-card\s*\{[^}]*\}/) || [""])[0];
@@ -404,8 +410,8 @@ assert(
     && !indexTemplate.includes("today-row"),
   "首页走势卡应展示一个数加一张走势图，且不应恢复今日重点列表",
 );
-// 这四个品类点位（homePoint）已随 2bbaa38 搬到独立的 pages/today 页（首页已不再挂
-// 这一页，分享链接仍可打开），这里继续在数据源 daily-answers.js 里核对四个品类都还在。
+// 这四个品类点位（homePoint）是群卡片和公开摘要的数据源（pages/today 页已于 2026-09-29 删除），
+// 这里继续在 daily-answers.js 里核对四个品类都还在。
 const dailyAnswersForHomePoints = await readFile(path.join(miniRoot, "utils", "daily-answers.js"), "utf8");
 for (const [marketId, label] of [["hk", "港股"], ["us", "美股"], ["a", "A股"], ["gold", "黄金"]]) {
   assert(dailyAnswersForHomePoints.includes(`homePoint("${marketId}", "${label}"`), `今日重点缺少品类标签：${label}`);
@@ -465,9 +471,7 @@ for (const page of ["pages/section/index", "pages/list/index"]) {
   const template = pageTemplatesByPath.get(page) || "";
   assert(template.includes('role="button"') && !template.includes("<button"), `${page} 的整行点击区不应受原生 button 布局影响`);
 }
-// 2bbaa38 把年费入口从宫格外的独立横幅（title/badge 字段）收进了「今日重点」深色卡，
-// 不再单开会员卡（见 index.wxml 里的注释），价格现在落在 memberNote 里。
-assert(indexSource.includes('"365天 · ¥1288"'), "小程序年度会员入口没有显示唯一年费价格");
+// 首页已不挂年费入口（2026-09-29），唯一年费价格由 audit-payment.mjs 在会员页核对。
 const gridDefinition = indexSource.match(/const CORE_ENTRIES = \[([\s\S]*?)\n\];/)?.[1] || "";
 assert((gridDefinition.match(/\n\s+id: /g) || []).length === 6, "小程序首页应只保留 6 个核心入口");
 // 年费会员已按产品要求从宫格里挪到下方独立横幅，宫格是六个真实模块。
@@ -475,7 +479,6 @@ for (const title of ["港股打新", "美股投资", "A股收息", "黄金追踪
   assert(gridDefinition.includes(`title: "${title}"`), `小程序首页缺少准确入口标题：${title}`);
 }
 assert(!gridDefinition.includes('title: "年费会员"'), "年费会员不应再占用六宫格的位置");
-assert(indexSource.includes("openMemberBanner"), "小程序首页缺少年费会员入口");
 const homeEntryIcons = [...gridDefinition.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
 assert(homeEntryIcons.length === 6 && new Set(homeEntryIcons).size === 6, "小程序首页六个入口必须使用六个不同图标");
 const miniEntryOrder = ["id: \"hk\"", "id: \"us\"", "id: \"a\"", "id: \"gold\"", "id: \"guru\"", "id: \"news\""]
@@ -503,15 +506,15 @@ for (const [group, label] of [["hk", "港股"], ["us", "美股"], ["a", "A股"]]
   const size = smartMoneyProfiles.filter((item) => item.group === group).length;
   assert(sectionSource.includes(`"${label} · ${size} 个"`), `聪明钱 ${label} 分组标题数量应为 ${size} 个`);
 }
-// 「复制群卡片」已随 2bbaa38 从首页搬进新增的 pages/today 独立页（见其提交说明），
-// 首页现在只留精选后的今日重点列表，这里改为核对 pages/today 里还保留这个功能。
-const todaySource = await readFile(path.join(miniRoot, "pages", "today", "index.js"), "utf8");
-const todayTemplate = await readFile(path.join(miniRoot, "pages", "today", "index.wxml"), "utf8");
+// 「复制群卡片」原在 pages/today 独立页；那一页没有入口后于 2026-09-29 删除，
+// 功能挪进记录页「今日」tab（仅已开通会员可见），这里改为核对记录页保留这个功能。
+assert(!appConfig.pages.includes("pages/today/index"), "今日重点页已删除，不应再注册路由");
 assert(
-  todayTemplate.includes("copyDailyCard")
-    && todaySource.includes("buildDailyCard")
-    && todaySource.includes("daily_card_copy"),
-  "今日重点独立页应提供可复制的微信群每日卡片文案",
+  workspaceTemplate.includes('bindtap="copyDailyCard"')
+    && workspaceTemplate.includes("state.active && dailyCardText")
+    && workspaceSource.includes("buildDailyCard")
+    && workspaceSource.includes("daily_card_copy"),
+  "记录页应为已开通会员提供可复制的微信群每日卡片文案",
 );
 assert(
   (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes("buildDeepLinks")
@@ -524,15 +527,27 @@ assert(
     && (pageTemplatesByPath.get("pages/section/index") || "").includes("今日答案"),
   "栏目页应直接回答今日答案问题",
 );
-// 首页不再挂今日重点，buildHomeDigest 只剩 pages/today 页和公开摘要在用，
+// 首页不再挂今日重点，buildHomeDigest 只剩记录页群卡片和公开摘要在用，
 // 这里改认这两处仍接入栏目今日答案。
 assert(
   !indexSource.includes("buildHomeDigest")
-    && todaySource.includes("buildHomeDigest")
+    && workspaceSource.includes("buildHomeDigest")
     && (await readFile(path.join(root, "scripts", "build-daily-digest.mjs"), "utf8")).includes("buildHomeDigest")
     && (await readFile(path.join(miniRoot, "utils", "daily-card.js"), "utf8")).includes("extraLines"),
-  "今日重点页、公开摘要与群卡片应接入栏目今日答案",
+  "记录页群卡片与公开摘要应接入栏目今日答案",
 );
+// 首页服务格：要么有产品负责人给的真实物料（copy），要么明确 pending 占位且不带任何链接，
+// 不允许出现「看着像能用、其实是编的」格子。
+{
+  const offersModule = { exports: {} };
+  vm.runInNewContext(await readFile(path.join(miniRoot, "config", "offers.js"), "utf8"), { module: offersModule, exports: offersModule.exports });
+  const offers = offersModule.exports;
+  for (const offer of offers) {
+    assert(offer.copy || (offer.pending && !offer.copy), `首页服务格 ${offer.id} 既没有真实物料也没标 pending`);
+    assert(!(offer.pending && offer.copy), `首页服务格 ${offer.id} 已有物料却仍标 pending`);
+  }
+  assert(offers.length <= 3, "九宫格只剩三个服务格位置");
+}
 assert(await access(path.join(miniRoot, "utils", "daily-answers.js")).then(() => true).catch(() => false), "缺少今日答案模块");
 assert(await access(path.join(miniRoot, "utils", "market-lenses.js")).then(() => true).catch(() => false), "缺少分档透镜模块");
 assert(marketLensesSource.includes("hkHistoricalCrowdEligible"), "十倍融资应能回看历史拥挤度对照样本");

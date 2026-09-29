@@ -2,14 +2,14 @@ const { loadSnapshot } = require("../../data/store");
 const { track, trackHomeVisit } = require("../../utils/analytics");
 const { openPage } = require("../../utils/nav");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
-const { loadWorkspace } = require("../../services/member");
 const { MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const OFFERS = require("../../config/offers");
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
 
-// 服务格子只放已经拿到真实物料的项，没有 copy 的不上九宫格，也不拿别的入口凑数。
-const SERVICES = OFFERS.filter((item) => item && item.copy);
+// 服务格子只放已经拿到真实物料的项，或产品负责人明确要求先占位的项（pending，
+// 点了只说「即将开放」，不编链接）；其余不上九宫格，也不拿别的入口凑数。
+const SERVICES = OFFERS.filter((item) => item && (item.copy || item.pending));
 
 // 九宫格的前六格是这六个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
 // 没有副标题也没有箭头。help 不再上屏，但留着当读屏标签用。
@@ -62,7 +62,7 @@ const CORE_ENTRIES = [
 // 九宫格 = 六个研究栏目 + 已有物料的服务格。服务格点一下是复制，不跳页。
 const GRID_ENTRIES = [
   ...CORE_ENTRIES.map((item) => ({ ...item })),
-  ...SERVICES.map(({ id, icon, title }) => ({ id, action: "copy", icon, title, help: "点击复制" })),
+  ...SERVICES.map(({ id, icon, title, copy }) => ({ id, action: "copy", icon, title, help: copy ? "点击复制" : "即将开放" })),
 ];
 
 // ---------- 首页走势卡：每张只用快照里的真实序列，序列不够整张不出 ----------
@@ -159,46 +159,19 @@ Page({
     trends: [],
     dataAsOf: "",
     freshnessKind: "offline",
-    memberActive: false,
-    memberNote: "365天 · ¥1288",
-    memberQueryFailed: false,
     footerDisclaimer: FOOTER_DISCLAIMER,
   },
   onLoad() {
     trackHomeVisit();
     this._snapshot = null;
     this.refreshAnswers();
-    this.refreshMemberCard();
   },
   onShow() {
     // 从详情/section 页返回时结论要跟着同一份数据走，不停在打开小程序那一刻。
     this.refreshAnswers();
-    this.refreshMemberCard();
   },
   onPullDownRefresh() {
     this.refreshAnswers(() => wx.stopPullDownRefresh(), true);
-    this.refreshMemberCard();
-  },
-  refreshMemberCard() {
-    loadWorkspace()
-      .then((workspace) => {
-        const active = !!workspace.active;
-        this.setData({
-          memberActive: active,
-          memberQueryFailed: false,
-          memberNote: active ? this.memberNote(workspace) : "365天 · ¥1288",
-        });
-      })
-      // 查询失败不能悄悄当成「未开通」——那会把「不知道」冒充成一个确定结论。
-      .catch(() => this.setData({ memberQueryFailed: true }));
-  },
-  memberNote(workspace) {
-    const expires = workspace && workspace.expiresAt ? new Date(workspace.expiresAt) : null;
-    if (expires && !Number.isNaN(expires.getTime())) {
-      const pad = (value) => String(value).padStart(2, "0");
-      return `有效期至 ${expires.getFullYear()}-${pad(expires.getMonth() + 1)}-${pad(expires.getDate())}`;
-    }
-    return "会员已开通";
   },
   refreshAnswers(done, force = false) {
     loadSnapshot(
@@ -245,18 +218,6 @@ Page({
       openPage(entry.url);
     }
   },
-  // 年费条：查询失败时点一下是重试，不能把「不知道」当成「未开通」往开通页带。
-  tapMemberBar() {
-    if (this.data.memberQueryFailed) {
-      this.refreshMemberCard();
-      return;
-    }
-    this.openMemberBanner();
-  },
-  openMemberBanner() {
-    track("member_open", { from: this.data.memberActive ? "home_bar_member" : "home_bar_lock" });
-    openPage("/pages/member/index");
-  },
   openTrend(event) {
     const market = String(event.currentTarget.dataset.market || "");
     if (!market) return;
@@ -267,6 +228,11 @@ Page({
   copyService(id) {
     const service = SERVICES.find((item) => item.id === id);
     if (!service) return;
+    if (!service.copy) {
+      track("service_pending", { id });
+      wx.showToast({ title: service.pendingToast || "即将开放", icon: "none" });
+      return;
+    }
     track("service_copy", { id });
     wx.setClipboardData({
       data: service.copy,

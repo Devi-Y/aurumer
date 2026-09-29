@@ -63,6 +63,7 @@
       </view>
       <text wx:if="{{changeCenter.summary.unreadCount}}" class="brief-line">未读变化 {{changeCenter.summary.unreadCount}}{{changeCenter.summary.latestAt ? ' · 最近 ' + changeCenter.summary.latestAt : ''}}</text>
       <button wx:if="{{state.todayBrief.unreadCount}}" class="mini-action" bindtap="markAllInboxRead" disabled="{{saving}}">全部标为已读</button>
+      <button wx:if="{{state.active && dailyCardText}}" class="mini-action" bindtap="copyDailyCard" aria-label="复制今日微信群卡片文案">复制群卡片</button>
     </view>
 
     <view wx:if="{{changeCenter.needReassess.length}}" class="record-panel">

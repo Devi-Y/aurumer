@@ -9,8 +9,18 @@
 }
 
 .home-panel {
-  margin: 20rpx 20rpx 0;
+  margin: 16rpx 20rpx 0;
   padding: 6rpx 0 0;
+}
+
+/* 走势在最上面：标题行不装进卡片，灰字贴在走势卡上方。 */
+.group-head.home-head {
+  margin: 12rpx 20rpx 0;
+  padding-right: 4rpx;
+}
+
+.home-head .group-label {
+  padding-left: 4rpx;
 }
 
 /* 分组标题是灰色小字，不跟正文抢重量。 */
@@ -53,10 +63,12 @@
   padding: 8rpx 0 20rpx;
 }
 
+/* 年费条撤掉后，九宫格是首页主要的点按区；小屏收紧内边距时仍保住 176rpx 的触控高度。 */
 .grid-card {
   box-sizing: border-box;
   display: flex;
   width: 33.333%;
+  min-height: 176rpx;
   min-width: 0;
   flex: 0 0 33.333%;
   flex-direction: column;
@@ -109,7 +121,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16rpx;
-  margin: 16rpx 20rpx 0;
+  margin: 8rpx 20rpx 0;
 }
 
 .trend-card {
@@ -202,64 +214,6 @@
 .trend-bar.up { background: #c2412d; }
 .trend-bar.down { background: #0b7a53; }
 
-/* ---------- 年费条：一行，左名称右价格 ---------- */
-
-.member-bar {
-  box-sizing: border-box;
-  display: flex;
-  min-height: 108rpx;
-  margin: 16rpx 20rpx 0;
-  padding: 0 24rpx 0 28rpx;
-  align-items: center;
-  gap: 16rpx;
-  border: 1rpx solid #e6e9ef;
-  border-radius: 24rpx;
-  background: #ffffff;
-}
-
-.member-bar-title {
-  flex: none;
-  color: #1a1f27;
-  font-size: 28rpx;
-  font-weight: 650;
-}
-
-.member-bar-note {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  color: #8a929e;
-  font-size: 24rpx;
-  font-variant-numeric: tabular-nums;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.member-bar-go {
-  flex: none;
-  padding: 10rpx 26rpx;
-  border-radius: 999rpx;
-  background: #1d5fd1;
-  color: #ffffff;
-  font-size: 25rpx;
-  font-weight: 650;
-}
-
-/* 已开通 / 查询失败时右侧只是箭头，不再是按钮。 */
-.member-bar-go.plain {
-  padding: 0;
-  background: transparent;
-  color: #aab1bc;
-  font-size: 34rpx;
-  font-weight: 300;
-}
-
-/* 查询失败不能长得跟「未开通」一样自信——换成浅琥珀底，文案说清是失败不是拒绝。 */
-.member-bar.error {
-  border-color: #f0dfb8;
-  background: #fbf5e6;
-}
-
 .page-footer {
   display: flex;
   padding: 24rpx 28rpx 0;
@@ -281,11 +235,11 @@
   .entry-icon-chip { width: 84rpx; height: 84rpx; }
   .entry-icon { width: 44rpx; height: 44rpx; }
   .card-title { font-size: 24rpx; }
-  .trend-grid, .member-bar { margin-left: 12rpx; margin-right: 12rpx; }
+  .trend-grid, .group-head.home-head { margin-left: 12rpx; margin-right: 12rpx; }
 }
 
 @media (min-width: 700px) {
-  .home-panel, .trend-grid, .member-bar { margin-right: 32px; margin-left: 32px; }
+  .home-panel, .trend-grid, .group-head.home-head { margin-right: 32px; margin-left: 32px; }
   .entry-icon-chip { width: 49px; height: 49px; }
   .entry-icon { width: 25px; height: 25px; }
 }

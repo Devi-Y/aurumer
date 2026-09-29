@@ -1,34 +1,11 @@
 <view class="page-shell home-shell">
-  <!-- 第一块：九宫格。六个研究栏目 + 有物料的服务格（config/offers.js），
-       一格只有图标和名字，不用先读一行说明。
-       标题栏不写第二遍「望潮 Aurum」——导航栏已经有了，这里只留分组名和数据时间。 -->
-  <view class="page-card home-panel">
-    <view class="group-head">
-      <text class="group-label">核心研究</text>
-      <text class="group-meta">{{dataAsOf || '同步中'}}</text>
-    </view>
-    <view class="entry-grid">
-      <view
-        wx:for="{{entries}}"
-        wx:key="id"
-        class="grid-card"
-        data-id="{{item.id}}"
-        bindtap="openGridEntry"
-        hover-class="tap-active"
-        hover-stay-time="80"
-        aria-role="button"
-        aria-label="{{item.title}}，{{item.help}}"
-      >
-        <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}} {{item.action === 'copy' ? 'svc' : ''}}">
-          <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
-        </view>
-        <text class="card-title">{{item.title}}</text>
-      </view>
-    </view>
+  <!-- 第一块：走势。按产品要求放在最上面，每张卡一个数 + 一张图，点进去是对应栏目。
+       柱图是零轴柱（红涨绿跌），折线是 SVG 图片，序列不够的卡整张不出。
+       数据时间只在这里写一次，标题栏不写第二遍「望潮 Aurum」——导航栏已经有了。 -->
+  <view class="group-head home-head">
+    <text class="group-label">市场走势</text>
+    <text class="group-meta">{{dataAsOf || '同步中'}}</text>
   </view>
-
-  <!-- 第二块：走势。每张卡一个数 + 一张图，点进去是对应栏目。
-       柱图是零轴柱（红涨绿跌），折线是 SVG 图片，序列不够的卡整张不出。 -->
   <view wx:if="{{trends.length}}" class="trend-grid">
     <view
       wx:for="{{trends}}"
@@ -56,17 +33,29 @@
     </view>
   </view>
 
-  <!-- 第三块：年费入口，只占一行。今日重点整块已按产品要求撤掉。 -->
-  <view
-    class="member-bar {{memberQueryFailed ? 'error' : ''}}"
-    bindtap="tapMemberBar"
-    hover-class="tap-active"
-    aria-role="button"
-    aria-label="{{memberQueryFailed ? '会员状态查询失败，点击重试' : (memberActive ? '打开我的会员' : '开通年度会员')}}"
-  >
-    <text class="member-bar-title">{{memberQueryFailed ? '会员状态查询失败' : (memberActive ? '我的会员' : '年度会员')}}</text>
-    <text class="member-bar-note">{{memberQueryFailed ? '点击重试' : memberNote}}</text>
-    <text class="member-bar-go {{memberActive || memberQueryFailed ? 'plain' : ''}}">{{memberActive || memberQueryFailed ? '›' : '开通'}}</text>
+  <!-- 第二块：九宫格。六个研究栏目 + 服务格（config/offers.js），
+       一格只有图标和名字，不用先读一行说明。
+       年费条（我的会员）已按产品要求从首页撤掉；开通入口在记录页「复盘」和详情页的会员提示里。 -->
+  <view class="page-card home-panel">
+    <text class="group-label">核心研究</text>
+    <view class="entry-grid">
+      <view
+        wx:for="{{entries}}"
+        wx:key="id"
+        class="grid-card"
+        data-id="{{item.id}}"
+        bindtap="openGridEntry"
+        hover-class="tap-active"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="{{item.title}}，{{item.help}}"
+      >
+        <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}} {{item.action === 'copy' ? 'svc' : ''}}">
+          <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
+        </view>
+        <text class="card-title">{{item.title}}</text>
+      </view>
+    </view>
   </view>
 
   <view class="page-footer">

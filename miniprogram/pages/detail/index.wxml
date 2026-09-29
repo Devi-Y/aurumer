@@ -82,9 +82,9 @@
       </view>
       <view class="hero-name-row">
         <text class="hero-title">{{view.title}}</text>
-        <text wx:if="{{view.code}}" class="hero-code">{{view.code}}</text>
+        <text wx:if="{{view.code && !view.hideCode}}" class="hero-code">{{view.code}}</text>
       </view>
-      <view wx:if="{{(view.market == 'gold' || view.market == 'guru') && view.researchScore != null}}" class="hero-stats">
+      <view wx:if="{{view.market == 'guru' && view.researchScore != null}}" class="hero-stats">
         <text class="hero-stat">{{view.researchScoreLabel || '评分'}} {{view.researchScore}}</text>
       </view>
     </view>
@@ -256,6 +256,17 @@
       <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
         <text class="module-title">概览</text>
         <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
+
+        <view wx:if="{{view.overview.orderPlan}}" class="exit-plan order-plan">
+          <text class="exit-plan-title">{{view.overview.orderPlan.title}}</text>
+          <view wx:for="{{view.overview.orderPlan.rows}}" wx:key="key" class="order-row is-{{item.key}}">
+            <text class="order-label">{{item.label}}</text>
+            <view class="order-value">
+              <text class="order-price">{{item.value}}</text>
+              <text wx:if="{{item.note}}" class="order-note">{{item.note}}</text>
+            </view>
+          </view>
+        </view>
 
         <template wx:if="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
 

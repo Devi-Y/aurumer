@@ -58,7 +58,7 @@ function buildGuruTrend(snapshot) {
     const key = normalizeSymbol(symbol);
     if (!key) return null;
     if (!bucket.has(key)) {
-      bucket.set(key, { symbol: key, name: displayName(key, issuer), adders: [], cutters: [] });
+      bucket.set(key, { symbol: key, name: displayName(key, issuer), issuer: String(issuer || ""), adders: [], cutters: [] });
     }
     return bucket.get(key);
   };

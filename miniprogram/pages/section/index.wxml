@@ -1,12 +1,11 @@
 <view class="page-shell section-shell">
-  <!-- 页头照新闻资讯页的写法：绿带里放栏目名、数据截至、一句说明和范围标签。
-       原来是一张白卡，页面上看不到这份数据是什么时候的，装饰图标反而最显眼。 -->
+  <!-- 页头只放栏目名和数据截至。标题下那行「上新 / 值得打 / 避雷…」
+       2026-09-29 按产品要求撤掉（字太多），只留作读屏标签。 -->
   <view class="section-hero">
     <view class="hero-top">
-      <text class="hero-title">{{meta.title}}</text>
+      <text class="hero-title" aria-label="{{meta.title}}：{{meta.one}}">{{meta.title}}</text>
       <text class="hero-meta">{{dataAsOf || '同步中'}}</text>
     </view>
-    <text class="hero-help">{{meta.one}}</text>
     <!-- 原来这里还有一块「今日答案 N 条」徽章，跟正下方 tab 上的
          「今日答案 N」离得很近、说的是同一件事，删掉这块，数字交给 tab。 -->
   </view>
@@ -15,7 +14,7 @@
   <view class="page-card hero-body">
     <view class="insight-panel" wx:if="{{overview.target || overview.grade}}">
       <view class="insight-line">
-        <text class="insight-label">结论</text>
+        <text class="insight-label">{{overview.label || '结论'}}</text>
         <text
           class="insight-target {{overview.canOpenTarget ? 'is-link' : ''}}"
           bindtap="openInsightTarget"
@@ -95,15 +94,13 @@
       <view
         wx:if="{{hkFirstDayChart}}"
         class="hk-fd"
-        aria-label="近{{hkFirstDayChart.count}}只新股首日，{{hkFirstDayChart.upText}}收涨，中位数{{hkFirstDayChart.medianText}}"
+        aria-label="近{{hkFirstDayChart.count}}只新股上市首日，{{hkFirstDayChart.upText}}，{{hkFirstDayChart.flatDownText}}"
       >
         <view class="hk-fd-head">
-          <text class="hk-fd-title">近 {{hkFirstDayChart.count}} 只首日</text>
+          <text class="hk-fd-title">近{{hkFirstDayChart.count}}只新股首日</text>
           <view class="hk-fd-figs">
-            <text class="hk-fd-value">{{hkFirstDayChart.upText}}</text>
-            <text class="hk-fd-k">收涨</text>
-            <text class="hk-fd-value is-{{hkFirstDayChart.medianTone}}">{{hkFirstDayChart.medianText}}</text>
-            <text class="hk-fd-k">中位</text>
+            <text class="hk-fd-value is-up">{{hkFirstDayChart.upText}}</text>
+            <text class="hk-fd-value is-down">{{hkFirstDayChart.flatDownText}}</text>
           </view>
         </view>
         <view class="hk-fd-bars" aria-hidden="true">
@@ -249,7 +246,7 @@
           <view wx:for="{{usSevenMix}}" wx:key="label" class="us-mix-item">
             <view class="us-mix-dot tone-{{item.tone}}"></view>
             <text>{{item.label}}</text>
-            <text class="us-mix-count">{{item.count}}</text>
+            <text class="us-mix-count">{{item.count}}只</text>
           </view>
         </view>
       </view>
@@ -450,7 +447,7 @@
       <view class="a-fund-figure">
         <text class="a-fund-price">{{aFund.priceText}}</text>
         <text class="a-fund-change is-{{aFund.changeTone}}">{{aFund.changeText}}</text>
-        <text wx:if="{{aFund.hasSpark}}" class="a-fund-period is-{{aFund.sparkTone}}">{{aFund.sparkDays}}日 {{aFund.sparkChangeText}}</text>
+        <text wx:if="{{aFund.hasSpark}}" class="a-fund-period is-{{aFund.sparkTone}}">近{{aFund.sparkDays}}日 {{aFund.sparkChangeText}}</text>
       </view>
       <image wx:if="{{aFund.hasSpark}}" class="a-fund-spark" src="{{aFund.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
       <view class="a-fund-stats">
@@ -479,20 +476,14 @@
         <text class="gold-quote-label">{{item.label}}</text>
         <text class="gold-quote-price">{{item.priceText}}</text>
         <text class="gold-quote-unit">{{item.unit}}</text>
-        <view class="gold-score" wx:if="{{item.hasScore}}">
-          <view class="gold-score-head">
-            <text class="gold-score-k">观察分</text>
-            <text class="gold-score-v">{{item.scoreText}}</text>
-          </view>
-          <view class="gold-score-track"><view class="gold-score-fill" style="width: {{item.scoreWidth}}%;"></view></view>
-        </view>
       </view>
     </view>
 
     <view class="gold-panel">
+      <!-- 这块只放价格：走势图 + 价位轴。原来标题叫「现在怎么做」、角标写「仍在观察低位」，
+           跟顶上结论「等待更好价格」像两个答案；动作只在结论说一次，这里只说价格。 -->
       <view class="gold-row-between">
-        <text class="gold-headline">现在怎么做</text>
-        <text class="gold-badge tone-{{goldZoneTone}}">{{goldBadgeText}}</text>
+        <text class="gold-headline">金价走势</text>
       </view>
       <view class="gold-row-sub">
         <text wx:if="{{goldChart}}" class="gold-change is-{{goldChart.changeTone}}">{{goldChart.changeText}}</text>
@@ -544,41 +535,17 @@
       </view>
     </view>
 
-    <!-- gold.indicators 的 6 项原样搬上来，不筛选；每格只留名字和数值，
-         三列两行一屏看完，解释性小字交给详情页。 -->
-    <view class="gold-panel" wx:if="{{goldIndicatorTiles.length}}">
-      <view class="gold-row-between">
-        <text class="gold-headline">宏观驱动指标</text>
-      </view>
-      <view class="gold-indicator-grid">
-        <view wx:for="{{goldIndicatorTiles}}" wx:key="id" class="gold-indicator-tile">
-          <text class="gold-indicator-label">{{item.label}}</text>
-          <text class="gold-indicator-value">{{item.valueText}}</text>
-        </view>
-      </view>
-      <view
-        class="gold-detail-link"
-        bindtap="openInsightTarget"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-label="查看四口径金价与宏观指标"
-      >
-        <text>查看四口径金价与宏观指标 ›</text>
-      </view>
-    </view>
-
-    <view class="gold-panel">
-      <view class="gold-row-between">
-        <text class="gold-headline">最近一次趋势变化</text>
-        <text class="gold-badge tone-{{goldTrendTone}}">{{goldTrendBadge}}</text>
-      </view>
-      <view class="gold-trend-line">
-        <view class="gold-dot tone-{{goldTrendTone}}"></view>
-        <view class="gold-trend-body">
-          <text class="gold-trend-title">{{goldTrendTitle}}</text>
-          <text class="gold-trend-detail">{{goldTrendDetail}}</text>
-        </view>
-      </view>
+    <!-- 6 个宏观指标和「均线上穿/下穿」那段话原来也摆在这里，读起来全是术语；
+         2026-09-29 按产品要求挪回黄金详情页（buildGoldView 里本来就有），
+         这一栏只留金价、走势和买卖区间，再给一个进详情的口子。 -->
+    <view
+      class="gold-detail-link"
+      bindtap="openInsightTarget"
+      hover-class="tap-active"
+      aria-role="button"
+      aria-label="查看黄金宏观指标与拐点"
+    >
+      <text>更多指标 ›</text>
     </view>
   </view>
 
@@ -625,7 +592,7 @@
             <view wx:for="{{item.chart.items}}" wx:for-item="seg" wx:key="key" class="answer-mix-key">
               <view class="answer-mix-dot {{seg.tone}}"></view>
               <text class="answer-mix-label">{{seg.label}}</text>
-              <text class="answer-mix-count">{{seg.count}}</text>
+              <text class="answer-mix-count">{{seg.countText || seg.count}}</text>
             </view>
           </view>
         </view>

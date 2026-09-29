@@ -7,7 +7,7 @@ const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS } = require("./act
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-09-20-drop-stale-fallback-branch";
+const SOURCE_REVISION = "2026-09-29-us-price-plan";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 // GitHub Pages 偶发超时不能让前台只能看到旧缓存；备用源指向同一条 main 分支的
 // 原始文件，两者内容应始终一致。两个源用 Promise.any 并发抢，谁先响应用谁，

@@ -470,6 +470,52 @@
   line-height: 1.4;
 }
 
+.order-plan { padding-bottom: 8rpx; }
+
+.order-row {
+  display: flex;
+  min-height: 76rpx;
+  padding: 10rpx 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.exit-plan-title + .order-row { margin-top: 8rpx; }
+.order-row + .order-row { border-top: 1rpx solid #e6e9ed; }
+/* 三档价和两个判断用的数之间隔开一点，读成两组。 */
+.order-row.is-high { border-top-width: 6rpx; border-top-color: #eef1f5; }
+
+.order-label {
+  flex: none;
+  color: #696d75;
+  font-size: 24rpx;
+}
+
+.order-value {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.order-price {
+  color: #16181b;
+  font-size: 30rpx;
+  font-weight: 740;
+  font-variant-numeric: tabular-nums;
+}
+
+.order-row.is-buy .order-price { color: #1d5fd1; }
+.order-row.is-stop .order-price { color: #a34b3e; }
+
+.order-note {
+  margin-top: 2rpx;
+  color: #898d95;
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+}
+
 .exit-plan-cta {
   margin-top: 14rpx;
   padding: 16rpx 0 2rpx;

@@ -1,17 +1,17 @@
 const { loadSnapshot } = require("../../data/store");
 const { track, trackHomeVisit } = require("../../utils/analytics");
-const { openPage } = require("../../utils/nav");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const { MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const OFFERS = require("../../config/offers");
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
+const { withLatestQuote } = require("../../utils/gold-series");
 
 // 服务格子只放已经拿到真实物料的项，或产品负责人明确要求先占位的项（pending，
 // 点了只说「即将开放」，不编链接）；其余不上九宫格，也不拿别的入口凑数。
 const SERVICES = OFFERS.filter((item) => item && (item.copy || item.pending));
 
-// 九宫格的前六格是这六个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
+// 九宫格的前五格是这五个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
 // 没有副标题也没有箭头。help 不再上屏，但留着当读屏标签用。
 const CORE_ENTRIES = [
   {
@@ -49,19 +49,13 @@ const CORE_ENTRIES = [
     title: "聪明钱跟踪",
     help: "持仓·动向·趋势",
   },
-  {
-    id: "news",
-    action: "page",
-    url: "/pages/news/index",
-    icon: "/assets/home/news.svg",
-    title: "新闻资讯",
-    help: "披露·公告·影响",
-  },
 ];
 
-// 九宫格 = 六个研究栏目 + 已有物料的服务格。服务格点一下是复制，不跳页。
+// 九宫格 = 五个研究栏目 + 一个预留格 + 已有物料的服务格。服务格点一下是复制，不跳页。
+// 新闻资讯（2026-09-29）按产品要求整页删掉，它那一格原位留空，等以后放新栏目。
 const GRID_ENTRIES = [
   ...CORE_ENTRIES.map((item) => ({ ...item })),
+  { id: "reserved", reserved: true },
   ...SERVICES.map(({ id, icon, title, copy }) => ({ id, action: "copy", icon, title, help: copy ? "点击复制" : "即将开放" })),
 ];
 
@@ -73,7 +67,8 @@ function signedPct(value, digits = 1) {
 }
 
 // 折线卡：首尾涨跌写在数字旁边，线本身出成 SVG 图片（尺寸和 .trend-line 同比例）。
-function lineTrend({ id, market, title, closes, digits }) {
+// 数字带币种符号，「近N日」写全——光写「90日」读者不知道是时长还是日期。
+function lineTrend({ id, market, title, closes, digits, prefix = "", days }) {
   const values = closes.map(Number).filter((value) => Number.isFinite(value));
   if (values.length < 10) return null;
   const change = values[0] ? ((values[values.length - 1] - values[0]) / values[0]) * 100 : NaN;
@@ -82,8 +77,8 @@ function lineTrend({ id, market, title, closes, digits }) {
     market,
     title,
     kind: "line",
-    value: values[values.length - 1].toFixed(digits),
-    sub: `${values.length}日 ${signedPct(change)}`,
+    value: `${prefix}${values[values.length - 1].toFixed(digits)}`,
+    sub: `近${days || values.length}日 ${signedPct(change)}`,
     tone: toneOf(change),
     src: sparklineSvg(sampleSeries(values), { width: 300, height: 104 }),
   };
@@ -98,10 +93,11 @@ function buildHomeTrends(snapshot) {
     cards.push({
       id: "hk",
       market: "hk",
-      title: "港股首日",
+      title: "港股新股首日",
       kind: "bars",
-      value: `${changes.filter((value) => value > 0).length}/${changes.length}`,
-      sub: "首日收涨",
+      // 不写「5/12」：斜杠两边都是小数字，读者第一眼当成 5 月 12 日。
+      value: `${changes.filter((value) => value > 0).length}只涨`,
+      sub: `共${changes.length}只`,
       tone: "flat",
       ...zeroAxisBars(changes),
     });
@@ -124,8 +120,8 @@ function buildHomeTrends(snapshot) {
       market: "us",
       title: "美股七姐妹",
       kind: "bars",
-      value: `${changes.filter((value) => value > 0).length}/${changes.length}`,
-      sub: `${Math.min(...seven.map((item) => item.length))}日收涨`,
+      value: `${changes.filter((value) => value > 0).length}只涨`,
+      sub: `共${changes.length}只 · 近${Math.min(...seven.map((item) => item.length))}日`,
       tone: "flat",
       ...zeroAxisBars(changes),
     });
@@ -138,15 +134,21 @@ function buildHomeTrends(snapshot) {
     title: fund.shortName || "红利ETF",
     closes: (fund.history || []).map((item) => item && item.close),
     digits: 3,
+    prefix: "¥",
   });
   if (fundCard) cards.push(fundCard);
 
+  // 金价跟黄金栏目页的大数字是同一个：日线收盘后面接上最新报价，不然首页 4168、栏目页 4166 对不上。
+  const gold = snapshot.gold || {};
+  const goldBars = (gold.history && gold.history.international) || [];
   const goldCard = lineTrend({
     id: "gold",
     market: "gold",
-    title: "COMEX 黄金",
-    closes: ((snapshot.gold && snapshot.gold.history && snapshot.gold.history.international) || []).map((item) => item && item.close),
-    digits: 1,
+    title: "国际金价",
+    closes: withLatestQuote(goldBars, gold.quotes && gold.quotes.international).map((item) => item.close),
+    digits: 0,
+    prefix: "$",
+    days: goldBars.length,
   });
   if (goldCard) cards.push(goldCard);
 
@@ -212,10 +214,6 @@ Page({
       track("section_open", { market: String(entry.id), from: "grid" });
       wx.navigateTo({ url: `/pages/section/index?market=${entry.id}` });
       return;
-    }
-    // 新闻资讯不是行情栏目，走自己的页面。
-    if (entry.action === "page" && entry.url) {
-      openPage(entry.url);
     }
   },
   openTrend(event) {

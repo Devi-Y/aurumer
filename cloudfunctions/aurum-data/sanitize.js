@@ -85,9 +85,28 @@ function sanitizeHKHistory(item = {}) {
   };
 }
 
+// 美股参考价：2026-09-29 负责人看过审核与资质风险后决定放回（原来 0.2.16 起整块剥掉）。
+// 引擎的 technicalPlan 本身仍不透传，只挑出买入/离场/卖出三档和日均波动，
+// 改名 pricePlan；快照过期时 action-freshness 会把 pricePlan 整块剥掉。
+// 三档顺序不对（离场价不低于买入价、卖出价不高于买入价）就整块不给，不在这里修数。
+function usPricePlan(plan) {
+  if (!plan || typeof plan !== "object") return null;
+  const buy = Number(plan.buy);
+  const stop = Number(plan.stop);
+  const sell = (Array.isArray(plan.tp) ? plan.tp : []).map(Number).filter((value) => Number.isFinite(value) && value > 0);
+  if (!(buy > 0) || !(stop > 0) || !sell.length || !(stop < buy) || !(sell[0] > buy)) return null;
+  return {
+    buy,
+    stop,
+    sell,
+    dailyMove: Number(plan.atr) > 0 ? Number(plan.atr) : null,
+  };
+}
+
 function sanitizeUSStock(stock = {}) {
   const { technicalPlan, strategyAssessment, modelEstimate, modelValidation, ...rest } = stock;
-  return rest;
+  const pricePlan = usPricePlan(technicalPlan);
+  return pricePlan ? { ...rest, pricePlan } : rest;
 }
 
 /**

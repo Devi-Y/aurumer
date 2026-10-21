@@ -127,6 +127,7 @@ assert(indexHtml.includes("data/daily-digest.json") && indexHtml.includes("funct
 
 const digest = JSON.parse(await readFile(resolve(root, "data/daily-digest.json"), "utf8"));
 assert(digest.updatedAt === snapshot.updatedAt, "今日答案摘要与公开快照 updatedAt 不一致");
+assert((digest.revisionAt || null) === (snapshot.revisionAt || null), "今日答案摘要与公开快照内容修订版本不一致");
 assert(["hk", "us", "a", "gold", "guru"].every((market) => Array.isArray(digest.markets?.[market]) && digest.markets[market].length >= 3), "今日答案摘要五个栏目不完整");
 // 这份清单对位的是用户提的六条诉求，不是「今天恰好生成了哪几张卡」。
 // 少一条就是少回答一个用户花钱买的问题，所以宁可写死也要逐条点名。

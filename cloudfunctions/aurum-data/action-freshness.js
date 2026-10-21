@@ -18,6 +18,24 @@ function isActionFresh(updatedAt, now = Date.now()) {
   return age >= 0 && age <= ACTION_MAX_AGE_MS;
 }
 
+// revisionAt dates a content correction, never a newer market quote. Quote
+// freshness continues to use updatedAt/asOf; revision only orders equal facts.
+function compareSnapshotVersions(left, right) {
+  const version = (snapshot) => {
+    const updated = Date.parse(snapshot && snapshot.updatedAt);
+    const revised = Date.parse(snapshot && (snapshot.revisionAt || snapshot.updatedAt));
+    return [Number.isFinite(updated) ? updated : -Infinity,
+      Number.isFinite(revised) ? revised : (Number.isFinite(updated) ? updated : -Infinity)];
+  };
+  const l = version(left);
+  const r = version(right);
+  for (let index = 0; index < l.length; index += 1) {
+    if (l[index] > r[index]) return 1;
+    if (l[index] < r[index]) return -1;
+  }
+  return 0;
+}
+
 /**
  * 只用于挑选过期提示文案，不改变 isActionFresh 的过期判定阈值——
  * 阈值放宽会让真实的工作日抓取失败也被当成"只是周末"蒙混过去。
@@ -190,6 +208,7 @@ module.exports = {
   STALE_ACTION_WEEKEND,
   snapshotAgeMs,
   isActionFresh,
+  compareSnapshotVersions,
   isActionDataFresh,
   marketActionsFresh,
   isLikelyWeekendGap,

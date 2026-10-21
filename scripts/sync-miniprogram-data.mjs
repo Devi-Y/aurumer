@@ -34,6 +34,9 @@ const freshnessModule = await readFile(path.join(root, "miniprogram/utils/action
 await writeFile(path.join(root, "assets/action-freshness.js"),
   `// Generated from miniprogram/utils/action-freshness.js.\n(function () {\n${freshnessModule.replace("module.exports =", "globalThis.AurumFreshness =")}\n})();\n`);
 
+const hkDatesModule = await readFile(path.join(root, "miniprogram/utils/hk-date-state.js"), "utf8");
+await writeFile(path.join(root, "assets/hk-date-state.js"),
+  `// Generated from miniprogram/utils/hk-date-state.js.\n(function () {\n${hkDatesModule.replace("module.exports =", "globalThis.AurumHKDates =")}\n})();\n`);
 
 try {
   const sleeve = await fetchSleeveQuotes();

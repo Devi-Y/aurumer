@@ -1,4 +1,4 @@
-const CACHE_NAME = "aurum-shell-v10";
+const CACHE_NAME = "aurum-shell-v11";
 const BASE = new URL(self.registration.scope).pathname;
 const SHELL = [
   BASE,
@@ -13,6 +13,7 @@ const SHELL = [
   `${BASE}assets/dashboard.css`,
   `${BASE}assets/dashboard.js`,
   `${BASE}assets/action-freshness.js`,
+  `${BASE}assets/hk-date-state.js`,
 ];
 
 self.addEventListener("install", (event) => {

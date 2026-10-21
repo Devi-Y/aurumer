@@ -21,6 +21,7 @@ function snapshot(offset) {
   const stamp = iso(offset);
   data.status = "live";
   data.updatedAt = stamp;
+  delete data.revisionAt;
   for (const key of ["actionsFresh", "actionFreshness", "actionDegradeReason"]) delete data[key];
   const reset = (row) => {
     if (!row) return;
@@ -39,7 +40,9 @@ function snapshot(offset) {
 }
 
 function payload(data) {
-  return { ok: true, data, updatedAt: data.updatedAt, source: "in-memory verified cache", fetchedAt: data.updatedAt };
+  return { ok: true, data, updatedAt: data.updatedAt,
+    ...(data.revisionAt ? { revisionAt: data.revisionAt } : {}),
+    source: "in-memory verified cache", fetchedAt: data.updatedAt };
 }
 
 function cloudFixture(initial, outcomes, options = {}) {
@@ -136,6 +139,84 @@ test("a concurrent newer DB commit is not overwritten by the older candidate or 
   assert.equal(state.factsWritten, 0);
 });
 
+test("equal quote timestamps cannot roll an official 74-day revision back to an older 49-day body", async () => {
+  const old = snapshot(-3);
+  const revised = clone(old);
+  revised.revisionAt = iso(-1);
+  old.gold.history.domestic = old.gold.history.domestic.slice(-49);
+  old.gold.answer.score = 48;
+  revised.gold.answer.score = 50;
+  assert.ok(revised.gold.history.domestic.length >= 74, "official real fixture provides 74 or more daily closes");
+  const fixture = cloudFixture(revised, { pages: { data: old, delay: 0 }, raw: { data: revised, delay: 10 } });
+  const result = await fixture.handler.main({ action: "getSnapshot", force: true });
+  assert.ok(result.sourceUrl.includes("raw.githubusercontent.com"));
+  assert.equal(result.updatedAt, old.updatedAt);
+  assert.equal(result.revisionAt, revised.revisionAt);
+  assert.equal(result.data.revisionAt, revised.revisionAt);
+  assert.equal(result.data.gold.history.domestic.length, revised.gold.history.domestic.length);
+  assert.equal(result.data.gold.answer.score, 50);
+  assert.equal(fixture.state().record.payload.revisionAt, revised.revisionAt);
+});
+
+test("an equal-timestamp DB revision committed during refresh wins the atomic comparison", async () => {
+  const initial = snapshot(-3);
+  const candidate = clone(initial); candidate.revisionAt = iso(-2);
+  const revised = clone(initial); revised.revisionAt = iso(-1);
+  const fixture = cloudFixture(initial, { pages: { data: candidate, delay: 0 }, raw: { data: candidate, delay: 10 } }, { newerBeforeTransaction: revised });
+  const result = await fixture.handler.main({ action: "getSnapshot", force: true });
+  assert.equal(result.updatedAt, initial.updatedAt);
+  assert.equal(result.revisionAt, revised.revisionAt);
+  assert.equal(result.data.revisionAt, revised.revisionAt);
+  assert.equal(fixture.state().cacheWrites, 0);
+  assert.equal(fixture.state().factsWritten, 0);
+});
+
+test("cloud and mini version comparison keep quote time primary and revision secondary", () => {
+  const localRequire = createRequire(import.meta.url);
+  const helpers = [localRequire("../cloudfunctions/aurum-data/action-freshness.js"), localRequire("../miniprogram/utils/action-freshness.js")];
+  for (const helper of helpers) {
+    const old = { updatedAt: iso(-3) };
+    const revised = { ...old, revisionAt: iso(-1) };
+    assert.equal(helper.compareSnapshotVersions(revised, old), 1);
+    assert.equal(helper.compareSnapshotVersions(old, revised), -1);
+    assert.equal(helper.compareSnapshotVersions(old, { ...old, revisionAt: old.updatedAt }), 0);
+    assert.equal(helper.compareSnapshotVersions({ updatedAt: iso(-2) }, revised), 1);
+    const stale = snapshot(-72); stale.revisionAt = iso(-1);
+    assert.equal(helper.degradeStaleActions(stale).actionsFresh, false, "a correction must not refresh old market facts");
+  }
+});
+
+test("mini store rejects an older equal-timestamp revision and accepts a newer one", async () => {
+  const bundle = snapshot(-3); bundle.revisionAt = iso(-1);
+  const old = clone(bundle); delete old.revisionAt; old.gold.history.domestic = old.gold.history.domestic.slice(-49);
+  const revised = clone(bundle); revised.revisionAt = iso(-0.5);
+  let remote = old;
+  const filename = path.join(root, "miniprogram/data/store.js");
+  const localRequire = createRequire(filename);
+  const module = { exports: {} };
+  const context = vm.createContext({
+    module, exports: module.exports,
+    require: (name) => name === "./live-snapshot" ? bundle : localRequire(name),
+    console: { warn() {} },
+    wx: { cloud: { callFunction: async () => ({ result: { ok: true, data: remote } }) } },
+  });
+  new vm.Script(readFileSync(filename, "utf8"), { filename }).runInContext(context);
+  const load = () => new Promise((resolve) => {
+    const updates = [];
+    module.exports.loadSnapshot((data) => updates.push(data), () => resolve(updates.at(-1)), { force: true });
+  });
+  const retained = await load();
+  assert.equal(retained.revisionAt, bundle.revisionAt);
+  assert.equal(retained.gold.history.domestic.length, bundle.gold.history.domestic.length);
+  remote = revised;
+  const accepted = await load();
+  assert.equal(accepted.updatedAt, bundle.updatedAt);
+  assert.equal(accepted.revisionAt, revised.revisionAt);
+  assert.equal(accepted.gold.quotes.domestic.asOf, bundle.gold.quotes.domestic.asOf);
+  const invalid = clone(revised); invalid.revisionAt = iso(24);
+  assert.equal(module.exports.isUsableSnapshot(invalid), false);
+});
+
 const html = readFileSync(path.join(root, "index.html"), "utf8");
 function inlineFunction(name) {
   const start = new RegExp(`^(?:async )?function ${name}\\(`, "m").exec(html);
@@ -177,6 +258,19 @@ test("website matching digest loads; mismatched or missing snapshot version cann
   assert.equal(mismatched.context.LIVE.digest, null);
   assert.equal(mismatched.run.dailyAnswerBoard("us"), "");
   assert.equal(await mismatched.run.loadDailyDigest(null), null);
+});
+
+test("website digest with equal updatedAt but an older content revision cannot attach", async () => {
+  const stamp = iso(-3);
+  const revisionAt = iso(-1);
+  const currentDigest = { ...digest(stamp), revisionAt };
+  const current = browserFixture({ updatedAt: stamp, revisionAt, actionsFresh: true }, currentDigest);
+  current.context.LIVE.digest = await current.run.loadDailyDigest(stamp, revisionAt);
+  assert.ok(current.run.dailyAnswerBoard("us").includes("release-action-marker"));
+  const older = browserFixture({ updatedAt: stamp, revisionAt, actionsFresh: true }, digest(stamp));
+  older.context.LIVE.digest = await older.run.loadDailyDigest(stamp, revisionAt);
+  assert.equal(older.context.LIVE.digest, null);
+  assert.equal(older.run.dailyAnswerBoard("us"), "");
 });
 
 test("website expired or future snapshots do not render daily action boards", () => {

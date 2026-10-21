@@ -26,6 +26,7 @@
 <meta name="twitter:description" content="少看行情噪音，更快找到港股、美股、A股和黄金的下一步。">
 <meta name="twitter:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
 <script src="assets/action-freshness.js"></script>
+<script src="assets/hk-date-state.js"></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/aurum-192.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
@@ -1324,6 +1325,7 @@ const US_TEMP={v:72,label:'贪婪',hint:'恐慌贪婪指数 72 · 席勒 PE 处�
 const LIVE={
   status:'loading',
   updatedAt:null,
+  revisionAt:null,
   actionsFresh:true,
   sources:[],
   usMarketNote:'',
@@ -1859,9 +1861,11 @@ function historicalIPORow(row,index){
   };
 }
 function applyLiveData(payload){
+  if(globalThis.AurumHKDates&&payload.hk)payload={...payload,hk:{...payload.hk,listings:(payload.hk.listings||[]).map(globalThis.AurumHKDates.guardHKDates)}};
   if(globalThis.AurumFreshness)payload=globalThis.AurumFreshness.degradeStaleActions(payload);
   LIVE.status=payload.status||'partial';
   LIVE.updatedAt=payload.updatedAt||null;
+  LIVE.revisionAt=payload.revisionAt||null;
   LIVE.actionsFresh=payload.actionsFresh!==false&&isSnapshotActionFresh(payload.updatedAt);
   LIVE.sources=payload.sources||[];
   LIVE.error=null;
@@ -2103,6 +2107,7 @@ async function loadDailyDigest(updatedAt){
     const digest=await response.json();
     if(!digest?.markets?.hk)return null;
     if(!updatedAt||digest.updatedAt!==updatedAt)return null;
+    if((LIVE.revisionAt||null)!==(digest.revisionAt||null))return null;
     return digest;
   }catch{
     return null;

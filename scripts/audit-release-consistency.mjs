@@ -35,6 +35,7 @@ assert(
 const miniPath = path.join(root, "miniprogram", "data", "live-snapshot.js");
 const miniSnapshot = require(miniPath);
 assert(miniSnapshot.updatedAt === localSnapshot.updatedAt, "小程序随包快照与本地 updatedAt 不一致");
+assert((miniSnapshot.revisionAt || null) === (localSnapshot.revisionAt || null), "小程序内容修订版本与本地不一致");
 for (const [label, actual, expected] of [
   ["港股日期", miniSnapshot.hk, sanitized.hk],
   ["SEC公告", miniSnapshot.us?.filings, sanitized.us?.filings],

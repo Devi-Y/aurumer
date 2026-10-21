@@ -305,6 +305,10 @@ function assertSourceSnapshot(snapshot) {
   if (!snapshot || !["live", "partial"].includes(snapshot.status) || Number.isNaN(updatedAt) || updatedAt > Date.now() + 5 * 60 * 1000) {
     throw new Error("公开快照状态或更新时间无效");
   }
+  if (snapshot.revisionAt != null) {
+    const revisionAt = Date.parse(snapshot.revisionAt);
+    if (!Number.isFinite(revisionAt) || revisionAt < updatedAt || revisionAt > Date.now() + 5 * 60 * 1000) throw new Error("公开快照内容修订时间无效");
+  }
   // 机构持仓阈值留出余量：13F 是季度披露，个别机构延迟很常见，
   // 不该因为少一位就把整份行情（美股、A股、港股、黄金）一起判为不可用。
   // A 股公开契约已统一为 20 只；云端 soft-serve 仍允许短窗缺数，但 ingest 按 20 验收。
@@ -339,6 +343,7 @@ function sanitizeSnapshot(snapshot) {
     sources: Array.isArray(snapshot.sources) ? snapshot.sources.map(({ id, name, url, ok, advisory, error }) => ({ id, name, url, ok, advisory, error })) : [],
     ...(snapshot.actionsFresh === false ? { actionsFresh: false, actionDegradeReason: snapshot.actionDegradeReason } : {}),
     updatedAt: snapshot.updatedAt,
+    ...(snapshot.revisionAt ? { revisionAt: snapshot.revisionAt } : {}),
     us: {
       stocks: (snapshot.us && snapshot.us.stocks || []).map(sanitizeUSStock),
       fundamentals: (snapshot.us && snapshot.us.fundamentals || []).map(sanitizeUSFundamental),

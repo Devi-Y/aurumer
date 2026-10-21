@@ -1,5 +1,5 @@
 const bundledSnapshot = require("./live-snapshot");
-const { degradeStaleActions } = require("../utils/action-freshness");
+const { degradeStaleActions, compareSnapshotVersions } = require("../utils/action-freshness");
 
 const REMOTE_TTL_MS = 10 * 60 * 1000;
 // 云端本轮结论不完整时的重试间隔。这种情况多半是云函数冷启动先读到旧的
@@ -42,6 +42,9 @@ function isUsableSnapshot(snapshot) {
       && ["live", "partial"].includes(snapshot.status)
       && !Number.isNaN(Date.parse(snapshot.updatedAt))
       && Date.parse(snapshot.updatedAt) <= Date.now() + 5 * 60 * 1000
+      && (!Object.prototype.hasOwnProperty.call(snapshot, "revisionAt")
+        || (typeof snapshot.revisionAt === "string" && Number.isFinite(Date.parse(snapshot.revisionAt))
+          && Date.parse(snapshot.revisionAt) <= Date.now() + 5 * 60 * 1000))
       && Array.isArray(snapshot.us && snapshot.us.stocks)
       && snapshot.us.stocks.length >= 20
       && Array.isArray(snapshot.aShare && snapshot.aShare.quotes)
@@ -105,9 +108,7 @@ function sourceLabel(snapshot, baseSource, warning) {
 }
 
 function isRemoteNewerOrEqual(next, current) {
-  const nextTime = Date.parse(next && next.updatedAt);
-  const currentTime = Date.parse(current && current.updatedAt);
-  return !Number.isNaN(nextTime) && (Number.isNaN(currentTime) || nextTime >= currentTime);
+  return Number.isFinite(Date.parse(next && next.updatedAt)) && compareSnapshotVersions(next, current) >= 0;
 }
 
 function fetchLatest(force) {

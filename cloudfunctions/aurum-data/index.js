@@ -3,7 +3,7 @@
 const https = require("node:https");
 const { sanitizeSnapshot } = require("./sanitize");
 const { writeFactVersions } = require("./fact-versions");
-const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS } = require("./action-freshness");
+const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS, compareSnapshotVersions } = require("./action-freshness");
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
@@ -70,7 +70,9 @@ async function readPersistedSnapshot() {
     const record = result && result.data;
     if (!record || !record.payload) return null;
     if (ageMs(record.storedAt) > SERVE_STALE_MAX_MS) return null;
-    return { ...record.payload, storedAt: record.storedAt };
+    return { ...record.payload,
+      revisionAt: record.payload.revisionAt || record.payload.data?.revisionAt || record.revisionAt || record.payload.updatedAt,
+      storedAt: record.storedAt };
   } catch (error) {
     return null;
   }
@@ -79,7 +81,8 @@ async function readPersistedSnapshot() {
 async function writePersistedSnapshot(payload) {
   const db = getDatabase();
   if (!db) return null;
-  const record = { payload, storedAt: Date.now(), updatedAt: payload.updatedAt, revision: SOURCE_REVISION };
+  const record = { payload, storedAt: Date.now(), updatedAt: payload.updatedAt,
+    revisionAt: payload.revisionAt || payload.updatedAt, revision: SOURCE_REVISION };
   const persist = async () => {
     // 原子比较版本，避免两个冷启动任务先后覆盖较新的快照。
     if (typeof db.runTransaction !== "function") throw new Error("缓存事务不可用，保留数据库原版本");
@@ -90,7 +93,14 @@ async function writePersistedSnapshot(payload) {
       catch (error) {
         if (!/document.*not.*exist|DOCUMENT_NOT_EXIST|not found/i.test(String(error.message || error))) throw error;
       }
-      if (Date.parse(previous?.updatedAt) > Date.parse(record.updatedAt)) return { newer: previous.payload };
+      const previousVersion = previous && {
+        updatedAt: previous.payload?.updatedAt || previous.updatedAt,
+        revisionAt: previous.payload?.revisionAt || previous.payload?.data?.revisionAt || previous.revisionAt,
+      };
+      if (previous && compareSnapshotVersions(previousVersion, record) > 0) {
+        return { newer: { ...previous.payload,
+          revisionAt: previousVersion.revisionAt || previousVersion.updatedAt } };
+      }
       await doc.set({ data: record });
       return { written: true };
     });
@@ -169,7 +179,7 @@ async function readLatestSnapshot(timeoutMs) {
         // 每个来源单独过同一契约。快但损坏的 JSON 不能赢过有效备源。
         const sanitized = sanitizeSnapshot(data);
         if (snapshotAgeMs(data.updatedAt) > ACTION_MAX_AGE_MS) throw new Error("公开快照已过期");
-        if (cachedResult && Date.parse(data.updatedAt) < Date.parse(cachedResult.updatedAt)) throw new Error("来源落后于已验证缓存");
+        if (cachedResult && compareSnapshotVersions(data, cachedResult) < 0) throw new Error("来源落后于已验证缓存");
         return { data, sanitized, url };
       });
   });
@@ -204,7 +214,7 @@ async function persistWarmSideEffects(payload) {
 
 async function refreshSnapshot(timeoutMs = WARM_REQUEST_TIMEOUT_MS) {
   const persisted = await readPersistedSnapshot();
-  if (persisted && (!cachedResult || Date.parse(persisted.updatedAt) > Date.parse(cachedResult.updatedAt))) {
+  if (persisted && (!cachedResult || compareSnapshotVersions(persisted, cachedResult) > 0)) {
     cachedResult = persisted;
     cachedAt = Number(persisted.storedAt || Date.now());
   }
@@ -218,6 +228,7 @@ async function refreshSnapshot(timeoutMs = WARM_REQUEST_TIMEOUT_MS) {
     source: "望潮最新公开数据",
     sourceUrl: result.url,
     updatedAt: data.updatedAt,
+    revisionAt: data.revisionAt || data.updatedAt,
     fetchedAt,
     revision: SOURCE_REVISION,
   };
@@ -289,7 +300,9 @@ exports.main = async (event = {}) => {
       ok: true,
       revision: SOURCE_REVISION,
       memoryUpdatedAt: cachedResult && cachedResult.updatedAt || null,
+      memoryRevisionAt: cachedResult && (cachedResult.revisionAt || cachedResult.updatedAt) || null,
       databaseUpdatedAt: persisted && persisted.updatedAt || null,
+      databaseRevisionAt: persisted && (persisted.revisionAt || persisted.updatedAt) || null,
       cache: cachedResult ? "memory" : (persisted ? "database" : "empty"),
       platformSafeMs: PLATFORM_SAFE_MS,
       transactionalCache: Boolean(getDatabase() && typeof getDatabase().runTransaction === "function"),
@@ -311,6 +324,7 @@ exports.main = async (event = {}) => {
         ok: true,
         warmed: true,
         updatedAt: result.updatedAt,
+        revisionAt: result.revisionAt || result.updatedAt,
       }, "refreshed");
     } catch (error) {
       console.error("aurum-data warm failed", error && error.message);
@@ -327,6 +341,7 @@ exports.main = async (event = {}) => {
           warmed: false,
           warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
           updatedAt: persisted.updatedAt,
+          revisionAt: persisted.revisionAt || persisted.updatedAt,
         }, "stale-database");
       }
       return { ok: false, error: "DATA_TEMPORARILY_UNAVAILABLE", revision: SOURCE_REVISION };

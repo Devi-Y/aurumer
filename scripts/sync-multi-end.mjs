@@ -25,7 +25,7 @@ function run(command, args) {
 }
 
 const localSnapshot = JSON.parse(await readFile(path.join(root, "data", "live-snapshot.json"), "utf8"));
-assert(localSnapshot.status === "live", "本地快照不是 live");
+assert(["live", "partial"].includes(localSnapshot.status), "本地快照不是 live");
 const localUpdatedAt = localSnapshot.updatedAt;
 
 console.log(`本地 updatedAt=${localUpdatedAt}`);
@@ -51,7 +51,7 @@ const pagesResponse = await fetch(pagesUrl, {
 });
 assert(pagesResponse.ok, `Pages 快照 HTTP ${pagesResponse.status}`);
 const pagesSnapshot = await pagesResponse.json();
-assert(pagesSnapshot.status === "live", "Pages 快照不是 live");
+assert(["live", "partial"].includes(pagesSnapshot.status), "Pages 快照不是 live");
 assert(
   pagesSnapshot.updatedAt === localUpdatedAt,
   `Pages updatedAt=${pagesSnapshot.updatedAt} 与本地 ${localUpdatedAt} 不一致；main 推送后等待 Pages 构建完成再重试`,

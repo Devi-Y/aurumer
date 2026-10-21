@@ -663,6 +663,23 @@
 
 .tap-active { background: #edf2fb; }
 
+/* 栏目页最底部一行轻量入口：一句问话 + 蓝色去处，不占正文。 */
+.next-link {
+  display: flex;
+  min-height: 88rpx;
+  margin-top: 16rpx;
+  padding: 0 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  border: 1rpx solid #e6e9ef;
+  border-radius: 16rpx;
+  background: #ffffff;
+}
+
+.next-ask { color: #5c6470; font-size: 26rpx; }
+.next-go { flex: none; color: #1d5fd1; font-size: 27rpx; font-weight: 650; }
+
 .page-note {
   display: flex;
   padding: 22rpx 10rpx 0;
@@ -1382,6 +1399,100 @@
   border-bottom: none;
 }
 
+/* 带参考价的行折成两行：上面名字 | 走势 | 现价，下面一整行参考价。 */
+.us-stock-row.has-order {
+  flex-wrap: wrap;
+  row-gap: 12rpx;
+}
+
+.plan-line {
+  display: flex;
+  flex: 0 0 100%;
+  align-items: baseline;
+  gap: 12rpx;
+  color: #696d75;
+  font-size: 22rpx;
+}
+
+.plan-value {
+  color: #1a1d22;
+  font-size: 24rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 「再跌 x%」靠右，跟上面的现价对齐成一列，往下扫一眼就能比远近。 */
+.plan-note {
+  margin-left: auto;
+  color: #494d55;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan-line.tone-buy .plan-value,
+.plan-line.tone-buy .plan-note { color: #1d5fd1; }
+.plan-line.tone-stop .plan-value,
+.plan-line.tone-stop .plan-note { color: #a33b2b; }
+.plan-line.tone-sell .plan-value,
+.plan-line.tone-sell .plan-note { color: #8b5b20; }
+
+.plan-line.tone-buy .plan-note,
+.plan-line.tone-stop .plan-note,
+.plan-line.tone-sell .plan-note {
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+}
+.plan-line.tone-buy .plan-note { background: #dfe9fa; }
+.plan-line.tone-stop .plan-note { background: #f6dad4; }
+.plan-line.tone-sell .plan-note { background: #f7e9c9; }
+
+/* 顶上三格：今天到价的有几只。0 只是灰的，有就上色。 */
+.plan-trigger-grid {
+  display: flex;
+  margin-top: 20rpx;
+  gap: 12rpx;
+}
+
+.plan-trigger {
+  flex: 1;
+  min-width: 0;
+  padding: 18rpx 8rpx 16rpx;
+  border-radius: 16rpx;
+  background: #f5f6f8;
+  color: #999ca2;
+  text-align: center;
+}
+
+.plan-trigger-count {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.plan-trigger-unit {
+  margin-left: 4rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.plan-trigger-label {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.plan-trigger.is-on.tone-buy { background: #edf2fb; color: #1d5fd1; }
+.plan-trigger.is-on.tone-stop { background: #fdf1ef; color: #a33b2b; }
+.plan-trigger.is-on.tone-sell { background: #fdf7ec; color: #8b5b20; }
+.plan-trigger.is-on.tone-plain { background: #f5f6f8; color: #1a1d22; }
+
+/* A股「全部」每行：名称 | 现价，下面一整行参考价。 */
+.a-row .plan-line { margin-top: 14rpx; }
+
 .us-row-name-col {
   flex: 0 0 210rpx;
   min-width: 0;
@@ -1390,8 +1501,10 @@
 .us-row-tags {
   display: flex;
   margin-top: 8rpx;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10rpx;
+  row-gap: 4rpx;
   min-width: 0;
 }
 
@@ -1413,6 +1526,9 @@
 }
 
 .us-badge {
+  box-sizing: border-box;
+  flex: none;
+  max-width: 100%;
   min-width: 0;
   overflow: hidden;
   padding: 2rpx 12rpx;
@@ -2538,6 +2654,17 @@
 .gold-ladder-key.is-risk .gold-ladder-key-value { color: #a33b2b; }
 .gold-ladder-key.is-watch .gold-ladder-key-value { color: #1d5fd1; }
 .gold-ladder-key.is-upper .gold-ladder-key-value { color: #8b5b20; }
+
+/* 现价离这条线多远：「再跌 2.6%」「现价在内」灰字；已到、已触及上色。 */
+.gold-ladder-key-note {
+  color: #494d55;
+  font-size: 21rpx;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+.gold-ladder-key-note.tone-buy { color: #1d5fd1; }
+.gold-ladder-key-note.tone-sell { color: #8b5b20; }
+.gold-ladder-key-note.tone-stop { color: #a33b2b; }
 
 .gold-detail-link {
   display: flex;

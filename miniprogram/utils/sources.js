@@ -20,6 +20,10 @@ const OFFICIAL_SOURCES = {
   "gold-fred": { name: "美联储宏观数据", url: "https://fred.stlouisfed.org/" },
   "gold-cftc": { name: "美国期货持仓报告", url: "https://www.cftc.gov/dea/newcot/f_disagg.txt" },
   "gold-sge": { name: "上海黄金交易所 Au99.99", url: "https://www.sge.com.cn/sjzx/quotation_daily_new" },
+  // 下面三个给入门教程用（config/guides.js）：港股公告总入口，和查券商牌照的两个官方查询页。
+  hkexnews: { name: "港交所披露易", url: "https://www.hkexnews.hk/" },
+  "finra-brokercheck": { name: "美国 FINRA 券商查询", url: "https://brokercheck.finra.org/" },
+  "sfc-register": { name: "香港证监会持牌人查询", url: "https://apps.sfc.hk/publicregWeb/" },
 };
 
 // 每个栏目对应哪几个官方入口。黄金那条另有活的 gold.sources，见 marketSources()。

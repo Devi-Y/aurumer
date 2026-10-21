@@ -33,7 +33,7 @@
     </view>
   </view>
 
-  <!-- 第二块：九宫格。五个研究栏目 + 预留格 + 服务格（config/offers.js），
+  <!-- 第二块：九宫格。五个研究栏目 + 预留格 + 服务格（config/offers.js，点一下进二级页），
        一格只有图标和名字，不用先读一行说明。预留格是新闻资讯删掉后空出来的位置，
        只画一个虚线框，不能点。
        年费条（我的会员）已按产品要求从首页撤掉；开通入口在记录页「复盘」和详情页的会员提示里。 -->
@@ -54,7 +54,7 @@
         aria-role="button"
         aria-label="{{item.title}}，{{item.help}}"
       >
-        <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}} {{item.action === 'copy' ? 'svc' : ''}}">
+        <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}} {{item.action === 'page' ? 'svc' : ''}}">
           <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
         </view>
         <text class="card-title">{{item.title}}</text>

@@ -1,0 +1,69 @@
+<view class="page-shell guide-shell">
+  <!-- 二级页：标题、一句话说明、几块短内容，最后才是商业物料。
+       没有步骤、没有收起、没有「下一步」，一屏半就能读完。 -->
+  <view class="guide-head">
+    <text class="guide-title">{{title}}</text>
+    <text wx:if="{{lead}}" class="guide-lead">{{lead}}</text>
+  </view>
+
+  <view wx:if="{{sections.length}}" class="page-card section-list">
+    <view wx:for="{{sections}}" wx:key="key" class="sec">
+      <text class="sec-title">{{item.title}}</text>
+      <view wx:for="{{item.points}}" wx:for-item="point" wx:key="key" class="sec-point">
+        <text>{{point.text}}</text>
+      </view>
+      <view wx:if="{{item.rows.length}}" class="sec-rows">
+        <view wx:for="{{item.rows}}" wx:for-item="row" wx:key="key" class="sec-row">
+          <text class="row-label">{{row.label}}</text>
+          <text class="row-value">{{row.value}}</text>
+        </view>
+      </view>
+      <view wx:if="{{item.links.length}}" class="sec-links">
+        <view
+          wx:for="{{item.links}}"
+          wx:for-item="link"
+          wx:key="id"
+          class="link-row"
+          data-url="{{link.url}}"
+          data-id="{{link.id}}"
+          bindtap="copyLink"
+          hover-class="tap-active"
+          aria-role="button"
+          aria-label="复制{{link.name}}的网址"
+        >
+          <text class="link-name">{{link.name}}</text>
+          <text class="link-action">复制网址</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{offer}}" class="page-card offer-card">
+    <text class="offer-head">{{offer.head}}</text>
+    <text class="offer-body">{{offer.body}}</text>
+    <block wx:if="{{offer.mode === 'copy'}}">
+      <view class="offer-action" bindtap="copyOffer" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{offer.label}}</view>
+      <text class="offer-disclosure">{{offer.disclosure}}</text>
+    </block>
+    <block wx:elif="{{offer.mode === 'image'}}">
+      <view class="offer-action" bindtap="previewOffer" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{offer.label}}</view>
+      <text class="offer-disclosure">{{offer.disclosure}}</text>
+    </block>
+    <block wx:else>
+      <text class="offer-note">{{offer.note}}</text>
+      <block wx:if="{{offer.canCopy}}">
+        <view class="offer-action" bindtap="copyPendingContact" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{offer.label}}</view>
+        <text class="offer-disclosure">{{offer.disclosure}}</text>
+      </block>
+    </block>
+  </view>
+
+  <view class="page-footer">
+    <text class="footer-note">{{footerDisclaimer}}</text>
+  </view>
+
+  <view class="page-nav">
+    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
+    <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
+  </view>
+</view>

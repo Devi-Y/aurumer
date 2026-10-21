@@ -25,6 +25,7 @@
 <meta name="twitter:title" content="望潮 Aurum｜港美股与黄金投资答案工具">
 <meta name="twitter:description" content="少看行情噪音，更快找到港股、美股、A股和黄金的下一步。">
 <meta name="twitter:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
+<script src="assets/action-freshness.js"></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/aurum-192.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
@@ -1668,7 +1669,8 @@ function snapshotAgeMs(updatedAt){
   return Math.max(0,Date.now()-stamp);
 }
 function isSnapshotActionFresh(updatedAt){
-  return snapshotAgeMs(updatedAt)<=ACTION_MAX_AGE_MS;
+  const stamp=Date.parse(updatedAt);
+  return Number.isFinite(stamp)&&stamp<=Date.now()&&snapshotAgeMs(updatedAt)<=ACTION_MAX_AGE_MS;
 }
 function dataStateNotice(){
   const syncing=LIVE.status==='loading';
@@ -1857,9 +1859,10 @@ function historicalIPORow(row,index){
   };
 }
 function applyLiveData(payload){
+  if(globalThis.AurumFreshness)payload=globalThis.AurumFreshness.degradeStaleActions(payload);
   LIVE.status=payload.status||'partial';
   LIVE.updatedAt=payload.updatedAt||null;
-  LIVE.actionsFresh=isSnapshotActionFresh(payload.updatedAt);
+  LIVE.actionsFresh=payload.actionsFresh!==false&&isSnapshotActionFresh(payload.updatedAt);
   LIVE.sources=payload.sources||[];
   LIVE.error=null;
   LIVE.digest=null;
@@ -1889,6 +1892,7 @@ function applyLiveData(payload){
     US_STOCKS.forEach(stock=>{
       const live=bySymbol.get(stock.t);
       if(!live)return;
+      stock.actionsFresh=live.actionsFresh!==false;
       stock.price=live.price;
       stock.chg=live.changePercent;
       stock.weeklyChange=live.weeklyChange;
@@ -1899,7 +1903,7 @@ function applyLiveData(payload){
       stock.marketState=live.marketState;
       stock.source='Yahoo Finance';
       // 网页与小程序统一：价区仅作研究观察参考；快照过期则不提供动作。
-      if(LIVE.actionsFresh&&live.technicalPlan){
+      if(LIVE.actionsFresh&&stock.actionsFresh&&live.technicalPlan){
         stock.buy=live.technicalPlan.buy;
         stock.stop=live.technicalPlan.stop;
         stock.tp=live.technicalPlan.tp;
@@ -2098,7 +2102,7 @@ async function loadDailyDigest(updatedAt){
     if(!response.ok)return null;
     const digest=await response.json();
     if(!digest?.markets?.hk)return null;
-    if(updatedAt && digest.updatedAt && digest.updatedAt!==updatedAt)return digest;
+    if(!updatedAt||digest.updatedAt!==updatedAt)return null;
     return digest;
   }catch{
     return null;
@@ -2722,6 +2726,8 @@ function ipoHistoryContext(x){
   </div></div>`;
 }
 function dailyAnswerBoard(market){
+  if(!isSnapshotActionFresh(LIVE.updatedAt)||LIVE.actionsFresh===false)return '';
+  if(market==='gold'&&LIVE.gold?.actionsFresh===false)return '';
   const cards=LIVE.digest?.markets?.[market]||[];
   if(!cards.length)return '';
   return `<section class="daily-answers" aria-label="今日答案">
@@ -2798,7 +2804,7 @@ function renderHKIPO(){
 
 /* =============== 二级页面：美股投资 =============== */
 function stockAction(x){
-  if(LIVE.actionsFresh===false)return STALE_ACTION;
+  if(LIVE.actionsFresh===false||x.actionsFresh===false)return STALE_ACTION;
   const position=stockPositionFacts(x);
   const plan=x.pricePlan||x.technicalPlan||null;
   if(!plan?.buy){

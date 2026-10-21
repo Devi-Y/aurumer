@@ -17,6 +17,16 @@ function hasFilingFeed(snapshot) {
   return Array.isArray(list) && list.length > 0;
 }
 
+// 无匹配结果与没有完成检索是不同状态；只以逐股覆盖证据作区分。
+function filingCoverageNote(snapshot, symbol) {
+  const key = String(symbol || "").toUpperCase().trim();
+  const coverage = snapshot?.us?.filingCoverage?.[key];
+  if (coverage?.status === "complete" && coverage.since && coverage.fetchedAt) {
+    return `${coverage.since}至${String(coverage.fetchedAt).slice(0, 10)}，未收录匹配的 SEC 公告`;
+  }
+  return "该股公告资料未完成核验";
+}
+
 function normalizeSymbol(value) {
   return String(value || "").toUpperCase().trim();
 }
@@ -81,6 +91,7 @@ function formatFilingLine(filings, max = 2) {
 }
 
 module.exports = {
+  filingCoverageNote,
   hasFilingFeed,
   filingsBySymbol,
   filingsFor,

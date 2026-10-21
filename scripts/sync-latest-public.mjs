@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile, rename } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -47,5 +47,12 @@ if (stale) {
   );
 }
 
-await writeFile(outputPath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+let previous = null;
+try { previous = JSON.parse(await readFile(outputPath, "utf8")); } catch (error) { if (error.code !== "ENOENT") throw error; }
+if (previous && Date.parse(previous.updatedAt) > Date.parse(snapshot.updatedAt)) {
+  throw new Error(`公开源 ${snapshot.updatedAt} 落后于本地 ${previous.updatedAt}，拒绝回退覆盖`);
+}
+const tempPath = `${outputPath}.${process.pid}.tmp`;
+await writeFile(tempPath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+await rename(tempPath, outputPath);
 console.log(`最新公开快照已同步：${snapshot.updatedAt}${stale ? "（内容过期，动作将降级）" : ""}`);

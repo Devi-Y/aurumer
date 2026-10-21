@@ -1,6 +1,10 @@
 const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { allItems, groupDefinitions, shortCompanyName, money, aShareDividendStability, tickerZhLabel } = require("../../utils/answers");
+const { allItems, groupDefinitions, shortCompanyName, money, aShareDividendStability, tickerZhLabel, usPoolItems, usQualityEligibility } = require("../../utils/answers");
+const {
+  countTiles, usOrderState, usOrderLine, compareUsOrder, US_TRIGGERS,
+  aOrderState, aOrderLine, compareAOrder, A_TRIGGERS, hkApplyTiles, goldLevelNotes,
+} = require("../../utils/order-plan");
 // 结论行要按「低估 / 风险」这两个透镜选人，和今日答案用同一个判断。
 const { parseOfferPrice, yieldImpliedPlan, goldZoneForPrice, goldPlanView } = require("../../utils/market-lenses");
 // 港股打新「中签后」每只股票自己的观察分位——已经是详情页在用的同一份
@@ -9,7 +13,7 @@ const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("
 // 美股「七姐妹」每行的判断句复用详情页同一套 usSignal——不是另起一套话术。
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
-const { goHome } = require("../../utils/nav");
+const { goHome, openPage } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
@@ -153,7 +157,8 @@ function buildHkModule(snapshot) {
     const entryFee = finiteOrNull(raw.entryFee);
     const score = finiteOrNull(raw.publicAnswer && raw.publicAnswer.score);
     // 过了截止日还挂「值得打」，读者会以为还能打；和详情页结论一样改成「已截止」。
-    const closed = (hkDeadlineOffset(raw.offerDeadline || raw.offerEnd) ?? 0) < 0;
+    const deadlineOffset = hkDeadlineOffset(raw.offerDeadline || raw.offerEnd);
+    const closed = (deadlineOffset ?? 0) < 0;
     return {
       id: item.id,
       name: shortCompanyName(item.name, item.code || "新股", 10),
@@ -162,6 +167,7 @@ function buildHkModule(snapshot) {
       tone: closed ? "settled" : hkTone(item.group),
       reason: item.one || "",
       deadlineLabel: hkDeadlineLabel(raw.offerDeadline || raw.offerEnd),
+      deadlineOffset,
       closed,
       stats: [
         { label: "招股价", value: offer != null ? `HK$${offer}` : "待更新" },
@@ -195,6 +201,8 @@ function buildHkModule(snapshot) {
 
   return {
     applyList,
+    // 顶上三格：可申购几只 / 其中值得打几只 / 最近一只几天后截止，跟下面列表同一份。
+    applyTiles: items.length ? hkApplyTiles(applyList) : [],
     firstDayChart: hkFirstDayChart(snapshot),
     exitList,
     exitChart: hkExitTierChart(buildHkExitBands(snapshot)),
@@ -338,24 +346,50 @@ function usMetrics(item) {
 // 给每只股票编了一句「event」叙事（比如「云业务增长改善」），快照里没有
 // 新闻源、没有公告字段，编事件就是凭空造。换成 usSignal 已经用 PE、质量门、
 // 60日价格位置算出的结论句——详情页在用同一份判断，不是另起一套话术。
+// 每行下面那条参考价：跟详情页「下单参考」卡同一个价、同一个「风险升高就暂不买」。
+function usOrderFields(item, signal) {
+  const order = usOrderState(item.raw, signal.label === "风险升高");
+  const line = usOrderLine(order);
+  return {
+    order,
+    hasOrder: Boolean(line),
+    orderTone: line ? line.tone : "",
+    orderLabel: line ? line.label : "",
+    orderValue: line ? line.value : "",
+    orderNote: line ? line.note : "",
+  };
+}
+
+function usStockRow(item) {
+  const signal = buildStrategySignal(item);
+  return {
+    id: item.id,
+    name: item.name,
+    code: item.code,
+    badgeText: signal.label,
+    tone: usTone(signal.tone),
+    reason: signal.action,
+    ...usMetrics(item),
+    ...historySpark(item, US_SPARK_SIZE),
+    ...usOrderFields(item, signal),
+  };
+}
+
 function buildUsModule(snapshot) {
   const items = allItems(snapshot, "us");
   const sevenItems = items.filter((item) => item.group === "seven");
   const hotItems = items.filter((item) => item.group === "hot");
 
-  const sevenList = sevenItems.map((item) => {
-    const signal = buildStrategySignal(item);
-    return {
-      id: item.id,
-      name: item.name,
-      code: item.code,
-      badgeText: signal.label,
-      tone: usTone(signal.tone),
-      reason: signal.action,
-      ...usMetrics(item),
-      ...historySpark(item, US_SPARK_SIZE),
-    };
-  });
+  // 「全部」：池里每一只，到价的在最上面，其余按离参考买入价由近到远。
+  // 顶上三格只数这一份列表，点开任何一只看到的是同一个价。
+  const allRows = usPoolItems(snapshot)
+    .map(usStockRow)
+    .sort((left, right) => compareUsOrder(left.order, right.order));
+  const allOrders = allRows.map((row) => row.order);
+  const triggerTiles = allOrders.some(Boolean) ? countTiles(allOrders, US_TRIGGERS) : [];
+  const allList = allRows.map(({ order, ...row }) => row);
+
+  const sevenList = sevenItems.map(usStockRow).map(({ order, ...row }) => row);
   const labelCounts = new Map();
   sevenList.forEach((item) => {
     const entry = labelCounts.get(item.badgeText) || { label: item.badgeText, tone: item.tone, count: 0 };
@@ -368,11 +402,12 @@ function buildUsModule(snapshot) {
 
   const hotList = hotItems.map((item) => {
     const raw = item.raw || {};
+    const { order, ...orderFields } = usOrderFields(item, buildStrategySignal(item));
     const fund = raw.fund || {};
     let takeText = "质量待核";
     let takeTone = "caution";
-    if (fund.qualityEligible === true) { takeText = "质量达标"; takeTone = "worth"; }
-    else if (fund.qualityEligible === false) { takeText = "质量不达标"; takeTone = "avoid"; }
+    if (usQualityEligibility(fund) === true) { takeText = "质量达标"; takeTone = "worth"; }
+    else if (usQualityEligibility(fund) === false) { takeText = "质量不达标"; takeTone = "avoid"; }
     const heat = finiteOrNull(raw.heatScore);
     return {
       id: item.id,
@@ -383,13 +418,14 @@ function buildUsModule(snapshot) {
       takeTone,
       heatText: heat != null ? String(Math.round(heat)) : "—",
       ...historySpark(item, US_SPARK_SIZE),
+      ...orderFields,
     };
   });
   const hotHint = hotList.length
     ? `热度前 ${hotList.length} 只 · 不含七姐妹`
     : "近期没有明显热度突出的美股";
 
-  return { sevenList, sevenHint, sevenMix, hotList, hotHint };
+  return { allList, triggerTiles, sevenList, sevenHint, sevenMix, hotList, hotHint };
 }
 
 function aTone(group) {
@@ -461,7 +497,45 @@ function buildAModule(snapshot) {
   const stableList = withMetricBars(aRankedList(items, "stable5"), "stable5");
   const yieldList = withMetricBars(aRankedList(items, "yield5"), "yield5");
   const fundItem = items.find((item) => item.raw && item.raw.assetType === "fund");
-  return { stableList, yieldList, fund: fundItem ? aFundView(fundItem) : null };
+  const { allList, triggerTiles } = aAllModule(items, snapshot.actionsFresh !== false);
+  return { allList, triggerTiles, stableList, yieldList, fund: fundItem ? aFundView(fundItem) : null };
+}
+
+// 「全部」：每只股票（红利 ETF 在下面单独一张卡）现价离参考买入/卖出价多远，
+// 到价的排最上面。参考价跟详情页、榜单每行同一个 yieldImpliedPlan。
+// 数据过期时现价是旧的，不说「已到」，整条参考价和顶上两格都不显示。
+function aAllModule(items, fresh) {
+  const rows = items
+    .filter((item) => !(item.raw && item.raw.assetType === "fund"))
+    .map((item) => {
+      const raw = item.raw || {};
+      const order = fresh ? aOrderState(raw) : null;
+      const line = aOrderLine(order);
+      const price = finiteOrNull(raw.currentPrice);
+      const change = finiteOrNull(raw.changePercent);
+      return {
+        order,
+        id: item.id,
+        name: item.name,
+        code: item.code,
+        badgeText: item.badge,
+        tone: aTone(item.group),
+        priceText: price != null ? money(price, "¥") : "—",
+        changeText: signedPct(change, 2),
+        changeTone: change == null ? "flat" : (change >= 0 ? "up" : "down"),
+        hasOrder: Boolean(line),
+        orderTone: line ? line.tone : "",
+        orderLabel: line ? line.label : "",
+        orderValue: line ? line.value : "",
+        orderNote: line ? line.note : "",
+      };
+    })
+    .sort((left, right) => compareAOrder(left.order, right.order));
+  const orders = rows.map((row) => row.order);
+  return {
+    allList: rows.map(({ order, ...row }) => row),
+    triggerTiles: orders.some(Boolean) ? countTiles(orders, A_TRIGGERS) : [],
+  };
 }
 
 // 红利 ETF：大字现价 + 今日涨跌 + 90 日走势线；跟踪指数和年费率（管理费+托管费相加）
@@ -535,6 +609,9 @@ function goldLadder(price, watch, upper, risk, digits) {
   const span = max + pad - lo;
   const at = (value) => Math.round(((value - lo) / span) * 1000) / 10;
   const priceLeft = at(current);
+  // 每格底下一句现价离这条线多远（再跌/再涨几%、现价在内、已到），口径以现价为底。
+  const notes = goldLevelNotes(current, watchLow, watchHigh, upperLow, riskLow);
+  const note = (key) => ({ note: notes[key] ? notes[key].text : "", noteTone: notes[key] ? notes[key].tone : "" });
   return {
     watchLeft: at(watchLow),
     watchWidth: Math.max(1.5, at(watchHigh) - at(watchLow)),
@@ -546,9 +623,9 @@ function goldLadder(price, watch, upper, risk, digits) {
     priceLabelLeft: Math.max(12, Math.min(88, priceLeft)),
     priceText: current.toFixed(digits),
     tiles: [
-      { key: "risk", label: "风险下沿", value: riskLow != null ? riskLow.toFixed(digits) : "—" },
-      { key: "watch", label: "观察低位", value: goldRangeText(watch, digits) || "—" },
-      { key: "upper", label: "观察上沿", value: goldRangeText(upper, digits) || "—" },
+      { key: "risk", label: "风险下沿", value: riskLow != null ? riskLow.toFixed(digits) : "—", ...note("risk") },
+      { key: "watch", label: "观察低位", value: goldRangeText(watch, digits) || "—", ...note("watch") },
+      { key: "upper", label: "观察上沿", value: goldRangeText(upper, digits) || "—", ...note("upper") },
     ],
   };
 }
@@ -1098,7 +1175,11 @@ function buildOverview(snapshot, market) {
       targetId: "track",
       // 国际/人民币两个观察分已经画在下方币种卡片里，徽章只留动作——
       // 「等待更好价格 · 观察分XX」一行装不下，分数总被截断。
-      grade: answer.action || "继续观察",
+      // 数据过期时 answer.action 是一整句「数据过期，暂不提供动作」，徽章装不下被截成省略号，
+      // 而下面的红色提示条已经把「数据已陈旧」说清楚了，这里只留两个字。
+      grade: snapshot.actionsFresh === false
+        ? "待更新"
+        : (gold.actionsFresh === false ? "资料待补齐" : (answer.action || "继续观察")),
       gradeGroup: "track",
       canOpenTarget: true,
       canOpenGrade: true,
@@ -1153,6 +1234,16 @@ function sheetLines(text) {
   });
 }
 
+// 栏目页最底部一行轻量入口，不占正文：看完数据还没有账户 / 想要信息 / 想交流的人，顺手就能点进去。
+// 每个栏目只放一条，进的都是 pages/guide 或 pages/community 的二级页。
+const NEXT_LINKS = {
+  hk: { id: "us-start", ask: "还没有券商账户？", go: "查看开户教程", url: "/pages/guide/index?topic=us-start&from=section" },
+  us: { id: "us-start", ask: "第一次买美股？", go: "查看开户教程", url: "/pages/guide/index?topic=us-start&from=section" },
+  a: { id: "a-open", ask: "还没有A股账户？", go: "查看开户方式", url: "/pages/guide/index?topic=a-open&from=section" },
+  gold: { id: "info", ask: "获取更多全球信息？", go: "查看全球信息入口", url: "/pages/guide/index?topic=info&from=section" },
+  guru: { id: "community", ask: "想继续交流？", go: "了解交流群", url: "/pages/community/index?from=section" },
+};
+
 Page({
   data: {
     market: "hk",
@@ -1177,6 +1268,7 @@ Page({
     // 港股打新专属：原型的「近期申购/中签后」两个视图，只有 market==='hk' 时渲染。
     hkSubTab: "apply",
     hkApplyList: [],
+    hkApplyTiles: [],
     hkFirstDayChart: null,
     hkExitOptions: [],
     hkExitIndex: 0,
@@ -1184,14 +1276,18 @@ Page({
     hkExitView: null,
     hkExitChart: null,
     // 美股专属：原型的「七姐妹/热门三只」两个视图，只有 market==='us' 时渲染。
-    usSubTab: "seven",
+    usSubTab: "all",
+    usAllList: [],
+    usTriggerTiles: [],
     usSevenList: [],
     usSevenHint: "",
     usSevenMix: [],
     usHotList: [],
     usHotHint: "",
     // A股收息专属：原型的「分红稳定性/分红收益性」两个前五榜单，只有 market==='a' 时渲染。
-    aSubTab: "stable",
+    aSubTab: "all",
+    aAllList: [],
+    aTriggerTiles: [],
     aStableList: [],
     aYieldList: [],
     aFund: null,
@@ -1235,6 +1331,7 @@ Page({
     // 十几行事实会连成一堵墙，这是用户花钱买的正文，不能这么给。
     // 所以自己渲染：每行一个 text，空行留白，缩进行降一级。
     answerSheet: null,
+    nextLink: null,
   },
   onLoad(options) {
     const market = META[options.market] ? options.market : "hk";
@@ -1250,7 +1347,7 @@ Page({
         sourceNote: item.sourceNote,
       }))
       : [];
-    this.setData({ market, meta: META[market], playbooks });
+    this.setData({ market, meta: META[market], playbooks, nextLink: NEXT_LINKS[market] || null });
     wx.setNavigationBarTitle({ title: META[market].title });
     track("section_open", { market: String(market), from: "direct" });
     this.refresh();
@@ -1384,17 +1481,22 @@ Page({
         sourceLinks,
         dataAsOf: asOfText(snapshot && snapshot.updatedAt, meta.kind),
         hkApplyList: hkModule ? hkModule.applyList : [],
+        hkApplyTiles: hkModule ? hkModule.applyTiles : [],
         hkFirstDayChart: hkModule ? hkModule.firstDayChart : null,
         hkExitOptions: hkExitList.map((item) => ({ id: item.id, text: item.text })),
         hkExitIndex: hkSelection.index,
         hkExitSelectedId: hkSelection.id,
         hkExitView: hkSelection.view,
         hkExitChart: hkModule ? hkModule.exitChart : null,
+        usAllList: usModule ? usModule.allList : [],
+        usTriggerTiles: usModule ? usModule.triggerTiles : [],
         usSevenList: usModule ? usModule.sevenList : [],
         usSevenHint: usModule ? usModule.sevenHint : "",
         usSevenMix: usModule ? usModule.sevenMix : [],
         usHotList: usModule ? usModule.hotList : [],
         usHotHint: usModule ? usModule.hotHint : "",
+        aAllList: aModule ? aModule.allList : [],
+        aTriggerTiles: aModule ? aModule.triggerTiles : [],
         aStableList: aModule ? aModule.stableList : [],
         aYieldList: aModule ? aModule.yieldList : [],
         aFund: aModule ? aModule.fund : null,
@@ -1713,6 +1815,12 @@ Page({
     if (item.action === "group" && item.group) {
       this.openGroupById(item.group, "section_answer");
     }
+  },
+  openNextLink() {
+    const link = this.data.nextLink;
+    if (!link) return;
+    track("path_open", { path: link.id, from: `section_${this.data.market}` });
+    openPage(link.url);
   },
   goBack() {
     wx.navigateBack({ fail: () => goHome() });

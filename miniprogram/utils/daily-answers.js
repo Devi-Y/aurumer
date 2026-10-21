@@ -1,13 +1,14 @@
+const { degradeStaleActions, marketActionsFresh } = require("./action-freshness");
 /**
  * 栏目页「今日答案」：一屏回答用户真正会问的问题。
  * 口径是研究观察，不是买卖指令；没有已验证数据时如实说暂无。
  */
-const { aShareDividendStability, allItems, shortCompanyName, tickerZhLabel } = require("./answers");
+const { aShareDividendStability, usQualityEligibility, allItems, shortCompanyName, tickerZhLabel } = require("./answers");
 const { MASTER_PLAYBOOKS } = require("./master-playbooks");
 const { SMART_MONEY_PROFILES } = require("./smart-money");
 const { buildGuruTrend } = require("./guru-trend");
 const { instrumentSuffix } = require("./guru-changes");
-const { hasFilingFeed, filingsBySymbol, formatFilingLine } = require("./us-filings");
+const { hasFilingFeed, filingsBySymbol, formatFilingLine, filingCoverageNote } = require("./us-filings");
 const { toDay } = require("./dates");
 const { withLatestQuote, recentChange } = require("./gold-series");
 const {
@@ -470,17 +471,17 @@ function buildUsAnswers(snapshot) {
   // 为什么热且值不值得关注。原来还有一张「底仓如何配置」（VOO/JEPQ/O/SGOV
   // 权重）——它不在这四问里，整块连同 usSleevePlan 的计算一起撤掉，
   // 行业对照（万事达、优步）随之退回「分组浏览」里的行业分组。
-  const cheap = seven.filter((item) => ["GOOGL", "META"].includes(item.code) && matchesGroup(item, "cheap7"));
-  const risk = seven.filter((item) => item.code === "TSLA" && matchesGroup(item, "risk7"));
+  const cheap = seven.filter((item) => matchesGroup(item, "cheap7"));
+  const risk = seven.filter((item) => matchesGroup(item, "risk7"));
   const hold = seven.filter((item) => matchesGroup(item, "hold7"));
   // 「近期最热的三只是什么、为什么火热」——这一问原来页面上一张卡都没有，
   // 热度前三只存在于分组列表里，首屏答不出来。
   const hot = items.filter((item) => item.group === "hot").slice(0, 3);
-  const hotQualified = hot.filter((item) => item.raw && item.raw.fund && item.raw.fund.qualityEligible === true);
+  const hotQualified = hot.filter((item) => usQualityEligibility(item.raw) === true);
   // 「没过质量门」和「没有质量数据」是两回事。热度前三经常是七姐妹之外的
   // 中小盘，快照里根本没带它们的基本面行——那时候写「三只都没过质量门」
   // 是把缺数据说成考过没通过。分开数，两种情况分别写。
-  const hotJudged = hot.filter((item) => typeof item.raw?.fund?.qualityEligible === "boolean");
+  const hotJudged = hot.filter((item) => usQualityEligibility(item.raw) !== null);
   // 「为什么火热」以前只能答「成交量比高」——那是把「热」换个说法再说一遍。
   // SEC 公告能补上同期到底发生了什么，是可以点开原文核对的公开事实。
   const filingMap = filingsBySymbol(snapshot);
@@ -535,8 +536,7 @@ function buildUsAnswers(snapshot) {
         // 用户这一问是「发生了什么事」，涨跌只答了「动了多少」。公告是发行人
         // 自己交给 SEC 的备案，是这份快照里唯一能核对到原文的「事」。
         // 和热度卡同一个口径：拿不到这批公告就整行不写，绝不把缺数据说成「没发公告」。
-        if (!hasFilings) return head;
-        return `${head}\n　同期公告：${filedOf(item) || "近 30 天无重大事项公告"}`;
+        return `${head}\n　同期公告：${filedOf(item) || filingCoverageNote(snapshot, item.code || item.id)}`;
       }),
       "",
       hold.length
@@ -557,7 +557,7 @@ function buildUsAnswers(snapshot) {
       head: ["标的", "热度", "是否建议关注"],
       body: hot.map((item) => {
         const heat = Number(item.raw && item.raw.heatScore);
-        const eligible = item.raw?.fund?.qualityEligible;
+        const eligible = usQualityEligibility(item.raw);
         return {
           key: item.code || item.id,
           cells: [
@@ -591,26 +591,26 @@ function buildUsAnswers(snapshot) {
     card({
       id: "us-cheap",
       question: "低估的七姐妹",
-      answer: cheap.length ? cheap.map(quoteLine).join(" · ") : "谷歌-A、Meta 暂未同时满足质量与估值门槛",
+      answer: cheap.length ? cheap.map(quoteLine).join(" · ") : "七姐妹中暂无同时满足质量与估值条件的标的",
       names: namesOf(cheap),
       tone: cheap.length ? "good" : "warn",
       action: "group",
       group: "cheap7",
       targetId: cheap[0]?.id || "",
       enabled: cheap.length > 0,
-      hint: "每日重点固定看谷歌-A、Meta；相对不贵不是买入指令。",
+      hint: "在七姐妹中按同一条件筛选；相对便宜不代表价格一定上涨。",
     }),
     card({
       id: "us-risk",
       question: "风险升高要减",
-      answer: risk.length ? risk.map(quoteLine).join(" · ") : "特斯拉暂未触发重大风险分档",
+      answer: risk.length ? risk.map(quoteLine).join(" · ") : "七姐妹中暂无触发风险条件的标的",
       names: namesOf(risk),
       tone: risk.length ? "bad" : "muted",
       action: "group",
       group: "risk7",
       targetId: risk[0]?.id || "",
       enabled: risk.length > 0,
-      hint: "每日风险重点固定看特斯拉；其它七姐妹风险仍在详情中保留。",
+      hint: "逐只检查七姐妹的价格与经营风险。",
     }),
     card({
       id: "us-hot",
@@ -647,8 +647,7 @@ function buildUsAnswers(snapshot) {
             // 公告字段本身没取到时整行不写。只有确实拿到了这批公告、而这一只
             // 名下一条都没有，才敢说「没发公告」——那时它是有用的信息：
             // 这波热度背后没有已披露的公司事件，纯粹是资金在动。
-            if (!hasFilings) return head;
-            return `${head}\n　同期公告：${filed || "近 30 天无重大事项公告"}`;
+            return `${head}\n　同期公告：${filed || filingCoverageNote(snapshot, item.code || item.id)}`;
           }),
           "",
           hasFilings
@@ -914,7 +913,7 @@ function buildGoldAnswers(snapshot) {
   const sellCny = formatGoldRange(plan.domesticUpper, 1);
   const hasIntl = hasNumber(intl.price);
   const hasCny = hasNumber(domestic.price);
-  const intlPrice = hasIntl ? Number(intl.price).toFixed(0) : "暂缺";
+  const intlPrice = hasIntl ? Number(intl.price).toFixed(1) : "暂缺";
   const cnyPrice = hasCny ? Number(domestic.price).toFixed(1) : "暂缺";
 
   // 一、现在什么价。两个口径一行说完，日内涨跌和半年位置放第二行。
@@ -1228,12 +1227,29 @@ function buildGuruAnswers(snapshot) {
 }
 
 function buildDailyAnswers(snapshot, market, options = {}) {
-  if (market === "hk") return buildHkAnswers(snapshot);
-  if (market === "us") return buildUsAnswers(snapshot);
-  if (market === "a") return buildAShareAnswers(snapshot, options.holdings);
-  if (market === "gold") return buildGoldAnswers(snapshot);
-  if (market === "guru") return buildGuruAnswers(snapshot);
-  return [];
+  snapshot = degradeStaleActions(snapshot);
+  const builders = { hk: buildHkAnswers, us: buildUsAnswers, a: buildAShareAnswers, gold: buildGoldAnswers, guru: buildGuruAnswers };
+  const cards = builders[market] ? builders[market](snapshot, options.holdings) : [];
+  if (market === "guru" || marketActionsFresh(snapshot, market)) return cards;
+  // 已发生的价格、公告、分红排名和历史结果仍能读；只暂停依赖当前报价的动作。
+  const factualQuestions = {
+    hk: ["近期上新", "打中后暗盘", "打中后首日"],
+    us: ["七姐妹近期怎么了", "最热的三只"],
+    a: ["分红稳定性 前五", "分红收益性 前五"],
+    gold: ["现在什么价", "拐点变化"],
+  };
+  return cards.map((card) => {
+    if ((factualQuestions[market] || []).includes(card.question)) {
+      // 港股退出卡含本股参考价，不能整体作为历史事实放行。
+      if (!(market === "hk" && /打中后/.test(card.question))) {
+        const quoteDates = market === "gold"
+          ? [snapshot.gold?.quotes?.international?.asOf, snapshot.gold?.quotes?.domestic?.asOf].filter(Boolean).join(" / ")
+          : snapshot.updatedAt;
+        return { ...card, answer: `${market === "gold" && card.id === "gold-price" ? "最近报价" : "历史资料"}：${card.answer}`, hint: `数据截至 ${quoteDates || "待核验"}`, state: "historical" };
+      }
+    }
+    return { ...card, answer: snapshot.gold?.actionNote && market === "gold" ? snapshot.gold.actionNote : "数据待更新，暂不提供当前判断", names: "", namesLine: "", hint: "更新资料后重新核验", tone: "warn", rows: null, chart: null, state: "stale", enabled: false, modal: "" };
+  });
 }
 
 // 半角字符（拉丁、数字、标点）占的宽度不到汉字一半，按个数截断就把

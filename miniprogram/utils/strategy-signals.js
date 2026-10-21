@@ -1,3 +1,4 @@
+const { isActionDataFresh } = require("./action-freshness");
 /**
  * 五个栏目共用的「策略信号」层。
  *
@@ -393,6 +394,9 @@ function guruSignal(item) {
 
 function buildStrategySignal(item, context = {}) {
   const market = item?.market;
+  if (market !== "guru" && !(market === "hk" && (item?.group === "ended" || item?.raw?.withdrawn || deadlinePassed(item?.raw?.offerDeadline || item?.raw?.offerEnd))) && !isActionDataFresh(item?.raw)) {
+    return { label: "数据待更新", tone: "warn", action: item?.raw?.actionNote || "数据已偏旧，暂不提供当前判断。", trigger: "更新行情与来源后重新核验。", basis: "保留历史事实，暂停当前判断" };
+  }
   if (market === "hk") return hkSignal(item, context.evidence);
   if (market === "us") return usSignal(item);
   if (market === "a") return aShareSignal(item);

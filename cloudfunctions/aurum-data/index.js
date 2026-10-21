@@ -7,7 +7,7 @@ const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS } = require("./act
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-09-29-us-price-plan";
+const SOURCE_REVISION = "2026-10-21-recovery-v1";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 // GitHub Pages 偶发超时不能让前台只能看到旧缓存；备用源指向同一条 main 分支的
 // 原始文件，两者内容应始终一致。两个源用 Promise.any 并发抢，谁先响应用谁，
@@ -78,21 +78,30 @@ async function readPersistedSnapshot() {
 
 async function writePersistedSnapshot(payload) {
   const db = getDatabase();
-  if (!db) return;
+  if (!db) return null;
   const record = { payload, storedAt: Date.now(), updatedAt: payload.updatedAt, revision: SOURCE_REVISION };
-  try {
-    await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).set({ data: record });
-  } catch (error) {
-    if (await ensureCollection(error)) {
-      try {
-        await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).set({ data: record });
-        return;
-      } catch (retryError) {
-        console.warn("建集合后写入数据库缓存仍失败", retryError && retryError.message);
-        return;
+  const persist = async () => {
+    // 原子比较版本，避免两个冷启动任务先后覆盖较新的快照。
+    if (typeof db.runTransaction !== "function") throw new Error("缓存事务不可用，保留数据库原版本");
+    return db.runTransaction(async (transaction) => {
+      const doc = transaction.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID);
+      let previous;
+      try { const result = await doc.get(); previous = Array.isArray(result.data) ? result.data[0] : result.data; }
+      catch (error) {
+        if (!/document.*not.*exist|DOCUMENT_NOT_EXIST|not found/i.test(String(error.message || error))) throw error;
       }
+      if (Date.parse(previous?.updatedAt) > Date.parse(record.updatedAt)) return { newer: previous.payload };
+      await doc.set({ data: record });
+      return { written: true };
+    });
+  };
+  try { return await persist(); }
+  catch (error) {
+    if (await ensureCollection(error)) {
+      try { return await persist(); } catch (retryError) { console.warn("建集合后写入数据库缓存仍失败", retryError.message); return null; }
     }
-    console.warn("写入数据库缓存失败", error && error.message);
+    console.warn("写入数据库缓存失败", error.message);
+    return null;
   }
 }
 
@@ -156,7 +165,13 @@ async function readLatestSnapshot(timeoutMs) {
   const attempts = SOURCE_URLS.map((url) => {
     const separator = url.includes("?") ? "&" : "?";
     return readJson(`${url}${separator}mini=${Date.now()}`, timeoutMs)
-      .then((data) => ({ data, url }));
+      .then((data) => {
+        // 每个来源单独过同一契约。快但损坏的 JSON 不能赢过有效备源。
+        const sanitized = sanitizeSnapshot(data);
+        if (snapshotAgeMs(data.updatedAt) > ACTION_MAX_AGE_MS) throw new Error("公开快照已过期");
+        if (cachedResult && Date.parse(data.updatedAt) < Date.parse(cachedResult.updatedAt)) throw new Error("来源落后于已验证缓存");
+        return { data, sanitized, url };
+      });
   });
   try {
     return await Promise.any(attempts);
@@ -171,30 +186,31 @@ async function readLatestSnapshot(timeoutMs) {
 async function persistWarmSideEffects(payload) {
   const db = getDatabase();
   if (!db) return null;
-  const tasks = [
-    writePersistedSnapshot(payload).catch((error) => {
-      console.warn("写入数据库缓存失败", error && error.message);
-      return null;
-    }),
-    writeFactVersions(db, payload.data || payload).catch((error) => {
-      console.warn("事实版本写入失败", error && error.message);
-      return null;
-    }),
-  ];
-  let timeout;
-  const budget = new Promise((resolve) => {
-    timeout = setTimeout(() => resolve(null), PERSISTENCE_BUDGET_MS);
-  });
-  const result = await Promise.race([Promise.all(tasks), budget]);
-  clearTimeout(timeout);
+  const persist = (async () => {
+    const cache = await writePersistedSnapshot(payload);
+    if (cache?.newer) return [cache, null];
+    const facts = await writeFactVersions(db, payload.data || payload).catch((error) => {
+      console.warn("事实版本写入失败", error.message); return null;
+    });
+    return [cache, facts];
+  })();
+  let timer;
+  const budget = new Promise((resolve) => { timer = setTimeout(() => resolve(null), PERSISTENCE_BUDGET_MS); });
+  const result = await Promise.race([persist, budget]);
+  clearTimeout(timer);
   if (!result) console.warn(`数据库副作用超过 ${PERSISTENCE_BUDGET_MS}ms，已让出 warm 主路径`);
   return result;
 }
 
 async function refreshSnapshot(timeoutMs = WARM_REQUEST_TIMEOUT_MS) {
+  const persisted = await readPersistedSnapshot();
+  if (persisted && (!cachedResult || Date.parse(persisted.updatedAt) > Date.parse(cachedResult.updatedAt))) {
+    cachedResult = persisted;
+    cachedAt = Number(persisted.storedAt || Date.now());
+  }
   const result = await readLatestSnapshot(timeoutMs);
   const raw = result.data;
-  const data = sanitizeSnapshot(raw);
+  const data = result.sanitized || sanitizeSnapshot(raw);
   const fetchedAt = new Date().toISOString();
   cachedResult = {
     ok: true,
@@ -207,6 +223,7 @@ async function refreshSnapshot(timeoutMs = WARM_REQUEST_TIMEOUT_MS) {
   };
   cachedAt = Date.now();
   const sideEffects = await persistWarmSideEffects(cachedResult);
+  if (sideEffects?.[0]?.newer) cachedResult = sideEffects[0].newer;
   if (sideEffects && sideEffects[1]) cachedResult.factStats = sideEffects[1];
   return cachedResult;
 }
@@ -275,6 +292,7 @@ exports.main = async (event = {}) => {
       databaseUpdatedAt: persisted && persisted.updatedAt || null,
       cache: cachedResult ? "memory" : (persisted ? "database" : "empty"),
       platformSafeMs: PLATFORM_SAFE_MS,
+      transactionalCache: Boolean(getDatabase() && typeof getDatabase().runTransaction === "function"),
     };
   }
 

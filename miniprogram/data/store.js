@@ -11,7 +11,6 @@ const DEGRADED_TTL_MS = 60 * 1000;
 //   SNAPSHOT_CONTENT_STALE        —— 内容本身超过 36 小时，交给下面的时效判断
 // 只有第一种是故障；另外两种以前也会把全站七个页面刷成橙色告警条。
 const UPSTREAM_DOWN_RE = /UPSTREAM_TEMPORARILY_UNAVAILABLE|上游暂不可用/i;
-const ACTION_SYNC_WARNING = "云端动作结论待同步";
 // 公开快照工作日约两趟（09:30 / 16:30），周末空窗更长。
 // 在云函数仍可服务的 36 小时窗口内，「自动更新」就是当前已发布结论，不要误报成故障。
 const CURRENT_PUBLISH_MAX_AGE_MS = 36 * 60 * 60 * 1000;
@@ -40,8 +39,9 @@ function isUsableSnapshot(snapshot) {
   }
   return Boolean(
     snapshot
-      && snapshot.status === "live"
+      && ["live", "partial"].includes(snapshot.status)
       && !Number.isNaN(Date.parse(snapshot.updatedAt))
+      && Date.parse(snapshot.updatedAt) <= Date.now() + 5 * 60 * 1000
       && Array.isArray(snapshot.us && snapshot.us.stocks)
       && snapshot.us.stocks.length >= 20
       && Array.isArray(snapshot.aShare && snapshot.aShare.quotes)
@@ -78,6 +78,7 @@ function freshnessKind(snapshot, baseSource, warning) {
   if (age > STALE_MAX_AGE_MS) {
     return baseSource === "离线备用数据" ? "offline" : "stale";
   }
+  if (snapshot.status === "partial") return "partial";
   // 随包/已发布快照仍在服务窗口内：这是当前可用结论，不是故障。
   // 冷启动先读随包时也不要闪「未连云端」橙条，等云端失败且数据已陈旧再提示。
   if (baseSource === "离线备用数据" || baseSource === "自动更新") {
@@ -96,6 +97,7 @@ function sourceLabel(snapshot, baseSource, warning) {
       ? `离线备用数据 · ${stamp}`
       : `自动更新 · ${stamp}`;
   }
+  if (kind === "partial") return `部分数据暂缺 · ${stamp}`;
   if (kind === "offline") return `离线备用数据 · ${stamp}`;
   if (kind === "cached") return `缓存回退（上游暂不可用）· ${stamp}`;
   if (kind === "stale") return `数据已陈旧 · ${stamp}`;
@@ -106,16 +108,6 @@ function isRemoteNewerOrEqual(next, current) {
   const nextTime = Date.parse(next && next.updatedAt);
   const currentTime = Date.parse(current && current.updatedAt);
   return !Number.isNaN(nextTime) && (Number.isNaN(currentTime) || nextTime >= currentTime);
-}
-
-function hasActionSurface(snapshot) {
-  return Boolean(
-    snapshot
-    && snapshot.gold
-    && snapshot.gold.answer
-    && snapshot.gold.answer.pricePlan
-    && snapshot.gold.answer.pricePlan.internationalWatch
-  );
 }
 
 function fetchLatest(force) {
@@ -138,23 +130,10 @@ function fetchLatest(force) {
   }).then((response) => {
     const result = response && response.result;
     fetchedAt = Date.now();
-    if (!result || !result.ok || !isUsableSnapshot(result.data)) return null;
+    if (!result || !result.ok || !isUsableSnapshot(result.data)) throw new Error("云端快照暂不可用");
     const warning = result.warning || "";
     const remoteSnapshot = prepareSnapshot(result.data);
-    // 云函数若仍是旧清洗层，会剥掉黄金买卖观察区与港股申购结论。
-    // 此时保留随包/本机动作版快照，避免「能用」被在线回源刷没。
-    if (!hasActionSurface(remoteSnapshot) && hasActionSurface(memorySnapshot)
-      && memorySnapshot.actionsFresh !== false) {
-      // 云函数是通的，只是这一轮的结论面不完整。保留本机可用结论，但不要按
-      // 「上游不可用」报警——顺带把重试间隔缩短，下次进页面就再问一次。
-      fetchTtlMs = DEGRADED_TTL_MS;
-      memoryWarning = ACTION_SYNC_WARNING;
-      return {
-        snapshot: memorySnapshot,
-        source: memorySource,
-        warning: memoryWarning,
-      };
-    }
+    // 资料暂缺也是有效的新状态；不能因为黄金区间暂停，就拒收其他市场的新行情。
     if (isRemoteNewerOrEqual(remoteSnapshot, memorySnapshot)) {
       memorySnapshot = remoteSnapshot;
       // CACHE_REFRESHING（后台回源中）以前也被算成「缓存回退」，等于每次云端
@@ -168,7 +147,13 @@ function fetchLatest(force) {
       source: memorySource,
       warning: memoryWarning,
     };
-  }).catch(() => null).finally(() => {
+  }).catch(() => {
+    fetchedAt = Date.now();
+    fetchTtlMs = DEGRADED_TTL_MS;
+    memoryWarning = "UPSTREAM_TEMPORARILY_UNAVAILABLE";
+    memorySource = "缓存回退";
+    return { snapshot: prepareSnapshot(memorySnapshot), source: memorySource, warning: memoryWarning };
+  }).finally(() => {
     refreshPromise = null;
   });
   return refreshPromise;

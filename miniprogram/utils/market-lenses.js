@@ -1,3 +1,4 @@
+const { isActionDataFresh } = require("./action-freshness");
 /**
  * 五个栏目的研究分档透镜：把公开字段翻译成用户要的问题，不是买卖指令。
  * 没有真实可核验数据时保持空白，不补虚拟标的或假精确价格。
@@ -81,6 +82,7 @@ function mag7Context(sevenItems) {
 }
 
 function mag7Lenses(item, context = {}) {
+  if (!isActionDataFresh(item?.raw)) return [];
   if (!MAGNIFICENT_SEVEN.includes(item?.code || item?.id)) return [];
   const signal = buildStrategySignal(item);
   const pe = number(item?.raw?.fund?.pe);
@@ -142,6 +144,7 @@ function aShareRole(item) {
 }
 
 function yieldImpliedPlan(raw = {}) {
+  if (!isActionDataFresh(raw)) return null;
   const price = number(raw.currentPrice);
   const currentYield = number(raw.currentDividendYield);
   const sustainable = number(raw.sustainableDividendYield);

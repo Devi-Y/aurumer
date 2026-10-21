@@ -1,3 +1,6 @@
+const { getDividendStability } = require("./dividend-stability");
+const { degradeStaleActions } = require("./action-freshness");
+const { guardHKDates } = require("./hk-date-state");
 const { guruOverlapItems } = require("./guru-overlap");
 const { SMART_MONEY_PROFILES, annualRank } = require("./smart-money");
 const { usScore } = require("./strategy-score");
@@ -259,6 +262,9 @@ function hkActionFromItem(item) {
   if (item.withdrawn || item.researchView?.state === "withdrawn") {
     return { group: "cancelled", badge: "发行已取消", tone: "ended", action: "这次发行取消了，不用再申购。", score: null };
   }
+  if (item.dateValidation?.status === "unverified") {
+    return { group: "caution", badge: "日期待核", tone: "wait", action: "招股日期待核，暂不提供申购判断或倒计时。", score: null };
+  }
   const answer = item.publicAnswer || {};
   const mapped = HK_VERDICT_MAP[answer.verdict];
   if (mapped) {
@@ -279,7 +285,8 @@ function hkActionFromItem(item) {
 }
 
 function hkItems(snapshot) {
-  const current = (snapshot.hk && snapshot.hk.listings ? snapshot.hk.listings : []).map((item) => {
+  const current = (snapshot.hk && snapshot.hk.listings ? snapshot.hk.listings : []).map((sourceItem) => {
+    const item = guardHKDates(sourceItem);
     const extractionNote = hkExtractionNote(item);
     const action = hkActionFromItem(item);
     const offerBits = [
@@ -315,6 +322,10 @@ function hkItems(snapshot) {
     };
   });
   current.forEach((item) => {
+    if (item.raw?.dateValidation?.status === "unverified") {
+      item.lenses.push("date-pending");
+      return;
+    }
     if (hkLeverageEligible(item)) item.lenses.push("leverage");
     // 栏目页顶上那格「在售 3」以前点开落在「值得打」，而值得打只有 1 只——
     // 格子上写 3、点进去是 1。在售本身横跨值得打 / 暂缓观察 / 暂不建议三档，
@@ -388,53 +399,74 @@ function usHeatDriver(stock) {
 }
 
 // 是否建议关注：质量门是既有的硬门槛，过不了就是过不了，不因为热度高改口。
+function usQualityEligibility(stock) {
+  const fund = stock?.fund || stock || {};
+  if (fund.qualityView?.state === "passed") return true;
+  if (fund.qualityView?.state === "failed") return false;
+  return typeof fund.qualityEligible === "boolean" ? fund.qualityEligible : null;
+}
+
 function usAttentionNote(stock) {
   const fund = (stock && stock.fund) || {};
-  if (fund.qualityEligible === true) {
+  if (usQualityEligibility(stock) === true) {
     const score = Number(fund.finalScore);
     return Number.isFinite(score) ? `质量达标 · 综合 ${Math.round(score)} 分` : "质量达标";
   }
-  if (fund.qualityEligible === false) return "质量不达标，热度高也不代表值得关注";
+  if (usQualityEligibility(stock) === false) return "质量不达标，热度高也不代表值得关注";
   return "质量数据不足，暂不给关注结论";
 }
 
-function usItems(snapshot) {
+function usStocks(snapshot) {
+  snapshot = degradeStaleActions(snapshot);
   const fundamentals = new Map((snapshot.us && snapshot.us.fundamentals ? snapshot.us.fundamentals : []).map((item) => [item.symbol, item]));
-  const stocks = (snapshot.us && snapshot.us.stocks ? snapshot.us.stocks : []).map((stock) => {
+  return (snapshot.us && snapshot.us.stocks ? snapshot.us.stocks : []).map((stock) => {
     const fund = fundamentals.get(stock.symbol) || {};
     return { ...stock, fund, id: stock.symbol };
   });
-  const make = (stock, group, badge) => {
-    const heat = Number(stock.heatScore);
-    const hasHeat = Number.isFinite(heat);
-    return {
-      id: stock.symbol,
-      market: "us",
-      group,
-      name: US_NAMES[stock.symbol] || stock.symbol,
-      code: stock.symbol,
-      badge,
-      score: null,
-      rank: null,
-      scoreText: group === "hot" && hasHeat ? `热度 ${Math.round(heat)}` : "七姐妹",
-      rankText: badge,
-      one: [
-        signedPercent(stock.changePercent) || "涨跌待更新",
-        group === "hot" && hasHeat ? `热度 ${Math.round(heat)}` : null,
-        Number.isFinite(Number(stock.price)) ? money(stock.price) : null,
-      ].filter(Boolean).join(" · "),
-      raw: stock,
-    };
-  };  const bySymbol = new Map(stocks.map((item) => [item.symbol, item]));
+}
+
+function usRow(stock, group, badge) {
+  const heat = Number(stock.heatScore);
+  const hasHeat = Number.isFinite(heat);
+  return {
+    id: stock.symbol,
+    market: "us",
+    group,
+    name: US_NAMES[stock.symbol] || stock.symbol,
+    code: stock.symbol,
+    badge,
+    score: null,
+    rank: null,
+    scoreText: group === "hot" && hasHeat ? `热度 ${Math.round(heat)}` : (group === "pool" ? badge : "七姐妹"),
+    rankText: badge,
+    one: [
+      signedPercent(stock.changePercent) || "涨跌待更新",
+      group === "hot" && hasHeat ? `热度 ${Math.round(heat)}` : null,
+      Number.isFinite(Number(stock.price)) ? money(stock.price) : null,
+    ].filter(Boolean).join(" · "),
+    raw: stock,
+  };
+}
+
+// 美股池全部标的各一行：栏目页「全部」按离参考买入价远近排，要能看到并点开每一只，
+// 不只是七姐妹和各个榜单里挑出来的那些。
+function usPoolItems(snapshot) {
+  return usStocks(snapshot).map((stock) => usRow(stock, "pool", "美股池"));
+}
+
+function usItems(snapshot) {
+  const stocks = usStocks(snapshot);
+  const make = usRow;
+  const bySymbol = new Map(stocks.map((item) => [item.symbol, item]));
   const seven = MAGNIFICENT_SEVEN.map((symbol) => bySymbol.get(symbol)).filter(Boolean).map((item) => make(item, "seven", "七姐妹"));
   const mag7 = mag7Context(seven);
   seven.forEach((item) => {
     item.lenses = mag7Lenses(item, mag7);
   });
-  const nonSeven = stocks
-    .filter((item) => !MAGNIFICENT_SEVEN.includes(item.symbol))
+  const heatPool = stocks.filter((stock) => stock.heatScore !== null && stock.heatScore !== undefined && stock.heatScore !== "" && Number.isFinite(Number(stock.heatScore)));
+  const rankedHeat = [...heatPool]
     .sort((left, right) => number(right.heatScore) - number(left.heatScore));
-  const hot = nonSeven.slice(0, 3)
+  const hot = rankedHeat.slice(0, 3)
     .map((item) => {
       const row = make(item, "hot", "热度前三");
       const driver = usHeatDriver(item);
@@ -449,7 +481,7 @@ function usItems(snapshot) {
       return row;
     });
   // 热度前十 / 性价比观察：同一标的可出现在多个研究榜，列表按 group 过滤。
-  const hot10 = [...stocks]
+  const hot10 = [...heatPool]
     .sort((left, right) => number(right.heatScore) - number(left.heatScore))
     .slice(0, 10)
     .map((item, index) => {
@@ -712,22 +744,10 @@ function aShareObserveScore(raw = {}) {
   ]);
 }
 
-// 分红稳定性：观察分里去掉「股息高不高」那两项，只留「分红拿不拿得住」这半边——
-// 可持续对当前的覆盖率、自由现金流、现金利润比、股东回报，权重沿用观察分原来的
-// 相对大小再归一，一个新数都没造。
-//
-// 不要改回用快照里的 dividendScore。那个字段在 cloudfunctions/aurum-data/sanitize.js
-// 的 sanitizeAShareFundamental 里被有意剥离，公开链路上永远取不到：本地拿源文件跑
-// 是对的，装进小程序会静默退化成「按可持续股息率排序」，于是稳定性榜和收益性榜
-// 排出同一批股票，两个维度名存实亡。这一版就是这么翻车过一次的。
+// 只比较最近五个完整所属年度的真实现金分配。缺年/无法比较时不评分，
+// 不以现金流或ROE代替分红记录，也不把未来除息记录计入历史。
 function aShareDividendStability(raw = {}) {
-  const financials = raw.financials || {};
-  return weightedScore([
-    aShareCoverTerm(raw),
-    aShareCashTerm(financials),
-    aShareConversionTerm(financials),
-    aShareRoeTerm(financials),
-  ]);
+  return getDividendStability(raw).score;
 }
 
 function aShareItems(snapshot) {
@@ -832,7 +852,10 @@ function aShareItems(snapshot) {
   // 分红稳定性 / 分红收益性 两个维度的前五。同一个池子——股息、可持续股息、现价
   // 齐全且回推得出参考买卖价的那些——只是排序不同，这就是「不同排序下的前五名」。
   // 池子取的是全部 20 只实时标的，不是前台那 10 个样本：排名要在完整池子里排才算数。
-  const rankPool = stockItems.filter((item) => yieldImpliedPlan(item.raw));
+  const rankPool = stockItems.filter((item) => (
+    Number(item.raw.currentPrice) > 0 && Number(item.raw.currentDividendYield) > 0
+    && Number(item.raw.sustainableDividendYield) > 0
+  ));
   // 名次跟着 lens 一起记下来：列表页给行标了 01–05 的序号，那个序号必须就是
   // 这个榜单的名次，否则页头写着「前五」、行里却按样本顺序编号，等于编了个假名次。
   const markTop5 = (pool, score, lens) => [...pool]
@@ -843,7 +866,7 @@ function aShareItems(snapshot) {
       item.lensRank = { ...(item.lensRank || {}), [lens]: index + 1 };
     });
   // 稳定性：分红能不能拿得住，同分再看可持续股息率。
-  markTop5(rankPool, (item) => number(aShareDividendStability(item.raw)) * 1000
+  markTop5(rankPool.filter((item) => aShareDividendStability(item.raw) !== null), (item) => number(aShareDividendStability(item.raw)) * 1000
     + number(item.raw.sustainableDividendYield), "stable5");
   // 收益性：先把「高息待核」这种靠不住的挡在外面，剩下的才比可持续股息率——
   // 比的是大概率能一直分到的钱，不是这次分得猛不猛。跟稳定性榜的差别在于，
@@ -890,6 +913,7 @@ function aShareItems(snapshot) {
 }
 
 function allItems(snapshot, market) {
+  snapshot = degradeStaleActions(snapshot);
   if (market === "hk") return hkItems(snapshot);
   if (market === "us") return usItems(snapshot);
   if (market === "a") return aShareItems(snapshot);
@@ -928,7 +952,7 @@ function groupDefinitions(snapshot, market) {
     ];
   } else if (market === "a") {
     definitions = [
-      ["stable5", "分红稳定性 前五", "分红分与可持续股息排序，每行带参考买卖价"],
+      ["stable5", "分红稳定性 前五", "最近五年分红比较，缺年不入榜"],
       ["yield5", "分红收益性 前五", "先过滤高息待核，再按可持续股息率排序，每行带参考买卖价"],
       ["sample", "收息样本", "前台在展示的全部收息研究样本", false],
       ["prime", "优等收息", "股息可持续+现金支撑"],
@@ -962,6 +986,7 @@ function groupDefinitions(snapshot, market) {
 }
 
 function findItem(snapshot, market, id) {
+  snapshot = degradeStaleActions(snapshot);
   const needle = String(id || "").trim().toUpperCase();
   if (!needle) return null;
   const items = allItems(snapshot, market);
@@ -987,6 +1012,8 @@ function findItem(snapshot, market, id) {
   if (found) return found;
   // A 股列表刻意只展示 10 个深度收息样本，但 20 个实时标的都必须能打开详情。
   if (market === "a") return aShareDetailFallback(snapshot, id);
+  // 美股同理：栏目页「全部」列出了池里每一只，没进任何榜单的也得能打开详情。
+  if (market === "us") return usPoolItems(snapshot).find((item) => normalize(item.id) === want) || null;
   return null;
 }
 
@@ -994,6 +1021,7 @@ module.exports = {
   aShareDividendStability,
   usHeatDriver,
   usAttentionNote,
+  usQualityEligibility,
   INVESTOR_NAMES,
   // 资讯流要给「没进任何分组、因而不在 allItems 里」的标的写中文名（公告涵盖
   // 的公司比分组多）。名字只能有一份，所以从这里导出，不要在别处再抄一张表。
@@ -1002,6 +1030,7 @@ module.exports = {
   tickerShortZh,
   allItems,
   findItem,
+  usPoolItems,
   groupDefinitions,
   matchesGroup,
   money,

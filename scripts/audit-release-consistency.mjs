@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,7 +15,7 @@ function assert(condition, message) {
 
 const localPath = path.join(root, "data", "live-snapshot.json");
 const localSnapshot = JSON.parse(await readFile(localPath, "utf8"));
-assert(localSnapshot.status === "live", "本地快照不是 live");
+assert(["live", "partial"].includes(localSnapshot.status), "本地快照状态不可用");
 assert(Date.parse(localSnapshot.updatedAt), "本地快照缺少 updatedAt");
 
 const sanitized = sanitizeSnapshot(localSnapshot);
@@ -34,6 +35,13 @@ assert(
 const miniPath = path.join(root, "miniprogram", "data", "live-snapshot.js");
 const miniSnapshot = require(miniPath);
 assert(miniSnapshot.updatedAt === localSnapshot.updatedAt, "小程序随包快照与本地 updatedAt 不一致");
+assert((miniSnapshot.revisionAt || null) === (localSnapshot.revisionAt || null), "小程序内容修订版本与本地不一致");
+for (const [label, actual, expected] of [
+  ["港股日期", miniSnapshot.hk, sanitized.hk],
+  ["SEC公告", miniSnapshot.us?.filings, sanitized.us?.filings],
+  ["SEC核验范围", miniSnapshot.us?.filingCoverage, sanitized.us?.filingCoverage],
+  ["黄金历史", miniSnapshot.gold?.history, sanitized.gold?.history],
+]) assert(isDeepStrictEqual(actual, expected), `小程序随包${label}与本地事实不一致`);
 const miniFund = (miniSnapshot.us?.fundamentals || []).find((item) => item.symbol === "NVDA");
 assert(miniFund && miniFund.amountUnit === "USD", "小程序随包美股财务未规范化");
 assert(Number(miniFund.operatingCashFlow) > 1e10, "小程序随包 NVDA 经营现金流未换算为基础美元");
@@ -52,23 +60,20 @@ assert(
   "云函数 revision 未切换到动作新鲜度/缓存优先版本",
 );
 
-let pagesNote = "Pages 未在线核对";
-try {
+let pagesNote = "线上未核对（仅本地模式）";
+if (!process.argv.includes("--local")) {
   const pagesUrl = `https://devi-y.github.io/aurumer/data/live-snapshot.json?audit=${Date.now()}`;
   const pagesResponse = await fetch(pagesUrl, {
     headers: { accept: "application/json", "cache-control": "no-cache" },
     signal: AbortSignal.timeout(12_000),
   });
-  if (pagesResponse.ok) {
-    const pagesSnapshot = await pagesResponse.json();
-    assert(pagesSnapshot.status === "live", "公开 Pages 快照不是 live");
-    assert(pagesSnapshot.updatedAt === localSnapshot.updatedAt, "本地 data/live-snapshot.json 与 Pages updatedAt 不一致");
-    pagesNote = `Pages updatedAt 一致=${pagesSnapshot.updatedAt}`;
-  } else {
-    pagesNote = `Pages HTTP ${pagesResponse.status}，已跳过在线核对`;
-  }
-} catch (error) {
-  pagesNote = `Pages 暂不可达（${error.cause?.code || error.message}），已跳过在线核对`;
+  assert(pagesResponse.ok, `公开 Pages 返回 HTTP ${pagesResponse.status}，未通过线上核对`);
+  const pagesSnapshot = await pagesResponse.json();
+  assert(["live", "partial"].includes(pagesSnapshot.status), "公开 Pages 快照状态不可用");
+  assert(pagesSnapshot.updatedAt === localSnapshot.updatedAt,
+    `线上与本地不同步：Pages=${pagesSnapshot.updatedAt}，本地=${localSnapshot.updatedAt}`);
+  assert(pagesSnapshot.status === localSnapshot.status, "线上与本地的数据状态不一致");
+  assert(isDeepStrictEqual(pagesSnapshot, localSnapshot), "线上与本地快照内容不一致，即使更新时间相同也不能通过发布核对");
+  pagesNote = `Pages updatedAt 一致=${pagesSnapshot.updatedAt}`;
 }
-
-console.log(`发布一致性检查通过：本地/小程序 updatedAt=${localSnapshot.updatedAt}；${pagesNote}；云函数 revision=${SOURCE_REVISION}`);
+console.log(`本地/小程序一致性检查通过：updatedAt=${localSnapshot.updatedAt}；${pagesNote}；本地云函数 revision=${SOURCE_REVISION}（不代表已部署）`);

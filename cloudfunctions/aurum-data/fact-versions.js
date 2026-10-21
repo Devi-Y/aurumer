@@ -34,7 +34,7 @@ function makeFact(partial, snapshotUpdatedAt) {
 }
 
 function extractFacts(snapshot) {
-  if (!snapshot || snapshot.status !== "live") return [];
+  if (!snapshot || !["live", "partial"].includes(snapshot.status)) return [];
   const updatedAt = snapshot.updatedAt || "";
   const facts = [];
 

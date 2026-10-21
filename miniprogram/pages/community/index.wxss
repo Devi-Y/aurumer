@@ -1,0 +1,167 @@
+/* 付费交流群：版式和 pages/guide 一致，蓝白灰。品牌蓝 #1d5fd1，文字三档灰。 */
+
+.community-shell {
+  background: #f4f6f9;
+}
+
+.community-head {
+  display: flex;
+  padding: 28rpx 28rpx 18rpx;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.community-title {
+  color: #1a1f27;
+  font-size: 42rpx;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.community-sub {
+  color: #5c6470;
+  font-size: 27rpx;
+  line-height: 1.6;
+}
+
+.community-card {
+  margin: 0 20rpx 18rpx;
+}
+
+.sec {
+  display: flex;
+  padding: 24rpx 24rpx 26rpx;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.sec + .sec {
+  border-top: 1rpx solid #edf0f4;
+}
+
+.sec-title {
+  color: #1a1f27;
+  font-size: 30rpx;
+  font-weight: 650;
+}
+
+.sec-rows {
+  overflow: hidden;
+  border-radius: 14rpx;
+  background: #f6f8fb;
+}
+
+.sec-row {
+  display: flex;
+  padding: 16rpx 18rpx;
+  gap: 18rpx;
+}
+
+.sec-row + .sec-row {
+  border-top: 1rpx solid #e9edf2;
+}
+
+.row-label {
+  width: 180rpx;
+  flex: none;
+  color: #5c6470;
+  font-size: 25rpx;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.row-value {
+  min-width: 0;
+  flex: 1;
+  color: #1a1f27;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.sec-point {
+  position: relative;
+  padding-left: 24rpx;
+  color: #2b313b;
+  font-size: 27rpx;
+  line-height: 1.6;
+}
+
+.sec-point::before {
+  position: absolute;
+  top: 18rpx;
+  left: 4rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #9fb6dc;
+  content: "";
+}
+
+.sec-text {
+  color: #2b313b;
+  font-size: 27rpx;
+  line-height: 1.6;
+}
+
+.sec-muted {
+  color: #8a929e;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.join-action {
+  display: flex;
+  width: 100%;
+  min-height: 92rpx;
+  margin: 8rpx 0 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  background: #1d5fd1;
+  color: #ffffff;
+  font-size: 30rpx;
+  font-weight: 650;
+  line-height: 92rpx;
+}
+
+.join-action-active {
+  background: #174ea9;
+}
+
+.join-disclosure {
+  color: #8a929e;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.tap-active {
+  background: #edf2fb;
+}
+
+.page-footer {
+  display: flex;
+  padding: 8rpx 28rpx 0;
+  justify-content: center;
+  text-align: center;
+}
+
+.footer-note {
+  max-width: 560rpx;
+  color: #9aa1ab;
+  font-size: 22rpx;
+  line-height: 1.55;
+}
+
+@media (max-width: 340px) {
+  .community-card { margin-left: 12rpx; margin-right: 12rpx; }
+  .community-title { font-size: 36rpx; }
+  .row-label { width: 150rpx; font-size: 23rpx; }
+  .row-value, .sec-point { font-size: 25rpx; }
+}
+
+@media (min-width: 700px) {
+  .community-head { padding-left: 32px; padding-right: 32px; }
+  .community-card { margin-left: 32px; margin-right: 32px; }
+  .row-label { width: 120px; }
+}

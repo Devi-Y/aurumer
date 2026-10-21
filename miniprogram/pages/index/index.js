@@ -3,13 +3,20 @@ const { track, trackHomeVisit } = require("../../utils/analytics");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const { MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const OFFERS = require("../../config/offers");
+const { openPage } = require("../../utils/nav");
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
 const { withLatestQuote } = require("../../utils/gold-series");
 
-// 服务格子只放已经拿到真实物料的项，或产品负责人明确要求先占位的项（pending，
-// 点了只说「即将开放」，不编链接）；其余不上九宫格，也不拿别的入口凑数。
-const SERVICES = OFFERS.filter((item) => item && (item.copy || item.pending));
+// 服务格子只放已经拿到真实物料的项，或产品负责人明确要求先占位的项（pending）；
+// 其余不上九宫格，也不拿别的入口凑数。点一下进一个很短的二级页（说明 + 物料），
+// 推荐链接和微信号都挂在二级页末尾，首页不直接复制任何东西，物料下架这一格自己消失。
+const SERVICE_PAGES = {
+  "global-access": { url: "/pages/guide/index?topic=info", help: "有什么用 · 去哪看" },
+  "open-account": { url: "/pages/guide/index?topic=us-start", help: "怎么开户 · 怎么入金" },
+  "paid-group": { url: "/pages/community/index", help: "聊什么 · 怎么加入" },
+};
+const SERVICES = OFFERS.filter((item) => item && SERVICE_PAGES[item.id] && (item.copy || item.pending));
 
 // 九宫格的前五格是这五个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
 // 没有副标题也没有箭头。help 不再上屏，但留着当读屏标签用。
@@ -51,12 +58,12 @@ const CORE_ENTRIES = [
   },
 ];
 
-// 九宫格 = 五个研究栏目 + 一个预留格 + 已有物料的服务格。服务格点一下是复制，不跳页。
+// 九宫格 = 五个研究栏目 + 一个预留格 + 已有物料的服务格。服务格点一下进二级页，不在首页复制。
 // 新闻资讯（2026-09-29）按产品要求整页删掉，它那一格原位留空，等以后放新栏目。
 const GRID_ENTRIES = [
   ...CORE_ENTRIES.map((item) => ({ ...item })),
   { id: "reserved", reserved: true },
-  ...SERVICES.map(({ id, icon, title, copy }) => ({ id, action: "copy", icon, title, help: copy ? "点击复制" : "即将开放" })),
+  ...SERVICES.map(({ id, icon, title }) => ({ id, action: "page", icon, title, help: SERVICE_PAGES[id].help, url: SERVICE_PAGES[id].url })),
 ];
 
 // ---------- 首页走势卡：每张只用快照里的真实序列，序列不够整张不出 ----------
@@ -206,8 +213,9 @@ Page({
     const id = event.currentTarget.dataset.id;
     const entry = this.data.entries.find((item) => item.id === id);
     if (!entry) return;
-    if (entry.action === "copy") {
-      this.copyService(entry.id);
+    if (entry.action === "page") {
+      track("path_open", { path: String(entry.id), from: "grid" });
+      openPage(entry.url);
       return;
     }
     if (entry.action === "section") {
@@ -221,22 +229,6 @@ Page({
     if (!market) return;
     track("section_open", { market, from: "home_trend" });
     wx.navigateTo({ url: `/pages/section/index?market=${market}` });
-  },
-  // 小程序打不开外部网页，服务格一律复制到剪贴板，由用户自己去浏览器或微信里用。
-  copyService(id) {
-    const service = SERVICES.find((item) => item.id === id);
-    if (!service) return;
-    if (!service.copy) {
-      track("service_pending", { id });
-      wx.showToast({ title: service.pendingToast || "即将开放", icon: "none" });
-      return;
-    }
-    track("service_copy", { id });
-    wx.setClipboardData({
-      data: service.copy,
-      success: () => wx.showToast({ title: service.toast || "已复制", icon: "none" }),
-      fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
-    });
   },
   onShareAppMessage() {
     track("share_tap", { page: "home" });

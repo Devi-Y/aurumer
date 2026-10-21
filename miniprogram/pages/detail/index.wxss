@@ -1132,6 +1132,22 @@
 }
 .disclaimer { display: block; margin: 9rpx auto 0; color: #73767c; font-size: 26rpx; line-height: 1.55; text-align: center; }
 
+.us-start-link {
+  display: flex;
+  min-height: 88rpx;
+  margin-top: 18rpx;
+  padding: 0 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  border: 1rpx solid #e6e9ef;
+  border-radius: 16rpx;
+  background: #ffffff;
+}
+
+.us-start-ask { color: #5c6470; font-size: 26rpx; }
+.us-start-go { flex: none; color: #1d5fd1; font-size: 27rpx; font-weight: 650; }
+
 @media (max-width: 340px) {
   .detail-shell { padding-right: 15rpx; padding-left: 15rpx; }
   .detail-hero { margin-right: -15rpx; margin-left: -15rpx; padding: 16rpx 18rpx 38rpx; }

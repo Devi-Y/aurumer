@@ -3680,16 +3680,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000025/smci-20261020.htm"
       },
       {
-        "symbol": "NFLX",
-        "form": "8-K",
-        "filingDate": "2026-10-20",
-        "items": "2.02,9.01",
-        "labels": [
-          "业绩公告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1065280/000106528026000290/nflx-20261020.htm"
-      },
-      {
         "symbol": "CRM",
         "form": "8-K",
         "filingDate": "2026-10-20",
@@ -3698,6 +3688,16 @@
           "自愿披露（Reg FD）"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1108524/000119312526425881/d516983d8k.htm"
+      },
+      {
+        "symbol": "NFLX",
+        "form": "8-K",
+        "filingDate": "2026-10-20",
+        "items": "2.02,9.01",
+        "labels": [
+          "业绩公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1065280/000106528026000290/nflx-20261020.htm"
       },
       {
         "symbol": "JPM",
@@ -3742,16 +3742,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000090983226000100/cost-20261013.htm"
       },
       {
-        "symbol": "SMCI",
-        "form": "8-K",
-        "filingDate": "2026-10-15",
-        "items": "5.02,9.01",
-        "labels": [
-          "董事或高管变动"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000024/smci-20261014.htm"
-      },
-      {
         "symbol": "TSM",
         "form": "6-K",
         "filingDate": "2026-10-15",
@@ -3760,6 +3750,16 @@
           "境外发行人公告"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000726/tsm-20261015x6k.htm"
+      },
+      {
+        "symbol": "SMCI",
+        "form": "8-K",
+        "filingDate": "2026-10-15",
+        "items": "5.02,9.01",
+        "labels": [
+          "董事或高管变动"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000024/smci-20261014.htm"
       },
       {
         "symbol": "ASML",
@@ -3813,16 +3813,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/19617/000162828026065582/jpm-20261013.htm"
       },
       {
-        "symbol": "SMCI",
-        "form": "8-K",
-        "filingDate": "2026-10-08",
-        "items": "5.02,9.01",
-        "labels": [
-          "董事或高管变动"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000023/smci-20261007.htm"
-      },
-      {
         "symbol": "TSM",
         "form": "6-K",
         "filingDate": "2026-10-08",
@@ -3831,6 +3821,16 @@
           "境外发行人公告"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000680/tsm-revenue20261008.htm"
+      },
+      {
+        "symbol": "SMCI",
+        "form": "8-K",
+        "filingDate": "2026-10-08",
+        "items": "5.02,9.01",
+        "labels": [
+          "董事或高管变动"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000023/smci-20261007.htm"
       },
       {
         "symbol": "COST",
@@ -3922,6 +3922,278 @@
       "value": 54,
       "label": "中性",
       "hint": "VIX 17.31，标普500相对近60日均线 +0.3%——该温度由真实行情计算，不是官方指数"
+    },
+    "filingCoverage": {
+      "AMZN": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "MSFT": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "NVDA": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "AAPL": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "GOOGL": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "META": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "TSLA": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 2,
+        "returnedCount": 2,
+        "truncated": false
+      },
+      "AVGO": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "PLTR": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "AMD": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
+        "truncated": false
+      },
+      "ARM": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "ASML": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
+        "truncated": false
+      },
+      "COIN": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
+        "truncated": false
+      },
+      "TSM": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 3,
+        "returnedCount": 3,
+        "truncated": false
+      },
+      "SMCI": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 3,
+        "returnedCount": 3,
+        "truncated": false
+      },
+      "MA": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "MSTR": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 8,
+        "returnedCount": 3,
+        "truncated": true
+      },
+      "CRWD": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "V": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
+        "truncated": false
+      },
+      "NOW": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "CRM": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
+        "truncated": false
+      },
+      "NFLX": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
+        "truncated": false
+      },
+      "ORCL": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "SHOP": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "SNOW": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
+        "truncated": false
+      },
+      "LLY": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "UBER": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "BRK.B": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
+        "truncated": false
+      },
+      "COST": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 4,
+        "returnedCount": 3,
+        "truncated": true
+      },
+      "JPM": {
+        "status": "complete",
+        "since": "2026-09-21",
+        "fetchedAt": "2026-10-21T03:30:19.507Z",
+        "error": null,
+        "matchedCount": 3,
+        "returnedCount": 3,
+        "truncated": false
+      }
     }
   },
   "hk": {
@@ -4000,7 +4272,7 @@
         "rawCode": "02384",
         "name": "苏州东山精密制造股份有限公司",
         "status": "招股文件已发布",
-        "listingDate": "2026-10-20",
+        "listingDate": "2026-10-28",
         "boardLot": "100",
         "shortName": null,
         "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1020/2026102000010_c.pdf",
@@ -4058,7 +4330,37 @@
           "score": 65
         },
         "historicalReview": null,
-        "publishedEstimate": null
+        "publishedEstimate": null,
+        "dateValidation": {
+          "status": "verified",
+          "reason": null,
+          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1020/2026102000010_c.pdf",
+          "parserVersion": "hk-offer-dates-v1",
+          "fields": {
+            "offerStart": [
+              {
+                "date": "2026-10-20",
+                "evidence": "香港公开发售开始....................................2026年10月20日"
+              }
+            ],
+            "offerDeadline": [
+              {
+                "date": "2026-10-23",
+                "evidence": "截止办理认购申请登记................................2026年10月23日"
+              }
+            ],
+            "listingDate": [
+              {
+                "date": "2026-10-28",
+                "evidence": "预期H股开始于香港联交所买卖........................2026年10月28日"
+              },
+              {
+                "date": "2026-10-28",
+                "evidence": "2026年10月28日（星期三）上午9時正开始在联交所买卖"
+              }
+            ]
+          }
+        }
       },
       {
         "id": "hk-06157",
@@ -12600,7 +12902,7 @@
         "currency": "CNY/g",
         "changePercent": -1.23,
         "asOf": "2026-10-20",
-        "percentile30": 50
+        "percentile30": 3
       },
       "etf": {
         "symbol": "GLD",
@@ -12667,7 +12969,7 @@
       }
     ],
     "answer": {
-      "score": 48,
+      "score": 50,
       "scores": {
         "international": {
           "score": 42,
@@ -12681,13 +12983,15 @@
           ]
         },
         "domestic": {
-          "score": 56,
+          "score": 62,
           "label": "人民币金观察分",
           "basis": "上海金价格位置、人民币汇率与国内折溢价",
-          "signals": []
+          "signals": [
+            "人民币金回到近 30 个交易日相对低位"
+          ]
         }
       },
-      "grade": "D",
+      "grade": "C",
       "action": "等待更好价格",
       "conclusion": "等待更好价格；价格已回到近半年相对低位。",
       "macroAvailable": true,
@@ -13458,52 +13762,108 @@
       ],
       "domestic": [
         {
-          "date": "2026-07-20",
-          "close": 872.5
+          "date": "2026-07-01",
+          "close": 868.8
         },
         {
-          "date": "2026-07-21",
-          "close": 873
-        },
-        {
-          "date": "2026-07-22",
+          "date": "2026-07-02",
           "close": 887
         },
         {
-          "date": "2026-07-23",
+          "date": "2026-07-03",
+          "close": 910.98
+        },
+        {
+          "date": "2026-07-06",
+          "close": 907.77
+        },
+        {
+          "date": "2026-07-07",
+          "close": 902.57
+        },
+        {
+          "date": "2026-07-08",
+          "close": 901.07
+        },
+        {
+          "date": "2026-07-09",
+          "close": 898.79
+        },
+        {
+          "date": "2026-07-10",
+          "close": 897.25
+        },
+        {
+          "date": "2026-07-13",
+          "close": 886.46
+        },
+        {
+          "date": "2026-07-14",
+          "close": 879.9
+        },
+        {
+          "date": "2026-07-15",
+          "close": 877.99
+        },
+        {
+          "date": "2026-07-16",
+          "close": 877.32
+        },
+        {
+          "date": "2026-07-17",
+          "close": 872.48
+        },
+        {
+          "date": "2026-07-20",
+          "close": 873
+        },
+        {
+          "date": "2026-07-21",
+          "close": 886.95
+        },
+        {
+          "date": "2026-07-22",
           "close": 899
         },
         {
+          "date": "2026-07-23",
+          "close": 895.67
+        },
+        {
           "date": "2026-07-24",
-          "close": 883.7
+          "close": 883.66
+        },
+        {
+          "date": "2026-07-27",
+          "close": 893.97
         },
         {
           "date": "2026-07-28",
-          "close": 894
+          "close": 883.28
         },
         {
           "date": "2026-07-29",
-          "close": 882
+          "close": 881.98
         },
         {
           "date": "2026-07-30",
-          "close": 880.7
+          "close": 880.69
         },
         {
           "date": "2026-07-31",
-          "close": 884.9
+          "close": 884.92
         },
         {
           "date": "2026-08-03",
-          "close": 883
+          "close": 883.04
         },
         {
           "date": "2026-08-04",
-          "close": 884.2
+          "close": 884.22
         },
         {
           "date": "2026-08-05",
-          "close": 904.9
+          "close": 904.92
         },
         {
           "date": "2026-08-06",
@@ -13511,7 +13871,11 @@
         },
         {
           "date": "2026-08-07",
-          "close": 930.5
+          "close": 930.47
+        },
+        {
+          "date": "2026-08-10",
+          "close": 944.67
         },
         {
           "date": "2026-08-11",
@@ -13519,15 +13883,63 @@
         },
         {
           "date": "2026-08-12",
-          "close": 955.8
+          "close": 955.75
         },
         {
           "date": "2026-08-13",
-          "close": 949.2
+          "close": 949.24
         },
         {
           "date": "2026-08-14",
-          "close": 940.7
+          "close": 940.72
+        },
+        {
+          "date": "2026-08-17",
+          "close": 952.44
+        },
+        {
+          "date": "2026-08-18",
+          "close": 955.16
+        },
+        {
+          "date": "2026-08-19",
+          "close": 945.22
+        },
+        {
+          "date": "2026-08-20",
+          "close": 968.14
+        },
+        {
+          "date": "2026-08-21",
+          "close": 983.56
+        },
+        {
+          "date": "2026-08-24",
+          "close": 1004.21
+        },
+        {
+          "date": "2026-08-25",
+          "close": 1000
+        },
+        {
+          "date": "2026-08-26",
+          "close": 1000.68
+        },
+        {
+          "date": "2026-08-27",
+          "close": 992.29
+        },
+        {
+          "date": "2026-08-28",
+          "close": 995.05
+        },
+        {
+          "date": "2026-08-31",
+          "close": 962
+        },
+        {
+          "date": "2026-09-01",
+          "close": 957.92
         },
         {
           "date": "2026-09-02",
@@ -13539,7 +13951,7 @@
         },
         {
           "date": "2026-09-04",
-          "close": 966
+          "close": 965.95
         },
         {
           "date": "2026-09-07",
@@ -13547,19 +13959,19 @@
         },
         {
           "date": "2026-09-08",
-          "close": 951.5
+          "close": 951.52
         },
         {
           "date": "2026-09-09",
-          "close": 951.8
+          "close": 951.77
         },
         {
           "date": "2026-09-10",
-          "close": 953
+          "close": 952.99
         },
         {
           "date": "2026-09-11",
-          "close": 939.5
+          "close": 939.54
         },
         {
           "date": "2026-09-14",
@@ -13567,27 +13979,27 @@
         },
         {
           "date": "2026-09-15",
-          "close": 928.2
+          "close": 928.17
         },
         {
           "date": "2026-09-16",
-          "close": 936.8
+          "close": 936.75
         },
         {
           "date": "2026-09-17",
-          "close": 934.8
+          "close": 934.81
         },
         {
           "date": "2026-09-18",
-          "close": 947.1
+          "close": 947.09
         },
         {
           "date": "2026-09-21",
-          "close": 938.1
+          "close": 938.09
         },
         {
           "date": "2026-09-22",
-          "close": 932
+          "close": 931.98
         },
         {
           "date": "2026-09-23",
@@ -13595,31 +14007,19 @@
         },
         {
           "date": "2026-09-24",
-          "close": 926
-        },
-        {
-          "date": "2026-09-25",
-          "close": 926
+          "close": 926.01
         },
         {
           "date": "2026-09-28",
-          "close": 900.9
+          "close": 900.89
         },
         {
           "date": "2026-09-29",
-          "close": 900.9
+          "close": 897.53
         },
         {
           "date": "2026-09-30",
-          "close": 907.3
-        },
-        {
-          "date": "2026-10-01",
-          "close": 907.3
-        },
-        {
-          "date": "2026-10-07",
-          "close": 907.3
+          "close": 907.32
         },
         {
           "date": "2026-10-08",
@@ -13627,11 +14027,15 @@
         },
         {
           "date": "2026-10-09",
-          "close": 904.5
+          "close": 904.48
+        },
+        {
+          "date": "2026-10-12",
+          "close": 902.9
         },
         {
           "date": "2026-10-13",
-          "close": 904.5
+          "close": 904.45
         },
         {
           "date": "2026-10-14",
@@ -13639,11 +14043,11 @@
         },
         {
           "date": "2026-10-15",
-          "close": 893
+          "close": 892.96
         },
         {
           "date": "2026-10-16",
-          "close": 901.6
+          "close": 901.57
         },
         {
           "date": "2026-10-19",
@@ -13685,7 +14089,296 @@
         "ok": true,
         "error": null
       }
-    ]
+    ],
+    "historyMeta": {
+      "domestic": {
+        "symbol": "Au99.99",
+        "currency": "CNY/g",
+        "priceType": "daily-close",
+        "source": "上海黄金交易所每日交易行情",
+        "sourceUrl": "https://www.sge.com.cn/sjzx/quotation_daily_new",
+        "firstDate": "2026-07-01",
+        "lastDate": "2026-10-20",
+        "sessions": 74,
+        "fetchedAt": "2026-10-21T03:20:56.788Z",
+        "requestedStart": "2026-07-01",
+        "requestedEnd": "2026-10-20",
+        "completeQueries": true,
+        "interpolated": false,
+        "requests": [
+          {
+            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-07-01&end_date=2026-07-31&inst_ids=Au99.99&p=1",
+            "rowCount": 20,
+            "page": 1,
+            "pageCount": 2
+          },
+          {
+            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-07-01&end_date=2026-07-31&inst_ids=Au99.99&p=2",
+            "rowCount": 3,
+            "page": 2,
+            "pageCount": 2
+          },
+          {
+            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-01&end_date=2026-08-31&inst_ids=Au99.99&p=1",
+            "rowCount": 20,
+            "page": 1,
+            "pageCount": 2
+          },
+          {
+            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-08-01&end_date=2026-08-31&inst_ids=Au99.99&p=2",
+            "rowCount": 1,
+            "page": 2,
+            "pageCount": 2
+          },
+          {
+            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-09-01&end_date=2026-09-30&inst_ids=Au99.99&p=1",
+            "rowCount": 20,
+            "page": 1,
+            "pageCount": 2
+          },
+          {
+            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-09-01&end_date=2026-09-30&inst_ids=Au99.99&p=2",
+            "rowCount": 1,
+            "page": 2,
+            "pageCount": 2
+          },
+          {
+            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-10-01&end_date=2026-10-20&inst_ids=Au99.99&p=1",
+            "rowCount": 9,
+            "page": 1,
+            "pageCount": 1
+          }
+        ],
+        "reconciliation": {
+          "previousSessions": 49,
+          "officialSessions": 74,
+          "overlapSessions": 46,
+          "conflicts": [
+            {
+              "date": "2026-07-20",
+              "previousClose": 872.5,
+              "officialClose": 873,
+              "differsBeyondOneDecimal": true
+            },
+            {
+              "date": "2026-07-21",
+              "previousClose": 873,
+              "officialClose": 886.95,
+              "differsBeyondOneDecimal": true
+            },
+            {
+              "date": "2026-07-22",
+              "previousClose": 887,
+              "officialClose": 899,
+              "differsBeyondOneDecimal": true
+            },
+            {
+              "date": "2026-07-23",
+              "previousClose": 899,
+              "officialClose": 895.67,
+              "differsBeyondOneDecimal": true
+            },
+            {
+              "date": "2026-07-24",
+              "previousClose": 883.7,
+              "officialClose": 883.66,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-07-28",
+              "previousClose": 894,
+              "officialClose": 883.28,
+              "differsBeyondOneDecimal": true
+            },
+            {
+              "date": "2026-07-29",
+              "previousClose": 882,
+              "officialClose": 881.98,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-07-30",
+              "previousClose": 880.7,
+              "officialClose": 880.69,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-07-31",
+              "previousClose": 884.9,
+              "officialClose": 884.92,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-08-03",
+              "previousClose": 883,
+              "officialClose": 883.04,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-08-04",
+              "previousClose": 884.2,
+              "officialClose": 884.22,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-08-05",
+              "previousClose": 904.9,
+              "officialClose": 904.92,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-08-07",
+              "previousClose": 930.5,
+              "officialClose": 930.47,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-08-12",
+              "previousClose": 955.8,
+              "officialClose": 955.75,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-08-13",
+              "previousClose": 949.2,
+              "officialClose": 949.24,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-08-14",
+              "previousClose": 940.7,
+              "officialClose": 940.72,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-04",
+              "previousClose": 966,
+              "officialClose": 965.95,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-08",
+              "previousClose": 951.5,
+              "officialClose": 951.52,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-09",
+              "previousClose": 951.8,
+              "officialClose": 951.77,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-10",
+              "previousClose": 953,
+              "officialClose": 952.99,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-11",
+              "previousClose": 939.5,
+              "officialClose": 939.54,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-15",
+              "previousClose": 928.2,
+              "officialClose": 928.17,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-16",
+              "previousClose": 936.8,
+              "officialClose": 936.75,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-17",
+              "previousClose": 934.8,
+              "officialClose": 934.81,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-18",
+              "previousClose": 947.1,
+              "officialClose": 947.09,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-21",
+              "previousClose": 938.1,
+              "officialClose": 938.09,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-22",
+              "previousClose": 932,
+              "officialClose": 931.98,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-24",
+              "previousClose": 926,
+              "officialClose": 926.01,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-28",
+              "previousClose": 900.9,
+              "officialClose": 900.89,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-09-29",
+              "previousClose": 900.9,
+              "officialClose": 897.53,
+              "differsBeyondOneDecimal": true
+            },
+            {
+              "date": "2026-09-30",
+              "previousClose": 907.3,
+              "officialClose": 907.32,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-10-09",
+              "previousClose": 904.5,
+              "officialClose": 904.48,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-10-13",
+              "previousClose": 904.5,
+              "officialClose": 904.45,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-10-15",
+              "previousClose": 893,
+              "officialClose": 892.96,
+              "differsBeyondOneDecimal": false
+            },
+            {
+              "date": "2026-10-16",
+              "previousClose": 901.6,
+              "officialClose": 901.57,
+              "differsBeyondOneDecimal": false
+            }
+          ],
+          "exactConflictCount": 35,
+          "materialConflictCount": 6,
+          "removedUnverifiedDates": [
+            "2026-09-25",
+            "2026-10-01",
+            "2026-10-07"
+          ],
+          "previousDomesticScore": 56,
+          "domesticScore": 62,
+          "previousOverallScore": 48,
+          "overallScore": 50
+        }
+      }
+    }
   },
   "investors": [
     {
@@ -16774,5 +17467,6 @@
       "sourceUrl": "https://fundf10.eastmoney.com/ccmx_163406.html",
       "isLive": false
     }
-  ]
+  ],
+  "revisionAt": "2026-10-21T08:30:00.820Z"
 }

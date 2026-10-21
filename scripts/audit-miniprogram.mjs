@@ -1,4 +1,4 @@
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
@@ -14,6 +14,8 @@ const requiredPages = [
   "pages/member/index",
   "pages/legal/index",
   "pages/workspace/index",
+  "pages/guide/index",
+  "pages/community/index",
 ];
 const pageStylesByPath = new Map();
 const pageTemplatesByPath = new Map();
@@ -131,6 +133,9 @@ vm.runInNewContext(strategySignalsSource, {
   module: strategySignalsModule,
   exports: strategySignalsModule.exports,
   require(request) {
+    if (request === "./hk-date-state") return createRequire(import.meta.url)("../miniprogram/utils/hk-date-state.js");
+    if (request === "./dividend-stability") return createRequire(import.meta.url)("../miniprogram/utils/dividend-stability.js");
+    if (request === "./action-freshness") return createRequire(import.meta.url)("../miniprogram/utils/action-freshness.js");
     if (request === "./guru-changes") return guruChangesModule.exports;
     throw new Error(`策略信号出现未知依赖：${request}`);
   },
@@ -140,6 +145,9 @@ vm.runInNewContext(marketLensesSource, {
   module: marketLensesModule,
   exports: marketLensesModule.exports,
   require(request) {
+    if (request === "./hk-date-state") return createRequire(import.meta.url)("../miniprogram/utils/hk-date-state.js");
+    if (request === "./dividend-stability") return createRequire(import.meta.url)("../miniprogram/utils/dividend-stability.js");
+    if (request === "./action-freshness") return createRequire(import.meta.url)("../miniprogram/utils/action-freshness.js");
     if (request === "./strategy-score") return strategyScoreModule.exports;
     if (request === "./strategy-signals") return strategySignalsModule.exports;
     throw new Error(`分档透镜出现未知依赖：${request}`);
@@ -150,6 +158,9 @@ vm.runInNewContext(guruOverlapSource, {
   module: guruOverlapModule,
   exports: guruOverlapModule.exports,
   require(request) {
+    if (request === "./hk-date-state") return createRequire(import.meta.url)("../miniprogram/utils/hk-date-state.js");
+    if (request === "./dividend-stability") return createRequire(import.meta.url)("../miniprogram/utils/dividend-stability.js");
+    if (request === "./action-freshness") return createRequire(import.meta.url)("../miniprogram/utils/action-freshness.js");
     if (request === "./smart-money") return smartMoneyModule.exports;
     throw new Error(`交叉重叠模块出现未知依赖：${request}`);
   },
@@ -174,6 +185,9 @@ vm.runInNewContext(sectionSource, {
   module: miniModule,
   exports: miniModule.exports,
   require(request) {
+    if (request === "./hk-date-state") return createRequire(import.meta.url)("../miniprogram/utils/hk-date-state.js");
+    if (request === "./dividend-stability") return createRequire(import.meta.url)("../miniprogram/utils/dividend-stability.js");
+    if (request === "./action-freshness") return createRequire(import.meta.url)("../miniprogram/utils/action-freshness.js");
     if (request === "./smart-money") return smartMoneyModule.exports;
     if (request === "./strategy-score") return strategyScoreModule.exports;
     if (request === "./guru-overlap") return guruOverlapModule.exports;
@@ -190,7 +204,6 @@ const miniGuruItems = answers.allItems(snapshot, "guru");
 const smartMoneyProfiles = smartMoneyModule.exports.SMART_MONEY_PROFILES;
 const sevenSymbols = new Set(["NVDA", "MSFT", "AAPL", "GOOGL", "AMZN", "META", "TSLA"]);
 const nonSeven = snapshot.us.stocks
-  .filter((item) => !sevenSymbols.has(item.symbol))
   .sort((left, right) => Number(right.heatScore || 0) - Number(left.heatScore || 0));
 const expectedHot = nonSeven.slice(0, 3).map((item) => item.symbol);
 const actualHot = miniUsItems.filter((item) => item.group === "hot").map((item) => item.id);
@@ -271,6 +284,10 @@ for (const item of miniAShareItems) {
 for (const item of miniHKItems.filter((entry) => ["worth", "caution", "avoid"].includes(entry.group))) {
   // 「建议申购」是合规清单点名要去掉的说法，产品侧已经统一换成「值得打」，
   // 这里跟着换，顺带把校验反过来用——出现旧词就算不合格。
+  if (item.badge === "日期待核") {
+    assert(item.raw.actionsFresh === false && item.score == null && !item.raw.offerDeadline && !item.raw.listingDate, `${item.name} 日期待核仍含动作或倒计时`);
+    continue;
+  }
   assert(["值得打", "暂缓观察", "暂不建议", "资料不够"].includes(item.badge), `${item.name} 缺少人话申购结论`);
 }
 
@@ -345,13 +362,16 @@ assert(
   "小程序全局页面仍被网页式窄容器限制，未铺满实际视口",
 );
 // 「今日重点」列表卡已按产品要求从首页整块撤掉（2026-09-29），年费条随后也撤掉；
-// 首屏现在是走势卡在上、九宫格在下，这里认这两块的先后，并要求今日重点卡不再出现。
+// 2026-10-07 产品负责人纠偏：首页回到「市场走势 + 核心研究入口」，不要路径卡、不要入门卡。
+// 首屏走势卡在上、九宫格在下，这里认这两块的先后，并要求今日重点卡、路径卡不再出现。
 assert(
   indexTemplate.includes("trend-grid")
     && indexTemplate.includes("entry-grid")
     && indexTemplate.indexOf("trend-grid") < indexTemplate.indexOf("entry-grid")
-    && !indexTemplate.includes("today-card"),
-  "小程序首页应走势卡在上、九宫格在下",
+    && !indexTemplate.includes("today-card")
+    && !indexTemplate.includes("path-grid")
+    && !indexTemplate.includes("is-intro"),
+  "小程序首页应走势卡在上、九宫格在下，不放路径卡和入门卡",
 );
 assert(
   indexStyles.includes("min-height: 100vh")
@@ -568,17 +588,199 @@ assert(
     && (await readFile(path.join(miniRoot, "utils", "daily-card.js"), "utf8")).includes("extraLines"),
   "记录页群卡片与公开摘要应接入栏目今日答案",
 );
-// 首页服务格：要么有产品负责人给的真实物料（copy），要么明确 pending 占位且不带任何链接，
-// 不允许出现「看着像能用、其实是编的」格子。
+// 商业物料（config/offers.js）：要么有产品负责人给的真实物料（copy），要么明确 pending 占位且不带任何链接，
+// 不允许出现「看着像能用、其实是编的」按钮。
+// 2026-10-07 起服务格点一下进二级页，物料挂在二级页末尾，另有一项（A股开户二维码）不上宫格，
+// 原来的「offers.length <= 3」改成「带 icon（会进首页宫格）的最多三项」；其余检查更严：
+// 每项都有标题、按钮字和推广说明；每项都挂在某一页上；物料原文只在 offers.js 出现（下架只改一处）。
+const offersModule = { exports: {} };
+vm.runInNewContext(await readFile(path.join(miniRoot, "config", "offers.js"), "utf8"), { module: offersModule, exports: offersModule.exports });
+const offers = offersModule.exports;
 {
-  const offersModule = { exports: {} };
-  vm.runInNewContext(await readFile(path.join(miniRoot, "config", "offers.js"), "utf8"), { module: offersModule, exports: offersModule.exports });
-  const offers = offersModule.exports;
   for (const offer of offers) {
-    assert(offer.copy || (offer.pending && !offer.copy), `首页服务格 ${offer.id} 既没有真实物料也没标 pending`);
-    assert(!(offer.pending && offer.copy), `首页服务格 ${offer.id} 已有物料却仍标 pending`);
+    assert(offer.copy || offer.image || (offer.pending && !offer.copy), `商业物料 ${offer.id} 既没有真实物料也没标 pending`);
+    assert(!(offer.pending && (offer.copy || offer.image)), `商业物料 ${offer.id} 已有物料却仍标 pending`);
+    if (offer.image) {
+      // 二维码是产品负责人给的原图，放在包里；路径写错用户点开就是一片空白。
+      assert(offer.image.startsWith("/assets/offers/"), `商业物料 ${offer.id} 的二维码要放在 assets/offers/ 下`);
+      assert(await access(path.join(miniRoot, offer.image)).then(() => true).catch(() => false), `商业物料 ${offer.id} 的二维码图片不存在：${offer.image}`);
+    }
+    assert(offer.id && offer.title && offer.label, `商业物料 ${offer.id} 缺少标题或按钮字`);
+    assert(offer.disclosure, `商业物料 ${offer.id} 没写推广关系或收费说明`);
+    if (offer.pending) {
+      assert(offer.pendingNote, `商业物料 ${offer.id} 还在 pending，却没有告诉用户现在是什么情况`);
+      // 产品负责人 2026-10-06 决定不做联系客服：pending 项不能再带客服留言的字段。
+      assert(!offer.contactLabel && !offer.contactTitle, `商业物料 ${offer.id} 不应再带联系客服的字段`);
+      // 物料没到时仍要承接用户意向：借用另一项里真实存在的微信号（不另写一份），并写明这个号是谁、发什么。
+      assert(offer.pendingContact, `商业物料 ${offer.id} 还在 pending，却没有承接用户意向的微信号（pendingContact）`);
+      const contactOffer = offers.find((item) => item.id === offer.pendingContact);
+      assert(contactOffer && contactOffer.copy && !contactOffer.pending, `商业物料 ${offer.id} 的 pendingContact 指向的 ${offer.pendingContact} 不是一项真实可复制的物料`);
+      assert(offer.pendingLabel && offer.pendingToast && offer.pendingDisclosure, `商业物料 ${offer.id} 缺少复制微信号的按钮字、提示或说明`);
+      assert(offer.pendingDisclosure.includes("联系人"), `商业物料 ${offer.id} 要写明这个微信号同时是社群联系人，不能让用户以为是开户专线`);
+    }
   }
-  assert(offers.length <= 3, "九宫格只剩三个服务格位置");
+  assert(new Set(offers.map((offer) => offer.id)).size === offers.length, "商业物料 id 重复");
+}
+// 首页与二级页（2026-10-07 产品负责人纠偏后）：首页只有走势卡 + 九宫格，业务路径藏在自然入口里——
+// 九宫格里的「全球信息获取 / 海外开户 / 付费交流群」点一下进各自的短二级页，物料挂在页末；
+// 研究页底部只有一行轻量入口。每一步都要真能点、路由真存在、等物料的地方有下一步。
+{
+  const requireCjs = createRequire(import.meta.url);
+  const GUIDES = requireCjs("../miniprogram/config/guides.js");
+  const { OFFICIAL_SOURCES } = requireCjs("../miniprogram/utils/sources.js");
+  const guideSource = await readFile(path.join(miniRoot, "pages", "guide", "index.js"), "utf8");
+  const communitySource = await readFile(path.join(miniRoot, "pages", "community", "index.js"), "utf8");
+  const sectionPageSource = await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8");
+  const guideTemplate = pageTemplatesByPath.get("pages/guide/index") || "";
+  const communityTemplate = pageTemplatesByPath.get("pages/community/index") || "";
+  const sectionTemplate = pageTemplatesByPath.get("pages/section/index") || "";
+
+  // 首页：宫格里的服务格最多三个，每个都指向真实的二级页；首页不复制东西，也不出现被撤掉的四路径文案。
+  const gridOffers = offers.filter((offer) => offer.icon);
+  assert(gridOffers.length <= 3, "首页九宫格只剩三个服务格位置（带 icon 的物料最多三项）");
+  for (const offer of gridOffers) {
+    assert(new RegExp(`"${offer.id}": \\{ url: "/pages/(guide|community)/index`).test(indexSource), `首页服务格 ${offer.id} 没有指向二级页`);
+  }
+  for (const target of ["/pages/guide/index?topic=info", "/pages/guide/index?topic=us-start", "/pages/community/index"]) {
+    assert(indexSource.includes(target), `首页服务格缺少入口：${target}`);
+  }
+  assert(indexSource.includes('action === "page"') && indexSource.includes("openPage(entry.url)"), "首页服务格应点一下进二级页");
+  assert(!indexSource.includes("setClipboardData"), "首页不应直接复制推广链接或社群微信号，物料要挂在二级页末尾");
+  for (const banned of ["看全球", "开全球", "买全球", "找同路人", "path-grid", "新手入门"]) {
+    assert(!indexSource.includes(banned) && !indexTemplate.includes(banned), `首页不应再出现被撤掉的路径文案：${banned}`);
+  }
+
+  // 页面里写到的每个 topic 都要在 guides.js 里有内容；每个 /pages/... 都要在 app.json 注册。
+  const topicRefs = [indexSource, sectionPageSource, detailSource, guideSource, communitySource]
+    .flatMap((source) => [...source.matchAll(/topic(?::\s*"|=)([a-z0-9-]+)/g)].map((match) => match[1]));
+  assert(topicRefs.length >= 5, "没找到页面里写的二级页话题引用，检查规则可能失效了");
+  for (const topic of new Set(topicRefs)) {
+    assert(GUIDES[topic], `页面引用了不存在的二级页话题：${topic}`);
+  }
+  for (const [file, source] of [
+    ["pages/index/index.js", indexSource],
+    ["pages/section/index.js", sectionPageSource],
+    ["pages/detail/index.js", detailSource],
+    ["pages/guide/index.js", guideSource],
+    ["pages/community/index.js", communitySource],
+  ]) {
+    for (const match of source.matchAll(/["'`]\/(pages\/[a-z-]+\/index)/g)) {
+      assert(appConfig.pages.includes(match[1]), `${file} 跳到了没注册的页面：${match[1]}`);
+    }
+  }
+
+  // 二级页内容要短：最多三块，每块不超过六条；外链只从官方入口登记表取；
+  // 不是分步教程，不带步骤、下一步、跟进这类字段。
+  for (const [topic, guide] of Object.entries(GUIDES)) {
+    assert(guide.title && Array.isArray(guide.sections), `二级页话题 ${topic} 缺少标题或内容`);
+    assert(guide.sections.length <= 3, `二级页话题 ${topic} 超过三块，不是短页面了`);
+    for (const forbidden of ["steps", "kind", "next", "follow", "tool"]) {
+      assert(!(forbidden in guide), `二级页话题 ${topic} 带了教程式字段：${forbidden}`);
+    }
+    for (const section of guide.sections) {
+      assert(section.title, `二级页话题 ${topic} 有一块没写小标题`);
+      assert((section.rows || []).length + (section.points || []).length <= 6, `二级页话题 ${topic} 的「${section.title}」超过六条`);
+      for (const row of section.rows || []) assert(Array.isArray(row) && row.length === 2 && row[0] && row[1], `二级页话题 ${topic} 的对照行要写成 [标签, 内容]`);
+      for (const id of section.links || []) assert(OFFICIAL_SOURCES[id]?.url, `二级页话题 ${topic} 引用了不存在的官方入口：${id}`);
+    }
+    if (guide.offer) {
+      const offer = offers.find((item) => item.id === guide.offer.id);
+      assert(offer, `二级页话题 ${topic} 挂了不存在的商业物料：${guide.offer.id}`);
+      assert(guide.offer.head && guide.offer.body, `二级页话题 ${topic} 的物料卡缺少标题或说明`);
+    }
+  }
+  assert(GUIDES.info?.offer?.id === "global-access", "「全球信息获取」页末尾应挂全球信息访问方案");
+  assert(GUIDES["us-start"]?.offer?.id === "open-account", "「海外开户」页末尾应挂开户方案");
+  // A股开户二维码只能挂在 A股开户页：A股账户买不了美股，放到美股页里会把人引错。
+  assert(GUIDES["a-open"]?.offer?.id === "a-open-account", "「A股开户」页应挂 A股开户二维码");
+  assert(!Object.entries(GUIDES).some(([topic, guide]) => guide.offer?.id === "a-open-account" && topic !== "a-open"), "A股开户二维码不能挂在 A股开户页以外的页面");
+  assert(communitySource.includes('"paid-group"'), "交流群页应读取 config/offers.js 的社群微信号");
+  for (const offer of offers) {
+    const used = Object.values(GUIDES).some((guide) => guide.offer?.id === offer.id) || communitySource.includes(`"${offer.id}"`);
+    assert(used, `商业物料 ${offer.id} 没有挂在任何页面上`);
+  }
+
+  // 物料原文只在 config/offers.js：下架改一处就全撤。
+  const miniFiles = [];
+  const collect = async (dir) => {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) await collect(full);
+      else if (/\.(js|wxml|json|wxss)$/.test(entry.name)) miniFiles.push(full);
+    }
+  };
+  await collect(miniRoot);
+  const offersPath = path.join(miniRoot, "config", "offers.js");
+  // data/ 下是引擎同步来的行情快照，不是页面文案，不在这里查。
+  const dataDir = path.join(miniRoot, "data") + path.sep;
+  for (const file of miniFiles.filter((item) => !item.startsWith(dataDir))) {
+    const source = await readFile(file, "utf8");
+    const relative = path.relative(root, file);
+    // 全球信息访问的文案要中性合规：不出现这几类说法（代码注释也不写）。
+    assert(!/梯子|VPN|翻墙|绕过封锁|突破监管/i.test(source), `${relative} 出现了不合规的访问类说法`);
+    if (file === offersPath) continue;
+    for (const offer of offers) {
+      if (offer.copy) assert(!source.includes(offer.copy), `${relative} 写死了商业物料原文（应只在 config/offers.js）：${offer.id}`);
+    }
+  }
+
+  // 二级页和交流群页：不放联系客服（2026-10-06 产品负责人决定，会员页、协议页的客服入口是付款与退款的合规要求，
+  // 不在这条范围内，下面另有检查）；复制按钮旁边写推广关系或收费说明；有返回和回首页；不放「接着看」这类引流块。
+  for (const [page, template, source] of [["二级页", guideTemplate, guideSource], ["交流群页", communityTemplate, communitySource]]) {
+    assert(!template.includes('open-type="contact"') && !source.includes("trackContact") && !source.includes("contact_open"), `${page}不应再有联系客服入口`);
+    assert(template.includes("disclosure}}"), `${page}的复制按钮旁边没写推广关系或收费说明`);
+    assert(template.includes('bindtap="goBack"') && template.includes('bindtap="goHome"'), `${page}缺少返回和回首页`);
+    assert(!template.includes("<button"), `${page}不用 button（不放客服等原生按钮）`);
+    assert(!template.includes("接着看") && !source.includes("openNext") && !source.includes("workspace"), `${page}不应再有「接着看」或按关注数引流的模块`);
+  }
+  assert(
+    guideSource.includes('mode: "image"') && guideSource.includes("wx.previewImage") && guideTemplate.includes('bindtap="previewOffer"') && guideTemplate.includes("offer.mode === 'image'"),
+    "二级页应能打开二维码物料（previewOffer / previewImage）",
+  );
+  assert(
+    guideSource.includes('mode: "pending"') && guideSource.includes("offer.pending") && guideTemplate.includes("offer.note"),
+    "二级页的开户方案还在 pending 时应写清现状，不能空着",
+  );
+  // pending 时承接意向：复制的是 config/offers.js 里另一项的真实微信号（页面源码里不写号码，上面已查），
+  // 按钮是 view 不是客服按钮；没有微信号可借时（那一项下架）页面只剩现状一句话，不出会点不动的按钮。
+  assert(
+    guideSource.includes("copyPendingContact") && guideSource.includes("pendingContact(") && guideSource.includes("contact.copy") && guideSource.includes("canCopy: Boolean(contact)"),
+    "二级页应在开户物料 pending 时提供复制微信号，并且没有微信号时不出按钮",
+  );
+  assert(
+    guideTemplate.includes('bindtap="copyPendingContact"') && guideTemplate.includes('wx:if="{{offer.canCopy}}"'),
+    "二级页的复制微信号按钮要绑定 copyPendingContact，且只在有微信号时显示",
+  );
+  assert(!communitySource.includes("pages/member/index") && !communityTemplate.includes("1288"), "交流群页不应挂年费会员入口");
+
+  // 研究页底部只放一行轻量入口（每个栏目一条），美股详情页底部同样一行；都不占正文。
+  const nextLinkBlock = sectionPageSource.slice(sectionPageSource.indexOf("const NEXT_LINKS"), sectionPageSource.indexOf("Page({", sectionPageSource.indexOf("const NEXT_LINKS")));
+  for (const market of ["hk", "us", "a", "gold", "guru"]) {
+    assert(new RegExp(`\\n  ${market}: \\{ id: "[a-z-]+", ask: "[^"]+", go: "[^"]+", url: "/pages/`).test(nextLinkBlock), `栏目页 ${market} 缺少底部轻量入口`);
+  }
+  assert(sectionTemplate.includes('bindtap="openNextLink"') && !sectionTemplate.includes("path-strip"), "栏目页底部入口应可点击，且不再是「接着看」大块");
+  assert(detailTemplate.includes('bindtap="openUsStart"') && detailSource.includes("topic=us-start"), "美股详情页应能接到开户教程");
+
+  // 新增页面的埋点要在白名单里，不然 track() 会静默丢掉。
+  for (const event of ["path_open", "guide_open", "guide_link_copy", "community_open", "service_copy", "offer_qr_open"]) {
+    assert(analyticsSource.includes(`"${event}"`), `埋点白名单缺少：${event}`);
+  }
+  // 页面里调用的每一个 track("xxx") 都必须在白名单里——漏登记的事件会被 track() 静默丢掉，
+  // 页面上看不出来（section_tab 等五个就这样丢过）。事件名只能写成字符串，不然这里查不到。
+  const allowedEvents = new Set([...analyticsSource.slice(analyticsSource.indexOf("new Set(["), analyticsSource.indexOf("]);")).matchAll(/"([a-z_]+)"/g)].map((match) => match[1]));
+  assert(allowedEvents.size >= 40, "没能从 utils/analytics.js 读出埋点白名单");
+  const analyticsPath = path.join(miniRoot, "utils", "analytics.js");
+  let trackCalls = 0;
+  for (const file of miniFiles.filter((item) => item.endsWith(".js") && !item.startsWith(path.join(miniRoot, "data") + path.sep) && item !== analyticsPath)) {
+    const source = await readFile(file, "utf8");
+    const relative = path.relative(root, file);
+    assert(!/\btrack\(\s*[^"\s)]/.test(source), `${relative} 的 track() 事件名要写成字符串，否则查不出有没有登记`);
+    for (const match of source.matchAll(/\btrack\(\s*"([^"]+)"/g)) {
+      trackCalls += 1;
+      assert(allowedEvents.has(match[1]), `${relative} 调用了没登记的埋点 ${match[1]}，会被静默丢弃（请加进 utils/analytics.js 的白名单）`);
+    }
+  }
+  assert(trackCalls >= 40, "没能在页面里读出埋点调用");
 }
 assert(await access(path.join(miniRoot, "utils", "daily-answers.js")).then(() => true).catch(() => false), "缺少今日答案模块");
 assert(await access(path.join(miniRoot, "utils", "market-lenses.js")).then(() => true).catch(() => false), "缺少分档透镜模块");
@@ -672,6 +874,98 @@ assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes(
     assert(degraded.actionsFresh === false, `${label}快照过期后应标记为动作过期`);
     assert(!(degraded.us?.stocks || []).some((stock) => stock.pricePlan), `${label}快照过期后美股仍带参考买卖价`);
   }
+  // 栏目页「全部」列表：池里每一只都在、都能点开；每行参考价就是 pricePlan 那个价，
+  // 「到买入价 / 跌破就卖 / 到卖出价」按现价跟这三个价比出来；过期后整条不显示。
+  const { usPoolItems, findItem, money } = requireCjs("../miniprogram/utils/answers.js");
+  const { usOrderState, usOrderLine } = requireCjs("../miniprogram/utils/order-plan.js");
+  const poolItems = usPoolItems(snapshot);
+  assert(poolItems.length === snapshot.us.stocks.length, "美股栏目「全部」没有列出池里每一只");
+  for (const item of poolItems) {
+    assert(findItem(snapshot, "us", item.id), `美股栏目「全部」里的 ${item.id} 点进去打不开详情`);
+    const plan = item.raw.pricePlan;
+    const price = Number(item.raw.price);
+    for (const noBuy of [false, true]) {
+      const order = usOrderState(item.raw, noBuy);
+      if (!plan) {
+        assert(order === null, `美股 ${item.id} 没有参考价，列表却算出了到价状态`);
+        continue;
+      }
+      const line = usOrderLine(order);
+      const expected = price <= plan.stop ? "stop"
+        : price >= plan.sell[0] ? "sell"
+          : !noBuy && price <= plan.buy ? "buy"
+            : noBuy ? "nobuy" : "wait";
+      assert(line.tone === expected, `美股 ${item.id} 列表到价状态算错：${line.tone}，应为 ${expected}`);
+      const level = { stop: plan.stop, sell: plan.sell[0], buy: plan.buy, wait: plan.buy, nobuy: plan.stop }[expected];
+      assert(line.value === money(level), `美股 ${item.id} 列表参考价 ${line.value} 跟 pricePlan 对不上`);
+      if (expected === "wait" || expected === "nobuy") {
+        assert(line.note === `再跌 ${(((price - level) / price) * 100).toFixed(1)}%`, `美股 ${item.id} 列表「再跌几%」跟详情页口径不一致`);
+      }
+    }
+  }
+  assert(
+    usPoolItems(degradeStaleActions(snapshot, staleNow)).every((item) => usOrderState(item.raw, false) === null),
+    "快照过期后美股列表仍显示参考价",
+  );
+}
+// 港股 / A股 / 黄金栏目页顶上「今天该动的」：A股每行参考价就是详情页那两格（yieldImpliedPlan），
+// 港股三格只数列表里还能申购的，黄金每格「再跌 / 再涨几%」跟价位轴的判断同一个顺序。
+{
+  const requireCjs = createRequire(import.meta.url);
+  const { allItems, money } = requireCjs("../miniprogram/utils/answers.js");
+  const { yieldImpliedPlan, goldZoneForPrice, goldPlanView } = requireCjs("../miniprogram/utils/market-lenses.js");
+  const { aOrderState, aOrderLine, hkApplyTiles, goldLevelNotes } = requireCjs("../miniprogram/utils/order-plan.js");
+  const stocks = allItems(snapshot, "a").filter((item) => item.raw?.assetType !== "fund");
+  assert(stocks.length, "A股栏目「全部」没有股票");
+  for (const item of stocks) {
+    const plan = yieldImpliedPlan(item.raw);
+    const line = aOrderLine(aOrderState(item.raw));
+    if (!plan) {
+      assert(line === null, `A股 ${item.id} 算不出参考价，列表却有到价状态`);
+      continue;
+    }
+    const expected = plan.price <= plan.addPrice ? "buy" : plan.price >= plan.trimPrice ? "sell" : "wait";
+    assert(line.tone === expected, `A股 ${item.id} 列表到价状态算错：${line.tone}，应为 ${expected}`);
+    const level = expected === "sell" ? plan.trimPrice : plan.addPrice;
+    assert(line.value === money(level, "¥"), `A股 ${item.id} 列表参考价 ${line.value} 跟详情页参考价对不上`);
+    if (expected === "wait") {
+      assert(line.note === `再跌 ${(((plan.price - level) / plan.price) * 100).toFixed(1)}%`, `A股 ${item.id} 列表「再跌几%」口径不对`);
+    }
+  }
+
+  const tiles = hkApplyTiles([
+    { closed: false, tone: "worth", deadlineOffset: 3 },
+    { closed: false, tone: "avoid", deadlineOffset: 0 },
+    { closed: true, tone: "settled", deadlineOffset: -2 },
+  ]);
+  const tile = (key) => tiles.find((entry) => entry.key === key);
+  assert(tile("open")?.value === 2 && tile("worth")?.value === 1, "港股顶上格子把已截止的也算进了可申购 / 值得打");
+  assert(tile("deadline")?.value === "今天", "港股「最近截止」没取还能申购里最早的那只");
+  assert(!hkApplyTiles([{ closed: false, tone: "worth", deadlineOffset: null }]).some((entry) => entry.key === "deadline"), "港股没有截止日却显示了「最近截止」");
+  const emptyTiles = hkApplyTiles([]);
+  assert(emptyTiles.length === 2 && emptyTiles.every((entry) => entry.value === 0 && !entry.on), "港股没有申购时格子应为灰色 0 只、不显示最近截止");
+
+  const plan = goldPlanView(snapshot.gold?.answer?.pricePlan);
+  for (const [label, quote, watch, upper, risk] of [
+    ["国际金", snapshot.gold?.quotes?.international, plan.internationalWatch, plan.internationalUpper, plan.internationalRisk],
+    ["人民币金", snapshot.gold?.quotes?.domestic, plan.domesticWatch, plan.domesticUpper, plan.domesticRisk],
+  ]) {
+    const price = Number(quote?.price);
+    if (!(price > 0) || !watch || !upper) continue;
+    const riskLow = Number(risk?.low ?? risk?.high);
+    const notes = goldLevelNotes(price, Number(watch.low ?? watch.high), Number(watch.high ?? watch.low), Number(upper.low ?? upper.high), riskLow);
+    const zone = goldZoneForPrice(price, watch, upper, risk).label;
+    if (zone === "触及风险下沿") assert(notes.risk?.text === "已触及", `${label}已触及风险下沿，格子却写 ${notes.risk?.text}`);
+    if (zone === "仍在观察低位") assert(notes.watch?.text === "现价在内", `${label}在观察低位，格子却写 ${notes.watch?.text}`);
+    if (zone === "进入观察上沿") assert(notes.upper?.text === "已到", `${label}已到观察上沿，格子却写 ${notes.upper?.text}`);
+    if (riskLow > 0 && price > riskLow) {
+      assert(notes.risk?.text === `再跌 ${(((price - riskLow) / price) * 100).toFixed(1)}%`, `${label}离风险下沿「再跌几%」口径不对`);
+    }
+  }
+  const { degradeStaleActions } = requireCjs("../miniprogram/utils/action-freshness.js");
+  const stale = degradeStaleActions(snapshot, Date.parse(snapshot.updatedAt) + 7 * 24 * 60 * 60 * 1000);
+  const stalePlan = goldPlanView(stale.gold?.answer?.pricePlan);
+  assert(!stalePlan.internationalWatch && !stalePlan.domesticWatch, "快照过期后黄金价位轴仍有观察区间和「再跌几%」");
 }
 // 今日重点标题撤掉后，「数据截至」挂在核心研究那一行的右侧，仍是自动更新的。
 assert(

@@ -9,7 +9,26 @@ const STALE_ACTION_WEEKEND = "周末没有新收盘，动作待下一交易日�
 function isActionFresh(updatedAt, now = Date.now()) {
   const stamp = Date.parse(updatedAt);
   if (!updatedAt || Number.isNaN(stamp)) return false;
-  return now - stamp <= ACTION_MAX_AGE_MS;
+  const age = now - stamp;
+  return age >= 0 && age <= ACTION_MAX_AGE_MS;
+}
+
+// revisionAt dates a content correction, never a newer market quote. Quote
+// freshness continues to use updatedAt/asOf; revision only orders equal facts.
+function compareSnapshotVersions(left, right) {
+  const version = (snapshot) => {
+    const updated = Date.parse(snapshot && snapshot.updatedAt);
+    const revised = Date.parse(snapshot && (snapshot.revisionAt || snapshot.updatedAt));
+    return [Number.isFinite(updated) ? updated : -Infinity,
+      Number.isFinite(revised) ? revised : (Number.isFinite(updated) ? updated : -Infinity)];
+  };
+  const l = version(left);
+  const r = version(right);
+  for (let index = 0; index < l.length; index += 1) {
+    if (l[index] > r[index]) return 1;
+    if (l[index] < r[index]) return -1;
+  }
+  return 0;
 }
 
 /**
@@ -47,23 +66,38 @@ function emptyPricePlan(status = "unavailable") {
   };
 }
 
+function isActionDataFresh(raw, now = Date.now()) {
+  if (!raw || raw.actionsFresh === false || /数据过期|周末没有新收盘/.test(raw.actionNote || "")) return false;
+  const times = [raw.snapshotUpdatedAt, raw.priceAsOf || raw.asOf].filter(Boolean);
+  return times.length > 0 && times.every((time) => isActionFresh(time, now));
+}
+
+function marketActionsFresh(snapshot, market, now = Date.now()) {
+  if (!snapshot || snapshot.actionsFresh === false || !isActionFresh(snapshot.updatedAt, now)) return false;
+  if (market === "gold") {
+    const gold = snapshot.gold;
+    return Boolean(gold && gold.status !== "partial" && gold.actionsFresh !== false
+      && [gold.quotes?.international, gold.quotes?.domestic].every((quote) => quote && isActionDataFresh(quote, now)));
+  }
+  const rows = market === "us" ? snapshot.us?.stocks : market === "a" ? snapshot.aShare?.quotes : null;
+  return !rows || (rows.length > 0 && rows.every((raw) => isActionDataFresh(raw, now)));
+}
+
 function degradeStaleActions(snapshot, now = Date.now()) {
   if (!snapshot || typeof snapshot !== "object") return snapshot;
-  if (isActionFresh(snapshot.updatedAt, now)) {
-    return { ...snapshot, actionsFresh: true, actionFreshness: "fresh" };
-  }
-
-  const reason = describeStaleReason(snapshot.updatedAt, now);
+  const fresh = snapshot.actionsFresh !== false && isActionFresh(snapshot.updatedAt, now);
+  const reason = snapshot.actionDegradeReason || describeStaleReason(snapshot.updatedAt, now);
   const next = {
     ...snapshot,
-    actionsFresh: false,
-    actionFreshness: "stale",
-    actionDegradeReason: reason,
+    actionsFresh: fresh,
+    actionFreshness: fresh ? "fresh" : "stale",
+    ...(fresh ? {} : { actionDegradeReason: reason }),
   };
 
   if (next.hk) {
     const degradeListing = (item) => {
       if (!item || typeof item !== "object") return item;
+      if (fresh) return { ...item, actionsFresh: true, snapshotUpdatedAt: snapshot.updatedAt };
       const publicAnswer = item.publicAnswer && typeof item.publicAnswer === "object"
         ? {
           ...item.publicAnswer,
@@ -73,7 +107,7 @@ function degradeStaleActions(snapshot, now = Date.now()) {
             : reason,
         }
         : { verdict: reason, action: reason };
-      return { ...item, publicAnswer };
+      return { ...item, publicAnswer, actionsFresh: false, snapshotUpdatedAt: snapshot.updatedAt };
     };
     next.hk = {
       ...next.hk,
@@ -87,6 +121,7 @@ function degradeStaleActions(snapshot, now = Date.now()) {
       ...next.us,
       stocks: next.us.stocks.map((stock) => {
         if (!stock || typeof stock !== "object") return stock;
+        if (fresh && isActionDataFresh(stock, now)) return { ...stock, actionsFresh: true, snapshotUpdatedAt: snapshot.updatedAt };
         const {
           technicalPlan,
           buy,
@@ -97,6 +132,8 @@ function degradeStaleActions(snapshot, now = Date.now()) {
         } = stock;
         return {
           ...rest,
+          actionsFresh: false,
+          snapshotUpdatedAt: snapshot.updatedAt,
           actionNote: reason,
         };
       }),
@@ -104,10 +141,9 @@ function degradeStaleActions(snapshot, now = Date.now()) {
   }
 
   if (next.aShare && Array.isArray(next.aShare.quotes)) {
-    next.aShare = {
-      ...next.aShare,
-      quotes: next.aShare.quotes.map((quote) => {
+    const degradeQuote = (quote) => {
         if (!quote || typeof quote !== "object") return quote;
+        if (fresh && isActionDataFresh(quote, now)) return { ...quote, actionsFresh: true, snapshotUpdatedAt: snapshot.updatedAt };
         const {
           currentAdvice,
           suggested_action,
@@ -121,23 +157,35 @@ function degradeStaleActions(snapshot, now = Date.now()) {
         } = quote;
         return {
           ...rest,
+          actionsFresh: false,
+          snapshotUpdatedAt: snapshot.updatedAt,
           actionNote: reason,
           summary: reason,
         };
-      }),
+    };
+    next.aShare = {
+      ...next.aShare,
+      quotes: next.aShare.quotes.map(degradeQuote),
+      funds: Array.isArray(next.aShare.funds) ? next.aShare.funds.map(degradeQuote) : next.aShare.funds,
     };
   }
 
-  if (next.gold && next.gold.answer) {
+  if (next.gold && next.gold.answer && marketActionsFresh(next, "gold", now)) {
+    next.gold = { ...next.gold, actionsFresh: true, snapshotUpdatedAt: snapshot.updatedAt };
+  }
+  if (next.gold && next.gold.answer && !marketActionsFresh(next, "gold", now)) {
     const answer = { ...next.gold.answer };
     next.gold = {
       ...next.gold,
+      actionsFresh: false,
+      snapshotUpdatedAt: snapshot.updatedAt,
+      actionNote: fresh ? "部分黄金数据暂缺，暂不提供当前判断" : reason,
       answer: {
         ...answer,
-        action: reason,
-        conclusion: reason,
-        researchLabel: reason,
-        researchConclusion: reason,
+        action: fresh ? "部分黄金数据暂缺，暂不提供当前判断" : reason,
+        conclusion: fresh ? "部分黄金数据暂缺，暂不提供当前判断" : reason,
+        researchLabel: fresh ? "部分黄金数据暂缺" : reason,
+        researchConclusion: fresh ? "部分黄金数据暂缺，暂不提供当前判断" : reason,
         pricePlan: emptyPricePlan("stale"),
       },
     };
@@ -151,6 +199,9 @@ module.exports = {
   STALE_ACTION,
   STALE_ACTION_WEEKEND,
   isActionFresh,
+  compareSnapshotVersions,
+  isActionDataFresh,
+  marketActionsFresh,
   isLikelyWeekendGap,
   describeStaleReason,
   degradeStaleActions,

@@ -84,6 +84,7 @@ export function buildDailyDigestDocument(snapshot) {
   }
   return {
     updatedAt: snapshot.updatedAt || null,
+    ...(snapshot.revisionAt ? { revisionAt: snapshot.revisionAt } : {}),
     status: snapshot.status || "live",
     markets,
     home: {

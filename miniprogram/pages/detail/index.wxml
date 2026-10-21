@@ -103,6 +103,14 @@
       </view>
     </view>
 
+    <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
+      <view class="freshness-head">
+        <text class="freshness-label">{{freshness.label}}</text>
+        <view wx:if="{{freshness.showRetry}}" class="freshness-action" bindtap="retryFreshness" aria-role="button" aria-label="重新获取最新资料">重试</view>
+      </view>
+      <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
+    </view>
+
     <scroll-view class="detail-tabs" scroll-x="true" enable-flex="true" show-scrollbar="false" enhanced="true">
       <view class="detail-tabs-inner">
         <view
@@ -227,13 +235,6 @@
         <view wx:if="{{view.sourceNote}}" class="source-note">
           <text>来源 {{view.sourceNote}}</text>
         </view>
-        <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
-          <view class="freshness-head">
-            <text class="freshness-label">{{freshness.label}}</text>
-            <view wx:if="{{freshness.showRetry}}" class="freshness-action" bindtap="retryFreshness" aria-role="button">重试</view>
-          </view>
-          <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
-        </view>
         <view class="action-stack">
           <button class="member-cta" data-addon="snapshot" bindtap="openWorkspaceAction" aria-label="{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}">
             <view class="cta-copy">
@@ -269,6 +270,8 @@
         </view>
 
         <template wx:if="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
+
+        <template wx:if="{{view.overview.scoreCard}}" is="chart-visual" data="{{item: view.overview.scoreCard}}" />
 
         <view class="section-card" wx:if="{{view.overview.evidenceBullets.length}}">
           <text class="block-title">关键依据</text>
@@ -463,13 +466,6 @@
           <text>来源 {{view.sourceNote}}</text>
         </view>
 
-        <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
-          <view class="freshness-head">
-            <text class="freshness-label">{{freshness.label}}</text>
-            <view wx:if="{{freshness.showRetry}}" class="freshness-action" bindtap="retryFreshness" aria-role="button">重试</view>
-          </view>
-          <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
-        </view>
 
         <view wx:if="{{!view.metrics.length && !view.analysis.length && !view.facts.length && !view.holdings.length && !view.sourceLinks.length && !activeCharts.length}}" class="module-empty">当前没有可展示的依据资料。</view>
 
@@ -490,6 +486,19 @@
           </button>
         </view>
       </view>
+    </view>
+
+    <!-- 美股详情看完了还没有账户：接开户教程，不直接给开户链接。 -->
+    <view
+      wx:if="{{market === 'us'}}"
+      class="us-start-link"
+      bindtap="openUsStart"
+      hover-class="tap-active"
+      aria-role="link"
+      aria-label="第一次买美股？查看开户教程"
+    >
+      <text class="us-start-ask">第一次买美股？</text>
+      <text class="us-start-go">查看开户教程 ›</text>
     </view>
 
     <text class="disclaimer">{{view.disclaimer}}</text>

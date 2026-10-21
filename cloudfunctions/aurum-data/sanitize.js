@@ -137,11 +137,15 @@ function sanitizeUSFundamental(item = {}) {
     modelValidation,
     ...rest
   } = item;
+  const qualityView = typeof item.qualityEligible === "boolean"
+    ? { state: item.qualityEligible ? "passed" : "failed", reportPeriod: item.period || null }
+    : item.qualityView || { state: "unknown", reportPeriod: item.period || null };
   if (item.amountUnit === "USD") {
-    return { ...rest, amountUnit: "USD", currency: item.currency || "USD" };
+    return { ...rest, qualityView, amountUnit: "USD", currency: item.currency || "USD" };
   }
   return {
     ...rest,
+    qualityView,
     operatingCashFlow: scaleUsdThousands(item.operatingCashFlow),
     capitalExpenditures: scaleUsdThousands(item.capitalExpenditures),
     cashAndEquivalents: scaleUsdThousands(item.cashAndEquivalents),
@@ -298,8 +302,12 @@ function sanitizeInvestor(item = {}) {
 
 function assertSourceSnapshot(snapshot) {
   const updatedAt = Date.parse(snapshot && snapshot.updatedAt);
-  if (!snapshot || snapshot.status !== "live" || Number.isNaN(updatedAt)) {
+  if (!snapshot || !["live", "partial"].includes(snapshot.status) || Number.isNaN(updatedAt) || updatedAt > Date.now() + 5 * 60 * 1000) {
     throw new Error("公开快照状态或更新时间无效");
+  }
+  if (snapshot.revisionAt != null) {
+    const revisionAt = Date.parse(snapshot.revisionAt);
+    if (!Number.isFinite(revisionAt) || revisionAt < updatedAt || revisionAt > Date.now() + 5 * 60 * 1000) throw new Error("公开快照内容修订时间无效");
   }
   // 机构持仓阈值留出余量：13F 是季度披露，个别机构延迟很常见，
   // 不该因为少一位就把整份行情（美股、A股、港股、黄金）一起判为不可用。
@@ -331,12 +339,16 @@ function sanitizeSnapshot(snapshot) {
     .map(sanitizeAShareFundamental);
   const fundamentalsByCode = new Map(aShareFundamentals.map((item) => [item.code, item]));
   const sanitized = {
-    status: "live",
+    status: snapshot.status,
+    sources: Array.isArray(snapshot.sources) ? snapshot.sources.map(({ id, name, url, ok, advisory, error }) => ({ id, name, url, ok, advisory, error })) : [],
+    ...(snapshot.actionsFresh === false ? { actionsFresh: false, actionDegradeReason: snapshot.actionDegradeReason } : {}),
     updatedAt: snapshot.updatedAt,
+    ...(snapshot.revisionAt ? { revisionAt: snapshot.revisionAt } : {}),
     us: {
       stocks: (snapshot.us && snapshot.us.stocks || []).map(sanitizeUSStock),
       fundamentals: (snapshot.us && snapshot.us.fundamentals || []).map(sanitizeUSFundamental),
       filings: sanitizeUsFilings(snapshot.us && snapshot.us.filings),
+      filingCoverage: snapshot.us?.filingCoverage && typeof snapshot.us.filingCoverage === "object" ? snapshot.us.filingCoverage : {},
     },
     hk: {
       listings: (snapshot.hk && snapshot.hk.listings || []).map(sanitizeHKListing),

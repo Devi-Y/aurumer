@@ -16,6 +16,7 @@ const age = Date.now() - Date.parse(updatedAt);
 if (!updatedAt || Number.isNaN(age)) {
   throw new Error("小程序随包快照缺少有效 updatedAt，拒绝上传");
 }
+if (age < 0) throw new Error(`小程序随包快照时间在未来，拒绝上传：${updatedAt}`);
 if (age > MAX_AGE_MS) {
   const hours = (age / 3_600_000).toFixed(1);
   const limitHours = (MAX_AGE_MS / 3_600_000).toFixed(0);

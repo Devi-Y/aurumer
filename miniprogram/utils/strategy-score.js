@@ -21,15 +21,12 @@ function hkScore(item) {
       basis: "公开招股研究分（单一口径）",
     };
   }
-  if (item?.badge === "值得打") return { score: 82, label: "研究分", basis: "按结论档位" };
-  if (item?.badge === "暂缓观察") return { score: 55, label: "研究分", basis: "按结论档位" };
-  if (item?.badge === "暂不建议" || item?.badge === "资料不够") {
-    return { score: 28, label: "研究分", basis: "按结论档位" };
-  }
   return { score: null, label: "研究分", basis: "资料不足" };
 }
 
-function usScore(item) {
+// 资料排序：盈利质量 50 + 估值 30 + 热度 15 + 近周变动 5（经验权重，非回测策略）。
+// 每一项自己的 0–100 分和权重；缺哪项就少哪项，总分按剩下的权重折回 100。
+function usParts(item) {
   const raw = item?.raw || {};
   const fund = raw.fund || {};
   const heat = hasNumber(raw.heatScore) ? Number(raw.heatScore) : null;
@@ -39,35 +36,66 @@ function usScore(item) {
   const growth = hasNumber(fund.revenueGrowth) ? Number(fund.revenueGrowth) : null;
   const weekly = hasNumber(raw.weeklyChange) ? Number(raw.weeklyChange) : null;
 
-  // 资料排序：盈利质量 50 + 估值 30 + 热度 15 + 近周变动 5（经验权重，非回测策略）
-  let weight = 0;
-  let total = 0;
+  const parts = [];
   const quality = [];
   if (roe != null) quality.push(Math.max(0, Math.min(100, roe)));
   if (margin != null) quality.push(Math.max(0, Math.min(100, margin)));
   if (growth != null) quality.push(Math.max(0, Math.min(100, 50 + growth / 2)));
   if (quality.length) {
-    total += (quality.reduce((sum, value) => sum + value, 0) / quality.length) * 0.5;
-    weight += 0.5;
+    parts.push({ label: "盈利质量", value: quality.reduce((sum, value) => sum + value, 0) / quality.length, weight: 0.5 });
   }
   if (pe != null && pe > 0) {
-    const valuation = pe >= 80 ? 18 : pe <= 15 ? 92 : clamp(100 - pe);
-    total += valuation * 0.3;
-    weight += 0.3;
+    parts.push({ label: "估值", value: pe >= 80 ? 18 : pe <= 15 ? 92 : clamp(100 - pe), weight: 0.3 });
   }
-  if (heat != null) {
-    total += Math.min(100, heat) * 0.15;
-    weight += 0.15;
-  }
-  if (weekly != null) {
-    total += clamp(50 + weekly * 2) * 0.05;
-    weight += 0.05;
-  }
+  if (heat != null) parts.push({ label: "热度", value: Math.min(100, heat), weight: 0.15 });
+  if (weekly != null) parts.push({ label: "近一周涨跌", value: clamp(50 + weekly * 2), weight: 0.05 });
+  return parts;
+}
+
+function usScore(item) {
+  const parts = usParts(item);
+  let weight = 0;
+  let total = 0;
+  parts.forEach((part) => {
+    total += part.value * part.weight;
+    weight += part.weight;
+  });
   if (!weight) return { score: null, label: "研究观察分", basis: "公开行情/财务不足" };
   return {
     score: clamp(total / weight),
     label: "研究观察分",
     basis: "公开字段资料排序，不是收益预测",
+  };
+}
+
+// 把一组小数凑成整数，且加起来正好等于 target（最大余数法），
+// 这样「得分/满分」每行加起来就是总分，读的人不会觉得算错了。
+function apportion(values, target) {
+  const base = values.map((value) => Math.floor(value));
+  let rest = target - base.reduce((sum, value) => sum + value, 0);
+  values
+    .map((value, index) => ({ index, frac: value - Math.floor(value) }))
+    .sort((left, right) => right.frac - left.frac)
+    .forEach((entry) => {
+      if (rest > 0) {
+        base[entry.index] += 1;
+        rest -= 1;
+      }
+    });
+  return base;
+}
+
+// 研究观察分拆成每一项的「得分/满分」：满分就是这一项的权重，各项得分相加等于总分。
+function usScoreRows(item) {
+  const parts = usParts(item);
+  const weight = parts.reduce((sum, part) => sum + part.weight, 0);
+  const { score } = usScore(item);
+  if (!weight || score == null) return null;
+  const points = apportion(parts.map((part) => (part.value * part.weight) / weight), score);
+  const caps = apportion(parts.map((part) => (100 * part.weight) / weight), 100);
+  return {
+    score,
+    rows: parts.map((part, index) => ({ label: part.label, points: points[index], max: caps[index] })),
   };
 }
 
@@ -164,6 +192,7 @@ module.exports = {
   scoreForItem,
   hkScore,
   usScore,
+  usScoreRows,
   aScore,
   goldScore,
 };

@@ -4,7 +4,7 @@ const { RESEARCH_DISCLAIMER, RISK_LABEL } = require("../../utils/disclaimer");
 const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
 const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction, usHeatDriver, tickerZhLabel, tickerShortZh } = require("../../utils/answers");
-const { scoreForItem } = require("../../utils/strategy-score");
+const { scoreForItem, usScoreRows } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
 const { isPositionChange, instrumentSuffix } = require("../../utils/guru-changes");
@@ -13,7 +13,8 @@ const { goldMonthDay } = require("../../utils/daily-answers");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
 const { marketSources, dedupeSources, sourceName } = require("../../utils/sources");
-const { filingsFor, formatFiling, formatFilingLine } = require("../../utils/us-filings");
+const { filingsFor, formatFiling, formatFilingLine, filingCoverageNote } = require("../../utils/us-filings");
+const { getDividendStability } = require("../../utils/dividend-stability");
 // 「毛利率 43%」本身不回答"这算高还是低"。望潮池子里 30 只美股、20 只 A 股
 // 的同口径字段就摆在快照里，把它算成「池内第 6/30」是零新增数据的一次密度提升。
 const { poolRankVisual } = require("../../utils/pool-rank");
@@ -355,31 +356,41 @@ function barVisual(rows, title, options = {}) {
 }
 
 /**
- * 分年分红柱状图：只用 dividendHistory 里「实施分配」的真实记录（快照抓取时
- * 已过滤掉「董事会决议通过」等未实施的预案，同年多次分配也已在源头按年合并）。
- * 最多展示最近 10 年，避免部分股票 20+ 年历史把这一屏拉得过长；完整年数放
- * 进 stats 里，不截断真实覆盖范围的说法。
+ * 用报告所属年度汇总已过除息日的分红，和稳定性榜共用同一份记录。
+ * 自然年收到的钱可能来自两个报告年度，不能直接拿它判断年度减息。
  */
-function dividendHistoryVisual(history) {
-  const rows = (history || []).filter((row) => row && hasNumber(row.perTenSharesRmb));
-  if (rows.length < 2) return null;
-  const recent = rows.slice(-10);
-  const chart = barVisual(
-    recent.map((row) => ({
+function dividendHistoryVisual(raw, asOf) {
+  const cutoff = asOf || raw.snapshotUpdatedAt || raw.priceAsOf || raw.asOf;
+  if (!cutoff) return null;
+  const result = getDividendStability(raw, { asOf: cutoff });
+  if (!result.expectedYears.length) return null;
+  const years = result.years || [];
+  const endYear = Math.max(result.endYear, ...years.map((row) => row.year));
+  const startYear = Math.max(endYear - 9, Math.min(result.startYear, ...years.map((row) => row.year)));
+  const yearMap = new Map(years.map((row) => [row.year, row]));
+  const rows = Array.from({ length: endYear - startYear + 1 }, (_, index) => {
+    const year = startYear + index;
+    return yearMap.get(year) || { year, perTenSharesRmb: null, complete: false };
+  });
+  const maximum = Math.max(...years.map((row) => Number(row.perTenSharesRmb)), 1);
+  return withChartMeta({
+    kind: "bars",
+    title: "所属年度分红（每10股，含税）",
+    hint: `截至${result.asOf}，按所属年度汇总；缺数不记0，除息日已过不代表已到账。`,
+    stats: [
+      { label: "近5年资料", value: `${result.observedYears.length}/5年` },
+      { label: "分红稳定性", value: result.score == null ? "资料不足" : `${result.score}分` },
+    ],
+    items: rows.map((row) => ({
+      id: `dividend-${row.year}`,
       label: `${row.year}年`,
-      value: row.perTenSharesRmb,
-      valueText: `¥${Number(row.perTenSharesRmb).toFixed(2)}`,
+      valueText: hasNumber(row.perTenSharesRmb)
+        ? `¥${Number(row.perTenSharesRmb).toFixed(2)}${row.complete ? "" : " · 未完整"}`
+        : "资料缺失",
+      width: hasNumber(row.perTenSharesRmb) ? Math.round((Number(row.perTenSharesRmb) / maximum) * 100) : 0,
+      tone: "up",
     })),
-    "分红历史（每10股，含税）",
-    { stats: false },
-  );
-  if (!chart) return null;
-  chart.stats = [
-    { label: "覆盖年数", value: `${rows.length}年` },
-    { label: "起始年份", value: `${rows[0].year}` },
-    { label: "最新年份", value: `${rows[rows.length - 1].year}` },
-  ];
-  return chart;
+  });
 }
 
 /** 扁平竖柱对比：仅用于同一量纲的指标。 */
@@ -420,6 +431,24 @@ function scoreMeter(score, title, badge, hint) {
     highLabel: "100",
     stats: badge ? [{ label: "结论", value: String(badge) }] : [],
   }, hint || "");
+}
+
+// 研究观察分拆成「得分/满分」几行：每行的满分就是这一项的权重，各行得分加起来正好是总分，
+// 所以不用再写一句「盈利质量占 50%、估值占 30%……」去解释怎么算。
+function scoreRowsVisual(parts) {
+  if (!parts || !parts.rows.length) return null;
+  return withChartMeta({
+    kind: "bars",
+    title: `研究观察分 ${parts.score}/100`,
+    stats: [],
+    items: parts.rows.map((row, index) => ({
+      id: `${index}-${row.label}`,
+      label: row.label,
+      valueText: `${row.points}/${row.max}`,
+      width: Math.round((row.points / row.max) * 100),
+      tone: "up",
+    })),
+  });
 }
 
 function meterVisual(history, currentPrice, title, formatter = money, hint) {
@@ -777,12 +806,16 @@ function buildHKView(base, item, snapshot) {
   // 之前有个空档，这段时间 group 仍是「非 ended」，但「可关注申购」这种邀请
   // 继续申购的措辞已经不成立了，得单独判一次日期。
   const deadlinePassed = !ended && daysToDeadline != null && daysToDeadline < 0;
+  // 原定上市日已过但快照仍没有上市结果时，不能继续把旧进度写成「等待上市」。
+  const listingProgressUnverified = !ended && daysToListing != null && daysToListing < 0;
   const deadlineLabel = (value) => (value == null ? null : (value < 0 ? "已截止" : (value === 0 ? "今天" : `${value}天`)));
 
   base.badge = item.badge || answer.verdict || base.badge;
   // 详情页读的是 raw.publicAnswer，绕过了 hkActionFromItem，所以退掉的措辞要在
   // 这里再过一次同一个归一化，否则首页改好了详情页还留着「卖点」。
-  base.answer = deadlinePassed
+  base.answer = listingProgressUnverified
+    ? "原定上市日期已过，上市及配发进展待核验。"
+    : deadlinePassed
     ? `认购已截止，等待${raw.listingDate ? `上市（${raw.listingDate}）` : "配发结果"}。`
     : (normalizeHkAction(answer.action, "") || item.one || item.badge);
   base.metrics = ended
@@ -809,7 +842,7 @@ function buildHKView(base, item, snapshot) {
         ["认购截止", raw.offerDeadline || raw.offerEnd],
         ["截止剩余", deadlineLabel(daysToDeadline)],
         ["上市日期", raw.listingDate],
-        ["距上市", daysToListing != null ? `${daysToListing}天` : null],
+        ["距预计上市", daysToListing != null && daysToListing >= 0 ? `${daysToListing}天` : null],
         ["一手股数", lotSize ? `${lotSize}股` : null],
         ["公开发售", publicShares != null ? formatLarge(publicShares) : null],
         ["发售额估", publicValue != null ? `${formatLarge(publicValue)}港元` : null],
@@ -834,7 +867,7 @@ function buildHKView(base, item, snapshot) {
           ? { label: "一手中签", value: `${Number(raw.oneLotRate).toFixed(1)}%` }
           : (hasNumber(raw.publicOversubscription)
             ? { label: "公开认购", value: `${Number(raw.publicOversubscription).toFixed(1)}倍` }
-            : { label: "上市日", value: raw.listingDate ? String(raw.listingDate).slice(5) : "待公布" }),
+            : { label: listingProgressUnverified ? "原定上市" : "预计上市", value: raw.listingDate ? String(raw.listingDate).slice(5) : "待公布" }),
         { label: "一手金额", value: hasNumber(raw.entryFee) ? `${Number(raw.entryFee).toFixed(0)}港元` : "待公布" },
         { label: "招股价", value: offer != null ? `${offer.toFixed(2)}港元` : "待公布" },
         // 「截止 0天」读起来像已经结束了，其实是今天最后一天；负数则是
@@ -850,9 +883,9 @@ function buildHKView(base, item, snapshot) {
   const scheduleTiles = metricTilesVisual([
     ["招股开始", raw.offerStart],
     ["认购截止", raw.offerDeadline || raw.offerEnd],
-    ["上市日期", raw.listingDate],
+    [listingProgressUnverified ? "原定上市" : "预计上市", raw.listingDate],
     ["截止剩余", deadlineLabel(daysToDeadline)],
-    ["距上市", daysToListing != null ? `${daysToListing}天` : null],
+    ["距预计上市", daysToListing != null && daysToListing >= 0 ? `${daysToListing}天` : null],
   ].filter((row) => row[1]), "认购时间表", "先看还能不能打、什么时候上市。");
 
   const capitalTiles = metricTilesVisual([
@@ -992,6 +1025,7 @@ function buildHKView(base, item, snapshot) {
   base.stageInfo = {
     ended,
     deadlinePassed,
+    listingProgressUnverified,
     daysToDeadline,
     daysToListing,
     listingDate: raw.listingDate || "",
@@ -1182,21 +1216,22 @@ function buildUSView(base, item, snapshot) {
   const usFilings = filingsFor(snapshot, raw.symbol || item.code);
   const filingBody = usFilings.length
     ? `${formatFilingLine(usFilings, 3)}。公告与股价同期发生，不代表因果；原文链接见「来源」。`
-    : "";
+    : (typeof filingCoverageNote === "function"
+      ? filingCoverageNote(snapshot, raw.symbol || item.code)
+      : "公告覆盖待核验；当前未收录备案，不能据此判断近期没有公告。建议核对 SEC 或公司投资者关系页面。");
   base.dynamics = {
     heat: usHeatDriver(raw) || "近期没有明显超出日常波动的热度信号。",
-    filings: filingBody || "近期未查到新的 SEC 公开备案。",
+    filings: filingBody,
     mag7Label: mag7Label || "",
   };
   // 现价/交易所/市值/市盈率/行情截至/财报期这六项，highlights 条和「资料」
   // tab 的 facts 表已经各展示过一遍；同期公告原文和七姐妹分档标签也在「动态」
   // tab 的 dynamics.filings/mag7Label 里一字不差地出现过——这里不再拼第三份
   // 重复句子，「关键依据」只留「动态」tab 给不出的判断。
-  base.analysis = [
-    // 近60日位置已由概览的价格位置图表完整展示，这里不再重复成一行文字。
-    // 「盈利质量 50%」单写，读者会当成盈利质量得了 50 分；写成「占 50%」才读得出是权重。
-    scoredUS.score != null ? { title: "研究观察分怎么算", body: `满分 100，盈利质量占 50%、估值占 30%、热度占 15%、近一周涨跌占 5%；这只 ${scoredUS.score} 分。` } : null,
-  ].filter(Boolean);
+  // 近60日位置已由概览的价格位置图表完整展示；评分怎么来的由概览里的「得分/满分」四行讲，
+  // 不再另写一句权重说明。
+  base.analysis = [];
+  base.scoreCard = scoreRowsVisual(usScoreRows(item));
   base.actions = [];
   // 「历史价格不预测未来」对哪只票都成立，等于没说；换成这只票现价离近60日高低点多远。
   const gapPct = (from, to) => Math.abs(((from - to) / to) * 100).toFixed(1);
@@ -1485,7 +1520,7 @@ function buildAShareView(base, item, snapshot) {
     priceBand,
   ].filter(Boolean);
   base.dividendCharts = [
-    dividendHistoryVisual(financials.dividendHistory),
+    dividendHistoryVisual(raw, snapshot.updatedAt),
     solidVisual([
       { label: "当前股息", value: raw.currentDividendYield, valueText: hasNumber(raw.currentDividendYield) ? `${Number(raw.currentDividendYield).toFixed(1)}%` : "暂缺" },
       { label: "可持续股息", value: raw.sustainableDividendYield, valueText: hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺" },
@@ -1985,7 +2020,7 @@ function buildOverview(base, item) {
   const keyRisk = (base.riskItems && base.riskItems[0])
     ? `${base.riskItems[0].title}：${base.riskItems[0].body}`
     : (base.risk || "数据不足时宁可不给硬答案。");
-  const nextWatch = strategy.trigger || "暂无明确触发条件，留意下一次财报/公告更新。";
+  let nextWatch = strategy.trigger || "暂无明确触发条件，留意下一次财报/公告更新。";
 
   let priceCard = null;
   if (item.market === "us") {
@@ -2011,11 +2046,14 @@ function buildOverview(base, item) {
     const stage = base.stageInfo || {};
     const stageLabel = stage.ended
       ? (hasNumber(stage.firstDayChange) ? `已上市 · 首日 ${formatPercent(stage.firstDayChange)}` : "已上市")
-      : (stage.deadlinePassed ? "认购已截止，等待配发/上市" : "认购中");
-    const watchLabel = stage.ended ? "上市日期" : (stage.deadlinePassed ? "预计上市" : "认购截止");
+      : (stage.listingProgressUnverified ? "上市进展待核" : (stage.deadlinePassed ? "等配发结果" : "认购中"));
+    const watchLabel = stage.ended ? "上市日期" : (stage.listingProgressUnverified ? "原定上市" : (stage.deadlinePassed ? "预计上市" : "认购截止"));
     const watchValue = stage.ended
       ? (stage.listingDate || "待核验")
-      : (stage.deadlinePassed ? (stage.listingDate || "待公布") : (stage.offerDeadline || "待公布"));
+      : (stage.deadlinePassed || stage.listingProgressUnverified ? (stage.listingDate || "待公布") : (stage.offerDeadline || "待公布"));
+    if (stage.listingProgressUnverified) {
+      nextWatch = "先核对港交所最新上市公告与配发结果，再看上市后的公开价格。";
+    }
     priceCard = metricTilesVisual([
       ["当前阶段", stageLabel],
       [watchLabel, watchValue],
@@ -2040,10 +2078,13 @@ function buildOverview(base, item) {
   base.overview = {
     orderPlan: base.orderPlan || null,
     priceCard,
+    scoreCard: base.scoreCard || null,
     evidenceBullets,
     keyRisk,
     nextWatch,
-    reason: strategy.action || base.answer || "",
+    reason: base.stageInfo && base.stageInfo.listingProgressUnverified
+      ? base.answer
+      : (strategy.action || base.answer || ""),
   };
 }
 
@@ -2150,6 +2191,16 @@ function detailView(item, snapshot) {
   // 四格全是「—」（如已取消发行的新股）就整条不画，一排空格子看着像页面坏了；结论条已经说清楚了。
   if (base.highlights.every((cell) => !cell || cell.value == null || cell.value === "" || cell.value === "—")) {
     base.highlights = [];
+  }
+  // 偏旧快照保留可核对的历史报价，但不能把报价日的涨跌写成今天的行情。
+  if (snapshot.actionsFresh === false || (item.raw && item.raw.actionsFresh === false)) {
+    const historicalLabels = { "现价": "最近报价", "今日": "报价日涨跌", "当前价格": "最近报价", "今日涨跌": "报价日涨跌" };
+    base.highlights = base.highlights.map((cell) => ({ ...cell, label: historicalLabels[cell.label] || cell.label }));
+    base.metrics = base.metrics.map((row) => [historicalLabels[row[0]] || row[0], row[1]]);
+    base.facts = base.facts.map((row) => [historicalLabels[row[0]] || row[0], row[1]]);
+    if (base.overview && base.overview.keyRisk) {
+      base.overview.keyRisk = base.overview.keyRisk.replace(/现价/g, "该次报价");
+    }
   }
   base.factsTitle = base.factsTitle || "已披露资料";
   base.metricsTitle = "关键数据";
@@ -2434,6 +2485,10 @@ Page({
       }
       if (typeof done === "function") done();
     }, { force });
+  },
+  openUsStart() {
+    track("path_open", { path: "us-start", from: "detail" });
+    openPage("/pages/guide/index?topic=us-start&from=detail");
   },
   goBack() { wx.navigateBack({ fail: () => goHome() }); },
   goHome() { goHome(); },

@@ -127,6 +127,7 @@ assert(indexHtml.includes("data/daily-digest.json") && indexHtml.includes("funct
 
 const digest = JSON.parse(await readFile(resolve(root, "data/daily-digest.json"), "utf8"));
 assert(digest.updatedAt === snapshot.updatedAt, "今日答案摘要与公开快照 updatedAt 不一致");
+assert((digest.revisionAt || null) === (snapshot.revisionAt || null), "今日答案摘要与公开快照内容修订版本不一致");
 assert(["hk", "us", "a", "gold", "guru"].every((market) => Array.isArray(digest.markets?.[market]) && digest.markets[market].length >= 3), "今日答案摘要五个栏目不完整");
 // 这份清单对位的是用户提的六条诉求，不是「今天恰好生成了哪几张卡」。
 // 少一条就是少回答一个用户花钱买的问题，所以宁可写死也要逐条点名。
@@ -152,10 +153,12 @@ for (const market of Object.keys(requiredQuestions)) {
   assert(onDisk === nowBuilt, `今日答案摘要 ${market} 与今日答案模块不同步：文件是「${onDisk}」，现算是「${nowBuilt}」，先跑 npm run sync:mini 再提交`);
 }
 const answerText = JSON.stringify(digest.markets);
-// 这三只在「没有符合条件的标的」时也会以兜底文案点名出现，所以断言的是「有没有正面回答」，
-// 不是「今天它们一定低估/一定有风险」——后者会在某天估值变化时把 CI 炸掉。
-assert(answerText.includes("谷歌-A") && answerText.includes("Meta"), "美股每日答案必须回答谷歌-A与Meta低估观察");
-assert(answerText.includes("特斯拉"), "美股每日答案必须回答特斯拉风险观察");
+// 七姐妹须按当前资料动态筛选；空榜也要明确回答，不固定指定某三只。
+for (const id of ["us-cheap", "us-risk"]) {
+  const card = (digest.markets.us || []).find((card) => card.id === id);
+  assert(card && card.answer, `美股每日答案缺少动态判断：${id}`);
+}
+assert(!/每日重点固定看|每日风险重点固定看/.test(answerText), "美股每日答案仍使用固定入选名单");
 assert(answerText.includes("不照抄仓位") && answerText.includes("滞后披露"), "机构每日答案必须保留跟随边界");
 assert(!/strategyAssessment|modelEstimate|breakProbability/.test(JSON.stringify(digest)), "今日答案摘要泄露内部字段");
 // 价格进了观察低位、引擎结论却是「等待更好价格」时，买入卡不能说「可分批加大」——

@@ -1,57 +1,12 @@
 {
-  "updatedAt": "2026-10-20T20:00:00.000Z",
+  "updatedAt": "2026-10-21T08:30:04.351Z",
   "source": "Yahoo Finance",
-  "quotes": [
-    {
-      "symbol": "VOO",
-      "price": 706.8,
-      "previousClose": 715.2,
-      "changePercent": -1.1744966442953197,
-      "currency": "USD",
-      "asOf": "2026-10-20T20:00:00.000Z",
-      "source": "Yahoo Finance",
-      "name": "Vanguard 标普500 ETF"
-    },
-    {
-      "symbol": "JEPQ",
-      "price": 59.44,
-      "previousClose": 60.92,
-      "changePercent": -2.4294156270518785,
-      "currency": "USD",
-      "asOf": "2026-10-20T20:00:01.000Z",
-      "source": "Yahoo Finance",
-      "name": "JPMorgan 纳指备兑 ETF"
-    },
-    {
-      "symbol": "SCHD",
-      "price": 34.69,
-      "previousClose": 33.37,
-      "changePercent": 3.955648786335031,
-      "currency": "USD",
-      "asOf": "2026-10-20T20:00:00.000Z",
-      "source": "Yahoo Finance",
-      "name": "Schwab 美股红利 ETF"
-    },
-    {
-      "symbol": "O",
-      "price": 56.34,
-      "previousClose": 54.99,
-      "changePercent": 2.454991816693952,
-      "currency": "USD",
-      "asOf": "2026-10-20T20:00:02.000Z",
-      "source": "Yahoo Finance",
-      "name": "Realty Income"
-    },
-    {
-      "symbol": "SGOV",
-      "price": 100.61,
-      "previousClose": 100.52,
-      "changePercent": 0.0895344210107396,
-      "currency": "USD",
-      "asOf": "2026-10-20T20:00:34.000Z",
-      "source": "Yahoo Finance",
-      "name": "iShares 短债 ETF"
-    }
-  ],
-  "errors": []
+  "quotes": [],
+  "errors": [
+    "VOO: VOO HTTP 403",
+    "JEPQ: JEPQ HTTP 403",
+    "SCHD: SCHD HTTP 403",
+    "O: O HTTP 403",
+    "SGOV: SGOV HTTP 403"
+  ]
 }

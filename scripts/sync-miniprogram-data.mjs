@@ -29,6 +29,15 @@ function slimForMiniProgram(data) {
 
 const slimSnapshot = slimForMiniProgram(publicSnapshot);
 
+// 网页复用同一份时效规则，避免只更新生成时间就把旧行情重新变成当前动作。
+const freshnessModule = await readFile(path.join(root, "miniprogram/utils/action-freshness.js"), "utf8");
+await writeFile(path.join(root, "assets/action-freshness.js"),
+  `// Generated from miniprogram/utils/action-freshness.js.\n(function () {\n${freshnessModule.replace("module.exports =", "globalThis.AurumFreshness =")}\n})();\n`);
+
+const hkDatesModule = await readFile(path.join(root, "miniprogram/utils/hk-date-state.js"), "utf8");
+await writeFile(path.join(root, "assets/hk-date-state.js"),
+  `// Generated from miniprogram/utils/hk-date-state.js.\n(function () {\n${hkDatesModule.replace("module.exports =", "globalThis.AurumHKDates =")}\n})();\n`);
+
 try {
   const sleeve = await fetchSleeveQuotes();
   await writeSleeveQuotes(sleeve);

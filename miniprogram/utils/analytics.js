@@ -45,7 +45,18 @@ const ALLOWED = new Set([
   "news_source_copy",
   "list_group_switch",
   "service_copy",
-  "service_pending",
+  // 栏目页和详情页里的切换动作：早就在页面里调用，但漏登记，一直被静默丢弃（2026-10 补上）。
+  "section_tab",
+  "section_answer",
+  "section_hk_exit_select",
+  "section_guru_institution_select",
+  "detail_module_switch",
+  // 2026-10 二级页与交流群页的使用埋点（首页服务格、研究页底部入口进了哪一页）。
+  "path_open",
+  "guide_open",
+  "guide_link_copy",
+  "offer_qr_open",
+  "community_open",
 ]);
 
 const VISIT_KEY = "aurum_last_home_visit_day";

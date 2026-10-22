@@ -39,12 +39,14 @@ function buildGuruChanges(snapshot) {
     const sold = Array.isArray(item.sold) ? item.sold : [];
     // 期权不计入「增持/减持」：看跌期权新进不是加仓，看涨期权减持也不是减仓，
     // 和 guru-trend.js 里跨机构方向汇总的口径一致。期权仍会出现在 topHoldings。
-    const increased = holdings.filter((row) => !row.putCall && /增|加|new|increase/i.test(String(row.changeType || row.changeLabel || "")));
-    const decreased = holdings.filter((row) => !row.putCall && /减|削|decrease/i.test(String(row.changeType || row.changeLabel || "")));
+    const increased = holdings.filter((row) => !row.putCall && /增|加|new|increase|^up$/i.test(String(row.changeType || row.changeLabel || "")));
+    const decreased = holdings.filter((row) => !row.putCall && /减|削|decrease|^down$/i.test(String(row.changeType || row.changeLabel || "")));
     const unchanged = holdings.filter((row) => {
       const label = String(row.changeType || row.changeLabel || "");
-      return /same|不变|持平/i.test(label) || (!increased.includes(row) && !decreased.includes(row) && !sold.find((s) => s.ticker === row.ticker));
+      return !row.putCall && /same|不变|持平/i.test(label);
     });
+    const stockExits = sold.filter((row) => Object.prototype.hasOwnProperty.call(row, "putCall") && !row.putCall);
+    const unknownExits = sold.filter((row) => !Object.prototype.hasOwnProperty.call(row, "putCall"));
     const lag = lagDays(item.filingDate);
     return {
       id: item.id || item.name,
@@ -60,13 +62,14 @@ function buildGuruChanges(snapshot) {
       sold: sold.slice(0, 8).map((row) => ({
         ticker: row.ticker || "",
         name: holdingLabel(row),
-        changeLabel: "清仓",
+        changeLabel: !Object.prototype.hasOwnProperty.call(row, "putCall") ? "退出类型待核" : row.putCall ? "期权退出" : "清仓",
       })),
       topHoldings: holdings.slice(0, 5).map(simplifyHolding),
       summary: [
         increased.length ? `增持/新建 ${increased.length}只` : "",
         decreased.length ? `减持 ${decreased.length}只` : "",
-        sold.length ? `清仓 ${sold.length}只` : "",
+        stockExits.length ? `股票清仓 ${stockExits.length}项` : "",
+        unknownExits.length ? `${unknownExits.length}项退出类型待核` : "",
         !increased.length && !decreased.length && !sold.length ? "这期没标出增减" : "",
       ].filter(Boolean).join(" · "),
     };

@@ -1116,7 +1116,7 @@ function buildGuruAnswers(snapshot) {
       : `${trendPeriod}公开申报里未见减持标注`);
   // 加与减取自持仓行的标注，退出取自 sold 名单，两份口径不同，不合并成一个净值。
   const trendAnswer = trend.totals.up + trend.totals.new + trend.totals.down > 0
-    ? `${trendPeriod} ${trend.investorCount} 家机构里，增持/新建 ${trend.totals.up + trend.totals.new} 项、减持 ${trend.totals.down} 项，另有 ${trend.totals.exit} 项清仓`
+    ? `${trendPeriod} ${trend.investorCount}家有增减资料的机构，公开持仓样本：增持/新建 ${trend.totals.up + trend.totals.new} 项、减持 ${trend.totals.down} 项，另有 ${trend.totals.exit} 项确认股票清仓`
     : `${trendPeriod}公开申报的变化标注不足，方向暂不下判断`;
   // 卡面小图用的数，都是上面那几句话里已经说出来的同一批数，不另算。
   const weightBars = holdings
@@ -1151,7 +1151,7 @@ function buildGuruAnswers(snapshot) {
   const trendChart = trend.totals.up + trend.totals.new + trend.totals.down > 0 && mixTotal > 0
     ? {
       kind: "mix",
-      headline: `${trend.investorCount}家机构 · ${trendPeriod}`,
+      headline: `${trend.investorCount}家有增减资料 · ${trendPeriod}样本`,
       items: [
         { key: "add", label: "增持/新建", count: trend.totals.up + trend.totals.new, tone: "add" },
         { key: "cut", label: "减持", count: trend.totals.down, tone: "cut" },
@@ -1208,7 +1208,7 @@ function buildGuruAnswers(snapshot) {
       // 剥掉的扁平字段）传到公开摘要 data/daily-digest.json，网页驾驶舱才读得到。
       // 折进这张卡之后曾经只留在 modal 里，而 modal 会被 publicCard() 剥掉，
       // 边界就从网页端消失了——这里放回 names，让它继续跟着扁平字段走。
-      names: [splitLine, "不照抄仓位 · 滞后披露非实时"].filter(Boolean).join(" · "),
+      names: [splitLine, trend.unverifiedExitCount ? `${trend.unverifiedExitCount}项退出类型待核，未计清仓` : "", "公开持仓样本，非全组合 · 不照抄仓位 · 滞后披露非实时"].filter(Boolean).join(" · "),
       tone: "warn",
       action: "none",
       enabled: true,

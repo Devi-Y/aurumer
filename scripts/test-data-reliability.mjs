@@ -32,6 +32,7 @@ function freshFixture(offset = -hour) {
   const stamp = iso(offset);
   data.status = "live";
   data.updatedAt = stamp;
+  delete data.revisionAt; // Synthetic quote batches must not inherit a real correction timestamp.
   delete data.actionsFresh;
   delete data.actionFreshness;
   delete data.actionDegradeReason;

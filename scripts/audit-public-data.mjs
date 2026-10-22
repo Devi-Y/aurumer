@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
 import { buildDailyDigestDocument } from "./build-daily-digest.mjs";
+import { validUSActionReference } from "./public-quote-contract.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const snapshot = JSON.parse(
@@ -41,13 +42,8 @@ assert(snapshot.status === "live" || snapshot.status === "partial", "公开快�
 assert((snapshot.us?.stocks || []).length === 30, "美股行情必须完整覆盖 30 只");
 assert((snapshot.us?.fundamentals || []).length === 30, "美股财务必须完整覆盖 30 只");
 assert(
-  snapshot.us.stocks.every((stock) =>
-    Number.isFinite(stock.technicalPlan?.buy)
-    && Number.isFinite(stock.technicalPlan?.stop)
-    && Array.isArray(stock.technicalPlan?.tp)
-    && stock.technicalPlan.tp.length >= 2,
-  ),
-  "每只美股必须具备观察低位、观察上沿与风险下沿研究参考",
+  snapshot.us.stocks.every(validUSActionReference),
+  "美股当前资料须有完整研究参考；回退资料须保留原日期、关闭动作且不携带动作价",
 );
 assert((snapshot.hk?.history || []).length >= 10, "港股历史样本不足 10 只");
 assert((snapshot.hk?.listings || []).length >= 1, "港股当前项目为空");

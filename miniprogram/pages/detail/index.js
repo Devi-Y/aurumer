@@ -8,8 +8,8 @@ const { scoreForItem, usScoreRows } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
 const { isPositionChange, instrumentSuffix } = require("../../utils/guru-changes");
-const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lenses, MAGNIFICENT_SEVEN, goldTurningPoint, goldPlanView } = require("../../utils/market-lenses");
-const { goldMonthDay } = require("../../utils/daily-answers");
+const { hkLeverageEligible, aShareRole, yieldImpliedPlan, mag7Context, mag7Lenses, MAGNIFICENT_SEVEN, goldPlanView } = require("../../utils/market-lenses");
+const { goldTurningViews } = require("../../utils/daily-answers");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
 const { marketSources, dedupeSources, sourceName } = require("../../utils/sources");
@@ -1845,7 +1845,7 @@ function buildGoldView(base, item) {
 
   const intlHistory = intlSeries.map((entry) => entry.close);
   const domesticHistory = (gold.history?.domestic || []).map((entry) => entry.close);
-  const turn = goldTurningPoint(gold.history?.international, international.price);
+  const turns = goldTurningViews(gold);
   const scoredGold = scoreForItem(item);
   const indicatorTiles = metricTilesVisual(
     (gold.indicators || []).slice(0, 8).map((entry) => [
@@ -1928,15 +1928,7 @@ function buildGoldView(base, item) {
       title: "两个评分",
       body: `国际金 ${Number.isFinite(internationalScore) ? internationalScore : "待核"} 分、人民币金 ${Number.isFinite(domesticScore) ? domesticScore : "待核"} 分（满分 100）；前者主要看美国利率和美元，后者看上海金价、人民币汇率和国内比国际贵多少。`,
     },
-    turn
-      ? {
-        title: "拐点",
-        // 「20日线上穿60日线」是看盘术语，直接说成两段时间的平均价谁高谁低。
-        body: `${turn.crossDate
-          ? `${goldMonthDay(turn.crossDate)}起，近20日均价${turn.above ? "高于" : "低于"}近60日均价，已 ${turn.crossDays} 个交易日`
-          : `近半年，近20日均价一直${turn.above ? "高于" : "低于"}近60日均价`}。半年最高 ${turn.peak.close.toFixed(0)}（${goldMonthDay(turn.peak.date)}），现价${hasNumber(turn.fromPeak) && turn.fromPeak < 0 ? "低" : "高"} ${hasNumber(turn.fromPeak) ? Math.abs(turn.fromPeak).toFixed(1) : "—"}%；半年最低 ${turn.trough.close.toFixed(0)}（${goldMonthDay(turn.trough.date)}），现价${hasNumber(turn.fromTrough) && turn.fromTrough < 0 ? "低" : "高"} ${hasNumber(turn.fromTrough) ? Math.abs(turn.fromTrough).toFixed(1) : "—"}%。`,
-      }
-      : { title: "拐点", body: "国际金半年收盘价样本不足 60 天，拐点暂不下判断。" },
+    ...turns.map((view) => ({ title: `${view.label}拐点`, body: view.detail })),
   ].filter(Boolean);
   base.actions = [];
   base.riskItems = [

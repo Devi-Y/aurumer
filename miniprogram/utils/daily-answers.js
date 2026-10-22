@@ -10,7 +10,6 @@ const { buildGuruTrend } = require("./guru-trend");
 const { instrumentSuffix } = require("./guru-changes");
 const { hasFilingFeed, filingsBySymbol, formatFilingLine, filingCoverageNote } = require("./us-filings");
 const { toDay } = require("./dates");
-const { withLatestQuote, recentChange } = require("./gold-series");
 const {
   buildHkExitBands, formatExitBand, formatExitMedian, formatExitPositive,
   mapOfferBand, mapOfferMedian, formatTierSplit, tierForListing,
@@ -896,14 +895,35 @@ function goldMonthDay(date) {
   return `${Number(match[2])}月${Number(match[3])}日`;
 }
 
+// 两种金价分别用自己的真实收盘序列。观察窗口按实际样本写，不把短窗口称为半年。
+function goldTurningViews(gold) {
+  return [
+    ["international", "国际金", 0],
+    ["domestic", "人民币金", 1],
+  ].map(([key, label, digits]) => {
+    const history = gold?.history?.[key] || [];
+    const turn = goldTurningPoint(history, gold?.quotes?.[key]?.price);
+    if (!turn) return { key, label, turn: null, summary: `${label}样本不足60个收盘日`, detail: `${label}：收盘价样本不足60天，拐点暂不下判断。` };
+    const direction = turn.above ? "高于" : "低于";
+    const state = turn.above ? "均价走强" : "均价走弱";
+    const summary = turn.crossDate
+      ? `${label} ${goldMonthDay(turn.crossDate)}起${state}`
+      : `${label} ${state}，窗口内未见穿越`;
+    const relation = turn.crossDate
+      ? `${goldMonthDay(turn.crossDate)}起，近20日均价${direction}近60日均价，距变化已过${turn.crossDays}个交易日`
+      : `可比较的${turn.days - 59}个交易日内，近20日均价一直${direction}近60日均价，未见穿越`;
+    const valid = history.filter((row) => row?.date && hasNumber(row.close));
+    const window = `${valid[0].date}至${valid[valid.length - 1].date}，${turn.days}个收盘日`;
+    const detail = `${label}：${relation}。观察窗口${window}。20日均价${turn.fast.toFixed(digits)}，60日均价${turn.slow.toFixed(digits)}；窗口最高${turn.peak.close.toFixed(digits)}（${goldMonthDay(turn.peak.date)}），最低${turn.trough.close.toFixed(digits)}（${goldMonthDay(turn.trough.date)}）。`;
+    return { key, label, turn, summary, detail };
+  });
+}
+
 function buildGoldAnswers(snapshot) {
   const gold = snapshot.gold || {};
   const answer = gold.answer || {};
   const plan = goldPlanView(answer.pricePlan);
   const intl = gold.quotes?.international || {};
-  const intlSeries = withLatestQuote(gold.history?.international, intl);
-  const intlDay20 = recentChange(intlSeries, 20);
-  const intlDay60 = recentChange(intlSeries, 60);
   const domestic = gold.quotes?.domestic || {};
   const intlZone = goldZoneForPrice(intl.price, plan.internationalWatch, plan.internationalUpper, plan.internationalRisk);
   const cnyZone = goldZoneForPrice(domestic.price, plan.domesticWatch, plan.domesticUpper, plan.domesticRisk);
@@ -970,30 +990,14 @@ function buildGoldAnswers(snapshot) {
   else if (sellIn.length) sellAnswer = `${sellIn.join("与")}进入观察上沿，可兑现一部分`;
   else if (sellRanges) sellAnswer = "国际金和人民币金都没到观察上沿，暂不兑现";
 
-  const aboveOrBelow = (pct) => (hasNumber(pct) ? `${Number(pct) < 0 ? "低" : "高"} ${Math.abs(Number(pct)).toFixed(1)}%` : "待核");
-  // 四、拐点。只用真实收盘价算得出的三件事：均线在哪一侧、最近一次穿越是哪天、
-  // 现价离半年高低点还有多远。算不出就如实说算不出，不拿短样本充半年趋势。
-  const turn = goldTurningPoint(gold.history?.international, intl.price);
-  // 「20日线上穿60日线」是看盘术语，直接说成两段时间的平均价谁高谁低。
-  const turnAnswer = turn
-    ? (turn.crossDate
-      ? `${goldMonthDay(turn.crossDate)}起，近20日均价${turn.above ? "高于" : "低于"}近60日均价，已 ${turn.crossDays} 个交易日`
-      : `近半年，近20日均价一直${turn.above ? "高于" : "低于"}近60日均价`)
-    : "半年收盘价样本不足 60 天，拐点暂不下判断";
-  // 高低点谁离今天更近，就先说谁——那一头才是这轮走势的起点。
-  const extremes = turn
-    ? [
-      // 「半年高点 5318（现价 -21.67%）」读者要猜 -21.67% 是谁比谁，直接写成「现价低 21.7%」。
-      { text: `${goldMonthDay(turn.peak.date)}半年最高 ${turn.peak.close.toFixed(0)}，现价${aboveOrBelow(turn.fromPeak)}`, date: turn.peak.date },
-      { text: `${goldMonthDay(turn.trough.date)}半年最低 ${turn.trough.close.toFixed(0)}，现价${aboveOrBelow(turn.fromTrough)}`, date: turn.trough.date },
-    ].sort((left, right) => (left.date < right.date ? 1 : -1)).map((row) => row.text)
-    : [];
-  const turnDetail = [
-    ...extremes,
-    // 跟首页、黄金页同一条序列（日线 + 最新报价）算涨跌，不用引擎另给的 returns。
-    hasNumber(intlDay20) ? `近20日 ${signedPct(intlDay20)}` : null,
-    hasNumber(intlDay60) ? `近60日 ${signedPct(intlDay60)}` : null,
-  ].filter(Boolean).join(" · ");
+  const turns = goldTurningViews(gold);
+  const availableTurns = turns.filter((view) => view.turn);
+  const turnAnswer = turns.map((view) => view.summary).join(" · ");
+  const turnDetail = "走强/走弱：近20日均价高于/低于近60日均价，不是买卖信号";
+  const turnModal = turns.map((view) => view.detail).join("\n\n");
+  const turnState = availableTurns.length === 2
+    ? (availableTurns.every((view) => view.turn.above) ? "up" : (availableTurns.every((view) => !view.turn.above) ? "down" : "mixed"))
+    : (availableTurns[0]?.turn.above ? "up" : (availableTurns.length ? "down" : ""));
 
   return [
     card({
@@ -1034,11 +1038,12 @@ function buildGoldAnswers(snapshot) {
       question: "拐点变化",
       answer: turnAnswer,
       names: turnDetail,
-      tone: turn ? (turn.above ? "good" : "bad") : "muted",
+      tone: turnState === "up" ? "good" : (turnState === "down" ? "bad" : "muted"),
       action: "detail",
       targetId: "track",
-      enabled: Boolean(turn),
-      state: turn ? (turn.above ? "up" : "down") : "",
+      enabled: availableTurns.length > 0,
+      state: turnState,
+      modal: turnModal,
     }),
   ];
 }
@@ -1477,4 +1482,5 @@ module.exports = {
   buildDailyAnswers,
   buildHomeDigest,
   goldMonthDay,
+  goldTurningViews,
 };

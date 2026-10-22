@@ -21,6 +21,7 @@ function snapshot(offset) {
   const stamp = iso(offset);
   data.status = "live";
   data.updatedAt = stamp;
+  delete data.revisionAt; // Synthetic quote batches must not inherit a real correction timestamp.
   delete data.revisionAt;
   for (const key of ["actionsFresh", "actionFreshness", "actionDegradeReason"]) delete data[key];
   const reset = (row) => {
@@ -143,7 +144,9 @@ test("equal quote timestamps cannot roll an official 74-day revision back to an 
   const old = snapshot(-3);
   const revised = clone(old);
   revised.revisionAt = iso(-1);
-  old.gold.history.domestic = old.gold.history.domestic.slice(-49);
+  const official = JSON.parse(readFileSync(path.join(root, "scripts/fixtures/sge-au9999-official-20261020.json"), "utf8"));
+  revised.gold.history.domestic = official.rows;
+  old.gold.history.domestic = official.rows.slice(-49);
   old.gold.answer.score = 48;
   revised.gold.answer.score = 50;
   assert.ok(revised.gold.history.domestic.length >= 74, "official real fixture provides 74 or more daily closes");

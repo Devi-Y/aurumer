@@ -167,6 +167,21 @@ assert(!/strategyAssessment|modelEstimate|breakProbability/.test(JSON.stringify(
   const watch = miniSnapshot.gold?.answer?.pricePlan?.internationalWatch;
   if (watch && Number.isFinite(Number(watch.low)) && Number.isFinite(Number(watch.high))) {
     const inZone = JSON.parse(JSON.stringify(miniSnapshot));
+    // This hypothetical tests agreement with a current engine action; production
+    // quote age has its own stale-action regression and must not age this case.
+    const hypotheticalTime = new Date(Date.now() - 60_000).toISOString();
+    inZone.updatedAt = hypotheticalTime;
+    inZone.actionsFresh = true;
+    inZone.gold.status = "live";
+    inZone.gold.actionsFresh = true;
+    inZone.gold.snapshotUpdatedAt = hypotheticalTime;
+    delete inZone.gold.actionNote;
+    for (const quote of Object.values(inZone.gold.quotes)) {
+      quote.asOf = hypotheticalTime;
+      quote.snapshotUpdatedAt = hypotheticalTime;
+      quote.actionsFresh = true;
+      delete quote.actionNote;
+    }
     inZone.gold.quotes.international.price = Number(watch.high) - 0.5;
     const goldBuy = (action) => {
       inZone.gold.answer.action = action;

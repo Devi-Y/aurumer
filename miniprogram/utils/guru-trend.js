@@ -46,12 +46,23 @@ function currentReportPeriod(investors) {
   return best;
 }
 
+function isKnownStock(row) {
+  return Boolean(row && Object.prototype.hasOwnProperty.call(row, "putCall") && !row.putCall);
+}
+
+function hasComparableChanges(investor) {
+  return (investor.holdings || []).some((row) => isKnownStock(row) && ["up", "new", "down", "same"].includes(row.changeType))
+    || (investor.sold || []).some(isKnownStock);
+}
+
 function buildGuruTrend(snapshot) {
   const allInvestors = Array.isArray(snapshot && snapshot.investors) ? snapshot.investors : [];
-  const period = currentReportPeriod(allInvestors);
+  const comparable = allInvestors.filter(hasComparableChanges);
+  const period = currentReportPeriod(comparable);
   const investors = period
-    ? allInvestors.filter((investor) => String(investor.reportDate || "").trim() === period)
-    : allInvestors;
+    ? comparable.filter((investor) => String(investor.reportDate || "").trim() === period)
+    : comparable;
+  let unverifiedExitCount = 0;
   const totals = { new: 0, up: 0, down: 0, exit: 0, same: 0 };
   const bucket = new Map();
   const touch = (symbol, issuer) => {
@@ -73,7 +84,7 @@ function buildGuruTrend(snapshot) {
       if (!key || seen.has(key)) continue;
       // 期权和正股是相反或对冲的仓位：看跌期权新进不是「加仓」，看涨期权
       // 减持也不是「减仓」。跨机构方向汇总只算正股，期权仓位不计入。
-      if (holding.putCall) continue;
+      if (!isKnownStock(holding)) continue;
       seen.add(key);
       const type = String(holding.changeType || "").toLowerCase();
       if (totals[type] != null) totals[type] += 1;
@@ -85,7 +96,8 @@ function buildGuruTrend(snapshot) {
     for (const gone of investor.sold || []) {
       const key = normalizeSymbol(gone.ticker);
       if (!key || seen.has(key)) continue;
-      if (gone.putCall) continue;
+      if (!Object.prototype.hasOwnProperty.call(gone, "putCall")) { unverifiedExitCount += 1; continue; }
+      if (!isKnownStock(gone)) continue;
       seen.add(key);
       totals.exit += 1;
       const row = touch(gone.ticker, gone.issuer || gone.name);
@@ -115,6 +127,9 @@ function buildGuruTrend(snapshot) {
     cuts,
     split,
     investorCount: investors.length,
+    excludedInvestorCount: allInvestors.length - investors.length,
+    unverifiedExitCount,
+    coverage: "disclosed-position-sample",
     reportPeriod: period,
     // 多家同向的那部分才算得上「这批人的方向」，一家一只不算趋势。
     consensusAdds: adds.filter((row) => row.adders.length >= 2),

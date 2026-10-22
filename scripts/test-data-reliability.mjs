@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { test } from "node:test";
+import { validUSActionReference } from "./public-quote-contract.mjs";
 
 // Run with: node --test scripts/test-data-reliability.mjs
 // No network, cloud writes, wx payments, snapshot writes, or fixed calendar dates.
@@ -26,6 +27,20 @@ const { sanitizeSnapshot } = require("../cloudfunctions/aurum-data/sanitize.js")
 const hour = 60 * 60 * 1000;
 const iso = (offset = -hour) => new Date(Date.now() + offset).toISOString();
 const clone = (value) => structuredClone(value);
+
+test("publication accepts dated US fallback without reintroducing action prices", () => {
+  const row = { symbol: "NVDA", price: 100, asOf: iso(-72 * hour), actionsFresh: false, actionNote: "本轮获取失败，保留原日期资料" };
+  assert.equal(validUSActionReference(row), true);
+  assert.equal(validUSActionReference({ ...row, pricePlan: { buy: 90 } }), false);
+  assert.equal(validUSActionReference({ ...row, actionNote: "" }), false);
+  assert.equal(validUSActionReference({ ...row, asOf: "" }), false);
+});
+
+test("missing current references cannot silently masquerade as a disabled fallback", () => {
+  const row = { symbol: "NVDA", price: 100, asOf: iso(-hour) };
+  assert.equal(validUSActionReference(row), false);
+  assert.equal(validUSActionReference({ ...row, technicalPlan: { buy: 90, stop: 80, tp: [110, 120] } }), true);
+});
 
 function freshFixture(offset = -hour) {
   const data = clone(original);

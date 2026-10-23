@@ -106,6 +106,122 @@ function cloudFixture(initial, outcomes, options = {}) {
   return { handler: module.exports, state: () => ({ record, cacheWrites, factsWritten, transactionCalls, requested }) };
 }
 
+function transportFixture(route) {
+  const requests = [];
+  const https = {
+    get(url, options, callback) {
+      const request = new EventEmitter();
+      request.url = String(url);
+      request.destroyed = false;
+      const timers = new Set();
+      const later = (delay, task) => {
+        const timer = setTimeout(() => { timers.delete(timer); if (!request.destroyed) task(); }, delay);
+        timers.add(timer);
+      };
+      request.destroy = () => {
+        request.destroyed = true;
+        for (const timer of timers) clearTimeout(timer);
+        timers.clear();
+      };
+      const respond = (statusCode = 200, headers = {}) => {
+        const response = new EventEmitter();
+        response.statusCode = statusCode;
+        response.headers = headers;
+        response.resume = () => {};
+        response.destroy = () => request.destroy();
+        callback(response);
+        return response;
+      };
+      requests.push(request);
+      route(String(url), { request, later, respond });
+      return request;
+    },
+  };
+  const filename = path.join(root, "cloudfunctions/aurum-data/index.js");
+  const localRequire = createRequire(filename);
+  const module = { exports: {} };
+  const context = vm.createContext({
+    module, exports: module.exports,
+    require: (name) => name === "node:https" ? https : localRequire(name),
+    process, Buffer, URL, setTimeout, clearTimeout,
+    console: { log() {}, warn() {}, error() {} },
+  });
+  new vm.Script(`${readFileSync(filename, "utf8")}\nglobalThis.transport = { readJson, readLatestSnapshot };`, { filename }).runInContext(context);
+  return { ...context.transport, requests };
+}
+
+test("a source that never connects is destroyed at the complete-download deadline", { timeout: 1000 }, async () => {
+  const fixture = transportFixture(() => {});
+  await assert.rejects(fixture.readJson("https://source.test/stalled", 40), /请求超时/);
+  assert.equal(fixture.requests[0].destroyed, true);
+});
+
+test("continuous response chunks cannot extend the complete-download deadline", { timeout: 1000 }, async () => {
+  let chunks = 0;
+  const fixture = transportFixture((url, { later, respond }) => {
+    later(0, () => {
+      const response = respond();
+      const stream = () => { chunks += 1; response.emit("data", Buffer.from(" ")); later(5, stream); };
+      stream();
+    });
+  });
+  await assert.rejects(fixture.readJson("https://source.test/slow", 50), /请求超时/);
+  assert.ok(chunks >= 2, "the response remained active rather than timing out on inactivity");
+  assert.equal(fixture.requests[0].destroyed, true);
+});
+
+test("a redirect shares the original deadline instead of restarting its budget", { timeout: 1000 }, async () => {
+  const fixture = transportFixture((url, { later, respond }) => {
+    if (url.endsWith("/start")) later(45, () => respond(302, { location: "/body" }));
+    else later(55, () => {
+      const response = respond();
+      response.emit("data", Buffer.from('{"ok":true}'));
+      response.emit("end");
+    });
+  });
+  await assert.rejects(fixture.readJson("https://source.test/start", 80), /请求超时/);
+  assert.equal(fixture.requests.length, 2);
+  assert.ok(fixture.requests.every((request) => request.destroyed));
+});
+
+test("a valid winning source immediately cancels a stalled competing download", { timeout: 1000 }, async () => {
+  const data = snapshot(-1);
+  const fixture = transportFixture((url, { later, respond }) => {
+    if (url.includes("raw.githubusercontent.com")) return;
+    later(0, () => {
+      const response = respond();
+      response.emit("data", Buffer.from(JSON.stringify(data)));
+      response.emit("end");
+    });
+  });
+  const result = await fixture.readLatestSnapshot(500);
+  assert.equal(result.data.updatedAt, data.updatedAt);
+  assert.equal(fixture.requests.find((request) => request.url.includes("raw.githubusercontent.com")).destroyed, true);
+});
+
+test("an invalid fast source cannot cancel a valid slower source", { timeout: 1000 }, async () => {
+  const data = snapshot(-1);
+  const fixture = transportFixture((url, { later, respond }) => {
+    const raw = url.includes("raw.githubusercontent.com");
+    later(raw ? 15 : 0, () => {
+      const response = respond();
+      response.emit("data", Buffer.from(JSON.stringify(raw ? data : { updatedAt: data.updatedAt })));
+      response.emit("end");
+    });
+  });
+  const result = await fixture.readLatestSnapshot(500);
+  assert.ok(result.url.includes("raw.githubusercontent.com"));
+  assert.equal(fixture.requests.find((request) => request.url.includes("raw.githubusercontent.com")).destroyed, false);
+});
+
+test("an interrupted response fails promptly and releases its request", { timeout: 1000 }, async () => {
+  const fixture = transportFixture((url, { later, respond }) => {
+    later(0, () => respond().emit("aborted"));
+  });
+  await assert.rejects(fixture.readJson("https://source.test/interrupted", 500), /下载中断/);
+  assert.equal(fixture.requests[0].destroyed, true);
+});
+
 test("a cold warm loads the newer DB watermark before racing fast old Pages against slower raw", async () => {
   const previous = snapshot(-2);
   const pages = snapshot(-3);

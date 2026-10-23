@@ -7,7 +7,7 @@ const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS, compareSnapshotVe
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-10-23-readable-v1";
+const SOURCE_REVISION = "2026-10-23-cloud-deadline-v1";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 // GitHub Pages 偶发超时不能让前台只能看到旧缓存；备用源指向同一条 main 分支的
 // 原始文件，两者内容应始终一致。两个源用 Promise.any 并发抢，谁先响应用谁，
@@ -128,53 +128,98 @@ async function ensureCollection(error) {
   }
 }
 
-function readJson(url, timeoutMs, redirectsLeft = 2) {
+function readJson(url, timeoutMs, cancellations = null) {
   return new Promise((resolve, reject) => {
-    const request = https.get(url, {
-      headers: {
-        accept: "application/json",
-        "cache-control": "no-cache",
-        "user-agent": "Aurum-WeChat-MiniProgram/1.0",
-      },
-      timeout: timeoutMs,
-    }, (response) => {
-      if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location && redirectsLeft > 0) {
-        response.resume();
-        resolve(readJson(new URL(response.headers.location, url).toString(), timeoutMs, redirectsLeft - 1));
-        return;
+    let settled = false;
+    let request;
+    let response;
+    // Socket inactivity timeouts do not bound DNS, a slow body, or redirects.
+    // One timer covers the complete download and every redirected request.
+    const timer = setTimeout(() => finish(new Error("公开快照请求超时")), timeoutMs);
+    const cancel = () => finish(new Error("公开快照请求已取消"));
+    const finish = (error, data) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      cancellations?.delete(cancel);
+      if (error) {
+        request?.destroy();
+        response?.destroy?.();
+        reject(error);
+      } else resolve(data);
+    };
+    cancellations?.add(cancel);
+
+    const visit = (currentUrl, redirectsLeft) => {
+      try {
+        const nextRequest = https.get(currentUrl, {
+          headers: {
+            accept: "application/json",
+            "cache-control": "no-cache",
+            "user-agent": "Aurum-WeChat-MiniProgram/1.0",
+          },
+        }, (incoming) => {
+          if (settled || request !== nextRequest) {
+            incoming.destroy?.();
+            return;
+          }
+          response = incoming;
+          const fail = (error) => { if (response === incoming) finish(error); };
+          incoming.on("error", fail);
+          incoming.on("aborted", () => fail(new Error("公开快照下载中断")));
+          if (incoming.statusCode >= 300 && incoming.statusCode < 400 && incoming.headers.location && redirectsLeft > 0) {
+            let nextUrl;
+            try { nextUrl = new URL(incoming.headers.location, currentUrl).toString(); }
+            catch (error) { finish(error); return; }
+            response = null;
+            request = null;
+            incoming.resume();
+            incoming.destroy?.();
+            nextRequest.destroy();
+            visit(nextUrl, redirectsLeft - 1);
+            return;
+          }
+          if (incoming.statusCode !== 200) {
+            finish(new Error(`公开快照返回 HTTP ${incoming.statusCode}`));
+            return;
+          }
+          const chunks = [];
+          let size = 0;
+          incoming.on("data", (chunk) => {
+            if (settled) return;
+            size += chunk.length;
+            if (size > MAX_RESPONSE_BYTES) {
+              finish(new Error("公开快照超过安全大小"));
+              return;
+            }
+            chunks.push(chunk);
+          });
+          incoming.on("end", () => {
+            if (settled) return;
+            try {
+              finish(null, JSON.parse(Buffer.concat(chunks).toString("utf8")));
+            } catch (error) {
+              finish(new Error("公开快照不是有效 JSON"));
+            }
+          });
+        });
+        request = nextRequest;
+        nextRequest.on("error", (error) => {
+          if (request === nextRequest) finish(error);
+        });
+      } catch (error) {
+        finish(error);
       }
-      if (response.statusCode !== 200) {
-        response.resume();
-        reject(new Error(`公开快照返回 HTTP ${response.statusCode}`));
-        return;
-      }
-      const chunks = [];
-      let size = 0;
-      response.on("data", (chunk) => {
-        size += chunk.length;
-        if (size > MAX_RESPONSE_BYTES) {
-          request.destroy(new Error("公开快照超过安全大小"));
-          return;
-        }
-        chunks.push(chunk);
-      });
-      response.on("end", () => {
-        try {
-          resolve(JSON.parse(Buffer.concat(chunks).toString("utf8")));
-        } catch (error) {
-          reject(new Error("公开快照不是有效 JSON"));
-        }
-      });
-    });
-    request.on("timeout", () => request.destroy(new Error("公开快照请求超时")));
-    request.on("error", reject);
+    };
+    visit(url, 2);
   });
 }
 
 async function readLatestSnapshot(timeoutMs) {
+  const cancellations = new Set();
   const attempts = SOURCE_URLS.map((url) => {
     const separator = url.includes("?") ? "&" : "?";
-    return readJson(`${url}${separator}mini=${Date.now()}`, timeoutMs)
+    return readJson(`${url}${separator}mini=${Date.now()}`, timeoutMs, cancellations)
       .then((data) => {
         // 每个来源单独过同一契约。快但损坏的 JSON 不能赢过有效备源。
         const sanitized = sanitizeSnapshot(data);
@@ -190,6 +235,10 @@ async function readLatestSnapshot(timeoutMs) {
       ? error.errors.map((reason, index) => `${new URL(SOURCE_URLS[index]).hostname}: ${reason?.message || reason}`)
       : [error?.message || "unknown error"];
     throw new Error(`公开快照多源回源失败；${reasons.join(" | ")}`);
+  } finally {
+    // A usable winner ends the race; the other download must not consume the
+    // cloud function's remaining time while the winner is being persisted.
+    for (const cancel of cancellations) cancel();
   }
 }
 

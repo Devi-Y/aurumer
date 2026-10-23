@@ -10,6 +10,7 @@
 6. **主运维通道是免费 GitHub Actions**（`aurum-engine` 工作流）：失败自动开 Issue，成功自动关闭；把仓库设为 Watching 即可收邮件。可选 `WANGCHAO_OPS_ALERT_WEBHOOK` 仅作云函数 warm 兜底，不配置也不影响生产刷新。
 
 函数超时建议在云开发控制台设为 **20 秒**（CLI 不一定写入 `config.json` 的 timeout）。
+回源共用 **8 秒整次下载时限**，覆盖连接、正文与重定向；有效来源胜出后取消另一请求，为数据库写入保留时间。
 线上读路径为「内存/数据库缓存优先、回源后台化」，并带 `SOURCE_REVISION` 供 `health` / 发布审计核对。
 部署后请确认触发器已启用，并确保 `data_snapshot_cache` 集合可写（函数会尝试自动创建）。
 每次正式上传前运行 `npm run audit:release`，核对 Pages / 本地 / 小程序 `updatedAt` 与金额单位规范化。

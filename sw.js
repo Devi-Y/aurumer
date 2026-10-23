@@ -1,4 +1,4 @@
-const CACHE_NAME = "aurum-shell-v12";
+const CACHE_NAME = "aurum-shell-v13";
 const BASE = new URL(self.registration.scope).pathname;
 const SHELL = [
   BASE,

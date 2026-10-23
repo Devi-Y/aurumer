@@ -14,7 +14,7 @@ const sourceUrl = "https://www.sec.gov/Archives/edgar/data/1326801/0001326801260
 const exhibitUrl = sourceUrl.replace("meta-20261020.htm", "ex991.htm");
 const checkedAt = new Date().toISOString();
 const day = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-const fact = (symbol = "META") => ({ symbol, state: "verified", scope: "recent-event-filings",
+const fact = (symbol = "META") => ({ symbol, state: "verified", scope: "recent-event-filings", eventKind: "quarterly_earnings",
   sourceUrl, filingDate: day, eventDate: day, period: { end: day }, fetchedAt: checkedAt, checkedAt,
   priceCausation: "not_established", facts: [{ summary: "公司披露季度营收与下一季指引（测试样本）。",
     sourceUrl: exhibitUrl, documentSha256: "a".repeat(64), metrics: [] }] });
@@ -76,8 +76,8 @@ test("native heat ranking includes a hottest Mag7 and both native views show the
   const { buildUsModule } = pageFunctions("miniprogram/pages/section/index.js", ["buildUsModule"]);
   const view = buildUsModule(data);
   assert.equal(view.hotList[0].code, "META");
-  assert.match(view.hotList[0].event, /公司披露季度营收/);
-  assert.match(view.sevenList.find((item) => item.code === "META").event, /公司披露季度营收/);
+  assert.equal(view.hotList[0].event, "公布季度业绩");
+  assert.equal(view.sevenList.find((item) => item.code === "META").event, "公布季度业绩");
   assert.doesNotMatch(view.hotHint, /不含七姐妹/);
   const template = read("miniprogram/pages/section/index.wxml");
   assert.equal((template.match(/class="us-event-line">\{\{item.event\}\}/g) || []).length, 2);
@@ -141,10 +141,10 @@ test("captured current Top3 facts survive sanitizer, native rows, details and or
     assert.deepEqual(Array.from(view.hotList, (row) => row.code), ["META", "AMD", "ARM"]);
     const meta = view.hotList.find((row) => row.code === "META");
     const amd = view.hotList.find((row) => row.code === "AMD");
-    assert.match(meta.event, /须待章程生效.*派发日未定/);
-    assert.match(amd.event, /拟.*对价可调整.*发行股数未定/);
-    assert.equal(view.hotList.find((row) => row.code === "ARM").event, "近期公司事件待核验");
-    assert.match(view.sevenList.find((row) => row.code === "META").event, /须待章程生效/);
+    assert.match(meta.event, /拟向股东派发新股.*尚未生效/);
+    assert.equal(amd.event, "已签订收购协议");
+    assert.equal(view.hotList.find((row) => row.code === "ARM").event, "");
+    assert.match(view.sevenList.find((row) => row.code === "META").event, /尚未生效/);
     for (const symbol of ["META", "AMD", "ARM"]) {
       const item = findItem(data, "us", symbol);
       const detail = detailView(item, data);

@@ -1407,7 +1407,8 @@
   line-height: 1.55;
 }
 
-.us-stock-row.has-order {
+.us-stock-row.has-order,
+.us-stock-row.has-event {
   flex-wrap: wrap;
   row-gap: 12rpx;
 }
@@ -2703,3 +2704,8 @@
   padding-bottom: 6rpx;
   border-top: 1rpx solid #edeef0;
 }
+
+/* A short list first; price references stay one tap deeper. */
+.more-list-link { padding: 24rpx 8rpx 8rpx; color: #1d5fd1; font-size: 25rpx; text-align: center; }
+.dividend-years { color: #1d5fd1; font-size: 25rpx; font-weight: 600; }
+.reading-hint { display: block; margin: 14rpx 0; color: #7d8188; font-size: 22rpx; }

@@ -317,7 +317,8 @@ const detailContract = `${detailSource}\n${detailTemplate}`;
 // 独立标签存在；机构持仓的“持仓”标签沿用旧名但内容已改为专属的持仓构成图+
 // 明细，不再是六标签之一；黄金的“驱动”对应美股的“动态”，都是近期变化/宏观
 // 驱动那一档）。
-const expectedMarketModuleLabels = ["概览", "价格", "动态", "依据", "分红", "申购", "卖出", "持仓", "驱动"];
+// 10-23 user feedback: use familiar words instead of forcing every label to two characters.
+const expectedMarketModuleLabels = ["怎么看", "价格", "近况", "依据", "分红", "申购", "卖出", "持仓", "驱动"];
 assert(
   detailTemplate.includes('scroll-x="true"')
   && detailTemplate.includes('class="detail-tabs"')
@@ -326,7 +327,7 @@ assert(
   "详情页缺少横向滑动模块",
 );
 for (const label of expectedMarketModuleLabels) {
-  assert([...label].length === 2, `详情页模块名称不是 2 个字：${label}`);
+  assert([...label].length >= 2 && [...label].length <= 3, `详情页模块名称过长：${label}`);
   assert(detailSource.includes(`label: "${label}"`), `详情页缺少模块：${label}`);
 }
 for (const marker of ["先看答案", "价格与位置", "数据与质量", "研究图表", "已披露资料", "风险提醒"]) {
@@ -1027,8 +1028,8 @@ assert(
 // 聪明钱「本季在加/减什么」两张答案卡和下面「本季共同方向」条形图是同一批票，
 // 栏目页只留条形图；答案卡本身还在 daily-answers 里给别处用。
 assert(
-  (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes('item.id !== "guru-add" && item.id !== "guru-cut"')
-    && (pageTemplatesByPath.get("pages/section/index") || "").includes("本季共同方向"),
+  (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes('answers: this.data.market === "guru" ? [] : answers')
+    && (pageTemplatesByPath.get("pages/section/index") || "").includes("最近披露的持仓变化"),
   "聪明钱栏目页不应把加/减仓同一批票印两遍",
 );
 assert((pageTemplatesByPath.get("pages/list/index") || "").includes("groupHelp"), "列表页应露出当前分组说明");

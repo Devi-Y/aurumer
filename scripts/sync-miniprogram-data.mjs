@@ -34,6 +34,11 @@ const freshnessModule = await readFile(path.join(root, "miniprogram/utils/action
 await writeFile(path.join(root, "assets/action-freshness.js"),
   `// Generated from miniprogram/utils/action-freshness.js.\n(function () {\n${freshnessModule.replace("module.exports =", "globalThis.AurumFreshness =")}\n})();\n`);
 
+const eventFactsModule = await readFile(path.join(root, "miniprogram/utils/us-event-facts.js"), "utf8");
+await writeFile(path.join(root, "assets/us-event-facts.js"),
+  `// Generated from miniprogram/utils/us-event-facts.js.\n(function () {\n${eventFactsModule.replace("module.exports =", "globalThis.AurumEventFacts =")}\n})();\n`);
+await writeFile(path.join(root, "cloudfunctions/aurum-data/us-event-facts.js"), eventFactsModule);
+
 const hkDatesModule = await readFile(path.join(root, "miniprogram/utils/hk-date-state.js"), "utf8");
 await writeFile(path.join(root, "assets/hk-date-state.js"),
   `// Generated from miniprogram/utils/hk-date-state.js.\n(function () {\n${hkDatesModule.replace("module.exports =", "globalThis.AurumHKDates =")}\n})();\n`);

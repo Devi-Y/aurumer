@@ -305,6 +305,11 @@
 
       <view wx:if="{{activeModule == 'dynamics' && view.market == 'us'}}" class="module-content">
         <text class="module-title">近期动态</text>
+        <view class="section-card">
+          <text class="block-title">近期公司事件</text>
+          <text class="analysis-body">{{view.dynamics.event}}</text>
+          <text wx:if="{{view.dynamics.eventVerified}}" class="collapsed-hint">SEC原文见来源；同期发生不代表涨跌原因。</text>
+        </view>
         <text class="module-answer">{{view.dynamics.heat}}</text>
         <view class="section-card" wx:if="{{view.dynamics.filings}}">
           <text class="block-title">同期公开备案</text>

@@ -130,7 +130,7 @@
           bindtap="openHkDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，{{item.badgeText}}，{{item.reason}}"
+          aria-label="{{item.name}}，{{item.badgeText}}，{{item.reason}}，{{item.event}}"
         >
           <view class="hk-row-between">
             <view class="hk-row-name-wrap">
@@ -321,12 +321,12 @@
         <view
           wx:for="{{usSevenList}}"
           wx:key="id"
-          class="us-stock-row {{item.hasOrder ? 'has-order' : ''}}"
+          class="us-stock-row {{item.hasOrder || item.event ? 'has-order' : ''}}"
           data-id="{{item.id}}"
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，{{item.badgeText}}，{{item.reason}}"
+          aria-label="{{item.name}}，{{item.badgeText}}，{{item.reason}}，{{item.event}}"
         >
           <!-- 一行三列：名字 + 判断 | 60 日走势 | 现价 + 今日涨跌。PE、营收和
                60 日区间点位都在走势图和详情页里，列表不再逐项念一遍。 -->
@@ -343,6 +343,7 @@
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
+          <text class="us-event-line">{{item.event}}</text>
           <view wx:if="{{item.hasOrder}}" class="plan-line tone-{{item.orderTone}}">
             <text class="plan-label">{{item.orderLabel}}</text>
             <text class="plan-value">{{item.orderValue}}</text>
@@ -358,12 +359,12 @@
         <view
           wx:for="{{usHotList}}"
           wx:key="id"
-          class="us-stock-row {{item.hasOrder ? 'has-order' : ''}}"
+          class="us-stock-row {{item.hasOrder || item.event ? 'has-order' : ''}}"
           data-id="{{item.id}}"
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，热度 {{item.heatText}}，{{item.why}}，{{item.takeText}}"
+          aria-label="{{item.name}}，热度 {{item.heatText}}，{{item.why}}，{{item.takeText}}，{{item.event}}"
         >
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
@@ -378,6 +379,7 @@
             <text class="us-heat-value">{{item.heatText}}</text>
             <text class="us-heat-label">热度</text>
           </view>
+          <text class="us-event-line">{{item.event}}</text>
           <view wx:if="{{item.hasOrder}}" class="plan-line tone-{{item.orderTone}}">
             <text class="plan-label">{{item.orderLabel}}</text>
             <text class="plan-value">{{item.orderValue}}</text>

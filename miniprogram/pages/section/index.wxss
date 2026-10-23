@@ -1400,6 +1400,13 @@
 }
 
 /* 带参考价的行折成两行：上面名字 | 走势 | 现价，下面一整行参考价。 */
+.us-event-line {
+  flex: 0 0 100%;
+  color: #696d75;
+  font-size: 23rpx;
+  line-height: 1.55;
+}
+
 .us-stock-row.has-order {
   flex-wrap: wrap;
   row-gap: 12rpx;

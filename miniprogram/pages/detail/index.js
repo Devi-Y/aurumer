@@ -2,6 +2,7 @@ const { openPage, goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER, RISK_LABEL } = require("../../utils/disclaimer");
 const { loadSnapshot } = require("../../data/store");
+const { plainLabel, simpleHighlights } = require("../../utils/plain-reading");
 const { freshnessBanner } = require("../../utils/freshness-ui");
 const { findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction, usHeatDriver, tickerZhLabel, tickerShortZh } = require("../../utils/answers");
 const { scoreForItem, usScoreRows } = require("../../utils/strategy-score");
@@ -2225,13 +2226,18 @@ function detailView(item, snapshot) {
   }
   base.fullName = item.name || base.title;
   if (item.market !== "guru") base.rank = "";
+  if (item.market === "us" && base.primaryJudgment === "等回撤") {
+    base.overview.reason = "公司经营情况尚可，先等价格回落。";
+  }
+  base.primaryJudgment = plainLabel(base.primaryJudgment);
+  base.highlights = simpleHighlights(base.highlights);
   return base;
 }
 
 function detailModules(market) {
   if (market === "gold") {
     return [
-      { id: "overview", label: "概览" },
+      { id: "overview", label: "怎么看" },
       { id: "trend", label: "价格" },
       { id: "dynamics", label: "驱动" },
       { id: "evidence", label: "依据" },
@@ -2239,7 +2245,7 @@ function detailModules(market) {
   }
   if (market === "guru") {
     return [
-      { id: "overview", label: "概览" },
+      { id: "overview", label: "怎么看" },
       { id: "holdings", label: "持仓" },
       { id: "evidence", label: "依据" },
     ];
@@ -2249,22 +2255,22 @@ function detailModules(market) {
   // 撞车——WXML 里旧六标签内容块只按 activeModule 判断，不看 market。
   if (market === "us") {
     return [
-      { id: "overview", label: "概览" },
+      { id: "overview", label: "怎么看" },
       { id: "trend", label: "价格" },
-      { id: "dynamics", label: "动态" },
+      { id: "dynamics", label: "近况" },
       { id: "evidence", label: "依据" },
     ];
   }
   if (market === "a") {
     return [
-      { id: "overview", label: "概览" },
+      { id: "overview", label: "怎么看" },
       { id: "trend", label: "价格" },
       { id: "dividend", label: "分红" },
       { id: "evidence", label: "依据" },
     ];
   }
   return [
-    { id: "overview", label: "概览" },
+    { id: "overview", label: "怎么看" },
     { id: "subscribe", label: "申购" },
     { id: "sell", label: "卖出" },
     { id: "evidence", label: "依据" },
@@ -2332,6 +2338,8 @@ function chartsForModule(view, moduleId) {
 
 Page({
   data: {
+    pricePlanOpen: false,
+    overviewMoreOpen: false,
     market: "hk",
     group: "",
     id: "",
@@ -2363,6 +2371,8 @@ Page({
     memberActive: false,
     writable: false,
   },
+  togglePricePlan() { this.setData({ pricePlanOpen: !this.data.pricePlanOpen }); },
+  toggleOverviewMore() { this.setData({ overviewMoreOpen: !this.data.overviewMoreOpen }); },
   onLoad(options) {
     this._detailItem = null;
     this._latestSnapshot = null;

@@ -15,7 +15,9 @@ const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { goHome, openPage } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
-const { eventSummary } = require("../../utils/us-event-facts");
+const { eventBrief } = require("../../utils/us-event-facts");
+const { plainLabel, plainOverview } = require("../../utils/plain-reading");
+const { getDividendStability } = require("../../utils/dividend-stability");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { MASTER_PLAYBOOKS } = require("../../utils/master-playbooks");
@@ -367,7 +369,7 @@ function usStockRow(item) {
     id: item.id,
     name: item.name,
     code: item.code,
-    badgeText: signal.label,
+    badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
     reason: signal.action,
     ...usMetrics(item),
@@ -390,7 +392,7 @@ function buildUsModule(snapshot) {
   const triggerTiles = allOrders.some(Boolean) ? countTiles(allOrders, US_TRIGGERS) : [];
   const allList = allRows.map(({ order, ...row }) => row);
 
-  const sevenList = sevenItems.map(usStockRow).map(({ order, ...row }) => ({ ...row, event: eventSummary(snapshot, row.code) }));
+  const sevenList = sevenItems.map(usStockRow).map(({ order, ...row }) => ({ ...row, event: eventBrief(snapshot, row.code) }));
   const labelCounts = new Map();
   sevenList.forEach((item) => {
     const entry = labelCounts.get(item.badgeText) || { label: item.badgeText, tone: item.tone, count: 0 };
@@ -415,7 +417,7 @@ function buildUsModule(snapshot) {
       name: item.name,
       code: item.code,
       why: item.heatDriver || "",
-      event: eventSummary(snapshot, item.code),
+      event: eventBrief(snapshot, item.code),
       takeText,
       takeTone,
       heatText: heat != null ? String(Math.round(heat)) : "—",
@@ -496,7 +498,11 @@ function withMetricBars(list, lens) {
 // 用这个真实分数替代，不编年数。
 function buildAModule(snapshot) {
   const items = allItems(snapshot, "a");
-  const stableList = withMetricBars(aRankedList(items, "stable5"), "stable5");
+  const stableList = withMetricBars(aRankedList(items, "stable5"), "stable5").map((row) => {
+    const raw = items.find((item) => item.id === row.id)?.raw;
+    const years = getDividendStability(raw).consecutiveYears;
+    return { ...row, dividendText: years ? `连续${years}年分红` : "分红记录待核" };
+  });
   const yieldList = withMetricBars(aRankedList(items, "yield5"), "yield5");
   const fundItem = items.find((item) => item.raw && item.raw.assetType === "fund");
   const { allList, triggerTiles } = aAllModule(items, snapshot.actionsFresh !== false);
@@ -1278,7 +1284,7 @@ Page({
     hkExitView: null,
     hkExitChart: null,
     // 美股专属：原型的「七姐妹/热门三只」两个视图，只有 market==='us' 时渲染。
-    usSubTab: "all",
+    usSubTab: "seven",
     usAllList: [],
     usTriggerTiles: [],
     usSevenList: [],
@@ -1287,7 +1293,7 @@ Page({
     usHotList: [],
     usHotHint: "",
     // A股收息专属：原型的「分红稳定性/分红收益性」两个前五榜单，只有 market==='a' 时渲染。
-    aSubTab: "all",
+    aSubTab: "stable",
     aAllList: [],
     aTriggerTiles: [],
     aStableList: [],
@@ -1307,6 +1313,9 @@ Page({
     // 机构持仓专属：原型的「共同方向/机构持仓」两个视图，只有 market==='guru' 时渲染。
     guruSubTab: "trend",
     guruTrendRows: [],
+    guruTrendRowsShown: [],
+    guruTrendExpanded: false,
+    guruTrendHint: "",
     guruInstitutionList: [],
     guruInstitutionListShown: [],
     guruInstitutionExpanded: false,
@@ -1471,12 +1480,10 @@ Page({
       const guruSelection = resolveGuruInstitution(guruModule, this.data.guruInstitutionId || guruModule?.defaultId);
       this.setData({
         groups,
-        overview: buildOverview(snapshot, this.data.market),
+        overview: plainOverview(buildOverview(snapshot, this.data.market)),
         // 聪明钱「本季他们在加/减什么」两张卡和下面「本季共同方向」那张条形图
         // 是同一批票、同一个家数，上下印两遍；2026-09-29 按产品要求只留下面那张。
-        answers: this.data.market === "guru"
-          ? answers.filter((item) => item.id !== "guru-add" && item.id !== "guru-cut")
-          : answers,
+        answers: this.data.market === "guru" ? [] : answers,
         deepLinks,
         source,
         freshness: freshnessBanner(source, meta.kind),
@@ -1511,6 +1518,9 @@ Page({
         goldChartNote: goldView.chartNote,
         goldLadder: goldView.ladder,
         guruTrendRows: guruModule ? guruModule.trendRows : [],
+        guruTrendRowsShown: guruModule ? guruModule.trendRows.slice(0, this.data.guruTrendExpanded ? undefined : 5) : [],
+        guruTrendHint: (answers.find((item) => item.id === "guru-trend")?.answer || "")
+          .replace("家有增减资料", "家机构").replace("样本", " · 部分持仓"),
         guruInstitutionList: guruModule ? guruModule.institutionList : [],
         guruInstitutionListShown: institutionListShown(
           guruModule ? guruModule.institutionList : [],
@@ -1633,6 +1643,10 @@ Page({
     const chart = this.data.goldChart;
     if (!chart || !Array.isArray(chart.values) || chart.values.length < 2) return;
     this.resolveGoldCanvasNode(0, (ctx, w, h) => paintGoldLineChart(ctx, w, h, chart.values));
+  },
+  toggleGuruTrend() {
+    const expanded = !this.data.guruTrendExpanded;
+    this.setData({ guruTrendExpanded: expanded, guruTrendRowsShown: this.data.guruTrendRows.slice(0, expanded ? undefined : 5) });
   },
   switchGuruSubTab(event) {
     const id = event.currentTarget.dataset.id;

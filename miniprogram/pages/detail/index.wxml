@@ -132,7 +132,7 @@
         <text class="module-answer">{{view.answer || '结论待核验'}}</text>
         <view wx:if="{{view.strategy}}" class="strategy-card tone-{{view.strategy.tone}}">
           <view class="strategy-card-head">
-            <text class="strategy-card-title">策略信号</text>
+            <text class="strategy-card-title">当前判断</text>
             <view class="strategy-card-head-right">
               <text class="strategy-card-label">{{view.strategy.label}}</text>
               <view class="details-toggle-inline" bindtap="toggleStrategy" hover-class="tap-active">
@@ -255,10 +255,11 @@
 
       <!-- 美股/A股/港股新股/机构持仓/黄金：决策概览＋标签，见说明四/五。 -->
       <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
-        <text class="module-title">概览</text>
+
         <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
 
-        <view wx:if="{{view.overview.orderPlan}}" class="exit-plan order-plan">
+        <view wx:if="{{view.overview.orderPlan}}" class="reading-more" bindtap="togglePricePlan" aria-role="button">{{pricePlanOpen ? '收起买卖参考' : '看买卖参考'}} {{pricePlanOpen ? '−' : '›'}}</view>
+        <view wx:if="{{view.overview.orderPlan && pricePlanOpen}}" class="exit-plan order-plan">
           <text class="exit-plan-title">{{view.overview.orderPlan.title}}</text>
           <view wx:for="{{view.overview.orderPlan.rows}}" wx:key="key" class="order-row is-{{item.key}}">
             <text class="order-label">{{item.label}}</text>
@@ -271,23 +272,17 @@
 
         <template wx:if="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
 
-        <template wx:if="{{view.overview.scoreCard}}" is="chart-visual" data="{{item: view.overview.scoreCard}}" />
 
-        <view class="section-card" wx:if="{{view.overview.evidenceBullets.length}}">
-          <text class="block-title">关键依据</text>
-          <view class="evidence-list">
-            <view wx:for="{{view.overview.evidenceBullets}}" wx:key="*this" class="evidence-item">
-              <text>{{item}}</text>
-            </view>
-          </view>
-        </view>
 
-        <view wx:if="{{view.overview.keyRisk}}" class="risk-card">
+
+
+        <view wx:if="{{view.overview.keyRisk || view.overview.nextWatch}}" class="reading-more" bindtap="toggleOverviewMore" aria-role="button">{{overviewMoreOpen ? '收起注意事项' : '看注意事项'}} {{overviewMoreOpen ? '−' : '›'}}</view>
+        <view wx:if="{{overviewMoreOpen && view.overview.keyRisk}}" class="risk-card">
           <text class="risk-label">关键风险</text>
           <text class="risk-body">{{view.overview.keyRisk}}</text>
         </view>
 
-        <view wx:if="{{view.overview.nextWatch}}" class="exit-plan">
+        <view wx:if="{{overviewMoreOpen && view.overview.nextWatch}}" class="exit-plan">
           <view class="exit-plan-head">
             <text class="exit-plan-title">下一步关注</text>
           </view>

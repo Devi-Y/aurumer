@@ -2882,14 +2882,15 @@ function quickPriceAction(symbol){
 function stockCard(x,i,groupId){
   const price=Number.isFinite(x.current_price)?x.current_price:x.price;
   const score=stockGroupScore(x,groupId);
+  const brief=globalThis.AurumEventFacts?.eventBrief?.(stockEventSnapshot(x),x.t)||'查看公司近况';
   return `<a class="compact-card" href="#/stock/${x.t}">
     <div class="compact-top">
       <span class="compact-rank">${i+1}</span><div class="compact-title"><h3>${x.t}<span>${x.n}</span></h3></div>
-      <div class="quote-now"><b class="num">${score} 分</b><span>$${Number(price).toFixed(2)} · ${pct(x.chg)}</span></div>
+      <div class="quote-now"><b class="num">评分 ${score}</b><span>$${Number(price).toFixed(2)} · ${pct(x.chg)}</span></div>
     </div>
-    <div class="compact-answer"><b>${stockPublicTag(x)}：</b>${stockAction(x)}。</div>
-    <div class="t2">${eventHtml(stockEventText(x))}</div>
-    <div class="compact-foot">${quickPriceAction(x.t)}<span>完整答案 <span class="arrow">›</span></span></div>
+    <div class="compact-answer">${stockAction(x)}。</div>
+    <div class="t2">${eventHtml(brief)}</div>
+    <div class="compact-foot"><span>查看详情 <span class="arrow">›</span></span></div>
   </a>`;
 }
 function investorTrackingScore(v){

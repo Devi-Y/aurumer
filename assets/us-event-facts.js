@@ -36,6 +36,7 @@ function sanitizeEventFact(input = {}, symbol = input.symbol) {
     && Date.parse(checkedAt) >= Date.parse(fetchedAt)
     && Date.parse(checkedAt) <= Date.now() + 5 * 60 * 1000;
   return { symbol: key, state: verified ? "verified" : "unknown", scope: "recent-event-filings",
+    eventKind: typeof input.eventKind === "string" ? input.eventKind : null,
     sourceUrl, filingDate, eventDate, period: input.period && typeof input.period === "object"
       ? Object.fromEntries(["start", "end", "fiscalYear", "fiscalQuarter"].filter((key) => input.period[key] != null).map((key) => [key, input.period[key]])) : null, fetchedAt, checkedAt,
     priceCausation: "not_established", facts: verified ? facts : [],
@@ -68,6 +69,21 @@ function eventSources(snapshot, symbol) {
       name: `${event.eventDate} 公司事件（SEC原文）`, url }));
 }
 
-globalThis.AurumEventFacts = { sanitizeEventFact, sanitizeEventFacts, eventFactFor, eventSummary, eventSources };
+function eventBrief(snapshot, symbol) {
+  const event = eventFactFor(snapshot, symbol);
+  if (event.state !== "verified") return "";
+  const labels = { capital_structure_proposal: "拟向股东派发新股，尚未生效", acquisition_agreement: "已签订收购协议",
+    quarterly_earnings: "公布季度业绩", preliminary_earnings: "发布初步业绩，未经审计",
+    bitcoin_treasury_update: "披露比特币买入情况" };
+  // Older cloud caches kept the verified metrics but not the event kind.
+  const metrics = new Set(event.facts.flatMap((fact) => fact.metrics.map((metric) => metric.name)));
+  const kind = event.eventKind || (metrics.has("classCDividendPerExistingShare") ? "capital_structure_proposal"
+    : metrics.has("acquisitionConsideration") ? "acquisition_agreement"
+      : metrics.has("bitcoinPurchased") ? "bitcoin_treasury_update"
+        : metrics.has("advertisingRevenueGuidance") ? "quarterly_earnings" : null);
+  return labels[kind] || "查看已核实的公司近况";
+}
+
+globalThis.AurumEventFacts = { sanitizeEventFact, sanitizeEventFacts, eventFactFor, eventSummary, eventBrief, eventSources };
 
 })();

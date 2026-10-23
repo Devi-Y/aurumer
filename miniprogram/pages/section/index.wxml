@@ -11,7 +11,7 @@
   </view>
 
   <!-- 结论和关键数值单独成卡，向上压住绿带下沿——和新闻资讯页筛选条压边一样。 -->
-  <view class="page-card hero-body">
+  <view wx:if="{{market === 'hk' || market === 'gold'}}" class="page-card hero-body">
     <view class="insight-panel" wx:if="{{overview.target || overview.grade}}">
       <view class="insight-line">
         <text class="insight-label">{{overview.label || '结论'}}</text>
@@ -90,17 +90,7 @@
     </view>
 
     <block wx:if="{{hkSubTab === 'apply'}}">
-      <view class="plan-trigger-grid" wx:if="{{hkApplyTiles.length}}">
-        <view
-          wx:for="{{hkApplyTiles}}"
-          wx:key="key"
-          class="plan-trigger tone-{{item.tone}} {{item.on ? 'is-on' : ''}}"
-          aria-label="{{item.label}} {{item.value}}{{item.unit}}"
-        >
-          <text class="plan-trigger-count">{{item.value}}<text wx:if="{{item.unit}}" class="plan-trigger-unit">{{item.unit}}</text></text>
-          <text class="plan-trigger-label">{{item.label}}</text>
-        </view>
-      </view>
+
       <!-- 近期上市新股首日涨跌，一根柱一只，从早到晚；红涨绿跌，零轴是发行价。 -->
       <view
         wx:if="{{hkFirstDayChart}}"
@@ -227,14 +217,7 @@
        跟详情页「下单参考」卡同一个价，数据过期时整条不显示。 -->
   <view wx:if="{{market === 'us'}}" class="page-card us-card">
     <view class="us-tabs">
-      <view
-        class="us-tab {{usSubTab === 'all' ? 'is-active' : ''}}"
-        data-id="all"
-        bindtap="switchUsSubTab"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-selected="{{usSubTab === 'all'}}"
-      >全部{{usAllList.length}}只</view>
+
       <view
         class="us-tab {{usSubTab === 'seven' ? 'is-active' : ''}}"
         data-id="seven"
@@ -242,7 +225,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{usSubTab === 'seven'}}"
-      >七姐妹</view>
+      >七家大公司</view>
       <view
         class="us-tab {{usSubTab === 'hot' ? 'is-active' : ''}}"
         data-id="hot"
@@ -254,22 +237,12 @@
     </view>
 
     <block wx:if="{{usSubTab === 'all'}}">
-      <view class="plan-trigger-grid" wx:if="{{usTriggerTiles.length}}">
-        <view
-          wx:for="{{usTriggerTiles}}"
-          wx:key="key"
-          class="plan-trigger tone-{{item.tone}} {{item.on ? 'is-on' : ''}}"
-          aria-label="{{item.label}} {{item.value}}{{item.unit}}"
-        >
-          <text class="plan-trigger-count">{{item.value}}<text wx:if="{{item.unit}}" class="plan-trigger-unit">{{item.unit}}</text></text>
-          <text class="plan-trigger-label">{{item.label}}</text>
-        </view>
-      </view>
+
       <view class="us-stock-list" wx:if="{{usAllList.length}}">
         <view
           wx:for="{{usAllList}}"
           wx:key="id"
-          class="us-stock-row has-order"
+          class="us-stock-row"
           data-id="{{item.id}}"
           bindtap="openUsDetail"
           hover-class="tap-active"
@@ -289,39 +262,19 @@
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
-          <view wx:if="{{item.hasOrder}}" class="plan-line tone-{{item.orderTone}}">
-            <text class="plan-label">{{item.orderLabel}}</text>
-            <text class="plan-value">{{item.orderValue}}</text>
-            <text wx:if="{{item.orderNote}}" class="plan-note">{{item.orderNote}}</text>
-          </view>
+
         </view>
       </view>
       <view class="us-empty" wx:else><text>美股数据暂不足以显示，请稍后刷新。</text></view>
     </block>
 
     <block wx:if="{{usSubTab === 'seven'}}">
-      <view class="us-mix" wx:if="{{usSevenMix.length}}" aria-label="{{usSevenHint}}">
-        <view class="us-mix-bar">
-          <view
-            wx:for="{{usSevenMix}}"
-            wx:key="label"
-            class="us-mix-seg tone-{{item.tone}}"
-            style="flex: {{item.count}};"
-          ></view>
-        </view>
-        <view class="us-mix-legend">
-          <view wx:for="{{usSevenMix}}" wx:key="label" class="us-mix-item">
-            <view class="us-mix-dot tone-{{item.tone}}"></view>
-            <text>{{item.label}}</text>
-            <text class="us-mix-count">{{item.count}}只</text>
-          </view>
-        </view>
-      </view>
+
       <view class="us-stock-list" wx:if="{{usSevenList.length}}">
         <view
           wx:for="{{usSevenList}}"
           wx:key="id"
-          class="us-stock-row {{item.hasOrder || item.event ? 'has-order' : ''}}"
+          class="us-stock-row {{item.event ? 'has-event' : ''}}"
           data-id="{{item.id}}"
           bindtap="openUsDetail"
           hover-class="tap-active"
@@ -343,12 +296,8 @@
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
-          <text class="us-event-line">{{item.event}}</text>
-          <view wx:if="{{item.hasOrder}}" class="plan-line tone-{{item.orderTone}}">
-            <text class="plan-label">{{item.orderLabel}}</text>
-            <text class="plan-value">{{item.orderValue}}</text>
-            <text wx:if="{{item.orderNote}}" class="plan-note">{{item.orderNote}}</text>
-          </view>
+          <text wx:if="{{item.event}}" class="us-event-line">{{item.event}}</text>
+
         </view>
       </view>
       <view class="us-empty" wx:else><text>七姐妹判断暂不足以显示，请稍后刷新。</text></view>
@@ -359,18 +308,18 @@
         <view
           wx:for="{{usHotList}}"
           wx:key="id"
-          class="us-stock-row {{item.hasOrder || item.event ? 'has-order' : ''}}"
+          class="us-stock-row {{item.event ? 'has-event' : ''}}"
           data-id="{{item.id}}"
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，热度 {{item.heatText}}，{{item.why}}，{{item.takeText}}，{{item.event}}"
+          aria-label="{{item.name}}，热度 {{item.heatText}}，{{item.event}}"
         >
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
             <view class="us-row-tags">
               <text class="us-code">{{item.code}}</text>
-              <text class="us-badge tone-{{item.takeTone}}">{{item.takeText}}</text>
+
             </view>
           </view>
           <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
@@ -379,16 +328,14 @@
             <text class="us-heat-value">{{item.heatText}}</text>
             <text class="us-heat-label">热度</text>
           </view>
-          <text class="us-event-line">{{item.event}}</text>
-          <view wx:if="{{item.hasOrder}}" class="plan-line tone-{{item.orderTone}}">
-            <text class="plan-label">{{item.orderLabel}}</text>
-            <text class="plan-value">{{item.orderValue}}</text>
-            <text wx:if="{{item.orderNote}}" class="plan-note">{{item.orderNote}}</text>
-          </view>
+          <text wx:if="{{item.event}}" class="us-event-line">{{item.event}}</text>
+
         </view>
       </view>
       <view class="us-empty" wx:else><text>近期没有明显热度突出的美股。</text></view>
     </block>
+
+    <view class="more-list-link" data-id="{{usSubTab === 'all' ? 'seven' : 'all'}}" bindtap="switchUsSubTab" aria-role="button">{{usSubTab === 'all' ? '返回七家大公司' : '查看其他股票'}} ›</view>
   </view>
 
   <!-- A股收息：「分红稳定性/分红收益性」前五。每行一个大指标 + 指标条，
@@ -396,14 +343,7 @@
        原型demo编了「连续分红N年」，真实数据没有这个字段，换成算出来的稳定性分。 -->
   <view wx:if="{{market === 'a'}}" class="page-card a-card">
     <view class="a-tabs">
-      <view
-        class="a-tab {{aSubTab === 'all' ? 'is-active' : ''}}"
-        data-id="all"
-        bindtap="switchASubTab"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-selected="{{aSubTab === 'all'}}"
-      >全部{{aAllList.length}}只</view>
+
       <view
         class="a-tab {{aSubTab === 'stable' ? 'is-active' : ''}}"
         data-id="stable"
@@ -411,7 +351,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'stable'}}"
-      >分红稳定性</view>
+      >分红更稳</view>
       <view
         class="a-tab {{aSubTab === 'yield' ? 'is-active' : ''}}"
         data-id="yield"
@@ -419,22 +359,12 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'yield'}}"
-      >分红收益性</view>
+      >分红更高</view>
     </view>
 
     <!-- 全部：顶上两格数今天到价的有几只，下面每只一行现价 + 离参考买入/卖出价多远，到价的排最上面。 -->
     <block wx:if="{{aSubTab === 'all'}}">
-      <view class="plan-trigger-grid" wx:if="{{aTriggerTiles.length}}">
-        <view
-          wx:for="{{aTriggerTiles}}"
-          wx:key="key"
-          class="plan-trigger tone-{{item.tone}} {{item.on ? 'is-on' : ''}}"
-          aria-label="{{item.label}} {{item.value}}{{item.unit}}"
-        >
-          <text class="plan-trigger-count">{{item.value}}<text wx:if="{{item.unit}}" class="plan-trigger-unit">{{item.unit}}</text></text>
-          <text class="plan-trigger-label">{{item.label}}</text>
-        </view>
-      </view>
+
       <view class="a-rows" wx:if="{{aAllList.length}}">
         <view
           wx:for="{{aAllList}}"
@@ -459,11 +389,7 @@
               <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
             </view>
           </view>
-          <view wx:if="{{item.hasOrder}}" class="plan-line tone-{{item.orderTone}}">
-            <text class="plan-label">{{item.orderLabel}}</text>
-            <text class="plan-value">{{item.orderValue}}</text>
-            <text wx:if="{{item.orderNote}}" class="plan-note">{{item.orderNote}}</text>
-          </view>
+
         </view>
       </view>
       <view class="a-empty" wx:else><text>A股数据暂不足以显示，请稍后刷新。</text></view>
@@ -490,30 +416,9 @@
               </view>
               <text class="a-code">{{item.code}}</text>
             </view>
-            <view class="a-metric">
-              <view class="a-metric-num">
-                <text class="a-metric-value">{{item.metricText}}</text>
-                <text class="a-metric-unit" wx:if="{{item.metricUnit}}">{{item.metricUnit}}</text>
-              </view>
-              <view class="a-metric-track"><view class="a-metric-fill" style="width: {{item.metricBar}}%;"></view></view>
-            </view>
+            <text class="dividend-years">{{item.dividendText}}</text>
           </view>
-          <view class="a-ladder" wx:if="{{item.hasPricePos}}">
-            <view class="a-ladder-side">
-              <text class="a-ladder-k">参考买</text>
-              <text class="a-ladder-v is-buy">{{item.buyText}}</text>
-            </view>
-            <view class="a-ladder-mid">
-              <text class="a-ladder-now zone-{{item.priceZone}}" style="left: {{item.priceLabelPos}}%;">现价 {{item.priceText}}</text>
-              <view class="a-ladder-track">
-                <view class="a-ladder-dot zone-{{item.priceZone}}" style="left: {{item.pricePos}}%;"></view>
-              </view>
-            </view>
-            <view class="a-ladder-side is-right">
-              <text class="a-ladder-k">参考卖</text>
-              <text class="a-ladder-v is-sell">{{item.sellText}}</text>
-            </view>
-          </view>
+
         </view>
       </view>
       <view class="a-empty" wx:else><text>分红稳定性榜单暂不足以显示。</text></view>
@@ -548,22 +453,7 @@
               <view class="a-metric-track"><view class="a-metric-fill" style="width: {{item.metricBar}}%;"></view></view>
             </view>
           </view>
-          <view class="a-ladder" wx:if="{{item.hasPricePos}}">
-            <view class="a-ladder-side">
-              <text class="a-ladder-k">参考买</text>
-              <text class="a-ladder-v is-buy">{{item.buyText}}</text>
-            </view>
-            <view class="a-ladder-mid">
-              <text class="a-ladder-now zone-{{item.priceZone}}" style="left: {{item.priceLabelPos}}%;">现价 {{item.priceText}}</text>
-              <view class="a-ladder-track">
-                <view class="a-ladder-dot zone-{{item.priceZone}}" style="left: {{item.pricePos}}%;"></view>
-              </view>
-            </view>
-            <view class="a-ladder-side is-right">
-              <text class="a-ladder-k">参考卖</text>
-              <text class="a-ladder-v is-sell">{{item.sellText}}</text>
-            </view>
-          </view>
+
         </view>
       </view>
       <view class="a-empty" wx:else><text>分红收益性榜单暂不足以显示。</text></view>
@@ -588,6 +478,8 @@
         <text wx:for="{{aFund.stats}}" wx:key="label" class="a-fund-stat"><text class="a-fund-stat-k">{{item.label}}</text> {{item.value}}</text>
       </view>
     </view>
+
+    <view class="more-list-link" data-id="{{aSubTab === 'all' ? 'stable' : 'all'}}" bindtap="switchASubTab" aria-role="button">{{aSubTab === 'all' ? '返回分红前五' : '查看其他股票'}} ›</view>
   </view>
 
   <!-- 黄金追踪按原型忠实复刻：币种切换 + 观察区/走势图 + 拐点判断两块面板。
@@ -647,27 +539,7 @@
       <text wx:else class="gold-chart-empty">{{goldChartNote}}</text>
 
       <!-- 研究价位轴：红线=风险下沿，绿段=观察低位，琥珀段=观察上沿，圆点=现价 -->
-      <view class="gold-ladder" wx:if="{{goldLadder}}">
-        <view class="gold-ladder-axis">
-          <text class="gold-ladder-now tone-{{goldZoneTone}}" style="left: {{goldLadder.priceLabelLeft}}%;">现价 {{goldLadder.priceText}}</text>
-          <view class="gold-ladder-track">
-            <view class="gold-ladder-band is-watch" style="left: {{goldLadder.watchLeft}}%; width: {{goldLadder.watchWidth}}%;"></view>
-            <view class="gold-ladder-band is-upper" style="left: {{goldLadder.upperLeft}}%; width: {{goldLadder.upperWidth}}%;"></view>
-            <view wx:if="{{goldLadder.hasRisk}}" class="gold-ladder-risk" style="left: {{goldLadder.riskLeft}}%;"></view>
-            <view class="gold-ladder-dot tone-{{goldZoneTone}}" style="left: {{goldLadder.priceLeft}}%;"></view>
-          </view>
-        </view>
-        <view class="gold-ladder-legend">
-          <view wx:for="{{goldLadder.tiles}}" wx:key="key" class="gold-ladder-key is-{{item.key}}">
-            <view class="gold-ladder-key-head">
-              <view class="gold-ladder-swatch"></view>
-              <text class="gold-ladder-key-label">{{item.label}}</text>
-            </view>
-            <text class="gold-ladder-key-value">{{item.value}}</text>
-            <text wx:if="{{item.note}}" class="gold-ladder-key-note {{item.noteTone ? 'tone-' + item.noteTone : ''}}">{{item.note}}</text>
-          </view>
-        </view>
-      </view>
+
     </view>
 
     <!-- 6 个宏观指标和「均线上穿/下穿」那段话原来也摆在这里，读起来全是术语；
@@ -680,7 +552,7 @@
       aria-role="button"
       aria-label="查看黄金宏观指标与拐点"
     >
-      <text>更多指标 ›</text>
+      <text>看买卖参考 ›</text>
     </view>
   </view>
 
@@ -814,7 +686,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{guruSubTab === 'trend'}}"
-      >共同方向</view>
+      >持仓变化</view>
       <view
         class="a-tab {{guruSubTab === 'holdings' ? 'is-active' : ''}}"
         data-id="holdings"
@@ -822,7 +694,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{guruSubTab === 'holdings'}}"
-      >机构持仓</view>
+      >看各家机构</view>
       <view
         class="a-tab {{guruSubTab === 'history' ? 'is-active' : ''}}"
         data-id="history"
@@ -830,15 +702,16 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{guruSubTab === 'history'}}"
-      >持仓走势</view>
+      >历季持仓</view>
     </view>
 
     <block wx:if="{{guruSubTab === 'trend'}}">
       <!-- 共同方向条形图直接展开：条长 = 同向机构数，颜色 = 加/减方向。 -->
-      <text class="hk-picker-label">本季共同方向</text>
+      <text class="hk-picker-label">最近披露的持仓变化</text>
+      <text class="reading-hint">{{guruTrendHint}}</text>
       <view class="guru-bars-body">
         <block wx:if="{{guruTrendRows.length}}">
-          <block wx:for="{{guruTrendRows}}" wx:key="key">
+          <block wx:for="{{guruTrendRowsShown}}" wx:key="key">
             <view class="guru-direction">
               <text>{{item.label}}</text>
               <text class="a-badge tone-{{item.tone}}">{{item.badge}}</text>
@@ -851,58 +724,7 @@
         <view class="a-empty" wx:else><text>本季暂无 2 家以上同向信号</text></view>
       </view>
 
-      <text class="hk-picker-label">跟着谁看</text>
-      <view class="guru-institution-list">
-        <view
-          wx:for="{{guruInstitutionListShown}}"
-          wx:key="id"
-          class="guru-institution-row"
-          data-id="{{item.id}}"
-          bindtap="switchGuruInstitution"
-          hover-class="tap-active"
-          aria-role="button"
-          aria-label="{{item.name}}，{{item.org}}{{item.hasPerf ? '，年化约 ' + item.perfText : ''}}"
-        >
-          <text wx:if="{{item.tag}}" class="guru-mkt">{{item.tag}}</text>
-          <view class="guru-institution-copy">
-            <text class="guru-institution-name">{{item.name}}</text>
-            <text class="guru-institution-org">{{item.org}}</text>
-          </view>
-          <view wx:if="{{item.hasPerf}}" class="guru-perf">
-            <text class="guru-perf-v">{{item.perfText}}</text>
-            <text class="guru-perf-k">年化</text>
-          </view>
-          <text class="arrow">›</text>
-        </view>
-        <view
-          wx:if="{{!guruInstitutionExpanded && guruInstitutionList.length > guruInstitutionListShown.length}}"
-          class="guru-institution-row guru-institution-more"
-          bindtap="toggleGuruInstitutionMore"
-          hover-class="tap-active"
-          aria-role="button"
-          aria-label="展开其余机构"
-        >
-          <view class="guru-institution-copy">
-            <text class="guru-institution-name guru-institution-more-text">展开其余 {{guruInstitutionList.length - guruInstitutionListShown.length}} 家</text>
-          </view>
-          <text class="arrow">›</text>
-        </view>
-        <view
-          class="guru-institution-row"
-          data-group="overlap"
-          data-enabled="true"
-          bindtap="openDeepLink"
-          hover-class="tap-active"
-          aria-role="button"
-          aria-label="交叉重叠，多机构共同持有"
-        >
-          <view class="guru-institution-copy">
-            <text class="guru-institution-name">交叉重叠</text>
-            <text class="guru-institution-org">多机构共同持有</text>
-          </view>
-          <text class="arrow">›</text>
-        </view>
-      </view>
+      <view wx:if="{{guruTrendRows.length > 5}}" class="more-list-link" bindtap="toggleGuruTrend" aria-role="button">{{guruTrendExpanded ? '收起其他变化' : '查看其他变化'}} ›</view>
     </block>
 
     <block wx:if="{{guruSubTab === 'holdings'}}">

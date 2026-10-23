@@ -1,4 +1,5 @@
 "use strict";
+const { sanitizeEventFacts } = require("./us-event-facts");
 
 function hasNumber(value) {
   return value !== null
@@ -348,6 +349,7 @@ function sanitizeSnapshot(snapshot) {
       stocks: (snapshot.us && snapshot.us.stocks || []).map(sanitizeUSStock),
       fundamentals: (snapshot.us && snapshot.us.fundamentals || []).map(sanitizeUSFundamental),
       filings: sanitizeUsFilings(snapshot.us && snapshot.us.filings),
+      eventFacts: sanitizeEventFacts(snapshot.us?.eventFacts),
       filingCoverage: snapshot.us?.filingCoverage && typeof snapshot.us.filingCoverage === "object" ? snapshot.us.filingCoverage : {},
     },
     hk: {

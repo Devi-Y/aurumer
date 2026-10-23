@@ -10,6 +10,7 @@ const { buildGuruTrend } = require("./guru-trend");
 const { instrumentSuffix } = require("./guru-changes");
 const { hasFilingFeed, filingsBySymbol, formatFilingLine, filingCoverageNote } = require("./us-filings");
 const { toDay } = require("./dates");
+const { eventSummary } = require("./us-event-facts");
 const {
   buildHkExitBands, formatExitBand, formatExitMedian, formatExitPositive,
   mapOfferBand, mapOfferMedian, formatTierSplit, tierForListing,
@@ -529,21 +530,21 @@ function buildUsAnswers(snapshot) {
         const head = [
           `${shortCompanyName(item.name, item.code, 8)} 本周 ${signedPct(weekOf(item))}`,
           month !== null ? `近一个月 ${signedPct(month)}` : "",
-          fund.period ? `财季 ${toDay(fund.period) || fund.period}` : "",
+          fund.period ? `报告期 ${toDay(fund.period) || fund.period}` : "",
           hasNumber(fund.revenueGrowth) ? `营收同比 ${signedPct(fund.revenueGrowth)}` : "",
         ].filter(Boolean).join(" · ");
         // 用户这一问是「发生了什么事」，涨跌只答了「动了多少」。公告是发行人
         // 自己交给 SEC 的备案，是这份快照里唯一能核对到原文的「事」。
         // 和热度卡同一个口径：拿不到这批公告就整行不写，绝不把缺数据说成「没发公告」。
-        return `${head}\n　同期公告：${filedOf(item) || filingCoverageNote(snapshot, item.code || item.id)}`;
+        return `${head}\n　${eventSummary(snapshot, item.code || item.id)}\n　同期公告：${filedOf(item) || filingCoverageNote(snapshot, item.code || item.id)}`;
       }),
       "",
       hold.length
         ? `七只里 ${hold.length} 只质量达标：${hold.map((item) => shortCompanyName(item.name, item.code, 4)).join("、")}——可长期观察的名单从这里来。`
         : "这次七只都没达到质量标准，先不谈长期观察。",
       hasFilings
-        ? "涨跌与财季来自公开行情，「同期公告」取自美国证监会官方备案。公告与当周涨跌是同期发生，不等于因果——详情页可复制原文链接自己核对。"
-        : "只汇总公开行情与已披露财季。本轮快照未带公司公告字段，不写「因为某某消息」——没有可核对的原文就不下原因结论。",
+        ? "公司事件来自SEC正文核验，备案类别只作索引。同期发生不代表涨跌原因；详情可复制原文。"
+        : "未完整取得公告列表；已核验公司事件在上方列出。缺项不代表没有事件。",
     ].join("\n")
     : "";
 
@@ -565,7 +566,7 @@ function buildUsAnswers(snapshot) {
             // 卡面这一格只放结论词，完整口径仍在展开层和 attentionNote 里。
             eligible === true ? "质量达标" : (eligible === false ? "质量不达标" : "质量数据不足"),
           ],
-          note: item.heatDriver || "驱动数据不足",
+          note: eventSummary(snapshot, item.code || item.id),
           tone: eligible === true ? "good" : (eligible === false ? "bad" : "muted"),
         };
       }),
@@ -646,12 +647,12 @@ function buildUsAnswers(snapshot) {
             // 公告字段本身没取到时整行不写。只有确实拿到了这批公告、而这一只
             // 名下一条都没有，才敢说「没发公告」——那时它是有用的信息：
             // 这波热度背后没有已披露的公司事件，纯粹是资金在动。
-            return `${head}\n　同期公告：${filed || filingCoverageNote(snapshot, item.code || item.id)}`;
+            return `${head}\n　${eventSummary(snapshot, item.code || item.id)}\n　同期公告：${filed || filingCoverageNote(snapshot, item.code || item.id)}`;
           }),
           "",
           hasFilings
-            ? "热度只由公开成交量比与涨跌幅算出。「同期公告」取自美国证监会官方备案，只说明同期发生了什么，不等于当天涨跌的原因——详情页可复制原文链接自己核对。"
-            : "热度只由公开成交量比与涨跌幅算出。本轮快照未带公司公告字段，所以这里不写「因为某某消息」——没有可核对的原文就不下原因结论。",
+            ? "热度按成交量比与涨跌幅计算。公司事件来自SEC正文核验，备案类别只作索引；同期发生不代表涨跌原因。"
+            : "热度按成交量比与涨跌幅计算。未完整取得公告列表，缺项不代表没有事件。",
           "放量下跌和放量上涨都会让热度变高，热度本身不指方向，更不是买入信号。",
         ].join("\n")
         : "",

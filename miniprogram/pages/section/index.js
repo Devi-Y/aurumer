@@ -15,6 +15,7 @@ const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { goHome, openPage } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
+const { eventSummary } = require("../../utils/us-event-facts");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { MASTER_PLAYBOOKS } = require("../../utils/master-playbooks");
@@ -389,7 +390,7 @@ function buildUsModule(snapshot) {
   const triggerTiles = allOrders.some(Boolean) ? countTiles(allOrders, US_TRIGGERS) : [];
   const allList = allRows.map(({ order, ...row }) => row);
 
-  const sevenList = sevenItems.map(usStockRow).map(({ order, ...row }) => row);
+  const sevenList = sevenItems.map(usStockRow).map(({ order, ...row }) => ({ ...row, event: eventSummary(snapshot, row.code) }));
   const labelCounts = new Map();
   sevenList.forEach((item) => {
     const entry = labelCounts.get(item.badgeText) || { label: item.badgeText, tone: item.tone, count: 0 };
@@ -414,6 +415,7 @@ function buildUsModule(snapshot) {
       name: item.name,
       code: item.code,
       why: item.heatDriver || "",
+      event: eventSummary(snapshot, item.code),
       takeText,
       takeTone,
       heatText: heat != null ? String(Math.round(heat)) : "—",
@@ -422,7 +424,7 @@ function buildUsModule(snapshot) {
     };
   });
   const hotHint = hotList.length
-    ? `热度前 ${hotList.length} 只 · 不含七姐妹`
+    ? `样本内热度前 ${hotList.length} 只`
     : "近期没有明显热度突出的美股";
 
   return { allList, triggerTiles, sevenList, sevenHint, sevenMix, hotList, hotHint };

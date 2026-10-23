@@ -26,6 +26,7 @@
 <meta name="twitter:description" content="少看行情噪音，更快找到港股、美股、A股和黄金的下一步。">
 <meta name="twitter:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
 <script src="assets/action-freshness.js"></script>
+<script src="assets/us-event-facts.js"></script>
 <script src="assets/hk-date-state.js"></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/aurum-192.png">
@@ -1479,8 +1480,8 @@ function stockQualityEligible(stock){
 }
 function hotMarketPool(stocks, limit=10){
   return [...stocks]
-    .filter(stock=>!MAGNIFICENT_SEVEN.includes(stock.t))
-    .sort((left,right)=>(stockHeatRank(right)||0)-(stockHeatRank(left)||0))
+    .filter(stock=>Number.isFinite(stock.heatScore))
+    .sort((left,right)=>(stockHeatRank(right)||0)-(stockHeatRank(left)||0) || (left.sourceOrder??0)-(right.sourceOrder??0))
     .slice(0,limit);
 }
 function hotQualityPool(stocks, limit=3){
@@ -1893,6 +1894,7 @@ function applyLiveData(payload){
 
   if(payload.us?.stocks?.length){
     const bySymbol=new Map(payload.us.stocks.map(row=>[row.symbol,row]));
+    const sourceOrder=new Map(payload.us.stocks.map((row,index)=>[row.symbol,index]));
     US_STOCKS.forEach(stock=>{
       const live=bySymbol.get(stock.t);
       if(!live)return;
@@ -1902,6 +1904,8 @@ function applyLiveData(payload){
       stock.weeklyChange=live.weeklyChange;
       stock.volumeRatio=live.volumeRatio;
       stock.heatScore=live.heatScore;
+      stock.eventFact=payload.us.eventFacts?.[stock.t]||null;
+      stock.sourceOrder=sourceOrder.get(stock.t);
       stock.history=live.history;
       stock.asOf=live.asOf;
       stock.marketState=live.marketState;
@@ -2844,6 +2848,19 @@ function stockPositionFacts(x){
 function stockPublicTag(x){
   return MAGNIFICENT_SEVEN.includes(x.t)?'七姐妹':'热度前三';
 }
+function stockEventSnapshot(x){
+  return {us:{eventFacts:{[x.t]:x.eventFact}}};
+}
+function stockEventText(x){
+  return globalThis.AurumEventFacts?.eventSummary(stockEventSnapshot(x),x.t)||'近期公司事件待核验';
+}
+function eventHtml(value){
+  return String(value||'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+}
+function stockEventSection(x){
+  const links=globalThis.AurumEventFacts?.eventSources(stockEventSnapshot(x),x.t)||[];
+  return `<div class="d-sec"><h4>近期公司事件</h4><div class="card"><p>${eventHtml(stockEventText(x))}</p>${links.length?`<div class="official-links">${links.map(source=>`<a class="official-link" href="${eventHtml(source.url)}" target="_blank" rel="noopener">${eventHtml(source.name)} ↗</a>`).join('')}</div><div class="analysis-source">同期发生不代表涨跌原因。</div>`:''}</div></div>`;
+}
 function stockHeatReason(x){
   const reasons=[];
   if(Number.isFinite(x.volumeRatio))reasons.push(`成交量为近 20 日均量 ${x.volumeRatio.toFixed(1)} 倍`);
@@ -2871,6 +2888,7 @@ function stockCard(x,i,groupId){
       <div class="quote-now"><b class="num">${score} 分</b><span>$${Number(price).toFixed(2)} · ${pct(x.chg)}</span></div>
     </div>
     <div class="compact-answer"><b>${stockPublicTag(x)}：</b>${stockAction(x)}。</div>
+    <div class="t2">${eventHtml(stockEventText(x))}</div>
     <div class="compact-foot">${quickPriceAction(x.t)}<span>完整答案 <span class="arrow">›</span></span></div>
   </a>`;
 }
@@ -2911,7 +2929,7 @@ function investorCard(v,index){
 function getUSGroups(){
   return [
     {id:'seven',label:'七姐妹',copy:'看全球科技龙头。',items:MAGNIFICENT_SEVEN.map(symbol=>US_STOCKS.find(stock=>stock.t===symbol)).filter(Boolean)},
-    {id:'hot',label:'热度前三',copy:'看七姐妹之外最热的三只。',items:hotQualityPool(US_STOCKS,3)},
+    {id:'hot',label:'热度前三',copy:'样本内热度最高三只，含七姐妹。',items:hotMarketPool(US_STOCKS,3)},
   ];
 }
 function renderUSStocks(){
@@ -3668,6 +3686,7 @@ function renderStock(x){
     </div>
     <div class="price-note">${planReady?`${answers.status}；仅供研究参考，不构成买卖指令。`:'价格答案暂未形成可靠参考。'}</div>
     <div class="source-line">美股行情截至 ${fmtDate(x.asOf)} · Yahoo Finance 公共行情</div>
+    ${stockEventSection(x)}
     <div class="d-sec"><h4>一眼看懂</h4><div class="card">
       <div class="evidence-grid">
         <div class="evidence-item"><span>综合排名</span><b>${scoreValue} 分 · 第 ${rankInfo.rank}/${rankInfo.total} 名</b><small>${rankInfo.label}内比较</small></div>

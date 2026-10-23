@@ -4234,6 +4234,149 @@
         "returnedCount": 3,
         "truncated": false
       }
+    },
+    "eventFacts": {
+      "META": {
+        "symbol": "META",
+        "eventKind": "capital_structure_proposal",
+        "eventDate": "2026-10-19",
+        "period": {
+          "end": "2026-10-19"
+        },
+        "filingDate": "2026-10-21",
+        "fetchedAt": "2026-10-23T00:51:45.174Z",
+        "priceCausation": "not_established",
+        "facts": [
+          {
+            "summary": "2026-10-19董事会批准设无投票权C类股，拟每股A/B股派一股C类股；须待章程生效，派发日未定。",
+            "metrics": [
+              {
+                "name": "classCDividendPerExistingShare",
+                "value": 1,
+                "unit": "share",
+                "qualifier": "conditional_planned"
+              }
+            ],
+            "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026066700/meta-20261019.htm",
+            "documentSha256": "45159fc0c8f805df90711e890ff3183ceeb09cd48ce98187d33ef8bcdcee8a07"
+          }
+        ],
+        "state": "verified",
+        "scope": "recent-event-filings",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026066700/meta-20261019.htm",
+        "checkedAt": "2026-10-23T00:51:45.174Z",
+        "reused": false
+      },
+      "AMD": {
+        "symbol": "AMD",
+        "eventKind": "acquisition_agreement",
+        "eventDate": "2026-09-26",
+        "period": {
+          "end": "2026-09-26"
+        },
+        "filingDate": "2026-09-28",
+        "fetchedAt": "2026-10-23T00:51:45.174Z",
+        "priceCausation": "not_established",
+        "facts": [
+          {
+            "summary": "2026-09-26签约拟以约82亿美元股票收购World Labs；对价可调整，发行股数未定。",
+            "metrics": [
+              {
+                "name": "acquisitionConsideration",
+                "value": 8.2,
+                "unit": "USD billion",
+                "qualifier": "approximate_subject_to_adjustment"
+              }
+            ],
+            "sourceUrl": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000182/amd-20260926.htm",
+            "documentSha256": "9699fa76a1ef1232ed16a89487ae538825516a9d925b4108451ae961e467ef9a"
+          }
+        ],
+        "state": "verified",
+        "scope": "recent-event-filings",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000182/amd-20260926.htm",
+        "checkedAt": "2026-10-23T00:51:45.174Z",
+        "reused": false
+      },
+      "ARM": {
+        "symbol": "ARM",
+        "state": "unknown",
+        "scope": "recent-event-filings",
+        "sourceUrl": null,
+        "filingDate": null,
+        "fetchedAt": "2026-10-23T00:51:45.174Z",
+        "facts": [],
+        "priceCausation": "not_established",
+        "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
+      },
+      "NVDA": {
+        "symbol": "NVDA",
+        "state": "unknown",
+        "scope": "recent-event-filings",
+        "sourceUrl": null,
+        "filingDate": null,
+        "fetchedAt": "2026-10-23T00:51:45.174Z",
+        "facts": [],
+        "priceCausation": "not_established",
+        "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
+      },
+      "MSFT": {
+        "symbol": "MSFT",
+        "state": "unknown",
+        "scope": "recent-event-filings",
+        "sourceUrl": null,
+        "filingDate": null,
+        "fetchedAt": "2026-10-23T00:51:45.174Z",
+        "facts": [],
+        "priceCausation": "not_established",
+        "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
+      },
+      "AAPL": {
+        "symbol": "AAPL",
+        "state": "unknown",
+        "scope": "recent-event-filings",
+        "sourceUrl": null,
+        "filingDate": null,
+        "fetchedAt": "2026-10-23T00:51:45.174Z",
+        "facts": [],
+        "priceCausation": "not_established",
+        "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
+      },
+      "GOOGL": {
+        "symbol": "GOOGL",
+        "state": "unknown",
+        "scope": "recent-event-filings",
+        "sourceUrl": null,
+        "filingDate": null,
+        "fetchedAt": "2026-10-23T00:51:45.174Z",
+        "facts": [],
+        "priceCausation": "not_established",
+        "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
+      },
+      "AMZN": {
+        "symbol": "AMZN",
+        "state": "unknown",
+        "scope": "recent-event-filings",
+        "sourceUrl": null,
+        "filingDate": null,
+        "fetchedAt": "2026-10-23T00:51:45.174Z",
+        "facts": [],
+        "priceCausation": "not_established",
+        "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
+      },
+      "TSLA": {
+        "symbol": "TSLA",
+        "facts": [],
+        "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
+        "filingDate": "2026-10-21",
+        "fetchedAt": "2026-10-23T00:51:45.174Z",
+        "priceCausation": "not_established",
+        "state": "unknown",
+        "scope": "recent-event-filings",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1318605/000162828026066738/tsla-20261021.htm",
+        "checkedAt": "2026-10-23T00:51:45.174Z",
+        "reused": false
+      }
     }
   },
   "hk": {
@@ -17477,5 +17620,5 @@
       "isLive": false
     }
   ],
-  "revisionAt": "2026-10-22T21:35:24.726Z"
+  "revisionAt": "2026-10-23T00:51:47.156Z"
 }

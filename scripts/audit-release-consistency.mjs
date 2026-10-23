@@ -40,6 +40,7 @@ for (const [label, actual, expected] of [
   ["港股日期", miniSnapshot.hk, sanitized.hk],
   ["SEC公告", miniSnapshot.us?.filings, sanitized.us?.filings],
   ["SEC核验范围", miniSnapshot.us?.filingCoverage, sanitized.us?.filingCoverage],
+  ["SEC公司事件", miniSnapshot.us?.eventFacts, sanitized.us?.eventFacts],
   ["黄金历史", miniSnapshot.gold?.history, sanitized.gold?.history],
 ]) assert(isDeepStrictEqual(actual, expected), `小程序随包${label}与本地事实不一致`);
 const miniFund = (miniSnapshot.us?.fundamentals || []).find((item) => item.symbol === "NVDA");

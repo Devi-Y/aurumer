@@ -14,6 +14,7 @@ const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
 const { marketSources, dedupeSources, sourceName } = require("../../utils/sources");
 const { filingsFor, formatFiling, formatFilingLine, filingCoverageNote } = require("../../utils/us-filings");
+const { eventSummary, eventSources, eventFactFor } = require("../../utils/us-event-facts");
 const { getDividendStability } = require("../../utils/dividend-stability");
 // 「毛利率 43%」本身不回答"这算高还是低"。望潮池子里 30 只美股、20 只 A 股
 // 的同口径字段就摆在快照里，把它算成「池内第 6/30」是零新增数据的一次密度提升。
@@ -1220,6 +1221,8 @@ function buildUSView(base, item, snapshot) {
       ? filingCoverageNote(snapshot, raw.symbol || item.code)
       : "公告覆盖待核验；当前未收录备案，不能据此判断近期没有公告。建议核对 SEC 或公司投资者关系页面。");
   base.dynamics = {
+    event: eventSummary(snapshot, raw.symbol || item.code),
+    eventVerified: eventFactFor(snapshot, raw.symbol || item.code).state === "verified",
     heat: usHeatDriver(raw) || "近期没有明显超出日常波动的热度信号。",
     filings: filingBody,
     mag7Label: mag7Label || "",
@@ -2100,6 +2103,7 @@ function buildSourceLinks(item, snapshot) {
     own.push({ id: "guru-source", name: `${item.name || "该机构"} 的 ${sourceLabel}`, url: raw.sourceUrl });
   }
   if (item.market === "us") {
+    own.push(...eventSources(snapshot, raw.symbol || item.code));
     // 「同期公告」那张卡只写日期和事件类型，是我们的转述；能点开核对的原文
     // 才是这一栏成立的理由，所以每条公告都在来源里留一个可复制的深链。
     for (const filing of filingsFor(snapshot, raw.symbol || item.code)) {

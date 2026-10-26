@@ -38,7 +38,7 @@
        只画一个虚线框，不能点。
        年费条（我的会员）已按产品要求从首页撤掉；开通入口在记录页「复盘」和详情页的会员提示里。 -->
   <view class="page-card home-panel">
-    <text class="group-label">核心研究</text>
+    <text class="group-label">免费决策参考</text>
     <view class="entry-grid">
       <block wx:for="{{entries}}" wx:key="id">
       <view wx:if="{{item.reserved}}" class="grid-card is-reserved" aria-hidden="true">

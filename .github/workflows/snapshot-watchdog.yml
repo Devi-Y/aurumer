@@ -17,12 +17,12 @@ name: Public snapshot freshness watchdog
 
 on:
   schedule:
-    # 每 3 小时一趟。门槛是 36 小时，3 小时的巡检间隔足够，且公开仓不计费。
+    # 每 3 小时检查 T+1 更新，36 个工作小时门槛，UTC 周末不累计。
     - cron: "40 */3 * * *"
   workflow_dispatch:
     inputs:
       max_age_hours:
-        description: "过期门槛（小时）。填 0.001 可做实弹演练，验证告警链路真的会响。"
+        description: "过期门槛（工作小时，周末不累计）。"
         type: string
         default: "36"
 

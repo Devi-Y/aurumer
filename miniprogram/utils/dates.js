@@ -44,9 +44,10 @@ function dayText(value) {
 // 而不是另起一条横幅：读的人第一眼看到时间，就该同时知道这时间靠不靠谱。
 function asOfText(value, kind) {
   const date = new Date(value);
-  if (!value || Number.isNaN(date.getTime())) return "数据截至待核验";
-  const stamp = `${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
-  return kind === "stale" ? `数据截至 ${stamp} · 已偏旧` : `数据截至 ${stamp}`;
+  if (!value || Number.isNaN(date.getTime())) return "更新日期待核验";
+  // updatedAt 是处理批次时间；各项真实报价日期在详情中保留。
+  const stamp = `${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  return kind === "stale" ? `盘后更新 ${stamp} · 待更新` : `盘后更新 ${stamp}`;
 }
 
 module.exports = { pad2, toDay, dayText, asOfText };

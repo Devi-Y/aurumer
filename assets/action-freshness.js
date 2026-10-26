@@ -2,17 +2,32 @@
 (function () {
 /**
  * 小程序运行时动作新鲜度：与云端 action-freshness 对齐。
- * 离线随包超过 36h 时，不展示可执行动作，只保留事实行情。
+ * T+1 日更：超过 36 个工作小时不展示动作；UTC 周末不累计。
  */
 const ACTION_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 const STALE_ACTION = "数据过期，暂不提供动作";
 const STALE_ACTION_WEEKEND = "周末没有新收盘，动作待下一交易日更新";
 
-function isActionFresh(updatedAt, now = Date.now()) {
+// 日更允许跨周末；交易所长假暂不额外延长，仍保守降级。
+// 日期本身不移动，内容修订也不能刷新行情日期。
+function weekdayAgeMs(updatedAt, now = Date.now()) {
   const stamp = Date.parse(updatedAt);
-  if (!updatedAt || Number.isNaN(stamp)) return false;
-  const age = now - stamp;
-  return age >= 0 && age <= ACTION_MAX_AGE_MS;
+  if (!updatedAt || !Number.isFinite(stamp) || stamp > now) return Infinity;
+  const dayMs = 86400000;
+  const weeks = Math.floor((now - stamp) / (7 * dayMs));
+  let age = weeks * 5 * dayMs;
+  let cursor = stamp + weeks * 7 * dayMs;
+  while (cursor < now) {
+    const day = new Date(cursor);
+    const end = Math.min(now, Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate() + 1));
+    if (day.getUTCDay() !== 0 && day.getUTCDay() !== 6) age += end - cursor;
+    cursor = end;
+  }
+  return age;
+}
+
+function isActionFresh(updatedAt, now = Date.now()) {
+  return weekdayAgeMs(updatedAt, now) <= ACTION_MAX_AGE_MS;
 }
 
 // revisionAt dates a content correction, never a newer market quote. Quote
@@ -198,6 +213,7 @@ function degradeStaleActions(snapshot, now = Date.now()) {
 
 globalThis.AurumFreshness = {
   ACTION_MAX_AGE_MS,
+  weekdayAgeMs,
   STALE_ACTION,
   STALE_ACTION_WEEKEND,
   isActionFresh,

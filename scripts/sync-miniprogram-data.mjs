@@ -3,7 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { writeDailyDigest } from "./build-daily-digest.mjs";
-import { fetchSleeveQuotes, writeSleeveQuotes } from "./fetch-sleeve-quotes.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourcePath = path.join(root, "data", "live-snapshot.json");
@@ -44,14 +43,11 @@ await writeFile(path.join(root, "assets/hk-date-state.js"),
   `// Generated from miniprogram/utils/hk-date-state.js.\n(function () {\n${hkDatesModule.replace("module.exports =", "globalThis.AurumHKDates =")}\n})();\n`);
 
 try {
-  const sleeve = await fetchSleeveQuotes();
-  await writeSleeveQuotes(sleeve);
+  // 打包只读已发布批次与已保存资料，不再临时抓取盘中行情。
+  const sleeve = JSON.parse(await readFile(path.join(root, "data/sleeve-quotes.json"), "utf8"));
   if (sleeve.quotes.length) {
     slimSnapshot.us = { ...slimSnapshot.us, sleeveQuotes: sleeve.quotes };
     console.log(`底仓 ETF 行情已并入小程序：${sleeve.quotes.map((item) => `${item.symbol} $${Number(item.price).toFixed(2)}`).join(" · ")}`);
-  }
-  if (sleeve.errors.length) {
-    console.warn(`底仓 ETF 行情未齐：${sleeve.errors.join("；")}`);
   }
 } catch (error) {
   console.warn(`底仓 ETF 行情未同步：${error.message}`);

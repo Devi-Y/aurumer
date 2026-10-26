@@ -235,7 +235,7 @@
         <view wx:if="{{view.sourceNote}}" class="source-note">
           <text>来源 {{view.sourceNote}}</text>
         </view>
-        <view class="action-stack">
+        <view wx:if="{{memberToolsEnabled}}" class="action-stack">
           <button class="member-cta" data-addon="snapshot" bindtap="openWorkspaceAction" aria-label="{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}">
             <view class="cta-copy">
               <text>{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}</text>
@@ -469,7 +469,7 @@
 
         <view wx:if="{{!view.metrics.length && !view.analysis.length && !view.facts.length && !view.holdings.length && !view.sourceLinks.length && !activeCharts.length}}" class="module-empty">当前没有可展示的依据资料。</view>
 
-        <view class="action-stack">
+        <view wx:if="{{memberToolsEnabled}}" class="action-stack">
           <button class="member-cta" data-addon="snapshot" bindtap="openWorkspaceAction" aria-label="{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}">
             <view class="cta-copy">
               <text>{{snapshotSaved ? '查看我的决策记录' : '保存决策快照'}}</text>

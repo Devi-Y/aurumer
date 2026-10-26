@@ -9,6 +9,7 @@ const MAX_AGE_MS = Number(process.env.AURUM_MINI_MAX_AGE_MS || 36 * 60 * 60 * 10
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
+const { weekdayAgeMs } = require("../miniprogram/utils/action-freshness.js");
 const snapshot = require(path.join(root, "miniprogram/data/live-snapshot.js"));
 
 const updatedAt = snapshot && snapshot.updatedAt;
@@ -17,11 +18,12 @@ if (!updatedAt || Number.isNaN(age)) {
   throw new Error("小程序随包快照缺少有效 updatedAt，拒绝上传");
 }
 if (age < 0) throw new Error(`小程序随包快照时间在未来，拒绝上传：${updatedAt}`);
-if (age > MAX_AGE_MS) {
+const workingAge = weekdayAgeMs(updatedAt);
+if (workingAge > MAX_AGE_MS) {
   const hours = (age / 3_600_000).toFixed(1);
   const limitHours = (MAX_AGE_MS / 3_600_000).toFixed(0);
   throw new Error(
-    `小程序随包快照已过期 ${hours} 小时（上限 ${limitHours} 小时，updatedAt=${updatedAt}）。` +
+    `小程序随包快照距今 ${hours} 小时，已超过 ${limitHours} 个工作小时（updatedAt=${updatedAt}）。` +
       `请先运行 npm run sync:latest 再上传。`,
   );
 }

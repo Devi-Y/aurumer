@@ -1,6 +1,7 @@
 const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
 const { allItems, groupDefinitions, shortCompanyName, money, aShareDividendStability, tickerZhLabel, usPoolItems, usQualityEligibility } = require("../../utils/answers");
+const PRODUCT = require("../../config/product");
 const {
   countTiles, usOrderState, usOrderLine, compareUsOrder, US_TRIGGERS,
   aOrderState, aOrderLine, compareAOrder, A_TRIGGERS, hkApplyTiles, goldLevelNotes,
@@ -492,10 +493,7 @@ function withMetricBars(list, lens) {
   });
 }
 
-// A股收息按原型忠实复刻：「分红稳定性/分红收益性」前五，每行带参考买卖价。
-// 原型demo数据编了「连续分红N年」，真实数据里没有连续分红年数这个字段——
-// 只有 aShareDividendStability 算出的0-100稳定性分（覆盖率/现金流/ROE加权），
-// 用这个真实分数替代，不编年数。
+// 前五只展示名字和对应分红指标，买卖参考留在详情。
 function buildAModule(snapshot) {
   const items = allItems(snapshot, "a");
   const stableList = withMetricBars(aRankedList(items, "stable5"), "stable5").map((row) => {
@@ -559,6 +557,7 @@ function aFundView(item) {
     { label: "年费率", value: fees.length ? `${feeTotal.toFixed(2)}%` : "—" },
   ];
   return {
+    id: item.id,
     name: item.name,
     code: item.code,
     badgeText: item.badge || "红利ETF",
@@ -1255,6 +1254,7 @@ const NEXT_LINKS = {
 Page({
   data: {
     market: "hk",
+    sectionAdUnitId: PRODUCT.sectionAdUnitId,
     meta: META.hk,
     groups: [],
     overview: {
@@ -1358,7 +1358,8 @@ Page({
         sourceNote: item.sourceNote,
       }))
       : [];
-    this.setData({ market, meta: META[market], playbooks, nextLink: NEXT_LINKS[market] || null });
+    this.setData({ market, meta: META[market], playbooks,
+      nextLink: market === "guru" && !PRODUCT.showPaidCommunity ? null : (NEXT_LINKS[market] || null) });
     wx.setNavigationBarTitle({ title: META[market].title });
     track("section_open", { market: String(market), from: "direct" });
     this.refresh();
@@ -1584,6 +1585,7 @@ Page({
     this.setData({ aSubTab: id });
     track("section_tab", { market: "a", tab: String(id) });
   },
+  hideSectionAd() { this.setData({ sectionAdUnitId: "" }); },
   openADetail(event) {
     const id = event.currentTarget.dataset.id;
     if (!id) return;

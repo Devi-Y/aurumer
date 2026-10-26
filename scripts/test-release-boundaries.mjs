@@ -112,6 +112,7 @@ function transportFixture(route) {
     get(url, options, callback) {
       const request = new EventEmitter();
       request.url = String(url);
+      request.headers = options.headers;
       request.destroyed = false;
       const timers = new Set();
       const later = (delay, task) => {
@@ -214,6 +215,23 @@ test("an invalid fast source cannot cancel a valid slower source", { timeout: 10
   assert.equal(fixture.requests.find((request) => request.url.includes("raw.githubusercontent.com")).destroyed, false);
 });
 
+test("official Contents API can supply the same validated batch when Pages and raw stall", { timeout: 1000 }, async () => {
+  const data = snapshot(-1);
+  const fixture = transportFixture((url, { later, respond }) => {
+    if (!url.includes("api.github.com")) return;
+    later(0, () => {
+      const response = respond();
+      response.emit("data", Buffer.from(JSON.stringify(data)));
+      response.emit("end");
+    });
+  });
+  const result = await fixture.readLatestSnapshot(500);
+  assert.ok(result.url.includes("api.github.com"));
+  assert.equal(result.data.updatedAt, data.updatedAt);
+  assert.equal(fixture.requests.find((request) => request.url.includes("api.github.com")).headers.accept, "application/vnd.github.raw+json");
+  assert.ok(fixture.requests.filter((request) => !request.url.includes("api.github.com")).every((request) => request.destroyed));
+});
+
 test("an interrupted response fails promptly and releases its request", { timeout: 1000 }, async () => {
   const fixture = transportFixture((url, { later, respond }) => {
     later(0, () => respond().emit("aborted"));
@@ -236,7 +254,7 @@ test("a cold warm loads the newer DB watermark before racing fast old Pages agai
   assert.ok(result.sourceUrl.includes("raw.githubusercontent.com"));
   const state = fixture.state();
   assert.equal(state.record.updatedAt, raw.updatedAt);
-  assert.equal(state.requested.length, 2);
+  assert.equal(state.requested.length, 3);
   assert.equal(state.cacheWrites, 1);
   assert.equal(state.factsWritten, 1);
 });
@@ -300,7 +318,7 @@ test("cloud and mini version comparison keep quote time primary and revision sec
     assert.equal(helper.compareSnapshotVersions(old, revised), -1);
     assert.equal(helper.compareSnapshotVersions(old, { ...old, revisionAt: old.updatedAt }), 0);
     assert.equal(helper.compareSnapshotVersions({ updatedAt: iso(-2) }, revised), 1);
-    const stale = snapshot(-72); stale.revisionAt = iso(-1);
+    const stale = snapshot(-168); stale.revisionAt = iso(-1);
     assert.equal(helper.degradeStaleActions(stale).actionsFresh, false, "a correction must not refresh old market facts");
   }
 });
@@ -393,7 +411,7 @@ test("website digest with equal updatedAt but an older content revision cannot a
 });
 
 test("website expired or future snapshots do not render daily action boards", () => {
-  for (const stamp of [iso(-72), iso(1)]) {
+  for (const stamp of [iso(-168), iso(1)]) {
     const fixture = browserFixture({ updatedAt: stamp, actionsFresh: true, digest: digest(stamp) }, null);
     assert.equal(fixture.run.dailyAnswerBoard("us"), "");
     assert.equal(fixture.run.dailyAnswerBoard("hk"), "");

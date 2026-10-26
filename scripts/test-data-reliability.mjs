@@ -29,7 +29,7 @@ const iso = (offset = -hour) => new Date(Date.now() + offset).toISOString();
 const clone = (value) => structuredClone(value);
 
 test("publication accepts dated US fallback without reintroducing action prices", () => {
-  const row = { symbol: "NVDA", price: 100, asOf: iso(-72 * hour), actionsFresh: false, actionNote: "本轮获取失败，保留原日期资料" };
+  const row = { symbol: "NVDA", price: 100, asOf: iso(-168 * hour), actionsFresh: false, actionNote: "本轮获取失败，保留原日期资料" };
   assert.equal(validUSActionReference(row), true);
   assert.equal(validUSActionReference({ ...row, pricePlan: { buy: 90 } }), false);
   assert.equal(validUSActionReference({ ...row, actionNote: "" }), false);
@@ -172,7 +172,7 @@ test("fresh quotes retain plans through allItems → signal → order helpers", 
 
 test("old snapshots cannot regenerate signals or orders, even if a row has a recent quote", () => {
   const data = freshFixture();
-  data.updatedAt = iso(-72 * hour);
+  data.updatedAt = iso(-168 * hour);
   for (const item of allItems(data, "us")) {
     assert.equal(buildStrategySignal(item).label, "数据待更新");
     assert.equal(usOrderState(item.raw), null);
@@ -186,7 +186,7 @@ test("old snapshots cannot regenerate signals or orders, even if a row has a rec
 
 test("A-share detail-only fallback inherits an expired snapshot gate", () => {
   const data = freshFixture();
-  data.updatedAt = iso(-72 * hour);
+  data.updatedAt = iso(-168 * hour);
   const represented = new Set(allItems(data, "a").map((item) => item.code));
   const outside = data.aShare.quotes.find((row) => !represented.has(row.code));
   assert.ok(outside, "fixture must include an A-share outside the 10-item visible sample");
@@ -197,8 +197,8 @@ test("A-share detail-only fallback inherits an expired snapshot gate", () => {
 
 test("individual quote age survives a newly fetched snapshot and a second degradation pass", () => {
   const data = freshFixture();
-  data.us.stocks[0].asOf = iso(-72 * hour);
-  data.aShare.quotes[0].priceAsOf = iso(-72 * hour);
+  data.us.stocks[0].asOf = iso(-168 * hour);
+  data.aShare.quotes[0].priceAsOf = iso(-168 * hour);
   for (const helper of [mini, cloud]) {
     const once = helper.degradeStaleActions(data);
     const twice = helper.degradeStaleActions(once);
@@ -218,6 +218,19 @@ test("missing quote time is never proof of action freshness", () => {
     const item = allItems(helper.degradeStaleActions(data), "us").find((row) => row.id === data.us.stocks[0].symbol);
     assert.equal(buildStrategySignal(item).label, "数据待更新");
     assert.equal(usOrderState(item.raw), null);
+  }
+});
+
+test("T+1 accepts Friday close through Monday but rejects a missed weekday update", () => {
+  for (const helper of [mini, cloud]) {
+    assert.equal(helper.isActionFresh("2026-10-23T20:00:00Z", Date.parse("2026-10-26T13:00:00Z")), true);
+    assert.equal(helper.isActionFresh("2026-10-23T07:00:00Z", Date.parse("2026-10-26T05:00:00Z")), true);
+    assert.equal(helper.isActionFresh("2026-10-23T20:00:00Z", Date.parse("2026-10-27T13:00:00Z")), false);
+    assert.equal(helper.isActionFresh("2026-10-23T07:00:00Z", Date.parse("2026-10-27T05:00:00Z")), false);
+    assert.equal(helper.isActionFresh("2026-10-21T12:00:00Z", Date.parse("2026-10-23T01:00:00Z")), false);
+    assert.equal(helper.isActionFresh("2026-10-16T20:00:00Z", Date.parse("2026-10-26T05:00:00Z")), false);
+    assert.equal(helper.isActionFresh(null), false);
+    assert.equal(helper.isActionFresh("invalid"), false);
   }
 });
 
@@ -342,7 +355,7 @@ test("two failed cloud sources return a bounded explicit unavailable response", 
   const result = await handler.main({ action: "getSnapshot", force: true });
   assert.equal(result.ok, false);
   assert.equal(result.error, "DATA_TEMPORARILY_UNAVAILABLE");
-  assert.equal(requested.length, 2);
+  assert.equal(requested.length, 3);
 });
 
 test("a fast malformed source cannot beat the valid slower cloud fallback", async () => {
@@ -354,7 +367,7 @@ test("a fast malformed source cannot beat the valid slower cloud fallback", asyn
 });
 
 test("a fast expired source cannot beat the valid slower fresh cloud fallback", async () => {
-  const expired = freshFixture(-72 * hour);
+  const expired = freshFixture(-168 * hour);
   const current = freshFixture();
   const handler = cloudHandler({ pages: { data: expired, delay: 0 }, raw: { data: current, delay: 10 } });
   const result = await handler.main({ action: "getSnapshot", force: true });

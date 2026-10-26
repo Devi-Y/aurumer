@@ -1672,6 +1672,7 @@ function snapshotAgeMs(updatedAt){
   return Math.max(0,Date.now()-stamp);
 }
 function isSnapshotActionFresh(updatedAt){
+  if(typeof AurumFreshness!=='undefined')return AurumFreshness.isActionFresh(updatedAt);
   const stamp=Date.parse(updatedAt);
   return Number.isFinite(stamp)&&stamp<=Date.now()&&snapshotAgeMs(updatedAt)<=ACTION_MAX_AGE_MS;
 }
@@ -1685,10 +1686,10 @@ function dataStateNotice(){
   }
   const age=snapshotAgeMs(LIVE.updatedAt);
   const stamp=fmtDate(LIVE.updatedAt);
-  if(age>ACTION_MAX_AGE_MS){
+  if(!isSnapshotActionFresh(LIVE.updatedAt)){
     return `<div class="module-data-state syncing" role="status"><span class="data-dot"></span><span>数据状态：快照已过期 · ${stamp} · ${STALE_ACTION}</span></div>`;
   }
-  return `<div class="module-data-state" role="status"><span class="data-dot"></span><span>数据状态：公开快照 · ${stamp}</span></div>`;
+  return `<div class="module-data-state" role="status"><span class="data-dot"></span><span>免费决策参考 · 盘后更新 ${stamp}</span></div>`;
 }
 function detailPlatformDisclaimer(){
   return '<div class="detail-platform-disclaimer">本平台数据仅供学习参考，不构成投资建议</div>';

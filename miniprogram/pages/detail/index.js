@@ -1,4 +1,5 @@
 const { openPage, goHome } = require("../../utils/nav");
+const PRODUCT = require("../../config/product");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER, RISK_LABEL } = require("../../utils/disclaimer");
 const { loadSnapshot } = require("../../data/store");
@@ -2369,6 +2370,7 @@ Page({
     snapshotNote: "",
     snapshotReviewAt: "",
     memberActive: false,
+    memberToolsEnabled: PRODUCT.memberToolsEnabled,
     writable: false,
   },
   togglePricePlan() { this.setData({ pricePlanOpen: !this.data.pricePlanOpen }); },
@@ -2388,7 +2390,7 @@ Page({
     this.refresh();
   },
   onShow() {
-    this.refreshMemberLink();
+    if (PRODUCT.memberToolsEnabled) this.refreshMemberLink();
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
   retryFreshness() { this.refresh(null, true); },
@@ -2469,7 +2471,7 @@ Page({
           dataAsOf,
         }, () => this.drawActiveLineCharts());
         wx.setNavigationBarTitle({ title: view.title || "资料详情" });
-        this.refreshMemberLink();
+        if (PRODUCT.memberToolsEnabled) this.refreshMemberLink();
       } catch (error) {
         console.error("[望潮] detail render failed", error);
         this.setData({

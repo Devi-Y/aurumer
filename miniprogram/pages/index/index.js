@@ -3,6 +3,8 @@ const { track, trackHomeVisit } = require("../../utils/analytics");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const { MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const OFFERS = require("../../config/offers");
+const PRODUCT = require("../../config/product");
+const { asOfText } = require("../../utils/dates");
 const { openPage } = require("../../utils/nav");
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
@@ -16,7 +18,8 @@ const SERVICE_PAGES = {
   "open-account": { url: "/pages/guide/index?topic=us-start", help: "怎么开户 · 怎么入金" },
   "paid-group": { url: "/pages/community/index", help: "聊什么 · 怎么加入" },
 };
-const SERVICES = OFFERS.filter((item) => item && SERVICE_PAGES[item.id] && (item.copy || item.pending));
+const SERVICES = OFFERS.filter((item) => item && SERVICE_PAGES[item.id] && (item.copy || item.pending)
+  && (item.id !== "paid-group" || PRODUCT.showPaidCommunity));
 
 // 九宫格的前五格是这五个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
 // 没有副标题也没有箭头。help 不再上屏，但留着当读屏标签用。
@@ -65,6 +68,7 @@ const GRID_ENTRIES = [
   { id: "reserved", reserved: true },
   ...SERVICES.map(({ id, icon, title }) => ({ id, action: "page", icon, title, help: SERVICE_PAGES[id].help, url: SERVICE_PAGES[id].url })),
 ];
+while (GRID_ENTRIES.length < 9) GRID_ENTRIES.push({ id: `reserved-${GRID_ENTRIES.length}`, reserved: true });
 
 // ---------- 首页走势卡：每张只用快照里的真实序列，序列不够整张不出 ----------
 
@@ -203,11 +207,7 @@ Page({
     return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   },
   formatAsOf(value, kind = "aging") {
-    const date = new Date(value);
-    if (!value || Number.isNaN(date.getTime())) return "数据截至待核验";
-    const stamp = this.formatTime(date);
-    if (kind === "stale") return `数据截至 ${stamp} · 已偏旧`;
-    return `数据截至 ${stamp}`;
+    return asOfText(value, kind);
   },
   openGridEntry(event) {
     const id = event.currentTarget.dataset.id;

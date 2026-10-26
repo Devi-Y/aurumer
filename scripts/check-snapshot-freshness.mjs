@@ -17,6 +17,9 @@
 // 它检的也是「有没有成功过」（快照的 updatedAt 有多旧），不是「有没有失败过」：
 // 前者才是用户真正在意的性质，而且在「连运行记录都没产生」的情况下同样成立。
 
+import { createRequire } from "node:module";
+const { weekdayAgeMs } = createRequire(import.meta.url)("../miniprogram/utils/action-freshness.js");
+
 const SNAPSHOT_URL =
   process.env.SNAPSHOT_URL || "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 const MAX_AGE_HOURS = Number(process.env.MAX_AGE_HOURS || 36);
@@ -66,10 +69,11 @@ async function main() {
     } else {
       ageHours = hours(Date.now() - parsed);
       facts.push(`updatedAt = ${updatedAt}`);
-      facts.push(`距今 = ${fmt(ageHours)} 小时（门槛 ${MAX_AGE_HOURS} 小时）`);
-      if (ageHours > MAX_AGE_HOURS) {
+      const workHours = hours(weekdayAgeMs(updatedAt));
+      facts.push(`距今 = ${fmt(ageHours)} 小时；工作时段 ${fmt(workHours)} 小时（门槛 ${MAX_AGE_HOURS} 工作小时）`);
+      if (workHours > MAX_AGE_HOURS) {
         problems.push(
-          `对外快照已经 ${fmt(ageHours)} 小时没有更新，超过 ${MAX_AGE_HOURS} 小时门槛`,
+          `对外快照已经 ${fmt(workHours)} 个工作小时没有更新，超过 ${MAX_AGE_HOURS} 工作小时门槛`,
         );
       }
       // 未来时间通常意味着生成机器的时钟不对，或者快照被手工改过。

@@ -405,16 +405,14 @@
           bindtap="openADetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，第{{item.rank}}名，{{item.metricLabel}}{{item.metricText}}{{item.metricUnit}}"
+          aria-label="{{item.name}}，第{{item.rank}}名，{{item.dividendText}}"
         >
           <view class="a-row-top">
             <text class="a-rank">{{item.rank}}</text>
             <view class="a-row-main">
               <view class="a-name-row">
                 <text class="a-stock-name">{{item.name}}</text>
-                <text class="a-badge tone-{{item.tone}}">{{item.badgeText}}</text>
               </view>
-              <text class="a-code">{{item.code}}</text>
             </view>
             <text class="dividend-years">{{item.dividendText}}</text>
           </view>
@@ -441,9 +439,7 @@
             <view class="a-row-main">
               <view class="a-name-row">
                 <text class="a-stock-name">{{item.name}}</text>
-                <text class="a-badge tone-{{item.tone}}">{{item.badgeText}}</text>
               </view>
-              <text class="a-code">{{item.code}}</text>
             </view>
             <view class="a-metric">
               <view class="a-metric-num">
@@ -459,8 +455,8 @@
       <view class="a-empty" wx:else><text>分红收益性榜单暂不足以显示。</text></view>
     </block>
 
-    <!-- 红利 ETF：现价 + 今日 + 90 日走势线，跟踪指数和费率缩成一行小字。 -->
-    <view class="a-fund-card" wx:if="{{aFund}}">
+    <!-- 基金留在展开列表，前五榜单只展示股票。 -->
+    <view class="a-fund-card" wx:if="{{aFund && aSubTab === 'all'}}" data-id="{{aFund.id}}" bindtap="openADetail" hover-class="tap-active" aria-role="button" aria-label="查看{{aFund.name}}">
       <view class="a-row-between">
         <view class="a-row-name-wrap">
           <text class="a-stock-name">{{aFund.name}}</text>
@@ -908,6 +904,8 @@
     <text class="next-ask">{{nextLink.ask}}</text>
     <text class="next-go">{{nextLink.go}} ›</text>
   </view>
+
+  <ad wx:if="{{sectionAdUnitId}}" unit-id="{{sectionAdUnitId}}" binderror="hideSectionAd"></ad>
 
   <view class="page-note">
     <text>{{disclaimer}}</text>

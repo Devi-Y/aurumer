@@ -3,22 +3,18 @@
 const https = require("node:https");
 const { sanitizeSnapshot } = require("./sanitize");
 const { writeFactVersions } = require("./fact-versions");
-const { degradeStaleActions, snapshotAgeMs, ACTION_MAX_AGE_MS, compareSnapshotVersions } = require("./action-freshness");
+const { degradeStaleActions, snapshotAgeMs, isActionFresh, compareSnapshotVersions } = require("./action-freshness");
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-10-23-cloud-deadline-v1";
+const SOURCE_REVISION = "2026-10-26-t1-free-v1";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
-// GitHub Pages 偶发超时不能让前台只能看到旧缓存；备用源指向同一条 main 分支的
-// 原始文件，两者内容应始终一致。两个源用 Promise.any 并发抢，谁先响应用谁，
-// 不做真正的顺序回退——顺序回退在平台 3 秒预算内会因为叠加超时而更容易超时。
-// 之前这里还有第三个指向早已废弃的 agent/wangchao-risk-gold-member-20260811
-// 分支的源：那个分支的 live-snapshot.json 自 2026-08-12 起再未更新，一旦它在
-// 并发竞速里胜出，就会把 39 天前的旧快照当作"刚刷新"的结果写回缓存。删除后
-// 只保留两个都追踪 main 分支的源，竞速结果永远同样新鲜。
+// 三条官方通道都读取同一 main 分支的公开文件。有效来源胜出后取消其他请求；
+// 单独校验结构、日期和版本水位，较旧的来源不能覆盖已验证的新批次。
 const SOURCE_URLS = [
   SOURCE_URL,
   "https://raw.githubusercontent.com/Devi-Y/aurumer/main/data/live-snapshot.json",
+  "https://api.github.com/repos/Devi-Y/aurumer/contents/data/live-snapshot.json?ref=main",
 ];
 /** 10 分钟内视为新鲜；超过则后台回源，前台仍先读缓存。 */
 const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -154,7 +150,7 @@ function readJson(url, timeoutMs, cancellations = null) {
       try {
         const nextRequest = https.get(currentUrl, {
           headers: {
-            accept: "application/json",
+            accept: new URL(currentUrl).hostname === "api.github.com" ? "application/vnd.github.raw+json" : "application/json",
             "cache-control": "no-cache",
             "user-agent": "Aurum-WeChat-MiniProgram/1.0",
           },
@@ -223,7 +219,7 @@ async function readLatestSnapshot(timeoutMs) {
       .then((data) => {
         // 每个来源单独过同一契约。快但损坏的 JSON 不能赢过有效备源。
         const sanitized = sanitizeSnapshot(data);
-        if (snapshotAgeMs(data.updatedAt) > ACTION_MAX_AGE_MS) throw new Error("公开快照已过期");
+        if (!isActionFresh(data.updatedAt)) throw new Error("公开快照已过期");
         if (cachedResult && compareSnapshotVersions(data, cachedResult) < 0) throw new Error("来源落后于已验证缓存");
         return { data, sanitized, url };
       });
@@ -315,7 +311,7 @@ function applyServeFreshness(result) {
     actionsFresh: data.actionsFresh !== false,
     contentAgeMs: contentAge,
   };
-  if (contentAge > ACTION_MAX_AGE_MS) {
+  if (!isActionFresh(data.updatedAt)) {
     next.warning = next.warning || "SNAPSHOT_CONTENT_STALE";
     next.actionDegradeReason = data.actionDegradeReason || "数据过期，暂不提供动作";
   }
@@ -362,7 +358,7 @@ exports.main = async (event = {}) => {
     try {
       const result = await refreshSnapshot(WARM_REQUEST_TIMEOUT_MS);
       const contentAge = snapshotAgeMs(result.updatedAt);
-      if (contentAge > ACTION_MAX_AGE_MS) {
+      if (!isActionFresh(result.updatedAt)) {
         await alertOpsOnce("warm-content-stale", {
           error: `公开快照内容已过期 ${(contentAge / 3_600_000).toFixed(1)} 小时`,
           updatedAt: result.updatedAt,
@@ -388,6 +384,7 @@ exports.main = async (event = {}) => {
         return withCacheMeta({
           ok: true,
           warmed: false,
+          sourceError: String(error && error.message || "").slice(0, 500),
           warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
           updatedAt: persisted.updatedAt,
           revisionAt: persisted.revisionAt || persisted.updatedAt,

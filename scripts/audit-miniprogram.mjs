@@ -392,8 +392,8 @@ assert(indexTemplate.includes('class="entry-icon"') && !indexTemplate.includes('
 assert(indexTemplate.includes('aria-label="{{item.title}}，{{item.help}}"') && indexTemplate.includes('aria-hidden="true"'), "小程序核心入口缺少按钮朗读标签或装饰图标隐藏语义");
 assert(indexTemplate.includes('role="button"') && !indexTemplate.includes("<button"), "小程序首页整块入口不应受原生 button 默认宽度干扰");
 assert(
-  indexTemplate.includes("核心研究") || indexSource.includes('"核心研究"'),
-  "小程序首页缺少清晰层级：核心研究",
+  indexTemplate.includes("免费决策参考"),
+  "小程序首页应标明免费决策参考",
 );
 // 只看会渲染出来的部分：WXML 注释里记一句「今日重点已撤掉」不算回潮。
 assert(
@@ -456,7 +456,8 @@ for (const [marketId, label] of [["hk", "港股"], ["us", "美股"], ["a", "A股
 assert(
   indexTemplate.includes("dataAsOf")
   && !indexTemplate.includes("footerMeta")
-  && indexSource.includes("数据截至"),
+  && (indexTemplate.match(/\{\{dataAsOf/g) || []).length === 1
+  && indexSource.includes("asOfText"),
   "首页数据截至时间应只保留一处",
 );
 // 首页改成蓝白灰主色调（2026-09-29）后，九宫格里五个研究栏目图标统一用品牌蓝 #1d5fd1
@@ -850,7 +851,10 @@ assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes(
     const sourceSell = (Array.isArray(source.tp) ? source.tp : []).map(Number).filter((value) => Number.isFinite(value) && value > 0);
     const ordered = Number(source.buy) > 0 && Number(source.stop) > 0 && sourceSell.length
       && Number(source.stop) < Number(source.buy) && sourceSell[0] > Number(source.buy);
-    if (sanitized.actionsFresh && ordered) assert(stock.pricePlan, `美股 ${symbol} 引擎有完整三档价，清洗后却没有 pricePlan`);
+    if (sanitized.actionsFresh && stock.actionsFresh !== false && ordered) {
+      assert(stock.pricePlan, `美股 ${symbol} 引擎有完整三档价，清洗后却没有 pricePlan`);
+    }
+    if (stock.actionsFresh === false) assert(!stock.pricePlan, `美股 ${symbol} 行情过期后不能保留 pricePlan`);
     if (!stock.pricePlan) continue;
     assert(
       stock.pricePlan.buy === Number(source.buy)
@@ -970,9 +974,9 @@ assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes(
 }
 // 今日重点标题撤掉后，「数据截至」挂在核心研究那一行的右侧，仍是自动更新的。
 assert(
-  indexTemplate.includes("核心研究")
+  indexTemplate.includes("免费决策参考")
   && indexTemplate.includes("dataAsOf")
-  && indexSource.includes("数据截至"),
+  && indexSource.includes("asOfText"),
   "首页缺少固定分组标题或自动更新的数据截至时间",
 );
 

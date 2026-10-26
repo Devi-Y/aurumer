@@ -72,7 +72,7 @@ assert(html.includes("itemCashFlow.label"), "A股横向排名缺少自由现金�
 assert(html.includes("复盘分仅比较历史实际表现，不代表当时的申购评分"), "港股已结束列表缺少复盘分口径说明");
 assert(html.includes("宁可错过，也不勉强参与"), "港股值得打空状态不够友好");
 assert(html.includes("重点观察＝股息率&gt;3%且FCF/市值&gt;5%"), "A股分类页缺少判断标准");
-assert(html.includes("数据状态：公开快照"), "模块顶部缺少真实快照时间状态");
+assert(html.includes("免费决策参考 · 盘后更新 ${stamp}"), "模块顶部缺少盘后数据及真实批次日期");
 assert(html.includes("STALE_ACTION"), "缺少数据过期动作降级文案常量");
 assert(html.includes("本平台数据仅供学习参考，不构成投资建议"), "详情页缺少统一学习免责声明");
 assert(html.includes("function showUSPriceFloat"), "美股列表缺少观察区间浮层交互");

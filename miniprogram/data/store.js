@@ -1,5 +1,5 @@
 const bundledSnapshot = require("./live-snapshot");
-const { degradeStaleActions, compareSnapshotVersions } = require("../utils/action-freshness");
+const { degradeStaleActions, compareSnapshotVersions, weekdayAgeMs } = require("../utils/action-freshness");
 
 const REMOTE_TTL_MS = 10 * 60 * 1000;
 // 云端本轮结论不完整时的重试间隔。这种情况多半是云函数冷启动先读到旧的
@@ -72,7 +72,7 @@ function snapshotAgeMs(snapshot) {
 }
 
 function freshnessKind(snapshot, baseSource, warning) {
-  const age = snapshotAgeMs(snapshot);
+  const age = weekdayAgeMs(snapshot && snapshot.updatedAt);
   const warnText = String(warning || "");
   // 仅上游不可用 / 明确缓存回退才算异常；后台回源中、内容偏旧都不是故障。
   if (baseSource === "缓存回退" || UPSTREAM_DOWN_RE.test(warnText)) {

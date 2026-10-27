@@ -74,7 +74,7 @@ test("complete offline review fixtures preserve the original material without se
   const reviews = Object.fromEntries(Object.keys(originalReviews).map((id) => [id, {
     status: "verified", provider: "offline test fixture", qualification: "offline fixture", authorization: "offline fixture",
   }]));
-  for (const [topic, id, action] of [["hk-open", "hk-open-account", "copyPendingContact"], ["us-start", "open-account", "copyPendingContact"], ["a-open", "a-open-account", "previewOffer"], ["vpn", "global-access", "copyOffer"]]) {
+  for (const [topic, id, action] of [["hk-open", "hk-open-account", "copyPendingContact"], ["us-start", "open-account", "copyOffer"], ["a-open", "a-open-account", "previewOffer"], ["vpn", "global-access", "copyOffer"]]) {
     const { page, calls } = pageFixture("../miniprogram/pages/guide/index.js", reviews);
     page.onLoad({ topic }); page[action]();
     const offer = offers.find((entry) => entry.id === id);

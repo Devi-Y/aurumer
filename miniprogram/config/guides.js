@@ -42,8 +42,8 @@ module.exports = {
     sections: [],
     offer: {
       id: "open-account",
-      head: "咨询美股开户",
-      body: "通过现有联系人了解开户渠道，具体条件及费用以券商说明为准。",
+      head: "盈透证券（IBKR）",
+      body: "开户条件、费用及好友推荐活动资格以盈透证券官方说明为准。",
     },
   },
 

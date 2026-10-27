@@ -24,11 +24,14 @@
     </view>
     <view class="sec">
       <text class="sec-title">怎么加入</text>
+      <text class="community-price">{{priceLabel}}</text>
+      <text class="join-disclosure">{{promotionNote}}</text>
+      <text class="join-disclosure">{{purchaseNote}}</text>
+      <view class="terms-link" bindtap="openTerms" hover-class="tap-active" aria-role="button">查看服务与退款约定 ›</view>
       <block wx:if="{{join}}">
         <text class="sec-text">复制微信号，在微信「添加朋友」里粘贴搜索。</text>
         <view class="join-action" bindtap="copyWechat" hover-class="join-action-active" aria-role="button" aria-label="{{join.label}}">{{join.label}}</view>
         <text class="join-disclosure">{{join.disclosure}}</text>
-        <text class="join-disclosure">服务内容、价格和退款规则请在付款前确认。</text>
       </block>
       <text wx:else class="sec-muted">加入方式整理中。</text>
     </view>

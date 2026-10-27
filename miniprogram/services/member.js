@@ -1,4 +1,5 @@
 const runtime = require("../config/runtime");
+const PRODUCT = require("../config/product");
 
 const PREVIEW_PLANS = [
   {
@@ -98,6 +99,11 @@ function invokeWechatPayment(payment) {
 }
 
 async function purchase(planId, legalConsent) {
+  if (!PRODUCT.memberToolsEnabled) {
+    const error = new Error("原年度研究会员已停止新购，研究内容免费。");
+    error.code = "RESEARCH_PURCHASE_RETIRED";
+    throw error;
+  }
   const prepared = await callBackend("preparePurchase", { planId, legalConsent });
   await invokeWechatPayment(prepared.payment);
   // 与问岳保持同一条最短用户链路：一次下单后立即拉起微信收银台。

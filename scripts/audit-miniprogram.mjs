@@ -338,9 +338,9 @@ assert(
     && detailSource.includes('title: "经营风险"')
     && detailSource.includes('title: "行业风险"')
     && detailSource.includes('title: "价格风险"')
-    && detailSource.includes('title: "退出触发"')
+    && detailSource.includes('title: "历史风险复核"')
     && detailTemplate.includes("riskItems"),
-  "A 股详情缺少经营/行业/价格/退出触发四类投研风险提醒",
+  "A股详情缺少经营、行业、价格及历史风险复核",
 );
 assert(detailSource.includes("国际观察分") && detailSource.includes("人民币观察分"), "黄金详情缺少双观察分展示");
 assert(indexSource.includes("pages/section/index"), "小程序首页仍未进入原生二级页");

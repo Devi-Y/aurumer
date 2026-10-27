@@ -124,19 +124,25 @@ assert(indexHtml.includes("data/daily-digest.json") && indexHtml.includes("funct
 const digest = JSON.parse(await readFile(resolve(root, "data/daily-digest.json"), "utf8"));
 assert(digest.updatedAt === snapshot.updatedAt, "今日答案摘要与公开快照 updatedAt 不一致");
 assert((digest.revisionAt || null) === (snapshot.revisionAt || null), "今日答案摘要与公开快照内容修订版本不一致");
-assert(["hk", "us", "a", "gold", "guru"].every((market) => Array.isArray(digest.markets?.[market]) && digest.markets[market].length >= 3), "今日答案摘要五个栏目不完整");
+assert(["hk", "us", "a", "gold", "guru"].every((market) => Array.isArray(digest.markets?.[market]) && digest.markets[market].length >= 2), "历史资料摘要五个栏目不完整");
 // 这份清单对位的是用户提的六条诉求，不是「今天恰好生成了哪几张卡」。
 // 少一条就是少回答一个用户花钱买的问题，所以宁可写死也要逐条点名。
 const requiredQuestions = {
   hk: ["近期上新", "哪些值得打", "哪些要避雷", "打中后暗盘", "打中后首日"],
-  us: ["七姐妹近期怎么了", "低估的七姐妹", "风险升高要减", "最热的三只"],
-  a: ["分红稳定性 前五", "分红收益性 前五", "什么价可加大", "什么价可兑现"],
-  gold: ["现在什么价", "是否值得买入", "是否应该卖出", "拐点变化"],
+  us: ["七姐妹样本表现", "样本热度前三"],
+  a: ["分红稳定性 前五", "分红收益性 前五"],
+  gold: ["历史报价", "拐点变化"],
   guru: ["业绩靠前持仓", "本季他们在加什么", "本季他们在减什么", "未来持仓趋势"],
 };
 for (const [market, questions] of Object.entries(requiredQuestions)) {
   const actual = new Set((digest.markets[market] || []).map((card) => card.question));
   for (const question of questions) assert(actual.has(question), `今日答案摘要 ${market} 缺少：${question}`);
+}
+for (const market of ["us", "a", "gold"]) {
+  for (const card of digest.markets[market]) {
+    assert(!["us-risk", "us-cheap", "a-add", "a-trim", "gold-buy", "gold-sell"].includes(card.id), `历史资料不应含即时动作卡：${card.id}`);
+    assert(card.hint.includes("仅供历史研究参考"), `历史资料缺少口径与日期提示：${card.id}`);
+  }
 }
 // 上面查的是「文件里有没有这几问」，这里查「文件是不是这份快照现算出来的」。
 // 2026-09-04 线上停更 17 小时就栽在这条缝里：卡片改名之后本地 audit 依旧全绿，
@@ -150,42 +156,20 @@ for (const market of Object.keys(requiredQuestions)) {
 }
 const answerText = JSON.stringify(digest.markets);
 // 七姐妹须按当前资料动态筛选；空榜也要明确回答，不固定指定某三只。
-for (const id of ["us-cheap", "us-risk"]) {
+for (const id of ["us-seven", "us-hot"]) {
   const card = (digest.markets.us || []).find((card) => card.id === id);
-  assert(card && card.answer, `美股每日答案缺少动态判断：${id}`);
+  assert(card && card.answer, `美股历史摘要缺少样本事实：${id}`);
 }
 assert(!/每日重点固定看|每日风险重点固定看/.test(answerText), "美股每日答案仍使用固定入选名单");
 assert(answerText.includes("不照抄仓位") && answerText.includes("滞后披露"), "机构每日答案必须保留跟随边界");
 assert(!/strategyAssessment|modelEstimate|breakProbability/.test(JSON.stringify(digest)), "今日答案摘要泄露内部字段");
-// 价格进了观察低位、引擎结论却是「等待更好价格」时，买入卡不能说「可分批加大」——
-// 2026-09-29 黄金页顶上写「等待更好价格」，今日答案和记录页却写「可加大」。
-{
-  const watch = miniSnapshot.gold?.answer?.pricePlan?.internationalWatch;
-  if (watch && Number.isFinite(Number(watch.low)) && Number.isFinite(Number(watch.high))) {
-    const inZone = JSON.parse(JSON.stringify(miniSnapshot));
-    // This hypothetical tests agreement with a current engine action; production
-    // quote age has its own stale-action regression and must not age this case.
-    const hypotheticalTime = new Date(Date.now() - 60_000).toISOString();
-    inZone.updatedAt = hypotheticalTime;
-    inZone.actionsFresh = true;
-    inZone.gold.status = "live";
-    inZone.gold.actionsFresh = true;
-    inZone.gold.snapshotUpdatedAt = hypotheticalTime;
-    delete inZone.gold.actionNote;
-    for (const quote of Object.values(inZone.gold.quotes)) {
-      quote.asOf = hypotheticalTime;
-      quote.snapshotUpdatedAt = hypotheticalTime;
-      quote.actionsFresh = true;
-      delete quote.actionNote;
-    }
-    inZone.gold.quotes.international.price = Number(watch.high) - 0.5;
-    const goldBuy = (action) => {
-      inZone.gold.answer.action = action;
-      return (buildDailyDigestDocument(inZone).markets.gold || []).find((card) => card.question === "是否值得买入")?.answer || "";
-    };
-    assert(!goldBuy("等待更好价格").includes("可分批加大"), "黄金引擎结论是等待时，买入卡不应说可分批加大");
-    assert(goldBuy("可分批关注").includes("可分批加大"), "黄金引擎结论是可分批关注且进了观察低位时，买入卡应说可分批加大");
-  }
+// 历史模式不接收模型动作卡；即使底层有新报价和旧模型判断，也只呈现历史事实。
+for (const action of ["等待更好价格", "可分批关注"]) {
+  const hypothetical = JSON.parse(JSON.stringify(miniSnapshot));
+  if (hypothetical.gold && hypothetical.gold.answer) hypothetical.gold.answer.action = action;
+  const cards = buildDailyDigestDocument(hypothetical).markets.gold;
+  assert(cards.some((card) => card.id === "gold-price"), "黄金摘要缺少历史报价事实");
+  assert(!cards.some((card) => ["gold-buy", "gold-sell"].includes(card.id)), "历史模式不应恢复模型买卖卡");
 }
 
 try {

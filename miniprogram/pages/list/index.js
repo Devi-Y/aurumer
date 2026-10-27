@@ -58,7 +58,7 @@ function comparisonMetric(item, market) {
       const value = Number(item.raw.changePercent);
       return {
         value: Math.abs(value),
-        label: `今日 ${value >= 0 ? "+" : ""}${value.toFixed(1)}%`,
+        label: `报价日 ${value >= 0 ? "+" : ""}${value.toFixed(1)}%`,
         tone: value < 0 ? "down" : "up",
       };
     }
@@ -198,9 +198,11 @@ Page({
   retryFreshness() { this.refresh(null, true); },
   refresh(done, force = false) {
     loadSnapshot((snapshot, source, meta = {}) => {
-      const definitions = groupDefinitions(snapshot, this.data.market).filter((item) => item.count > 0);
+      const historical = require("../../config/product").dataMode === "historical-reference";
+      const actionGroups = new Set(this.data.market === "a" ? ["add", "trim"] : this.data.market === "us" ? ["cheap7", "risk7"] : this.data.market === "gold" ? ["plan"] : []);
+      const definitions = groupDefinitions(snapshot, this.data.market).filter((item) => item.count > 0 && !(historical && actionGroups.has(item.id)));
       const group = definitions.find((item) => item.id === this.data.group) || definitions[0];
-      const activeGroup = group ? group.id : this.data.group;
+      const activeGroup = group ? group.id : (historical && actionGroups.has(this.data.group) ? ({ a: "core", us: "seven", gold: "track" }[this.data.market]) : this.data.group);
       const rawItems = allItems(snapshot, this.data.market)
         .filter((item) => matchesGroup(item, activeGroup))
         // 分组自带名次时（A股两个「前五」榜）按名次排。行里那个 01–05 的序号
@@ -282,7 +284,7 @@ Page({
           fact: rowFact(item, market, {
             badge: item.badge,
             score: scored.score,
-            dropChange: metricLabel.indexOf("今日") === 0,
+            dropChange: metricLabel.indexOf("报价日") === 0,
             metricLabel,
             metricPercent,
           }),

@@ -104,10 +104,12 @@ Page({
     const offer = this.data.offer;
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
     if (!canUseOffer(source) || !source.copy) return;
-    track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
     wx.setClipboardData({
       data: source.copy,
-      success: () => wx.showToast({ title: source.toast || "已复制", icon: "none" }),
+      success: () => {
+        track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
+        wx.showToast({ title: source.toast || "已复制", icon: "none" });
+      },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
   },
@@ -117,10 +119,12 @@ Page({
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
     const contact = pendingContact(source);
     if (!canUseOffer(source) || !contact) return;
-    track("service_copy", { id: source.id, via: contact.id, from: `guide_${this.data.topic}` });
     wx.setClipboardData({
       data: contact.copy,
-      success: () => wx.showToast({ title: source.pendingToast || "已复制", icon: "none" }),
+      success: () => {
+        track("service_copy", { id: source.id, via: contact.id, from: `guide_${this.data.topic}` });
+        wx.showToast({ title: source.pendingToast || "已复制", icon: "none" });
+      },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
   },
@@ -129,10 +133,10 @@ Page({
     const offer = this.data.offer;
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
     if (!canUseOffer(source) || !source.image) return;
-    track("offer_qr_open", { id: source.id, from: `guide_${this.data.topic}` });
     wx.previewImage({
       urls: [source.image],
       current: source.image,
+      success: () => track("offer_qr_open", { id: source.id, from: `guide_${this.data.topic}` }),
       fail: () => wx.showToast({ title: "打开失败，请重试", icon: "none" }),
     });
   },

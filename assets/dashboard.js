@@ -8,43 +8,24 @@ function escapeHTML(value='') {
   return String(value).replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 }
 
-function localSession(date = new Date()) {
-  const hour = date.getHours() + date.getMinutes() / 60;
-  if (hour >= 6 && hour < 9.5) return { key:'morning', label:'早间准备', copy:'先看隔夜美股、今日港股新股与自己的持仓触发条件。' };
-  if (hour >= 9.5 && hour < 16) return { key:'intraday', label:'盘中观察', copy:'先看持仓是否进入观察、风险或止盈区间，再决定是否深入研究。' };
-  if (hour >= 21 || hour < 6) return { key:'us', label:'美股时段', copy:'优先看美股价格变化、估值与价格纪律，不追逐盘中噪音。' };
-  return { key:'evening', label:'晚间复盘', copy:'复盘今天发生了什么，整理明天需要继续观察的标的。' };
+function localSession() {
+  return {key:'history',label:'历史资料参考',copy:'逐项确认记录日期，再对照历史价格、公开资料与风险。'};
 }
 
 function formatDateTime(value) {
-  if (!value) return '更新时间待确认';
+  if (!value) return '数据日期待确认';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '更新时间待确认';
-  return new Intl.DateTimeFormat('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(date);
+  if (Number.isNaN(date.getTime())) return '数据日期待确认';
+  return new Intl.DateTimeFormat('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(date);
 }
 
 function renderFreshness(data) {
   const box = $('#freshness-state');
   if (!box) return;
-  const timestamp = Date.parse(data?.updatedAt || '');
-  if (!Number.isFinite(timestamp)) {
-    box.className = 'freshness-state stale';
-    box.textContent = '更新时间待核验';
-    return;
-  }
-  const ageMinutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
+  const valid = Number.isFinite(Date.parse(data?.updatedAt || ''));
   const partial = data?.status === 'partial';
-  const stale = partial || ageMinutes > 90;
-  box.className = `freshness-state ${stale ? 'stale' : 'fresh'}`;
-  if (partial) {
-    box.textContent = `部分来源失败 · 约 ${ageMinutes} 分钟前`;
-  } else if (ageMinutes > 90) {
-    box.textContent = `更新延迟 · 约 ${ageMinutes} 分钟前`;
-  } else if (ageMinutes < 1) {
-    box.textContent = '自动抓取 · 刚刚';
-  } else {
-    box.textContent = `自动抓取 · 约 ${ageMinutes} 分钟前`;
-  }
+  box.className = `freshness-state ${!valid || partial ? 'stale' : 'fresh'}`;
+  box.textContent = !valid ? '资料整理时间待核验' : partial ? '部分来源失败 · 数据日期见各项' : '历史参考 · 数据日期见各项';
 }
 
 function formatNumber(value, digits = 2) {
@@ -86,14 +67,7 @@ function dataMaps() {
 }
 
 function deriveUSAction(item) {
-  const price = Number(item?.price);
-  const plan = item?.technicalPlan || {};
-  const buy = Number(plan.buy), stop = Number(plan.stop), firstTarget = Number(plan.tp?.[0]);
-  if (!Number.isFinite(price)) return { text:'行情待核验', tone:'wait' };
-  if (Number.isFinite(stop) && price <= stop) return { text:'已触及风险观察位', tone:'risk' };
-  if (Number.isFinite(buy) && price <= buy) return { text:'进入分批观察区间', tone:'good' };
-  if (Number.isFinite(firstTarget) && price >= firstTarget) return { text:'进入止盈观察区间', tone:'risk' };
-  return { text:'继续持有或等待更好价格', tone:'wait' };
+  return {text:`历史记录 · 数据日期 ${formatDateTime(item?.asOf)}`,tone:'wait'};
 }
 
 function impliedDividendPlan(item) {
@@ -132,14 +106,14 @@ function deriveHoldingView(holding, maps) {
     const text = !item
       ? '未匹配到当前数据，请核对代码'
       : plan?.zone === 'add'
-        ? `进入加大观察区：现价 ${formatNumber(current)}，加大观察 ${formatNumber(plan.addPrice)}`
+        ? `进入加大观察区：记录价 ${formatNumber(current)}，加大观察 ${formatNumber(plan.addPrice)}`
         : plan?.zone === 'trim'
-          ? `进入兑现观察区：现价 ${formatNumber(current)}，兑现观察 ${formatNumber(plan.trimPrice)}`
+          ? `进入兑现观察区：记录价 ${formatNumber(current)}，兑现观察 ${formatNumber(plan.trimPrice)}`
           : plan
-            ? `继续观察：现价 ${formatNumber(current)}，加大观察 ${formatNumber(plan.addPrice)}`
+            ? `继续观察：记录价 ${formatNumber(current)}，加大观察 ${formatNumber(plan.addPrice)}`
             : (item.summary || item.actionPriceNote || '收息观察价待公告核验');
     const tone = !item ? 'wait' : plan?.zone === 'add' ? 'good' : plan?.zone === 'trim' ? 'risk' : 'wait';
-    return { name:item?.name || code, current, change:Number(item?.changePercent), action:{text,tone}, detail:'index.html#/a-shares', shares, cost, source:item?.priceAsOf ? `${item.priceSource || '公开行情'} · ${formatDateTime(item.priceAsOf)}` : '数据待核验' };
+    return { name:item?.name || code, current, change:Number(item?.changePercent), action:{text:'历史价格与分红对照',tone:'wait'}, detail:'index.html#/a-shares', shares, cost, source:item?.priceAsOf ? `${item.priceSource || '公开行情'} · ${formatDateTime(item.priceAsOf)}` : '数据待核验' };
   }
   if (market === 'GOLD') {
     const gold = state.data?.gold || {};
@@ -153,16 +127,16 @@ function deriveHoldingView(holding, maps) {
     const text = !Number.isFinite(current)
       ? '黄金价格待核验'
       : Number.isFinite(low) && current <= low
-        ? `进入持有观察区：现价 ${formatNumber(current, 1)}`
+        ? `进入持有观察区：记录价 ${formatNumber(current, 1)}`
         : Number.isFinite(high) && current >= high
-          ? `进入卖出观察区：现价 ${formatNumber(current, 1)}`
-          : `继续观察：现价 ${formatNumber(current, 1)}`;
+          ? `进入卖出观察区：记录价 ${formatNumber(current, 1)}`
+          : `继续观察：记录价 ${formatNumber(current, 1)}`;
     const tone = Number.isFinite(high) && current >= high ? 'risk' : Number.isFinite(low) && current <= low ? 'good' : 'wait';
-    return { name:useUSD ? '美元金' : '人民币金', current, change:Number(quote?.changePercent), action:{text,tone}, detail:'index.html#/gold', shares, cost, source:quote?.asOf ? `${quote.currency || '公开行情'} · ${formatDateTime(quote.asOf)}` : '数据待核验' };
+    return { name:useUSD ? '美元金' : '人民币金', current, change:Number(quote?.changePercent), action:{text:'历史价格与分红对照',tone:'wait'}, detail:'index.html#/gold', shares, cost, source:quote?.asOf ? `${quote.currency || '公开行情'} · ${formatDateTime(quote.asOf)}` : '数据待核验' };
   }
   const item = maps.hk.get(code);
   const assessment = item?.publicAnswer || {};
-  return { name:item?.name || code, current:null, change:null, action:{text:assessment.action || assessment.verdict || '港股持仓行情暂未接入',tone:'wait'}, detail:'index.html#/hk', shares, cost, source:item?.source || '港交所公开资料' };
+  return { name:item?.name || code, current:null, change:null, action:{text:'招股与历史资料参考',tone:'wait'}, detail:'index.html#/hk', shares, cost, source:item?.source || '港交所公开资料' };
 }
 
 function getUSFocus(data) {
@@ -187,7 +161,7 @@ function getGuruFocus(data) {
 }
 
 function sourceText(data, fallback) {
-  return data.updatedAt ? `${fallback} · ${formatDateTime(data.updatedAt)}` : fallback;
+  return data.updatedAt ? `${fallback} · 资料整理 ${formatDateTime(data.updatedAt)}，各项日期另列` : fallback;
 }
 
 function conclusionCard({type, title, status, tone='wait', answer, facts=[], nextStep='', href, source}) {
@@ -246,72 +220,42 @@ function compactPriceSignal(value) {
     .trim();
 }
 
+function recordedNumber(value) {
+  return value === null || value === undefined || value === '' ? '未收录' : formatNumber(value);
+}
+
 function dailyStrategyCard(market, type, href, source) {
-  const cards = state.digest?.markets?.[market] || [];
-  if (!cards.length) return '';
-  // 固定证据池仍由摘要提供，但每日页只渲染一条结论和一个下一步。
-  const evidence = cards.filter((item) => DAILY_FACT_IDS[market]?.includes(item.id)).map((item) => item.id);
-  if (!evidence.length) return '';
-  let config;
-  if (market === 'hk') {
-    const worth = digestItem(cards, 'hk-worth');
-    const hasCandidate = Boolean(worth?.enabled && worth.names);
-    config = {
-      status: hasCandidate ? '可研究' : '不申购',
-      tone: hasCandidate ? digestTone(worth.tone) : 'risk',
-      title: hasCandidate ? `研究 ${worth.names}` : '当前没有合格新股',
-      answer: hasCandidate ? digestValue(cards, 'hk-worth', true) : '暂无满足完整资料要求的在售标的，不用历史样本替代。',
-      nextStep: hasCandidate ? '先核验招股价、一手股数和招股期，再决定是否申购。' : `等待真实招股资料齐全；${digestValue(cards, 'hk-avoid')}`,
-    };
-  } else if (market === 'us') {
-    const cheap = digestItem(cards, 'us-cheap');
-    const risk = digestItem(cards, 'us-risk');
-    config = {
-      status: cheap?.enabled ? '低估研究' : risk?.enabled ? '风险观察' : '观望',
-      tone: cheap?.enabled ? 'good' : risk?.enabled ? 'risk' : 'wait',
-      title: '低估研究，不追高',
-      answer: `研究池：${digestValue(cards, 'us-cheap', true)}；风险观察：${digestValue(cards, 'us-risk', true)}。`,
-      nextStep: '低估标的分批研究；风险升高标的只做减仓观察。',
-    };
-  } else if (market === 'a') {
-    const addSignal = compactPriceSignal(digestValue(cards, 'a-add'));
-    const trimSignal = compactPriceSignal(digestValue(cards, 'a-trim'));
-    config = {
-      status: '底仓 + 周期',
-      tone: 'good',
-      title: '底仓长期，周期短持',
-      answer: `${digestValue(cards, 'a-core')}；${digestValue(cards, 'a-cycle')}。`,
-      nextStep: `价格纪律：${addSignal}；${trimSignal}`,
-    };
-  } else if (market === 'gold') {
-    const buy = digestItem(cards, 'gold-buy');
-    const sell = digestItem(cards, 'gold-sell');
-    // 旧模型按「美元金/人民币金」拆两张卡，各自现价能用正则从 goldNextLine() 的固定
-    // 文案里抠出来；f6d9ce3→2bbaa38 改成按问题拆卡后，answer 把两个口径合成一句，
-    // 正则抠不出单一现价了。改用卡片自带的 tone 判断信号——gold-buy 的 tone 为
-    // good 就是买入观察，gold-sell 的 tone 为 bad/warn 就是风险/卖出观察——
-    // 跟 daily-answers.js 的 buildHomeDigest 判断黄金信号的口径一致
-    // （不对 answer 文案做正则，文案会改，tone 不会）。
-    const sellActive = sell?.tone === 'bad' || sell?.tone === 'warn';
-    const buyActive = buy?.tone === 'good';
-    const active = sellActive ? sell : (buyActive ? buy : null);
-    config = {
-      status: active ? '进入观察' : '区间外',
-      tone: sellActive ? 'risk' : (buyActive ? 'good' : 'wait'),
-      title: '美元金 + 人民币金',
-      answer: `${digestValue(cards, 'gold-price')}；${active ? active.answer : '买卖两侧都未到观察区，继续观察'}。`,
-      nextStep: `阈值：${[buy?.names && `买入 ${buy.names}`, sell?.names && `卖出 ${sell.names}`].filter(Boolean).join('；') || '待核验'}`,
-    };
-  } else {
-    config = {
-      status: '只学方法',
-      tone: 'wait',
-      title: '不抄 13F 仓位',
-      answer: '只参考宏观判断与降仓纪律，不把滞后披露当实时单。',
-      nextStep: '看方法，不复制机构仓位或杠杆。',
-    };
+  const data=state.data||{};
+  let title=type, answer='对照已收录的公开资料和记录日期。', facts=[];
+  if(market==='us'){
+    const item=getUSFocus(data);
+    if(!item)return '';
+    title=`${item.symbol} · 历史价格`;
+    facts=[['记录价',`${recordedNumber(item.price)} 美元`],['记录日涨跌',`${recordedNumber(item.changePercent)}%`],['数据日期',formatDateTime(item.asOf)]];
+  }else if(market==='hk'){
+    const rows=data.hk?.listings||[];
+    if(!rows.length)return '';
+    title='招股与上市资料';
+    answer='查看已收录招股条件与已发生的历史表现，实际招股期以官方文件为准。';
+    facts=[['已收录',`${rows.length} 只`],['上市记录',`${rows.filter(item=>item.historical||item.listingStatus==='ended').length} 只`],['日期', '招股及上市日期分别列示']];
+  }else if(market==='a'){
+    const item=(data.aShare?.quotes||[])[0];
+    if(!item)return '';
+    title=`${item.name} · 分红与历史价格`;
+    facts=[['记录价',`${recordedNumber(item.currentPrice)} 元`],['记录股息率',`${recordedNumber(item.currentDividendYield)}%`],['数据日期',formatDateTime(item.priceAsOf)]];
+  }else if(market==='gold'){
+    const intl=data.gold?.quotes?.international,domestic=data.gold?.quotes?.domestic;
+    if(!intl&&!domestic)return '';
+    title='国际金与上海金历史记录';
+    facts=[['国际金',intl?`${recordedNumber(intl.price)} 美元/盎司 · ${formatDateTime(intl.asOf)}`:'未收录'],['上海金',domestic?`${recordedNumber(domestic.price)} 元/克 · ${formatDateTime(domestic.asOf)}`:'未收录']];
+  }else{
+    const item=getGuruFocus(data);
+    if(!item)return '';
+    title=`${item.name||item.id} · 公开披露`;
+    answer='持仓来自报告时点，不能代表即时仓位或交易信号。';
+    facts=[['报告期',item.reportDate||'待确认'],['披露日',item.filingDate||'待确认']];
   }
-  return conclusionCard({...config, type, href, source});
+  return conclusionCard({type,title,status:'历史参考',tone:'wait',answer,facts,href,source});
 }
 
 function renderConclusions() {
@@ -319,7 +263,7 @@ function renderConclusions() {
   const data = state.data;
   if (!data) return;
   if (state.digestSyncing) {
-    box.innerHTML = `<div class="digest-sync-state"><b>今日答案正在同步</b><span>公开行情已更新，但摘要版本还未对齐；暂不把旧答案和新价格混在一起。稍后刷新即可。</span></div>`;
+    box.innerHTML = `<div class="digest-sync-state"><b>历史摘要版本待对齐</b><span>资料与摘要版本尚未对齐，暂不混用两个批次。稍后刷新即可。</span></div>`;
     return;
   }
   const digestCards = ['hk','us','a','gold','guru']
@@ -339,8 +283,8 @@ function renderConclusions() {
   if (us) {
     const action = deriveUSAction(us);
     cards.push(conclusionCard({
-      type:'美股投资', title:`${us.symbol} · 今日美股焦点`, status:action.text, tone:action.tone,
-      answer:`当前价 ${formatNumber(us.price)} 美元，先按价格纪律判断，不因热度追高。`,
+      type:'美股投资', title:`${us.symbol} · 历史美股资料`, status:action.text, tone:action.tone,
+      answer:`记录价 ${formatNumber(us.price)} 美元，先按价格纪律判断，不因热度追高。`,
       facts:[['综合评分',formatNumber(us.fundamental.finalScore,0)],['热度分',formatNumber(us.heatScore,0)],['日涨跌',`${Number(us.changePercent)>=0?'+':''}${formatNumber(us.changePercent)}%`]],
       href:'index.html#/us', source:us.asOf ? `Yahoo Finance · ${formatDateTime(us.asOf)}` : sourceText(data,'公开行情')
     }));
@@ -368,7 +312,7 @@ function renderConclusions() {
     }));
   } else {
     const a = [...(data.aShare?.quotes || [])].sort((x,y) => Number(y.score||0)-Number(x.score||0))[0];
-    cards.push(conclusionCard({type:'A股收息',title:a ? `${a.name} · 收息观察` : 'A股收息数据待核验',status:a?.currentAdvice || '待核验',tone:a?.currentAdvice==='买入'?'good':'wait',answer:a?.summary || '没有完成核验的数据，不输出静态替代结论。',facts:[['当前价格',a?formatNumber(a.currentPrice):'—'],['股息率',a&&Number.isFinite(Number(a.currentDividendYield))?`${formatNumber(a.currentDividendYield)}%`:'—'],['数据来源',a?.priceSource || '公开行情']],href:'index.html#/a-shares',source:sourceText(data,'A股公开行情')}));
+    cards.push(conclusionCard({type:'A股收息',title:a ? `${a.name} · 收息观察` : 'A股收息数据待核验',status:a?.currentAdvice || '待核验',tone:a?.currentAdvice==='买入'?'good':'wait',answer:a?.summary || '没有完成核验的数据，不输出静态替代结论。',facts:[['历史记录价',a?formatNumber(a.currentPrice):'—'],['股息率',a&&Number.isFinite(Number(a.currentDividendYield))?`${formatNumber(a.currentDividendYield)}%`:'—'],['数据来源',a?.priceSource || '公开行情']],href:'index.html#/a-shares',source:sourceText(data,'A股公开行情')}));
   }
   box.innerHTML = cards.join('');
 }
@@ -388,11 +332,11 @@ function renderHoldings() {
     const hasCost = Number.isFinite(view.cost) && view.cost > 0;
     const returnPct = hasCurrent && hasCost ? (view.current / view.cost - 1) * 100 : null;
     const pnl = returnPct !== null && view.shares > 0 ? (view.current - view.cost) * view.shares : null;
-    const performanceNote = !hasCost ? '未填成本，不计算浮盈' : pnl === null ? '已算比例；填数量后再算金额' : '按本地成本与数量计算，未计费用税费';
+    const performanceNote = !hasCost ? '未填成本，不计算历史价差' : pnl === null ? '已算比例；填数量后再算金额' : '按本地成本与数量计算，未计费用税费';
     return `<article class="holding-card">
       <div class="holding-main">
         <div class="holding-title"><b>${escapeHTML(view.name)}</b><span>${escapeHTML(normalizeCode(holding.market,holding.code))}</span><span class="market-tag">${escapeHTML(holding.market)}</span></div>
-        <div class="holding-meta"><span>成本 ${hasCost?formatNumber(view.cost):'未填写'}</span><span>现价 ${hasCurrent?formatNumber(view.current):'待接入'}</span>${view.shares?`<span>数量 ${formatNumber(view.shares)}</span>`:''}</div>
+        <div class="holding-meta"><span>成本 ${hasCost?formatNumber(view.cost):'未填写'}</span><span>记录价 ${hasCurrent?formatNumber(view.current):'待接入'}</span>${view.shares?`<span>数量 ${formatNumber(view.shares)}</span>`:''}</div>
         <div class="holding-action ${view.action.tone}">${escapeHTML(view.action.text)}</div>
         <div class="holding-meta"><span>${escapeHTML(view.source)}</span></div>
       </div>
@@ -416,7 +360,7 @@ function renderReminder() {
   if (!box) return;
   if (!state.holdings.length) {
     box.hidden = false;
-    box.innerHTML = '<b>今日下一步：</b>添加至少一只真实持仓，首页才能开始给你个人化的观察提示。';
+    box.innerHTML = '<b>复盘提示：</b>添加至少一只真实持仓，首页才能开始给你个人化的观察提示。';
     return;
   }
   if (!state.data) { box.hidden = true; return; }
@@ -425,8 +369,8 @@ function renderReminder() {
   const triggered = views.filter(view => view.action.tone === 'good' || view.action.tone === 'risk');
   box.hidden = false;
   box.innerHTML = triggered.length
-    ? `<b>今日提醒：</b>${triggered.length} 只持仓进入观察、风险或止盈区间，先查看持仓模块。`
-    : '<b>今日提醒：</b>当前持仓没有触发明显区间变化，继续按计划观察。';
+    ? `<b>历史对照：</b>${triggered.length} 只持仓已有历史记录，可核对各项数据日期。`
+    : '<b>历史对照：</b>当前持仓按已收录价格作历史对照。';
 }
 
 function renderChannels() {
@@ -438,10 +382,10 @@ function renderChannels() {
   const guruCount = data.investors?.length || 0;
   const aCount = data.aShare?.quotes?.length || 0;
   const goldPrice = data.gold?.quotes?.international?.price;
-  if ($('#hk-channel-copy')) $('#hk-channel-copy').textContent = point('hk') ? `今日：${point('hk')}` : (hkOpen ? `${hkOpen} 只在途新股 · 申购到卖出闭环` : '当前无在途新股，保留历史回溯');
-  if ($('#us-channel-copy')) $('#us-channel-copy').textContent = point('us') ? `今日：${point('us')}` : (usCount ? `${usCount} 只美股 · 机会、估值与价格纪律` : '美股数据待核验');
-  if ($('#a-channel-copy')) $('#a-channel-copy').textContent = point('a') ? `今日：${point('a')}` : (aCount ? `${aCount} 只收息资产 · 股息与现金流` : 'A股收息数据待核验');
-  if ($('#gold-channel-copy')) $('#gold-channel-copy').textContent = point('gold') ? `今日：${point('gold')}` : (Number.isFinite(Number(goldPrice)) ? `国际金 ${formatNumber(goldPrice,0)} 美元/盎司` : '黄金数据待核验');
+  if ($('#hk-channel-copy')) $('#hk-channel-copy').textContent = point('hk') ? `历史摘要：${point('hk')}` : (hkOpen ? `${hkOpen} 只在途新股 · 招股资料与历史表现` : '当前无在途新股，保留历史回溯');
+  if ($('#us-channel-copy')) $('#us-channel-copy').textContent = point('us') ? `历史摘要：${point('us')}` : (usCount ? `${usCount} 只美股 · 机会、估值与价格纪律` : '美股数据待核验');
+  if ($('#a-channel-copy')) $('#a-channel-copy').textContent = point('a') ? `历史摘要：${point('a')}` : (aCount ? `${aCount} 只收息资产 · 股息与现金流` : 'A股收息数据待核验');
+  if ($('#gold-channel-copy')) $('#gold-channel-copy').textContent = point('gold') ? `历史摘要：${point('gold')}` : (Number.isFinite(Number(goldPrice)) ? `国际金 ${formatNumber(goldPrice,0)} 美元/盎司` : '黄金数据待核验');
   if ($('#guru-channel-copy')) $('#guru-channel-copy').textContent = guruCount ? `${guruCount} 位投资人 · 只对照公开持仓` : '机构披露数据待核验';
 }
 
@@ -499,7 +443,7 @@ async function loadData() {
   if (!data || !data.updatedAt) throw new Error('数据快照缺少更新时间');
   state.data = data;
   state.digest = await loadDailyDigest(data.updatedAt);
-  $('#updated-at').textContent = `更新 ${formatDateTime(data.updatedAt)}`;
+  $('#updated-at').textContent = `资料整理 ${formatDateTime(data.updatedAt)}`;
   renderFreshness(data);
   renderConclusions(); renderHoldings(); renderChannels();
 }
@@ -520,7 +464,7 @@ function scheduleDataRefresh() {
       }
     }
     scheduleDataRefresh();
-  }, 15 * 60 * 1000);
+  }, 24 * 60 * 60 * 1000);
 }
 
 function renderSession() {
@@ -533,13 +477,13 @@ async function init() {
   renderSession(); bindEvents(); renderHoldings();
   try { await loadData(); scheduleDataRefresh(); }
   catch (error) {
-    $('#updated-at').textContent = '数据暂不可用';
+    $('#updated-at').textContent = '历史资料暂不可用';
     const freshness = $('#freshness-state');
     if (freshness) {
       freshness.className = 'freshness-state stale';
-      freshness.textContent = '自动抓取暂不可用';
+      freshness.textContent = '历史资料暂不可用';
     }
-    $('#daily-conclusions').innerHTML = conclusionCard({type:'数据状态',title:'当前无法读取最新数据',status:'不输出替代答案',tone:'risk',answer:'望潮不会用静态价格或虚拟样本补位，请稍后刷新。',facts:[['错误',error.message],['原则','数据必须有日期和来源'],['持仓','本地记录仍可查看']],href:'index.html',source:'数据服务'});
+    $('#daily-conclusions').innerHTML = conclusionCard({type:'数据状态',title:'当前无法读取历史资料',status:'不输出替代答案',tone:'risk',answer:'望潮不会用静态价格或虚拟样本补位，请稍后刷新。',facts:[['错误',error.message],['原则','数据必须有日期和来源'],['持仓','本地记录仍可查看']],href:'index.html',source:'数据服务'});
     renderChannels(); renderReminder();
     scheduleDataRefresh();
   }

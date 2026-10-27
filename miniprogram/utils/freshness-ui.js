@@ -18,9 +18,9 @@ function freshnessBanner(source, kind) {
     fresh: "",
     partial: "部分来源暂缺，受影响的判断已暂停",
     aging: "",
-    stale: "已偏旧，建议下拉刷新",
+    stale: "历史资料保留，尚无更新批次；不提供即时买卖判断",
     cached: "已保留上一版数据，后台自动重试；可下拉刷新",
-    offline: "未连云端，使用随包备用",
+    offline: "未连云端，使用随包历史资料",
   }[safeKind] || "";
   return {
     kind: safeKind,

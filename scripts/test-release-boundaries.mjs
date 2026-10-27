@@ -385,11 +385,12 @@ function digest(stamp) {
   return { updatedAt: stamp, markets: { hk: [card], us: [card], gold: [card] } };
 }
 
-test("website matching digest loads; mismatched or missing snapshot version cannot attach action cards", async () => {
+test("website matching digest may load but historical presentation never attaches action cards", async () => {
   const stamp = iso(-1);
   const current = browserFixture({ updatedAt: stamp, actionsFresh: true }, digest(stamp));
   current.context.LIVE.digest = await current.run.loadDailyDigest(stamp);
-  assert.ok(current.run.dailyAnswerBoard("us").includes("release-action-marker"));
+  assert.ok(current.context.LIVE.digest, "matching version remains readable as stored data");
+  assert.equal(current.run.dailyAnswerBoard("us"), "");
   const mismatched = browserFixture({ updatedAt: stamp, actionsFresh: true }, digest(iso(-2)));
   mismatched.context.LIVE.digest = await mismatched.run.loadDailyDigest(stamp);
   assert.equal(mismatched.context.LIVE.digest, null);
@@ -403,7 +404,8 @@ test("website digest with equal updatedAt but an older content revision cannot a
   const currentDigest = { ...digest(stamp), revisionAt };
   const current = browserFixture({ updatedAt: stamp, revisionAt, actionsFresh: true }, currentDigest);
   current.context.LIVE.digest = await current.run.loadDailyDigest(stamp, revisionAt);
-  assert.ok(current.run.dailyAnswerBoard("us").includes("release-action-marker"));
+  assert.ok(current.context.LIVE.digest, "matching revision remains readable as stored data");
+  assert.equal(current.run.dailyAnswerBoard("us"), "");
   const older = browserFixture({ updatedAt: stamp, revisionAt, actionsFresh: true }, digest(stamp));
   older.context.LIVE.digest = await older.run.loadDailyDigest(stamp, revisionAt);
   assert.equal(older.context.LIVE.digest, null);
@@ -418,11 +420,11 @@ test("website expired or future snapshots do not render daily action boards", ()
   }
 });
 
-test("website partial gold hides its actions while preserving fresh US action cards", () => {
+test("historical presentation hides gold and US action cards even when a fresh legacy digest exists", () => {
   const stamp = iso(-1);
   const fixture = browserFixture({ updatedAt: stamp, actionsFresh: true, gold: { actionsFresh: false }, digest: digest(stamp) }, null);
   assert.equal(fixture.run.dailyAnswerBoard("gold"), "");
-  assert.ok(fixture.run.dailyAnswerBoard("us").includes("release-action-marker"));
+  assert.equal(fixture.run.dailyAnswerBoard("us"), "");
   fixture.context.LIVE.actionsFresh = false;
   assert.equal(fixture.run.dailyAnswerBoard("us"), "");
 });

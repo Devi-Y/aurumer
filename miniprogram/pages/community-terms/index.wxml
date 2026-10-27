@@ -1,0 +1,28 @@
+<view class="page-shell terms-shell">
+  <view class="terms-head">
+    <text class="terms-title">会员群服务与退款</text>
+    <text class="terms-muted">{{operator}} · {{version}}</text>
+  </view>
+  <view class="page-card terms-card">
+    <text class="terms-price">{{priceLabel}}</text>
+    <text>{{promotion}}</text>
+    <text class="terms-muted">当前尚未开放付款。</text>
+  </view>
+  <view class="page-card terms-card">
+    <text class="terms-heading">服务内容</text>
+    <text wx:for="{{services}}" wx:key="*this">{{index + 1}}. {{item}}</text>
+    <text class="terms-muted">{{scope}}</text>
+    <text class="terms-heading">入群与期限</text>
+    <text>{{delivery}}</text>
+  </view>
+  <view class="page-card terms-card">
+    <text class="terms-heading">退出与退款</text>
+    <text>{{refund}}</text>
+    <text>{{handling}}</text>
+    <text class="terms-muted">售后仅需提供脱敏订单号，不需要账户密码、银行卡号或验证码。</text>
+    <button open-type="contact" class="terms-contact">服务与售后咨询</button>
+  </view>
+  <view class="page-nav">
+    <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button">‹ 返回</view>
+  </view>
+</view>

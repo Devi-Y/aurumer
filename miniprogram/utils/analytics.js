@@ -9,6 +9,7 @@ const ALLOWED = new Set([
   "detail_open",
   "pay_click",
   "pay_ok",
+  "payment_submitted",
   "pay_cancel",
   "workspace_save",
   "workspace_open",
@@ -57,6 +58,9 @@ const ALLOWED = new Set([
   "guide_link_copy",
   "offer_qr_open",
   "community_open",
+  // 组件加载仅用于排错，不代表广告收入或最终结算。
+  "ad_load",
+  "ad_error",
 ]);
 
 const VISIT_KEY = "aurum_last_home_visit_day";

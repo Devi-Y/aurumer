@@ -5,10 +5,11 @@ const { MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const OFFERS = require("../../config/offers");
 const SERVICE_LINKS = require("../../config/services");
 const { asOfText } = require("../../utils/dates");
+const { referenceDateText } = require("../../utils/historical-reference");
 const { openPage } = require("../../utils/nav");
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
-const { withLatestQuote } = require("../../utils/gold-series");
+
 
 const SERVICES = SERVICE_LINKS.filter((entry) => OFFERS.some((offer) =>
   entry.offerIds.includes(offer.id) && (offer.copy || offer.image || offer.pending)));
@@ -42,7 +43,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/gold.svg",
     title: "黄金追踪",
-    help: "金价·买卖·拐点",
+    help: "金价·历史走势·对照",
   },
   {
     id: "guru",
@@ -68,7 +69,7 @@ function signedPct(value, digits = 1) {
 
 // 折线卡：首尾涨跌写在数字旁边，线本身出成 SVG 图片（尺寸和 .trend-line 同比例）。
 // 数字带币种符号，「近N日」写全——光写「90日」读者不知道是时长还是日期。
-function lineTrend({ id, market, title, closes, digits, prefix = "", days }) {
+function lineTrend({ id, market, title, closes, digits, prefix = "", days, date }) {
   const values = closes.map(Number).filter((value) => Number.isFinite(value));
   if (values.length < 10) return null;
   const change = values[0] ? ((values[values.length - 1] - values[0]) / values[0]) * 100 : NaN;
@@ -77,6 +78,7 @@ function lineTrend({ id, market, title, closes, digits, prefix = "", days }) {
     market,
     title,
     kind: "line",
+    asOf: referenceDateText([date], "走势至"),
     value: `${prefix}${values[values.length - 1].toFixed(digits)}`,
     sub: `近${days || values.length}日 ${signedPct(change)}`,
     tone: toneOf(change),
@@ -94,6 +96,7 @@ function buildHomeTrends(snapshot) {
       id: "hk",
       market: "hk",
       title: "港股新股首日",
+      asOf: referenceDateText([ipos[ipos.length - 1].date], "上市至"),
       kind: "bars",
       // 不写「5/12」：斜杠两边都是小数字，读者第一眼当成 5 月 12 日。
       value: `${changes.filter((value) => value > 0).length}只涨`,
@@ -119,6 +122,7 @@ function buildHomeTrends(snapshot) {
       id: "us",
       market: "us",
       title: "美股七姐妹",
+      asOf: referenceDateText(stocks.filter((item) => MAGNIFICENT_SEVEN.includes(item.symbol)).map((item) => item.asOf)),
       kind: "bars",
       value: `${changes.filter((value) => value > 0).length}只涨`,
       sub: `共${changes.length}只 · 近${Math.min(...seven.map((item) => item.length))}日`,
@@ -135,20 +139,22 @@ function buildHomeTrends(snapshot) {
     closes: (fund.history || []).map((item) => item && item.close),
     digits: 3,
     prefix: "¥",
+    date: fund.history && fund.history.length ? fund.history[fund.history.length - 1].date : null,
   });
   if (fundCard) cards.push(fundCard);
 
-  // 金价跟黄金栏目页的大数字是同一个：日线收盘后面接上最新报价，不然首页 4168、栏目页 4166 对不上。
+  // 只画已收录的历史日线，不把独立报价拼成收盘记录。
   const gold = snapshot.gold || {};
   const goldBars = (gold.history && gold.history.international) || [];
   const goldCard = lineTrend({
     id: "gold",
     market: "gold",
     title: "国际金价",
-    closes: withLatestQuote(goldBars, gold.quotes && gold.quotes.international).map((item) => item.close),
+    closes: goldBars.map((item) => item.close),
     digits: 0,
     prefix: "$",
     days: goldBars.length,
+    date: goldBars.length ? goldBars[goldBars.length - 1].date : null,
   });
   if (goldCard) cards.push(goldCard);
 

@@ -6,6 +6,11 @@ import vm from "node:vm";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
+const productConfig = require(path.join(root, "miniprogram/config/product.js"));
+const {
+  RESEARCH_PURCHASES_ENABLED,
+  assertResearchPurchaseAllowed,
+} = require(path.join(root, "cloudfunctions/aurum-member/new-purchase-policy.js"));
 const {
   entitlementData,
   entitlementReviewRequired,
@@ -88,7 +93,7 @@ const launchGuide = await source("MINIPROGRAM_LAUNCH_GUIDE.md");
 const reviewCopy = await source("MINIPROGRAM_REVIEW_COPY.txt");
 const cloudEnv = runtime.match(/cloudEnv:\s*"([^"]*)"/)?.[1] || "";
 
-function loadMemberClient({ runtimeConfig, wxMock, immediateTimers = true }) {
+function loadMemberClient({ runtimeConfig, wxMock, immediateTimers = true, product = productConfig }) {
   const memberModule = { exports: {} };
   vm.runInNewContext(client, {
     module: memberModule,
@@ -100,6 +105,7 @@ function loadMemberClient({ runtimeConfig, wxMock, immediateTimers = true }) {
     },
     require(request) {
       if (request === "../config/runtime") return runtimeConfig;
+      if (request === "../config/product") return product;
       throw new Error(`会员客户端出现未知依赖：${request}`);
     },
   });
@@ -435,6 +441,7 @@ const legalConsent = {
 const successCalls = [];
 let requestPaymentArguments = null;
 const successClient = loadMemberClient({
+  product: { memberToolsEnabled: true }, // 离线机制验证，不是公开产品配置。
   runtimeConfig: { cloudEnv: "cloud-test", memberFunction: "aurum-member" },
   wxMock: {
     cloud: {
@@ -465,6 +472,7 @@ assert(
 );
 
 const cancelledClient = loadMemberClient({
+  product: { memberToolsEnabled: true },
   runtimeConfig: { cloudEnv: "cloud-test", memberFunction: "aurum-member" },
   wxMock: {
     cloud: {
@@ -487,6 +495,7 @@ try {
 assert(cancelledError?.message === "已取消支付" && cancelledError.code === "PAYMENT_CANCELLED", "用户取消支付没有映射为清晰且可识别的结果");
 
 const unsupportedClient = loadMemberClient({
+  product: { memberToolsEnabled: true },
   runtimeConfig: { cloudEnv: "cloud-test", memberFunction: "aurum-member" },
   wxMock: {
     cloud: {
@@ -587,6 +596,73 @@ const offlineClient = loadMemberClient({
 const offlineState = await offlineClient.loadMemberState();
 assert(!offlineState.paymentReady && offlineState.plans.length === 1 && offlineState.plans[0].id === "research-365d", "云端不可用时没有安全降级到唯一年度方案预览");
 
+// 当前产品停售边界：旧深链、客户端直接调用和旧版客户端均不能创建新单。
+assert(productConfig.memberToolsEnabled === false && RESEARCH_PURCHASES_ENABLED === false, "免费研究产品仍开放旧年度会员新购");
+let retiredPolicyCode = "";
+try { assertResearchPurchaseAllowed(); } catch (error) { retiredPolicyCode = error.code; }
+assert(retiredPolicyCode === "RESEARCH_PURCHASE_RETIRED", "服务端停售策略没有明确拒绝新购");
+let retiredCalls = 0;
+const retiredClient = loadMemberClient({
+  runtimeConfig: { cloudEnv: "cloud-test", memberFunction: "aurum-member" },
+  wxMock: {
+    cloud: { callFunction() { retiredCalls += 1; return backendResult(preparedPayment()); } },
+    requestPayment() { retiredCalls += 1; },
+  },
+});
+let retiredClientCode = "";
+try { await retiredClient.purchase("research-365d", legalConsent); } catch (error) { retiredClientCode = error.code; }
+assert(retiredClientCode === "RESEARCH_PURCHASE_RETIRED" && retiredCalls === 0, "停售客户端仍会下单或拉起微信支付");
+
+const memberPageContext = vm.createContext({
+  require(request) {
+    if (request === "../../config/product") return productConfig;
+    if (request === "../../config/legal") return legalConfig;
+    if (request === "../../utils/disclaimer") return { MEMBER_DISCLAIMER: "" };
+    return {};
+  },
+  Page() {},
+});
+new vm.Script(memberPage).runInContext(memberPageContext);
+const storedOrder = { orderId: "historical-paid-order", status: "fulfilled", amountLabel: "¥1,288" };
+const historicalState = memberPageContext.viewState({
+  paymentReady: true,
+  paymentPubliclyReleased: true,
+  environment: "production",
+  legalVersions: legalConfig,
+  plans: [{ id: "research-365d", enabled: true }],
+  entitlement: { active: true, expiresAt: "2027-01-01T00:00:00.000Z" },
+  orders: [storedOrder],
+});
+assert(!historicalState.purchaseAllowed && !historicalState.paymentPubliclyReleased && historicalState.plans.length === 0, "旧会员深链仍会展示可购买方案");
+assert(historicalState.active && historicalState.orders[0].orderId === storedOrder.orderId, "停售误删存量权益或订单");
+
+const backendModule = { exports: {} };
+const backendRequire = createRequire(path.join(root, "cloudfunctions/aurum-member/index.js"));
+const retiredBackendCalls = [];
+const retiredCloud = {
+  init() {},
+  getWXContext() { return { OPENID: "offline-retired-client" }; },
+  database() {
+    return {
+      command: {},
+      collection() { retiredBackendCalls.push("database"); throw new Error("停售不应读写订单"); },
+      runTransaction() { retiredBackendCalls.push("transaction"); throw new Error("停售不应写账本"); },
+    };
+  },
+  cloudPay: {
+    unifiedOrder() { retiredBackendCalls.push("payment"); throw new Error("停售不应调支付"); },
+  },
+};
+vm.runInNewContext(backend, {
+  module: backendModule, exports: backendModule.exports,
+  require: (request) => request === "wx-server-sdk" ? retiredCloud : backendRequire(request),
+  process: { env: { WANGCHAO_PAYMENT_COMPLIANCE_APPROVED: "true", WANGCHAO_PAYMENT_RELEASE_APPROVED: "true" } },
+  console: { warn() {}, error() {} },
+});
+const retiredServerResult = await backendModule.exports.main({ action: "preparePurchase", planId: "research-365d", legalConsent });
+assert(retiredServerResult.ok === false && retiredServerResult.code === "RESEARCH_PURCHASE_RETIRED", "旧客户端仍可绕过服务端停售");
+assert(retiredBackendCalls.length === 0, "服务端停售拦截发生在数据库或支付调用之后");
+
 const firstGrant = new Date("2026-01-01T00:00:00.000Z");
 const secondGrant = new Date("2026-01-15T00:00:00.000Z");
 const baseCredits = [
@@ -629,7 +705,8 @@ assert(entitlementReviewRequired(recoveryLocked), "账本异常没有进入人�
 assert(!entitlementReviewRequired(entitlementData("openid", baseCredits, new Date(), {})), "正常权益被错误标记为人工核对");
 assert(
   backend.includes("当前不会创建新的付款订单")
-  && backend.includes("paymentReady: config.ready && !reviewRequired"),
+  && backend.includes("paymentReady: purchaseAllowed")
+  && backend.includes("RESEARCH_PURCHASES_ENABLED && config.ready && !reviewRequired"),
   "历史退款账本异常时仍可能创建新订单或展示可付款状态",
 );
 assert(!backend.includes("workspace.openid = openid") && backend.includes("delete workspace.openid"), "工作台文档仍冗余保存原始 OpenID");
@@ -657,4 +734,4 @@ assert(!shouldReconcileOrder({
 assert(!shouldReconcileOrder({ _id: "AU5", openid: "o1", status: "refunded" }, reconcileNow), "已完成退款订单仍被重复复核");
 assert(!shouldReconcileOrder({ _id: "AU6", status: "fulfilled" }, reconcileNow), "缺少用户归属的订单进入了全局复核");
 
-console.log("会员支付安全契约检查通过：唯一年费方案、最短 JSAPI 链路、协议门禁、严格查单验真、防伪造回调、人工原路退款、退款状态人工核对、幂等权益与 15 分钟全局对账均已覆盖；历史虚拟订单只归档、不再依赖 AppSecret、AppKey、OfferID 或道具 ID");
+console.log("会员支付安全契约检查通过：旧年度研究会员停售，客户端与服务端均拒绝新购；历史 JSAPI 查单、支付回调、人工退款与幂等权益保持。支付机制仅在离线显式开启的测试夹具中验证。");

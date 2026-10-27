@@ -52,8 +52,8 @@ module.exports = {
     sections: [],
     offer: {
       id: "hk-open-account",
-      head: "咨询港股开户",
-      body: "通过现有联系人了解开户渠道，具体条件及费用以券商说明为准。",
+      head: "盈立证券（uSMART）",
+      body: "开户条件、费用及邀请活动资格以盈立证券官方说明为准。",
     },
   },
 

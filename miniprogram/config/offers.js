@@ -1,5 +1,5 @@
 // 负责人提供的真实商业物料集中放在这里。
-// 港股尚缺办理链接；美股已收到 IBKR 好友推荐链接，推广许可仍需单独核验。
+// 港美股均已收到原始邀请链接；活动资格、推广许可及微信接入仍需单独核验。
 // 二维码和注册链接保持原始内容；页面显示推广关系及收费说明。
 module.exports = [
   {
@@ -32,15 +32,10 @@ module.exports = [
   {
     id: "hk-open-account",
     title: "港股开户",
-    label: "复制开户链接",
-    copy: "",
-    pending: true,
-    pendingNote: "港股开户链接准备中，可先咨询。",
-    pendingContact: "paid-group",
-    pendingLabel: "复制微信号，咨询港股开户",
-    pendingToast: "已复制，添加好友后说明「港股开户」",
-    pendingDisclosure: "请说明「港股开户」。此微信号也是会员群联系人，具体开户条件及费用以券商说明为准。",
-    disclosure: "推荐渠道：你通过它开户，望潮可能获得推荐佣金。",
+    label: "复制邀请链接",
+    copy: "https://m.usmart66.com/marketing/mgm-poster/mgm-lottery17.html?langType=1&ICode=vxgn8&inviteName=18*******24&id=20240612002&bizId=20240612002&shareId=promotion&register-ct=m&register-cid=hk-2022-aug&avatar=",
+    toast: "已复制，去浏览器打开",
+    disclosure: "邀请链接：活动有效期、参与资格及推荐奖励以盈立证券官方说明为准。",
   },
   // 2026-10-06 产品负责人给的 A股开户二维码。不上首页宫格，只挂在 A股栏目页底部「还没有A股账户」
   // 进的那一页：A股账户买不了美股，不能当作「海外开户」的入口。

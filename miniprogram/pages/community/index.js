@@ -8,11 +8,9 @@ const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const OFFER_ID = "paid-group";
 
 const TOPICS = [
-  { key: "info", label: "全球信息", value: "一起看值得看的一手信息" },
-  { key: "asset", label: "资产与标的", value: "讨论全球资产和具体标的" },
-  { key: "account", label: "账户实操", value: "开户、入金、换汇的经验" },
-  { key: "story", label: "真实经验", value: "交流各自真实的投资经历" },
-  { key: "meet", label: "线下见面会", value: "时间地点以群内通知为准" },
+  { key: "info", label: "公开资料", value: "交流一手信息和阅读方法" },
+  { key: "tool", label: "工具使用", value: "交流望潮使用方法和反馈" },
+  { key: "story", label: "自主经验", value: "分享各自的研究和使用经验" },
 ];
 
 const FIT = ["想长期配置全球资产", "愿意分享真实经验", "自己做决定、自己负责"];
@@ -50,12 +48,12 @@ Page({
   },
   onShareAppMessage() {
     track("share_tap", { page: "community" });
-    return { title: "付费交流群｜望潮", path: "/pages/community/index" };
+    return { title: "会员群｜望潮", path: "/pages/community/index" };
   },
   onShareTimeline() {
-    return { title: "付费交流群｜望潮" };
+    return { title: "会员群｜望潮" };
   },
   onAddToFavorites() {
-    return { title: "付费交流群｜望潮" };
+    return { title: "会员群｜望潮" };
   },
 });

@@ -3,23 +3,15 @@ const { track, trackHomeVisit } = require("../../utils/analytics");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const { MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const OFFERS = require("../../config/offers");
-const PRODUCT = require("../../config/product");
+const SERVICE_LINKS = require("../../config/services");
 const { asOfText } = require("../../utils/dates");
 const { openPage } = require("../../utils/nav");
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
 const { withLatestQuote } = require("../../utils/gold-series");
 
-// 服务格子只放已经拿到真实物料的项，或产品负责人明确要求先占位的项（pending）；
-// 其余不上九宫格，也不拿别的入口凑数。点一下进一个很短的二级页（说明 + 物料），
-// 推荐链接和微信号都挂在二级页末尾，首页不直接复制任何东西，物料下架这一格自己消失。
-const SERVICE_PAGES = {
-  "global-access": { url: "/pages/guide/index?topic=info", help: "有什么用 · 去哪看" },
-  "open-account": { url: "/pages/guide/index?topic=us-start", help: "怎么开户 · 怎么入金" },
-  "paid-group": { url: "/pages/community/index", help: "聊什么 · 怎么加入" },
-};
-const SERVICES = OFFERS.filter((item) => item && SERVICE_PAGES[item.id] && (item.copy || item.pending)
-  && (item.id !== "paid-group" || PRODUCT.showPaidCommunity));
+const SERVICES = SERVICE_LINKS.filter((entry) => OFFERS.some((offer) =>
+  entry.offerIds.includes(offer.id) && (offer.copy || offer.image || offer.pending)));
 
 // 九宫格的前五格是这五个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
 // 没有副标题也没有箭头。help 不再上屏，但留着当读屏标签用。
@@ -61,14 +53,11 @@ const CORE_ENTRIES = [
   },
 ];
 
-// 九宫格 = 五个研究栏目 + 一个预留格 + 已有物料的服务格。服务格点一下进二级页，不在首页复制。
-// 新闻资讯（2026-09-29）按产品要求整页删掉，它那一格原位留空，等以后放新栏目。
+// 用户指定九格：五个免费研究栏目 + 四个服务入口。
 const GRID_ENTRIES = [
   ...CORE_ENTRIES.map((item) => ({ ...item })),
-  { id: "reserved", reserved: true },
-  ...SERVICES.map(({ id, icon, title }) => ({ id, action: "page", icon, title, help: SERVICE_PAGES[id].help, url: SERVICE_PAGES[id].url })),
+  ...SERVICES.map((item) => ({ ...item, action: "page", help: item.title })),
 ];
-while (GRID_ENTRIES.length < 9) GRID_ENTRIES.push({ id: `reserved-${GRID_ENTRIES.length}`, reserved: true });
 
 // ---------- 首页走势卡：每张只用快照里的真实序列，序列不够整张不出 ----------
 

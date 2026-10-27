@@ -1,8 +1,8 @@
 <view class="page-shell community-shell">
   <!-- 交流群页：群里聊什么、适合谁、怎么加入。收费写在复制按钮正下方，没有「下一步」。 -->
   <view class="community-head">
-    <text class="community-title">付费交流群</text>
-    <text class="community-sub">全球财富自由同行者</text>
+    <text class="community-title">会员群</text>
+    <text class="community-sub">公开资料与工具使用交流</text>
   </view>
 
   <view class="page-card community-card">
@@ -28,6 +28,7 @@
         <text class="sec-text">复制微信号，在微信「添加朋友」里粘贴搜索。</text>
         <view class="join-action" bindtap="copyWechat" hover-class="join-action-active" aria-role="button" aria-label="{{join.label}}">{{join.label}}</view>
         <text class="join-disclosure">{{join.disclosure}}</text>
+        <text class="join-disclosure">服务内容、价格和退款规则请在付款前确认。</text>
       </block>
       <text wx:else class="sec-muted">加入方式整理中。</text>
     </view>

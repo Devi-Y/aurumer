@@ -2,7 +2,7 @@
 module.exports = {
   dataMode: "t-plus-one",
   memberToolsEnabled: false,
-  showPaidCommunity: false,
+  showPaidCommunity: true,
   // 微信流量主提供的真实 banner 广告位；空值不显示广告或占位。
   sectionAdUnitId: "",
 };

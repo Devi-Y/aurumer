@@ -19,7 +19,7 @@
     "check:fresh": "node scripts/check-mini-freshness.mjs",
     "check:release": "node scripts/audit-release-consistency.mjs",
     "check:domain": "node scripts/check-custom-domain.mjs",
-    "audit": "npm run check:runtime && npm run test:reliability && npm run test:dividends && npm run test:release-boundaries && npm run test:hk-dates && npm run test:gold-turning && npm run test:guru-coverage && npm run test:us-events && npm run check:public && npm run check:pages && npm run check:ui && npm run check:mini && npm run check:payment",
+    "audit": "npm run check:runtime && npm run test:reliability && npm run test:dividends && npm run test:release-boundaries && npm run test:hk-dates && npm run test:gold-turning && npm run test:guru-coverage && npm run test:us-events && npm run test:services && npm run test:history && npm run test:historical-ops && npm run test:monetization && npm run check:public && npm run check:pages && npm run check:ui && npm run check:mini && npm run check:payment",
     "audit:release": "npm run audit && npm run check:fresh && npm run check:release",
     "preupload": "npm run sync:latest && npm run audit:release",
     "upload:mini": "node scripts/upload-miniprogram.mjs",
@@ -32,7 +32,12 @@
     "test:hk-dates": "node --test scripts/test-hk-date-state.mjs",
     "test:gold-turning": "node --test scripts/test-gold-turning.mjs",
     "test:guru-coverage": "node --test scripts/test-guru-trend-coverage.mjs",
-    "test:us-events": "node --test scripts/test-us-event-display.mjs"
+    "test:us-events": "node --test scripts/test-us-event-display.mjs",
+    "test:services": "node --test scripts/test-service-entries.mjs",
+    "test:history": "node --test scripts/test-historical-reference.mjs",
+    "test:monetization": "node --test scripts/test-monetization.mjs",
+    "report:monetization": "node scripts/monetization-readiness.mjs",
+    "test:historical-ops": "node --test scripts/test-historical-ops.mjs"
   },
   "description": "港股打新、美股投资、A股收息、黄金投资与聪明人持仓工具的公开只读镜像。",
   "main": "sw.js",

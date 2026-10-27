@@ -1,8 +1,9 @@
 const GUIDES = require("../../config/guides");
 const OFFERS = require("../../config/offers");
+const VERIFICATION = require("../../config/service-verification");
 const { OFFICIAL_SOURCES } = require("../../utils/sources");
 const { track } = require("../../utils/analytics");
-const { goHome } = require("../../utils/nav");
+const { goHome, openPage } = require("../../utils/nav");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 
 function buildSections(guide) {
@@ -32,6 +33,7 @@ function buildOffer(guide) {
   const offer = OFFERS.find((item) => item && item.id === guide.offer.id);
   if (!offer) return null;
   const base = { id: offer.id, head: guide.offer.head, body: guide.offer.body };
+  if (!canUseOffer(offer)) return { ...base, mode: "unavailable", head: "暂未开放", body: "", note: "渠道核验完成后开放办理。" };
   if (offer.copy) {
     return { ...base, mode: "copy", label: offer.label || "复制", disclosure: offer.disclosure || "" };
   }
@@ -52,12 +54,19 @@ function buildOffer(guide) {
   return null;
 }
 
+function canUseOffer(offer) {
+  if (!offer) return false;
+  const record = VERIFICATION[offer.id];
+  return Boolean(record && record.status === "verified" && record.provider && record.qualification && record.authorization);
+}
+
 Page({
   data: {
     topic: "",
     title: "",
     lead: "",
     sections: [],
+    choices: [],
     offer: null,
     sharePath: "",
     footerDisclaimer: FOOTER_DISCLAIMER,
@@ -71,6 +80,7 @@ Page({
       title: guide.title,
       lead: guide.lead || "",
       sections: buildSections(guide),
+      choices: (guide.choices || []).filter((item) => GUIDES[item.topic]),
       offer: buildOffer(guide),
       sharePath: `/pages/guide/index?topic=${topic}`,
     });
@@ -86,14 +96,20 @@ Page({
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
   },
+  openChoice(event) {
+    const choice = this.data.choices.find((item) => item.topic === event.currentTarget.dataset.topic);
+    if (choice) openPage(`/pages/guide/index?topic=${choice.topic}`);
+  },
   copyOffer() {
     const offer = this.data.offer;
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
-    if (!source || !source.copy) return;
-    track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
+    if (!canUseOffer(source) || !source.copy) return;
     wx.setClipboardData({
       data: source.copy,
-      success: () => wx.showToast({ title: source.toast || "已复制", icon: "none" }),
+      success: () => {
+        track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
+        wx.showToast({ title: source.toast || "已复制", icon: "none" });
+      },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
   },
@@ -102,11 +118,13 @@ Page({
     const offer = this.data.offer;
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
     const contact = pendingContact(source);
-    if (!contact) return;
-    track("service_copy", { id: source.id, via: contact.id, from: `guide_${this.data.topic}` });
+    if (!canUseOffer(source) || !contact) return;
     wx.setClipboardData({
       data: contact.copy,
-      success: () => wx.showToast({ title: source.pendingToast || "已复制", icon: "none" }),
+      success: () => {
+        track("service_copy", { id: source.id, via: contact.id, from: `guide_${this.data.topic}` });
+        wx.showToast({ title: source.pendingToast || "已复制", icon: "none" });
+      },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
   },
@@ -114,11 +132,11 @@ Page({
   previewOffer() {
     const offer = this.data.offer;
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
-    if (!source || !source.image) return;
-    track("offer_qr_open", { id: source.id, from: `guide_${this.data.topic}` });
+    if (!canUseOffer(source) || !source.image) return;
     wx.previewImage({
       urls: [source.image],
       current: source.image,
+      success: () => track("offer_qr_open", { id: source.id, from: `guide_${this.data.topic}` }),
       fail: () => wx.showToast({ title: "打开失败，请重试", icon: "none" }),
     });
   },

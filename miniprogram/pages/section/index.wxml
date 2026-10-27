@@ -4,14 +4,14 @@
   <view class="section-hero">
     <view class="hero-top">
       <text class="hero-title" aria-label="{{meta.title}}：{{meta.one}}">{{meta.title}}</text>
-      <text class="hero-meta">{{dataAsOf || '同步中'}}</text>
+      <text class="hero-meta">{{dataAsOf || '读取历史资料'}}</text>
     </view>
     <!-- 原来这里还有一块「今日答案 N 条」徽章，跟正下方 tab 上的
          「今日答案 N」离得很近、说的是同一件事，删掉这块，数字交给 tab。 -->
   </view>
 
   <!-- 结论和关键数值单独成卡，向上压住绿带下沿——和新闻资讯页筛选条压边一样。 -->
-  <view wx:if="{{market === 'hk' || market === 'gold'}}" class="page-card hero-body">
+  <view wx:if="{{market === 'hk'}}" class="page-card hero-body">
     <view class="insight-panel" wx:if="{{overview.target || overview.grade}}">
       <view class="insight-line">
         <text class="insight-label">{{overview.label || '结论'}}</text>
@@ -260,6 +260,7 @@
           <view wx:else class="us-spark"></view>
           <view class="us-right">
             <text class="us-price">{{item.priceText}}</text>
+            <text wx:if="{{item.asOfText}}" class="us-code">{{item.asOfText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
 
@@ -294,6 +295,7 @@
           <view wx:else class="us-spark"></view>
           <view class="us-right">
             <text class="us-price">{{item.priceText}}</text>
+            <text wx:if="{{item.asOfText}}" class="us-code">{{item.asOfText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
           <text wx:if="{{item.event}}" class="us-event-line">{{item.event}}</text>
@@ -374,7 +376,7 @@
           bindtap="openADetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，现价{{item.priceText}}，{{item.orderLabel}} {{item.orderValue}} {{item.orderNote}}"
+          aria-label="{{item.name}}，历史报价{{item.priceText}}，{{item.orderLabel}} {{item.orderValue}} {{item.orderNote}}"
         >
           <view class="a-row-top">
             <view class="a-row-main">
@@ -386,6 +388,7 @@
             </view>
             <view class="us-right">
               <text class="us-price">{{item.priceText}}</text>
+            <text wx:if="{{item.asOfText}}" class="us-code">{{item.asOfText}}</text>
               <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
             </view>
           </view>
@@ -498,6 +501,7 @@
         <text class="gold-quote-label">{{item.label}}</text>
         <text class="gold-quote-price">{{item.priceText}}</text>
         <text class="gold-quote-unit">{{item.unit}}</text>
+        <text class="gold-quote-unit">{{item.asOfText}}</text>
       </view>
     </view>
 
@@ -548,7 +552,7 @@
       aria-role="button"
       aria-label="查看黄金宏观指标与拐点"
     >
-      <text>看买卖参考 ›</text>
+      <text>看历史走势与依据 ›</text>
     </view>
   </view>
 
@@ -563,7 +567,7 @@
        只是不再靠滑动才能发现内容。 -->
   <view wx:if="{{market !== 'hk' && market !== 'us' && market !== 'a' && market !== 'gold' && answers.length}}" class="page-card answer-panel">
     <view class="answer-head">
-      <text class="answer-title">今日答案</text>
+      <text class="answer-title">历史资料参考</text>
     </view>
     <view class="answer-track">
       <view
@@ -905,7 +909,7 @@
     <text class="next-go">{{nextLink.go}} ›</text>
   </view>
 
-  <ad wx:if="{{sectionAdUnitId}}" unit-id="{{sectionAdUnitId}}" binderror="hideSectionAd"></ad>
+  <research-ad unit-id="{{sectionAdUnitId}}" />
 
   <view class="page-note">
     <text>{{disclaimer}}</text>

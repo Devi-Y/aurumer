@@ -1,3 +1,5 @@
+const { referenceDateText, marketReferenceAsOf } = require("./historical-reference");
+const PRODUCT = require("../config/product");
 const { degradeStaleActions, marketActionsFresh } = require("./action-freshness");
 /**
  * 栏目页「今日答案」：一屏回答用户真正会问的问题。
@@ -945,7 +947,8 @@ function buildGoldAnswers(snapshot) {
   // 单位跟着上面那行的数字走，这行只说涨跌和位置——把「美元/盎司」拆到这里，
   // 会变成一串没有主语的单位。
   const priceDetail = [
-    hasIntl || hasCny ? `日内 ${[
+    referenceDateText([intl.asOf, domestic.asOf]),
+    hasIntl || hasCny ? `报价日 ${[
       hasIntl ? `国际金 ${signedPct(intl.changePercent)}` : null,
       hasCny ? `人民币金 ${signedPct(domestic.changePercent)}` : null,
     ].filter(Boolean).join(" · ")}` : null,
@@ -1003,14 +1006,14 @@ function buildGoldAnswers(snapshot) {
   return [
     card({
       id: "gold-price",
-      question: "现在什么价",
+      question: "历史报价",
       answer: priceLine,
       names: priceDetail,
       tone: "muted",
       action: "detail",
       targetId: "track",
       enabled: hasIntl || hasCny,
-      state: intlZone.label,
+      state: "historical",
     }),
     card({
       id: "gold-buy",
@@ -1046,7 +1049,7 @@ function buildGoldAnswers(snapshot) {
       state: turnState,
       modal: turnModal,
     }),
-  ];
+  ].filter((item) => item.id === "gold-price" || item.id === "gold-turn");
 }
 
 function buildGuruAnswers(snapshot) {
@@ -1236,13 +1239,25 @@ function buildDailyAnswers(snapshot, market, options = {}) {
   snapshot = degradeStaleActions(snapshot);
   const builders = { hk: buildHkAnswers, us: buildUsAnswers, a: buildAShareAnswers, gold: buildGoldAnswers, guru: buildGuruAnswers };
   const cards = builders[market] ? builders[market](snapshot, options.holdings) : [];
+  if (PRODUCT.dataMode === "historical-reference" && ["us", "a", "gold"].includes(market)) {
+    const facts = { us: ["us-seven", "us-hot"], a: ["a-stable5", "a-yield5"], gold: ["gold-price", "gold-turn"] };
+    return cards.filter((item) => facts[market].includes(item.id)).map((item) => {
+      const result = { ...item, state: "historical", hint: `${marketReferenceAsOf(snapshot, market)}；仅供历史研究参考。` };
+      if (market === "us") result.question = item.id === "us-seven" ? "七姐妹样本表现" : "样本热度前三";
+      if (market === "a" && item.rows) {
+        result.rows = { ...item.rows, head: item.rows.head.slice(0, 2), body: item.rows.body.map((row) => ({ ...row, cells: row.cells.slice(0, 2), tone: "" })) };
+        result.modal = [result.question, ...result.rows.body.map((row) => row.cells.join("：")), result.hint].join("\n");
+      }
+      return result;
+    });
+  }
   if (market === "guru" || marketActionsFresh(snapshot, market)) return cards;
   // 已发生的价格、公告、分红排名和历史结果仍能读；只暂停依赖当前报价的动作。
   const factualQuestions = {
     hk: ["近期上新", "打中后暗盘", "打中后首日"],
     us: ["七姐妹近期怎么了", "最热的三只"],
     a: ["分红稳定性 前五", "分红收益性 前五"],
-    gold: ["现在什么价", "拐点变化"],
+    gold: ["历史报价", "拐点变化"],
   };
   return cards.map((card) => {
     if ((factualQuestions[market] || []).includes(card.question)) {
@@ -1333,11 +1348,11 @@ const MARKET_NEXT_CHECK = {
 };
 
 function buildHomeDigest(snapshot, options = {}) {
-  const hk = buildHkAnswers(snapshot);
-  const us = buildUsAnswers(snapshot);
-  const a = buildAShareAnswers(snapshot, options.holdings);
-  const gold = buildGoldAnswers(snapshot);
-  const guru = buildGuruAnswers(snapshot);
+  const hk = buildDailyAnswers(snapshot, "hk", options);
+  const us = buildDailyAnswers(snapshot, "us", options);
+  const a = buildDailyAnswers(snapshot, "a", options);
+  const gold = buildDailyAnswers(snapshot, "gold", options);
+  const guru = buildDailyAnswers(snapshot, "guru", options);
 
   const hkWorth = pickCard(hk, ["hk-worth"]);
   const hkAvoid = pickCard(hk, ["hk-avoid", "hk-new"]);

@@ -32,7 +32,8 @@ const { buildGuruTrend } = require("../../utils/guru-trend");
 const { holdingLabel, instrumentSuffix } = require("../../utils/guru-changes");
 // 页头那句「数据截至 …」和新闻资讯页共用同一个写法。
 const { asOfText } = require("../../utils/dates");
-const { withLatestQuote } = require("../../utils/gold-series");
+const { marketReferenceAsOf, referenceDateText } = require("../../utils/historical-reference");
+
 // 美股每行、红利 ETF 卡的小走势图，和首页走势卡同一套画法。
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 
@@ -65,7 +66,7 @@ const META = {
   gold: {
     title: "黄金追踪",
     // 这行是栏目页的副标题，要跟今日答案那四问对上：什么价、能不能买、要不要卖、拐点。
-    one: "价格 / 能不能买 / 要不要卖 / 拐点",
+    one: "历史价格 / 区间涨跌 / 均线变化",
     tone: "gold",
     icon: "/assets/home/gold.svg",
     kicker: "价格观察",
@@ -351,17 +352,9 @@ function usMetrics(item) {
 // 新闻源、没有公告字段，编事件就是凭空造。换成 usSignal 已经用 PE、质量门、
 // 60日价格位置算出的结论句——详情页在用同一份判断，不是另起一套话术。
 // 每行下面那条参考价：跟详情页「下单参考」卡同一个价、同一个「风险升高就暂不买」。
-function usOrderFields(item, signal) {
-  const order = usOrderState(item.raw, signal.label === "风险升高");
-  const line = usOrderLine(order);
-  return {
-    order,
-    hasOrder: Boolean(line),
-    orderTone: line ? line.tone : "",
-    orderLabel: line ? line.label : "",
-    orderValue: line ? line.value : "",
-    orderNote: line ? line.note : "",
-  };
+function usOrderFields() {
+  // 历史视图不提供到价动作，读屏文本也不能残留即时下单价。
+  return { order: null, hasOrder: false, orderTone: "", orderLabel: "", orderValue: "", orderNote: "" };
 }
 
 function usStockRow(item) {
@@ -373,6 +366,7 @@ function usStockRow(item) {
     badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
     reason: signal.action,
+    asOfText: referenceDateText([item.raw && item.raw.asOf]),
     ...usMetrics(item),
     ...historySpark(item, US_SPARK_SIZE),
     ...usOrderFields(item, signal),
@@ -390,7 +384,7 @@ function buildUsModule(snapshot) {
     .map(usStockRow)
     .sort((left, right) => compareUsOrder(left.order, right.order));
   const allOrders = allRows.map((row) => row.order);
-  const triggerTiles = allOrders.some(Boolean) ? countTiles(allOrders, US_TRIGGERS) : [];
+  const triggerTiles = []; // 历史参考不生成即时到价提示。
   const allList = allRows.map(({ order, ...row }) => row);
 
   const sevenList = sevenItems.map(usStockRow).map(({ order, ...row }) => ({ ...row, event: eventBrief(snapshot, row.code) }));
@@ -422,6 +416,7 @@ function buildUsModule(snapshot) {
       takeText,
       takeTone,
       heatText: heat != null ? String(Math.round(heat)) : "—",
+      asOfText: referenceDateText([raw.asOf]),
       ...historySpark(item, US_SPARK_SIZE),
       ...orderFields,
     };
@@ -444,7 +439,7 @@ function aRankedList(items, lens) {
     .filter((item) => item.lensRank && item.lensRank[lens])
     .sort((left, right) => left.lensRank[lens] - right.lensRank[lens])
     .map((item) => {
-      const plan = yieldImpliedPlan(item.raw);
+      const plan = null; // 历史榜单不展示模型买卖价。
       // yield5 现在按可持续股息率排序（先过滤高息待核），这一列必须跟排序
       // 依据同一个数，不能继续显示当前股息率——那是另一个数，会和名次对不上。
       const sustainableYield = Number(item.raw.sustainableDividendYield);
@@ -515,7 +510,7 @@ function aAllModule(items, fresh) {
     .filter((item) => !(item.raw && item.raw.assetType === "fund"))
     .map((item) => {
       const raw = item.raw || {};
-      const order = fresh ? aOrderState(raw) : null;
+      const order = null; // 历史资料不触发“已到买卖价”。
       const line = aOrderLine(order);
       const price = finiteOrNull(raw.currentPrice);
       const change = finiteOrNull(raw.changePercent);
@@ -527,9 +522,10 @@ function aAllModule(items, fresh) {
         badgeText: item.badge,
         tone: aTone(item.group),
         priceText: price != null ? money(price, "¥") : "—",
+        asOfText: referenceDateText([raw.priceAsOf || raw.asOf]),
         changeText: signedPct(change, 2),
         changeTone: change == null ? "flat" : (change >= 0 ? "up" : "down"),
-        hasOrder: Boolean(line),
+        hasOrder: false,
         orderTone: line ? line.tone : "",
         orderLabel: line ? line.label : "",
         orderValue: line ? line.value : "",
@@ -563,7 +559,8 @@ function aFundView(item) {
     badgeText: item.badge || "红利ETF",
     // 大字旁边两个百分比，一个是今天、一个是近 N 日，不写明就分不清哪个是哪个。
     priceText: price != null ? `¥${price.toFixed(3)}` : "—",
-    changeText: change != null ? `今日 ${signedPct(change, 2)}` : "",
+    asOfText: referenceDateText([raw.priceAsOf || raw.asOf]),
+    changeText: change != null ? `报价日 ${signedPct(change, 2)}` : "",
     changeTone: toneOf(change || 0),
     stats,
     ...historySpark(item, A_FUND_SPARK_SIZE),
@@ -661,7 +658,7 @@ function goldLineChart(history, digits, periodLabel) {
     changeText: `近${periodLabel === "全部" ? `${values.length - 1}日` : periodLabel} ${signedPct(change, 1)}`,
     changeTone: change > 0 ? "up" : change < 0 ? "down" : "flat",
     lowLabel: `最低 ${low.toFixed(digits)}`,
-    latestLabel: `最新 ${latest.toFixed(digits)}`,
+    latestLabel: `期末 ${latest.toFixed(digits)}`,
     highLabel: `最高 ${high.toFixed(digits)}`,
   };
 }
@@ -754,8 +751,8 @@ function buildGoldModule(snapshot) {
   const intlZone = goldZoneForPrice(international.price, plan.internationalWatch, plan.internationalUpper, plan.internationalRisk);
   const cnyZone = goldZoneForPrice(domestic.price, plan.domesticWatch, plan.domesticUpper, plan.domesticRisk);
 
-  // 走势线末端接上最新报价，图下「最新」才和上面的大数字是同一个价。
-  const intlHistory = withLatestQuote(gold.history?.international, international);
+  // 历史日线与独立报价分开；不以盘中报价覆盖历史收盘。
+  const intlHistory = gold.history?.international || [];
   const cnyHistory = gold.history?.domestic || [];
   const chartsByPeriod = {};
   GOLD_PERIODS.forEach((period) => {
@@ -768,12 +765,14 @@ function buildGoldModule(snapshot) {
       label: "国际金",
       priceText: hasNumber(international.price) ? Number(international.price).toFixed(0) : "待更新",
       unit: "美元 / 盎司",
+      asOfText: referenceDateText([international.asOf]),
     },
     {
       id: "cny",
       label: "人民币金",
       priceText: hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "待更新",
       unit: "元 / 克",
+      asOfText: referenceDateText([domestic.asOf]),
     },
   ];
 
@@ -1186,7 +1185,7 @@ function buildOverview(snapshot, market) {
       // 而下面的红色提示条已经把「数据已陈旧」说清楚了，这里只留两个字。
       grade: snapshot.actionsFresh === false
         ? "待更新"
-        : (gold.actionsFresh === false ? "资料待补齐" : (answer.action || "继续观察")),
+        : (gold.actionsFresh === false ? "资料待补齐" : "历史参考"),
       gradeGroup: "track",
       canOpenTarget: true,
       canOpenGrade: true,
@@ -1489,7 +1488,7 @@ Page({
         source,
         freshness: freshnessBanner(source, meta.kind),
         sourceLinks,
-        dataAsOf: asOfText(snapshot && snapshot.updatedAt, meta.kind),
+        dataAsOf: marketReferenceAsOf(snapshot, this.data.market, meta.kind),
         hkApplyList: hkModule ? hkModule.applyList : [],
         hkApplyTiles: hkModule ? hkModule.applyTiles : [],
         hkFirstDayChart: hkModule ? hkModule.firstDayChart : null,
@@ -1585,7 +1584,6 @@ Page({
     this.setData({ aSubTab: id });
     track("section_tab", { market: "a", tab: String(id) });
   },
-  hideSectionAd() { this.setData({ sectionAdUnitId: "" }); },
   openADetail(event) {
     const id = event.currentTarget.dataset.id;
     if (!id) return;

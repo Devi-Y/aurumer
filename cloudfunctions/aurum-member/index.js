@@ -1,6 +1,11 @@
 const cloud = require("wx-server-sdk");
 const crypto = require("node:crypto");
 const {
+  RESEARCH_PURCHASES_ENABLED,
+  RESEARCH_PURCHASE_MESSAGE,
+  assertResearchPurchaseAllowed,
+} = require("./new-purchase-policy");
+const {
   entitlementData,
   entitlementReviewRequired,
   entitlementSchedule,
@@ -135,6 +140,7 @@ function readiness(openid = "") {
 }
 
 function publicPlans() {
+  if (!RESEARCH_PURCHASES_ENABLED) return [];
   return planCatalog().map((plan) => ({
     id: plan.id,
     name: plan.name,
@@ -1443,16 +1449,18 @@ async function memberStatus(openid) {
   }
   const entitlement = await publicEntitlement(openid);
   const reviewRequired = Boolean(entitlement && entitlement.reviewRequired);
+  const purchaseAllowed = RESEARCH_PURCHASES_ENABLED && config.ready && !reviewRequired;
   return {
     backendReady: true,
-    paymentReady: config.ready && !reviewRequired,
-    paymentMode: reviewRequired ? "closed" : config.mode,
-    paymentPubliclyReleased: config.publicReady && !reviewRequired,
+    purchasePolicy: "research-retired-20261027",
+    paymentReady: purchaseAllowed,
+    paymentMode: purchaseAllowed ? config.mode : "closed",
+    paymentPubliclyReleased: purchaseAllowed && config.publicReady,
     paymentTestModeEnabled: config.testModeEnabled,
     paymentTestAccountAllowed: config.testAccountAllowed,
     paymentTestAccountId: config.testAccountId,
     refundMode: config.refundMode,
-    paymentReason: reviewRequired ? entitlement.reviewMessage : config.reason,
+    paymentReason: reviewRequired ? entitlement.reviewMessage : (RESEARCH_PURCHASES_ENABLED ? config.reason : RESEARCH_PURCHASE_MESSAGE),
     environment: "production",
     legalVersions: REQUIRED_LEGAL_VERSIONS,
     plans: publicPlans(),
@@ -1461,7 +1469,7 @@ async function memberStatus(openid) {
     subscribe: subscribeConfig(),
     freeLimits: FREE_LIMITS,
     sellGate: {
-      paymentChannelOpen: Boolean(config.ready && config.publicReady && !reviewRequired),
+      paymentChannelOpen: Boolean(purchaseAllowed && config.publicReady),
       codeReady: true,
       humanPending: [
         "微信公众平台类目确认",
@@ -1555,6 +1563,8 @@ async function prepareCloudPayPurchase(context, plan, legalConsent) {
 }
 
 async function preparePurchase(event, context) {
+  // 产品停售先于查账、写订单和调用微信支付；客户端及旧版本均不能绕过。
+  assertResearchPurchaseAllowed();
   const config = readiness(context.OPENID);
   if (!config.ready) {
     console.warn("payment configuration incomplete", config.missing);

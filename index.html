@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>望潮 Aurum｜港美股与黄金投资答案工具</title>
-<meta name="description" content="望潮 Aurum：港股打新、美股投资、A股收息、黄金追踪与机构持仓，一页看清结论、价格、风险和下一步。">
+<title>望潮 Aurum｜历史走势参考工具</title>
+<meta name="description" content="望潮 Aurum：港股打新、美股投资、A股收息、黄金追踪与机构持仓，对照历史走势、公开资料与风险，逐项标注数据日期。">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="theme-color" content="#F7F4EE">
 <meta name="mobile-web-app-capable" content="yes">
@@ -15,15 +15,15 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:site_name" content="望潮 Aurum">
-<meta property="og:title" content="望潮 Aurum｜港美股与黄金投资答案工具">
-<meta property="og:description" content="港股看能不能打，美股看投资重点，A股看收息，黄金看买卖观察区。">
+<meta property="og:title" content="望潮 Aurum｜历史走势参考工具">
+<meta property="og:description" content="港股看历史表现，美股与黄金看历史价格位置，A股看分红与现金流。">
 <meta property="og:url" content="https://devi-y.github.io/aurumer/">
 <meta property="og:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="望潮 Aurum｜港美股与黄金投资答案工具">
-<meta name="twitter:description" content="少看行情噪音，更快找到港股、美股、A股和黄金的下一步。">
+<meta name="twitter:title" content="望潮 Aurum｜历史走势参考工具">
+<meta name="twitter:description" content="对照港股、美股、A股与黄金的历史资料和风险。">
 <meta name="twitter:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
 <script src="assets/action-freshness.js"></script>
 <script src="assets/us-event-facts.js"></script>
@@ -748,7 +748,7 @@ const US_STOCKS = [
 {t:'PLTR',n:'Palantir',price:158.7,chg:3.8,score:35,verdict:'高估',vc:'rich',seed:99,drift:.005,
  buy:95,stop:80,tp:[175,190],tags:['AI应用','国防'],
  one:'基本面无可挑剔，但 80 倍 PS 是全美股最贵，切勿追高',
- logic:'即便按 2027 年 40% 增速折现，合理价也仅 90–100 美元；当前价格透支了未来三年的完美执行。',
+ logic:'即便按 2027 年 40% 增速折现，合理价也仅 90–100 美元；历史记录价透支了未来三年的完美执行。',
  bd:[['估值',8],['成长',90],['盈利质量',74],['动量',85],['市场情绪',88]],
  pros:['美政府 + 商业双轮驱动，AIP 平台商业化全面开花','规则 40 得分（增速+利润率）全软件行业第一'],
  cons:['80 倍 PS、250 倍 PE，任何减速都是戴维斯双杀','伯里等空头集中狙击的头号标的','散户持仓占比过高，波动被放大'],
@@ -1507,7 +1507,7 @@ const TERMS={
   '首日预测':'根据已收录公开数据估算正式上市首日的涨跌区间，实际结果可能大幅偏离。',
   '中签率':'预计申购后能分到股票的概率，只是研究估算，不代表一定中签。',
   '认购倍数':'公开认购金额相对公开发售额度的倍数，越高通常代表市场关注越热。',
-  '性价比':'综合业务质量、成长、估值和当前价格后的比较分数，不等于一定上涨。',
+  '性价比':'综合业务质量、成长、估值和历史记录价后的比较分数，不等于一定上涨。',
   '买入区间':'研究中风险收益比较合适的价格范围，不是交易指令。',
   '止盈':'达到预设目标后分批降低仓位，用来管理盈利回撤。',
   '止损':'判断逻辑失效时的风险控制参考，不保证能按该价格成交。',
@@ -1532,9 +1532,9 @@ window.copyStockConclusion=async symbol=>{
   const position=stockPositionFacts(stock);
   const text=`望潮 Aurum · 港美股答案
 
-${stock.t} ${stock.n} 现在怎么看？
-当前结论：${stockAction(stock)}
-当前价格：$${Number(stock.price).toFixed(2)}
+${stock.t} ${stock.n} 历史位置怎么看？
+历史观察：${stockAction(stock)}
+历史记录价：$${Number(stock.price).toFixed(2)}
 ${answers.available?`观察低位：${answers.buy}\n观察上沿：${answers.sell}\n风险下沿：${answers.stop}\n价格状态：${answers.status}`:`近 60 日高点：${Number.isFinite(position.high)?`$${position.high.toFixed(2)}`:'暂缺'}\n距离高点：${Number.isFinite(position.drawdownFromHigh)?pct(Number(position.drawdownFromHigh.toFixed(1))):'暂缺'}`}
 
 仅供研究，不构成投资建议`;
@@ -1677,19 +1677,12 @@ function isSnapshotActionFresh(updatedAt){
   return Number.isFinite(stamp)&&stamp<=Date.now()&&snapshotAgeMs(updatedAt)<=ACTION_MAX_AGE_MS;
 }
 function dataStateNotice(){
-  const syncing=LIVE.status==='loading';
-  if(syncing){
-    return `<div class="module-data-state syncing" role="status"><span class="data-dot"></span><span>数据状态：正在同步 · 以公开快照为准</span></div>`;
+  if(LIVE.status==='loading'){
+    return `<div class="module-data-state syncing" role="status"><span class="data-dot"></span><span>正在读取历史资料</span></div>`;
   }
-  if(!LIVE.updatedAt){
-    return `<div class="module-data-state syncing" role="status"><span class="data-dot"></span><span>数据状态：快照时间待确认</span></div>`;
-  }
-  const age=snapshotAgeMs(LIVE.updatedAt);
-  const stamp=fmtDate(LIVE.updatedAt);
-  if(!isSnapshotActionFresh(LIVE.updatedAt)){
-    return `<div class="module-data-state syncing" role="status"><span class="data-dot"></span><span>数据状态：快照已过期 · ${stamp} · ${STALE_ACTION}</span></div>`;
-  }
-  return `<div class="module-data-state" role="status"><span class="data-dot"></span><span>免费决策参考 · 盘后更新 ${stamp}</span></div>`;
+  const stamp=LIVE.updatedAt?fmtDate(LIVE.updatedAt):'时间待确认';
+  const issue=LIVE.status==='partial'?' · 部分来源待核验':'';
+  return `<div class="module-data-state${issue?' syncing':''}" role="status"><span class="data-dot"></span><span>历史走势参考 · 资料整理 ${stamp} · 数据日期见各项${issue}</span></div>`;
 }
 function detailPlatformDisclaimer(){
   return '<div class="detail-platform-disclaimer">本平台数据仅供学习参考，不构成投资建议</div>';
@@ -1706,9 +1699,9 @@ function levelPath(items){
 function ipoActionLabel(x){
   if(x.vc==='ended')return '申购窗口已结束，仅供回顾';
   if(x.vc==='pending')return '关键招股字段未齐，先核验官方文件';
-  if(x.vc==='buy')return '可小仓申购，等配发和暗盘确认';
-  if(x.vc==='caution')return '先观察，不融资重仓';
-  return '暂不申购';
+  if(x.vc==='buy')return '对照招股资料与历史同类样本';
+  if(x.vc==='caution')return '资料和样本仍有不确定性';
+  return '查看风险和资料缺口';
 }
 function assessLiveIPO(item,temperature){
   if(!LIVE.actionsFresh&&!(item.historical||item.listingStatus==='ended'||item.allotmentUrl)){
@@ -2162,7 +2155,7 @@ async function loadLiveData(){
   LIVE.hasAShare=false;
   LIVE.hasInvestors=false;
   LIVE.liveInvestorIds=new Set();
-  LIVE.error=lastError?.message||'实时数据暂不可用';
+  LIVE.error=lastError?.message||'历史资料暂不可用';
   router();
 }
 
@@ -2435,7 +2428,7 @@ function footer(){
 function renderLoadingApp(){
   $('#app').innerHTML=header()+dataStateNotice()+`
   <div class="card loading-shell" aria-live="polite" style="margin-top:20px;padding:28px 22px">
-    <div class="loading-copy">正在同步最新数据。</div>
+    <div class="loading-copy">正在读取历史资料。</div>
     <div class="loading-bars" aria-hidden="true"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div>
   </div>`+footer()+mobileNav('home');
 }
@@ -2479,7 +2472,7 @@ function homePortalCard({tone, kicker, title, features, answer, href}){
     <div class="kicker">${kicker}</div>
     <h4>${title}</h4>
     <ul class="features">${features.map(item=>`<li>${item}</li>`).join('')}</ul>
-    <div class="note"><span>今天先看</span>${answer}</div>
+    <div class="note"><span>历史参考</span>${answer}</div>
     <div class="foot"><span>进入</span><span>›</span></div>
   </a>`;
 }
@@ -2521,19 +2514,13 @@ function renderEntry(){
     ||hkListings.find(item=>item.vc==='pending')
     ||null;
   const usLead=LIVE.hasUS?([...MAGNIFICENT_SEVEN.map(symbol=>US_STOCKS.find(stock=>stock.t===symbol)).filter(Boolean),...hotQualityPool(US_STOCKS,3)][0]||US_STOCKS[0]||null):null;
-  const waitingText=LIVE.status==='loading'?'正在同步最新答案':'最新数据暂不可用';
-  const hkToday=digestHomePoint('hk')||(hkLead
-    ?hkLead.vc==='pending'
-      ?`${hkLead.name} · 资料待核验，暂不参与`
-      :`${hkLead.name} · ${hkLead.verdict}`
-    :waitingText);
-  const usToday=digestHomePoint('us')||(usLead?`${usLead.t} · ${stockAction(usLead)}`:waitingText);
+  const waitingText=LIVE.status==='loading'?'正在读取历史资料':'历史资料暂不可用';
+  const hkToday=hkListings.length?`${hkListings.length} 只已收录新股 · 招股与历史表现`:waitingText;
+  const usToday=LIVE.hasUS?`${US_STOCKS.length} 只已收录美股 · 历史价格与公开财务`:waitingText;
   const aLead=LIVE.hasAShare?([...A_SHARES].sort((left,right)=>(right.score||0)-(left.score||0))[0]||null):null;
-  const aToday=digestHomePoint('a')||(aLead?`${aLead.name} · ${aLead.currentAdvice||'暂无建议'}`:waitingText);
-  const guruToday=LIVE.digest?.home?.cardLines?.find(line=>line.startsWith('机构：'))?.replace(/^机构：/,'')||'港股 3 · 美股 5 · A股 3';
-  const goldToday=digestHomePoint('gold')||(LIVE.hasGold
-    ?`${LIVE.gold.answer.action} · ${LIVE.gold.quotes.international.price} 美元/盎司`
-    :waitingText);
+  const aToday=LIVE.hasAShare?`${A_SHARES.length} 只已收录资产 · 分红与现金流`:waitingText;
+  const guruToday='港股 3 · 美股 5 · A股 3 · 公开披露';
+  const goldToday=LIVE.hasGold?`国际金记录价 ${LIVE.gold.quotes.international.price} 美元/盎司`:waitingText;
   $('#app').innerHTML=header()+dataStateNotice()+`
   <section class="home-section" id="home-entrances" style="margin-top:18px">
     <div class="home-core-grid">
@@ -2541,7 +2528,7 @@ function renderEntry(){
         tone:'hk',
         kicker:'HK · 新股',
         title:'港股打新',
-        features:['今日新股结论','暗盘与首日答案','历史表现复盘'],
+        features:['招股资料','暗盘与首日记录','历史表现复盘'],
         answer:hkToday,
         href:'#/hk',
       })}
@@ -2557,7 +2544,7 @@ function renderEntry(){
         tone:'a',
         kicker:'CN · 收息',
         title:'A股收息',
-        features:['分红率排名','自由现金流筛选','收息买入区间'],
+        features:['分红率排名','自由现金流筛选','历史价格位置'],
         answer:aToday,
         href:'#/a-shares',
       })}
@@ -2565,7 +2552,7 @@ function renderEntry(){
         tone:'gold',
         kicker:'GOLD · 追踪',
         title:'黄金追踪',
-        features:['现在怎么做','观察区间','为什么'],
+        features:['历史价格','宏观资料','风险对照'],
         answer:goldToday,
         href:'#/gold',
       })}
@@ -2623,9 +2610,9 @@ function ipoCard(x,groupLabel,rank,score){
     :x.vc==='pending'
       ?'资料尚未齐全，暂不建议申购。'
       :x.vc==='buy'
-        ?'建议申购，点进去看一手金额和认购截止日。'
+        ?'查看一手金额、认购截止日与历史同类样本。'
         :x.vc==='caution'
-          ?'暂缓观察，先看认购热度，不急着重仓。'
+          ?'对照认购资料、历史表现与风险。'
           :'暂不建议申购，风险或资料不够。';
   const chipClass=x.vc==='ended'?'ended':x.vc==='buy'?'buy':x.vc==='caution'?'caution':'skip';
   return `<a class="compact-card ${x.vc==='ended'?'muted':''}" href="#/ipo/${ipoPublicCode(x)}">
@@ -2736,21 +2723,8 @@ function ipoHistoryContext(x){
   </div></div>`;
 }
 function dailyAnswerBoard(market){
-  if(!isSnapshotActionFresh(LIVE.updatedAt)||LIVE.actionsFresh===false)return '';
-  if(market==='gold'&&LIVE.gold?.actionsFresh===false)return '';
-  const cards=LIVE.digest?.markets?.[market]||[];
-  if(!cards.length)return '';
-  return `<section class="daily-answers" aria-label="今日答案">
-    <div class="daily-answers-head"><b>今日答案</b><span>研究观察，不是买卖指令</span></div>
-    ${cards.map(card=>{
-      const href=card.href||'';
-      const enabled=Boolean(card.enabled&&href);
-      const body=`<div class="daily-answer-copy"><strong>${card.question||''}</strong><span>${card.answer||''}</span>${card.names?`<em>${card.names}</em>`:''}</div><span class="arrow">${enabled?'›':'—'}</span>`;
-      return enabled
-        ? `<a class="daily-answer-row tone-${card.tone||'wait'}" href="${href}">${body}</a>`
-        : `<div class="daily-answer-row tone-${card.tone||'wait'} is-empty">${body}</div>`;
-    }).join('')}
-  </section>`;
+  // 历史参考模式不再把盘后模型摘要显示成“今日答案”或交易动作。
+  return '';
 }
 function digestHomePoint(id){
   return (LIVE.digest?.home?.points||[]).find(item=>item.id===id)?.value||'';
@@ -2814,24 +2788,11 @@ function renderHKIPO(){
 
 /* =============== 二级页面：美股投资 =============== */
 function stockAction(x){
-  if(LIVE.actionsFresh===false||x.actionsFresh===false)return STALE_ACTION;
   const position=stockPositionFacts(x);
-  const plan=x.pricePlan||x.technicalPlan||null;
-  if(!plan?.buy){
-    if((x.weeklyChange||0)>8)return '不追高';
-    if(Number.isFinite(position.drawdownFromHigh)&&position.drawdownFromHigh>=-3)return '不追高';
-    if(Number.isFinite(position.rangePosition)&&position.rangePosition<=25)return '可继续观察';
-    if(Number.isFinite(position.drawdownFromHigh))return `还需回落 ${Math.abs(position.drawdownFromHigh).toFixed(0)}%`;
-    return '先观察';
-  }
-  if(!Number.isFinite(x.price)||!Number.isFinite(Number(plan.buy))||Number(plan.buy)<=0)return '先观察';
-  const distance=(x.price-Number(plan.buy))/Number(plan.buy)*100;
-  const upper=Number(plan.tp?.[0]);
-  if(Number.isFinite(upper)&&x.price>=upper)return '不追高';
-  if((x.weeklyChange||0)>8)return '不追高';
-  if(distance<=0)return '可小仓观察';
-  if(distance<=3)return '可小仓观察';
-  return '等回调';
+  if(!Number.isFinite(position.rangePosition))return '历史价格不足';
+  if(position.rangePosition<=25)return '位于历史区间下部';
+  if(position.rangePosition>=75)return '位于历史区间上部';
+  return '位于历史区间中部';
 }
 function stockPositionFacts(x){
   const history=(x.history||[]).filter(Number.isFinite);
@@ -2878,7 +2839,7 @@ function stockRankInfo(x){
   return {rank:Math.max(1,ordered.findIndex(item=>item.t===x.t)+1),total:ordered.length,score:stockGroupScore(x,group?.id),label:group?.label||'美股'};
 }
 function quickPriceAction(symbol){
-  return `<span class="quick-price-action" role="button" tabindex="0" onclick="showUSPriceFloat(event,'${symbol}')" onkeydown="if(event.key==='Enter'||event.key===' '){showUSPriceFloat(event,'${symbol}')}" aria-label="快速查看 ${symbol} 价格观察区">快速看价格观察区</span>`;
+  return `<span class="quick-price-action" role="button" tabindex="0" onclick="showUSPriceFloat(event,'${symbol}')" onkeydown="if(event.key==='Enter'||event.key===' '){showUSPriceFloat(event,'${symbol}')}" aria-label="快速查看 ${symbol} 历史价格区间">快速看历史价格</span>`;
 }
 function stockCard(x,i,groupId){
   const price=Number.isFinite(x.current_price)?x.current_price:x.price;
@@ -2887,7 +2848,7 @@ function stockCard(x,i,groupId){
   return `<a class="compact-card" href="#/stock/${x.t}">
     <div class="compact-top">
       <span class="compact-rank">${i+1}</span><div class="compact-title"><h3>${x.t}<span>${x.n}</span></h3></div>
-      <div class="quote-now"><b class="num">评分 ${score}</b><span>$${Number(price).toFixed(2)} · ${pct(x.chg)}</span></div>
+      <div class="quote-now"><b class="num">评分 ${score}</b><span>$${Number(price).toFixed(2)} · 截至 ${fmtDate(x.asOf)}</span></div>
     </div>
     <div class="compact-answer">${stockAction(x)}。</div>
     <div class="t2">${eventHtml(brief)}</div>
@@ -2955,7 +2916,7 @@ function renderUSGroup(groupId){
   $('#app').innerHTML=`${pageNav('#/us', '返回美股投资')}${dataStateNotice()}
   <div class="simple-page-title"><h1>${group.label}</h1><span>${group.items.length} 只</span></div>
   <section class="group-list">${rankedItems.length?rankedItems.map((item,index)=>stockCard(item,index,group.id)).join(''):'<div class="empty-answer">当前暂无可展示的标的。</div>'}</section>
-  ${group.id==='hot'?`${deepAnalysisEntry('#/us/hot-10','查看完整热度前十','比较全市场热度、价格变化、热度原因和当前动作。')}${deepAnalysisEntry('#/us/value','查看性价比指数','比较公司质量、价格位置、综合评分与价格答案状态。')}`:''}
+  ${group.id==='hot'?`${deepAnalysisEntry('#/us/hot-10','查看完整热度前十','比较全市场热度、价格变化、热度原因和历史观察。')}${deepAnalysisEntry('#/us/value','查看性价比指数','比较公司质量、价格位置、综合评分与价格答案状态。')}`:''}
   ${marketUpdateLine('美股')}
   `+footer()+mobileNav('us');
 }
@@ -2977,9 +2938,9 @@ function aShareCard(item,index,label){
       <div class="compact-title">
         <h3>${item.name}<span class="code">${item.code}</span></h3>
       </div>
-      <div class="quote-now"><b class="num">${score} 分</b><span>${priceText} · 股息率 ${fmtPct(item.currentDividendYield)}</span></div>
+      <div class="quote-now"><b class="num">${score} 分</b><span>${priceText} · 截至 ${fmtDate(item.priceAsOf)}</span></div>
     </div>
-    <div class="compact-answer"><b>${label}：</b>${item.summary}</div>
+    <div class="compact-answer"><b>${label}：</b>历史分红与现金流对照 · 股息率 ${fmtPct(item.currentDividendYield)}</div>
     <div class="compact-foot"><span>查看</span><span class="arrow">›</span></div>
   </a>`;
 }
@@ -3027,7 +2988,7 @@ function renderAShareGroup(groupId){
   <div class="list-guidance">判断标准：重点观察＝股息率&gt;3%且FCF/市值&gt;5%（或收息观察分靠前）；继续观察＝公司可看但价格偏高；谨慎观察＝分红或价格风险偏弱。快照过期时不提供动作。</div>
   <section class="group-list">${group.items.length?group.items.map((item,index)=>aShareCard(item,index,group.label)).join(''):'<div class="empty-answer">当前暂无符合条件的标的。</div>'}</section>
   ${marketUpdateLine('A股')}
-  ${specialDisclaimer('A股收息测算仅用于研究参考，不构成任何买卖建议。')}`+footer()+mobileNav('a');
+  ${specialDisclaimer('A股收息测算基于历史记录及假设，仅供参考，不构成任何买卖建议。')}`+footer()+mobileNav('a');
 }
 
 /* =============== 黄金投资：单页答案 =============== */
@@ -3061,25 +3022,19 @@ function renderGold(){
   const gold=LIVE.gold;
   const answer=gold.answer;
   const plan=answer.pricePlan||{};
-  const actionText=LIVE.actionsFresh===false?STALE_ACTION:(answer.action||STALE_ACTION);
-  const conclusionText=LIVE.actionsFresh===false?STALE_ACTION:(answer.conclusion||actionText);
+  const actionText='历史走势参考';
+  const conclusionText='对照已收录价格与宏观资料，各项日期分别标注。';
   const reasons=answer.reasons||[];
   const risks=answer.risks||[];
-  const actionHow=LIVE.actionsFresh===false?STALE_ACTION:(actionText==='可分批关注'?'分批，不追涨；每次只处理计划仓位的一部分。':actionText==='暂时回避'?'先不新增仓位，等待价格与宏观条件改善。':'先观察价格是否进入关注区，再决定是否分批。');
+  const actionHow='先比较历史价格位置和宏观资料，不把记录价作为即时成交或下单依据。';
   $('#app').innerHTML=`${pageNav('', '返回')}${dataStateNotice()}
-  <div class="simple-page-title"><h1>黄金追踪：先看结论</h1></div>
+  <div class="simple-page-title"><h1>黄金：历史资料对照</h1></div>
   ${dailyAnswerBoard('gold')}
   <section class="decision-hero">
     <div class="eyebrow">望潮 Aurum · 黄金策略</div>
     <h2>${actionText}</h2><p>${conclusionText}</p>
     <div class="gold-quote-grid">${goldPriceCard('国际金价',gold.quotes?.international)}${goldPriceCard('上海金 Au99.99',gold.quotes?.domestic)}</div>
-    <div class="price-map" style="margin-top:14px">
-      <div class="price-cell"><span>国际金关注区</span><b>${LIVE.actionsFresh===false?STALE_ACTION:goldRangeText(plan.internationalWatch)}</b></div>
-      <div class="price-cell"><span>上海金关注区</span><b>${LIVE.actionsFresh===false?STALE_ACTION:goldRangeText(plan.domesticWatch)}</b></div>
-      <div class="price-cell"><span>风险下沿</span><b>${LIVE.actionsFresh===false?STALE_ACTION:goldRangeText(plan.internationalRisk)}</b></div>
-      <div class="price-cell"><span>观察上沿</span><b>${LIVE.actionsFresh===false?STALE_ACTION:goldRangeText(plan.internationalUpper)}</b></div>
-    </div>
-    <div class="advice" style="margin-top:14px"><b>先做什么：</b>${actionHow}</div>
+    <div class="advice" style="margin-top:14px"><b>如何参考：</b>${actionHow}</div>
   </section>
   <div class="d-sec"><h4>为什么这样判断</h4><div class="card"><div class="pros-cons"><div><b>支持</b><ul>${(reasons.length?reasons:['暂未形成足够支持信号']).map(item=>`<li>${item}</li>`).join('')}</ul></div><div><b>风险</b><ul>${(risks.length?risks:['仍需防范突发事件和快速波动']).map(item=>`<li>${item}</li>`).join('')}</ul></div></div></div></div>
   <div class="d-sec"><h4>宏观驱动与风险</h4><div class="guide-card"><b>一句话看懂</b><p>实际利率和美元代表机会成本，金融条件代表流动性，持仓与上海金溢价用于提醒拥挤和本地价格风险。</p></div><div class="gold-driver-grid">${(gold.indicators||[]).map(goldDriverCard).join('')}</div></div>
@@ -3128,7 +3083,7 @@ function aShareCalcNote(item, amount, years){
   if(!Number.isFinite(result.price)||result.price<=0||!Number.isFinite(result.dividendPerShare)){
     return '持仓数量与每股分红暂待核验。';
   }
-  return `按当前价格买入约可持有 ${formatShares(result.shares)}，每股年分红约 ${fmtCNY(result.dividendPerShare)}；按当前假设持有 ${result.safeYears} 年。`;
+  return `按历史记录价买入约可持有 ${formatShares(result.shares)}，每股年分红约 ${fmtCNY(result.dividendPerShare)}；按当前假设持有 ${result.safeYears} 年。`;
 }
 window.aShareCalcYears = window.aShareCalcYears || {};
 window.setAShareYears = (id, years) => {
@@ -3208,15 +3163,15 @@ function renderAShare(x){
         :'价格位置待确认';
   detailShell(
     `<div class="d-head"><h1>${x.name}<span class="code num" style="font-size:14px">${x.code}</span></h1>
-    <div class="sub"><span class="chip mini tag">${x.industry}</span><span class="chip mini acc">${x.currentAdvice||'暂无建议'}</span><span class="chip mini ${rating==='A'?'cheap':rating==='B'?'fair':'rich'}">评级 ${rating}</span></div></div>`,
+    <div class="sub"><span class="chip mini tag">${x.industry}</span><span class="chip mini acc">历史参考</span><span class="chip mini ${rating==='A'?'cheap':rating==='B'?'fair':'rich'}">评级 ${rating}</span></div></div>`,
     `<div class="share-card">
       <div class="share-brand">望潮 Aurum · A股收息答案</div>
-      <h2>${x.name} 现在怎么看？</h2>
+      <h2>${x.name} 历史位置怎么看？</h2>
       <div class="share-grid">
-        <div class="share-item"><span>当前建议</span><b>${x.currentAdvice||'暂无建议'}</b></div>
+        <div class="share-item"><span>资料观察</span><b>历史参考</b></div>
         <div class="share-item"><span>分数与排名</span><b>${rankInfo.score} 分 · 第 ${rankInfo.rank}/${rankInfo.total} 名</b></div>
         <div class="share-item"><span>收息评级</span><b>${rating}</b></div>
-        <div class="share-item"><span>当前股息率</span><b>${currentYieldText}</b></div>
+        <div class="share-item"><span>历史股息率</span><b>${currentYieldText}</b></div>
         <div class="share-item"><span>推荐关注</span><b>${recommendText}</b></div>
         <div class="share-item"><span>观察低位</span><b>${buyText}</b></div>
         <div class="share-item"><span>高安全边际</span><b>${safeText}</b></div>
@@ -3229,7 +3184,7 @@ function renderAShare(x){
         <div class="stat"><b class="num">${scoreProfile.overall}</b><span>综合评分</span></div>
         <div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}组内排名</span></div>
         <div class="stat"><b class="num">${rating}</b><span>收息评级</span></div>
-        <div class="stat"><b class="num">${x.currentAdvice||'暂无建议'}</b><span>当前动作</span></div>
+        <div class="stat"><b class="num">历史参考</b><span>历史观察</span></div>
       </div>
       <div class="analysis-source">页面只展示最终分数、组内排名、公开资料和风险。</div>
     </div></div>
@@ -3244,13 +3199,13 @@ function renderAShare(x){
     </div></div>
     <div class="d-sec"><h4>分红计算器</h4><div class="card">
       <div class="stats g3" style="margin-top:0">
-        <div class="stat"><b class="num">${currentPriceText} 元</b><span>当前价格</span></div>
-        <div class="stat"><b class="num">${currentYieldText}</b><span>当前股息率</span></div>
+        <div class="stat"><b class="num">${currentPriceText} 元</b><span>历史记录价</span></div>
+        <div class="stat"><b class="num">${currentYieldText}</b><span>历史股息率</span></div>
         <div class="stat"><b class="num">${sustainableYieldText}</b><span>可持续股息率</span></div>
       </div>
       <div class="a-calc">
         <div class="calc-row">
-          <label for="a-share-amount-${calcId}">买入金额</label>
+          <label for="a-share-amount-${calcId}">假设金额</label>
           <input id="a-share-amount-${calcId}" type="number" min="1000" step="1000" value="100000" oninput="updateAShareCalc('${calcId}')">
         </div>
         <div class="calc-row">
@@ -3265,7 +3220,7 @@ function renderAShare(x){
     </div></div>
     <div class="d-sec"><h4>价格与分红</h4><div class="card">
       <div class="price-map" style="grid-template-columns:1fr 1fr 1fr">
-        <div class="price-cell primary"><span>当前价格</span><b>${currentPriceText} 元</b><small>看当前位置</small></div>
+        <div class="price-cell primary"><span>历史记录价</span><b>${currentPriceText} 元</b><small>看当前位置</small></div>
         <div class="price-cell"><span>推荐关注</span><b>${recommendText}</b><small>先看这个区间</small></div>
         <div class="price-cell"><span>观察低位</span><b>${buyText}</b><small>更适合分红收益</small></div>
       </div>
@@ -3277,7 +3232,7 @@ function renderAShare(x){
       <div class="stats g3" style="margin-top:8px">
         <div class="stat"><b class="num">${annualPer100k}</b><span>每10万元年分红</span></div>
         <div class="stat"><b class="num">${monthlyPer100k}</b><span>每10万元月均分红</span></div>
-        <div class="stat"><b class="num">${x.currentAdvice}</b><span>当前建议</span></div>
+        <div class="stat"><b class="num">${x.currentAdvice}</b><span>资料观察</span></div>
       </div>
       <div class="t2" style="margin-top:10px">分红再投资：${x.dividendReinvestment}</div>
       <div class="source-line">价格来源：${x.priceSource||'公开资料'} · ${x.priceAsOf?`行情截至 ${fmtDate(x.priceAsOf)}`:'资料时间待确认'}</div>
@@ -3286,8 +3241,8 @@ function renderAShare(x){
       <tr><td>股票名称</td><td>${x.name}</td></tr>
       <tr><td>股票代码</td><td class="num">${x.code}</td></tr>
       <tr><td>所属行业</td><td>${x.industry}</td></tr>
-      <tr><td>当前价格</td><td class="num">${Number.isFinite(x.currentPrice)?`${x.currentPrice.toFixed(2)} 元`:'待确认'}</td></tr>
-      <tr><td>当前股息率</td><td class="num">${currentYieldText}</td></tr>
+      <tr><td>历史记录价</td><td class="num">${Number.isFinite(x.currentPrice)?`${x.currentPrice.toFixed(2)} 元`:'待确认'}</td></tr>
+      <tr><td>历史股息率</td><td class="num">${currentYieldText}</td></tr>
       <tr><td>可持续股息率</td><td class="num">${sustainableYieldText}</td></tr>
       <tr><td>推荐关注价格</td><td>${x.recommendPrice}</td></tr>
       <tr><td>观察低位参考</td><td>${x.buyPrice}</td></tr>
@@ -3307,7 +3262,7 @@ function renderAShare(x){
       ['继续等待','分红质量尚可，但价格对应的可持续股息率仍低于要求','保持耐心'],
       ['需要回避','现金流无法覆盖分红、连续下调分红或行业基本面明显转弱','降低评级'],
     ],'下一次业绩公告、现金流和分红方案','A股')}
-    <div class="d-sec"><h4>跟随建议</h4><div class="advice"><b>望潮研究观察：</b>${x.currentAdvice === '买入' ? '可作为核心收息观察候选，优先看价格是否落在观察低位区。' : x.currentAdvice === '持有' ? '已有仓位可继续对照公开资料，新开仓需等更舒服的价格位置。' : '先观察分红稳定性与价格位置，等更好机会再说。'}</div></div>
+    <div class="d-sec"><h4>复盘方法</h4><div class="advice"><b>历史参考：</b>对照分红连续性、现金流覆盖及记录价格；测算属于假设情景，不代表未来分红或成交价格。</div></div>
     ${deepAnalysisEntry(`#/a-share/${x.code.replace(/\.(SH|SZ)$/i,'')}/analysis`,'继续看深度分析','查看分红质量、价格层级、现金流情景和分红下调压力测试。')}`
   );
 }
@@ -3546,7 +3501,7 @@ function renderIPO(x){
     <div class="sub"><span class="chip mini tag">${industryLabel}</span><span class="chip mini acc">${isEnded?'已结束':hkPlainVerdict(x.verdict)}</span></div></div>`,
     `<div class="decision-hero hk-hero">
       <div class="decision-kicker">望潮 Aurum · 港股打新</div>
-      <h2>${x.name} 现在怎么看？</h2>
+      <h2>${x.name} 历史位置怎么看？</h2>
       <p>${detailText}</p>
       <div class="decision-metrics">
         <div class="decision-metric"><b>${currentConclusion}</b><span>当前结论</span></div>
@@ -3601,22 +3556,12 @@ function renderIPO(x){
   );
 }
 function stockPriceAnswers(x){
-  if(LIVE.actionsFresh===false){
-    return {buy:STALE_ACTION,sell:STALE_ACTION,stop:STALE_ACTION,available:false,verified:false,status:STALE_ACTION};
-  }
-  const plan=x.pricePlan||x.technicalPlan||null;
-  if(!plan?.buy||!plan?.tp?.length||!Number.isFinite(Number(plan.stop))){
-    return {buy:'暂未形成',sell:'暂未形成',stop:'暂未形成',available:false,verified:false,status:'数据不足'};
-  }
-  return {
-    buy:`$${Number(plan.buy).toFixed(2)}`,
-    sell:`$${Number(plan.tp[0]).toFixed(2)}～$${Number(plan.tp.at(-1)).toFixed(2)}`,
-    stop:`$${Number(plan.stop).toFixed(2)}`,
-    available:true,
-    verified:false,
-    status:'研究观察价，不是下单指令',
-  };
+  // 保留旧接口供深度页复用；历史模式的区间仅来自已收录价格，不输出买卖计划。
+  const position=stockPositionFacts(x);
+  const hasRange=Number.isFinite(position.low)&&Number.isFinite(position.high);
+  return {buy:hasRange?`$${position.low.toFixed(2)}`:'未收录',sell:hasRange?`$${position.high.toFixed(2)}`:'未收录',stop:'不提供交易阈值',available:false,verified:false,status:'历史区间参考，不是买卖计划'};
 }
+
 function closeUSPriceFloat(){
   document.getElementById('us-price-float')?.remove();
 }
@@ -3631,10 +3576,10 @@ function showUSPriceFloat(event,symbol){
   float.id='us-price-float';
   float.className='us-price-float';
   float.setAttribute('role','dialog');
-  float.setAttribute('aria-label',`${stock.t} 研究观察区间`);
+  float.setAttribute('aria-label',`${stock.t} 历史价格区间`);
   float.innerHTML=`<div class="us-price-float-head"><div><b>${stock.t} · ${stock.n}</b><span>${stockAction(stock)}</span></div><button class="us-price-float-close" type="button" onclick="closeUSPriceFloat()" aria-label="关闭">×</button></div>
-    <div class="us-price-float-grid"><div class="us-price-float-item"><span>观察上沿区间</span><strong>${answers.sell}</strong></div><div class="us-price-float-item"><span>风险下沿区间</span><strong>${answers.stop}</strong></div></div>
-    <div class="us-price-float-foot"><span>${answers.available?answers.status:STALE_ACTION}</span><a href="#/stock/${stock.t}" onclick="closeUSPriceFloat()">查看完整答案 ›</a></div>`;
+    <div class="us-price-float-grid"><div class="us-price-float-item"><span>历史区间高点</span><strong>${answers.sell}</strong></div><div class="us-price-float-item"><span>历史区间低点</span><strong>${answers.buy}</strong></div></div>
+    <div class="us-price-float-foot"><span>${answers.status} · 截至 ${fmtDate(stock.asOf)}</span><a href="#/stock/${stock.t}" onclick="closeUSPriceFloat()">查看完整答案 ›</a></div>`;
   document.body.appendChild(float);
   float.querySelector('.us-price-float-close')?.focus();
 }
@@ -3646,7 +3591,7 @@ function availableStockHolders(x){
   const investorIds=LIVE.hasInvestors?LIVE.liveInvestorIds:new Set();
   return (x.holders||[]).filter(item=>investorIds.has(item[2]));
 }
-/* 用户版美股详情：先给当前价格与观察区，再给站内资料和持仓。 */
+/* 用户版美股详情：先给历史记录价与观察区，再给站内资料和持仓。 */
 function renderStock(x){
   const answers=stockPriceAnswers(x);
   const planReady=answers.available;
@@ -3661,32 +3606,29 @@ function renderStock(x){
     :'暂无一致目标价';
   const currentObservation=action;
   const riskLine=x.cons?.[0]||'注意估值与价格波动';
-  const nextStep=planReady
-    ?`当前先${action}；价格回到 ${answers.buy} 附近再评估，达到观察上沿 ${answers.sell} 关注分批减仓研究，跌破风险下沿 ${answers.stop} 重新检查风险。`
-    :`${action}；等待价格和基本面资料更完整后再评估。`;
+  const nextStep='对照历史价格区间、财报日期和公司事件；记录价不能用于判断即时成交。';
   detailShell(
     `<div class="d-head"><h1>${x.t}<span class="code" style="font-size:15px">${x.n}</span></h1>
     <div class="sub">${x.tags.map(t=>`<span class="chip mini tag">${t}</span>`).join('')}</div></div>`,
     `<div class="decision-hero">
       <div class="decision-kicker">望潮 Aurum · 美股投资</div>
-      <h2>${x.t} 现在怎么看？</h2>
+      <h2>${x.t} 历史位置怎么看？</h2>
       <p>${currentObservation}</p>
       <div class="decision-metrics">
-        <div class="decision-metric"><b>${answers.buy}</b><span>观察低位</span></div>
-        <div class="decision-metric"><b>${answers.sell}</b><span>观察上沿</span></div>
-        <div class="decision-metric"><b>${answers.stop}</b><span>风险下沿</span></div>
+        <div class="decision-metric"><b>${answers.buy}</b><span>历史区间低点</span></div>
+        <div class="decision-metric"><b>${answers.sell}</b><span>历史区间高点</span></div>
         <div class="decision-metric"><b class="num">${scoreValue} 分 · 第 ${rankInfo.rank} 名</b><span>${rankInfo.label}排名</span></div>
         <div class="decision-metric"><b>${riskLine}</b><span>最大风险</span></div>
       </div>
       <div class="share-foot"><span>仅供研究，不构成投资建议</span><span><button class="copy-btn" onclick="copyStockConclusion('${x.t}')">复制结论</button> <button class="copy-btn" onclick="shareCurrentPage(this)">转发</button></span></div>
     </div>
     <div class="price-map">
-      <div class="price-cell primary"><span>当前价格</span><b>$${Number(x.price).toFixed(2)}</b><small>${pct(x.chg)} 今日变化</small></div>
-      <div class="price-cell"><span>观察低位 / 观察上沿 / 风险下沿</span><b>${planReady?`${answers.buy} / ${answers.sell} / ${answers.stop}`:'暂未形成'}</b><small>${answers.status}</small></div>
+      <div class="price-cell primary"><span>历史记录价</span><b>$${Number(x.price).toFixed(2)}</b><small>${pct(x.chg)} 记录日涨跌</small></div>
+      <div class="price-cell"><span>历史价格区间</span><b>${answers.buy} / ${answers.sell}</b><small>${answers.status}</small></div>
       <div class="price-cell"><span>近 60 日高点</span><b>${Number.isFinite(position.high)?`$${position.high.toFixed(2)}`:'暂缺'}</b><small>看当前位置</small></div>
       <div class="price-cell"><span>距高点</span><b>${Number.isFinite(position.drawdownFromHigh)?pct(Number(position.drawdownFromHigh.toFixed(1))):'暂缺'}</b><small>用于判断是否追高</small></div>
     </div>
-    <div class="price-note">${planReady?`${answers.status}；仅供研究参考，不构成买卖指令。`:'价格答案暂未形成可靠参考。'}</div>
+    <div class="price-note">${answers.status} · 截至 ${fmtDate(x.asOf)}</div>
     <div class="source-line">美股行情截至 ${fmtDate(x.asOf)} · Yahoo Finance 公共行情</div>
     ${stockEventSection(x)}
     <div class="d-sec"><h4>一眼看懂</h4><div class="card">
@@ -3719,7 +3661,7 @@ function renderStock(x){
       <tr><td>股票名称</td><td>${x.n}</td></tr>
       <tr><td>股票代码</td><td class="num">${x.t}</td></tr>
       <tr><td>行业</td><td>${x.tags.join(' · ')}</td></tr>
-      <tr><td>一句话</td><td>${planReady?`当前价 $${Number(x.price).toFixed(2)}；观察低位 ${answers.buy}，观察上沿 ${answers.sell}，风险下沿 ${answers.stop}。`:action+'；价格研究参考暂未形成可靠区间。'}</td></tr>
+      <tr><td>一句话</td><td>${planReady?`记录价 $${Number(x.price).toFixed(2)}；观察低位 ${answers.buy}，观察上沿 ${answers.sell}，风险下沿 ${answers.stop}。`:action+'；价格研究参考暂未形成可靠区间。'}</td></tr>
     </table></div></div>
     <div class="d-sec"><h4>优点与风险</h4><div class="card">
       <ul class="list pro">${(x.pros||[]).map(item=>`<li>${item}</li>`).join('')||'<li>公司质量数据仍在整理。</li>'}</ul>
@@ -3731,7 +3673,7 @@ function renderStock(x){
       ['维持观察','价格与估值仍没有明显改善','继续等待'],
       ['可能转弱','经营、现金流或关键事件明显恶化','降低关注'],
     ],'下一交易日价格位置、下一次财报和机构持仓披露','美股')}
-    <div class="d-sec"><h4>下一步动作</h4><div class="advice"><b>望潮提示：</b>${nextStep}</div></div>
+    <div class="d-sec"><h4>复盘要点</h4><div class="advice"><b>望潮提示：</b>${nextStep}</div></div>
     ${deepAnalysisEntry(`#/stock/${x.t}/analysis`,'继续看深度分析','查看财务质量、估值情景、价格位置和风险压力测试。')}`
   );
 }
@@ -3874,7 +3816,7 @@ function renderStockAnalysis(x){
   const price=Number(x.price);
   const scenarios=[
     ['60 日低点',Number.isFinite(position.low)?`$${position.low.toFixed(2)}`:'未收录',Number.isFinite(position.low)&&price>0?`${((position.low/price-1)*100).toFixed(1)}%`:'—'],
-    ['当前价格',Number.isFinite(price)?`$${price.toFixed(2)}`:'未收录',stockAction(x)],
+    ['历史记录价',Number.isFinite(price)?`$${price.toFixed(2)}`:'未收录',stockAction(x)],
     ['60 日高点',Number.isFinite(position.high)?`$${position.high.toFixed(2)}`:'未收录',Number.isFinite(position.high)&&price>0?`+${((position.high/price-1)*100).toFixed(1)}%`:'—'],
     ['分析师目标价',Number.isFinite(fundamentals.targetPrice)?`$${fundamentals.targetPrice}`:'暂无一致目标',Number.isFinite(fundamentals.targetUpside)?fmtPct(fundamentals.targetUpside):'—'],
   ];
@@ -3894,8 +3836,8 @@ function renderStockAnalysis(x){
     backRoute:`#/stock/${x.t}`,
     title:`${x.t} · 完整分析`,
     subtitle:'只看最终分数、排名、价格、公开财务和风险。',
-    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${valueProfile.score}</b><span>综合分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}排名</span></div><div class="stat"><b>${stockAction(x)}</b><span>当前动作</span></div><div class="stat"><b>${valueProfile.grade}</b><span>综合等级</span></div></div>${insightMeters([['市场热度',stockHeatRank(x),stockHeatReason(x)],['性价比',valueProfile.score,planReady?'已形成观察低位、观察上沿与风险下沿研究参考':'当前价格资料不足']])}<div class="analysis-source">热度与性价比用于横向比较，不代表未来涨幅。价格参考尚未完成历史验证时，页面会明确标注。</div></div></div>
-    <div class="d-sec"><h4>价格情景</h4><div class="card">${scenarios.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-note"><b>当前价格研究参考：</b>${planReady?`观察低位 ${answers.buy}；观察上沿 ${answers.sell}；风险下沿 ${answers.stop}。${answers.status}`:'当前数据不足，暂未形成价格研究参考。'}</div></div></div>
+    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${valueProfile.score}</b><span>综合分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}排名</span></div><div class="stat"><b>${stockAction(x)}</b><span>历史观察</span></div><div class="stat"><b>${valueProfile.grade}</b><span>综合等级</span></div></div>${insightMeters([['市场热度',stockHeatRank(x),stockHeatReason(x)],['性价比',valueProfile.score,planReady?'已形成观察低位、观察上沿与风险下沿研究参考':'历史记录价资料不足']])}<div class="analysis-source">热度与性价比用于横向比较，不代表未来涨幅。价格参考尚未完成历史验证时，页面会明确标注。</div></div></div>
+    <div class="d-sec"><h4>价格情景</h4><div class="card">${scenarios.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-note"><b>历史记录价研究参考：</b>${planReady?`观察低位 ${answers.buy}；观察上沿 ${answers.sell}；风险下沿 ${answers.stop}。${answers.status}`:'当前数据不足，暂未形成价格研究参考。'}</div></div></div>
     <div class="d-sec"><h4>结论情景推演</h4><div class="card">${conditionScenarios.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-source">情景用于说明结论触发条件，不是目标价或收益预测。</div></div></div>
     <div class="d-sec"><h4>接下来只看四个变化</h4><div class="card">${nextChecks.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-source">四项都没有改善时，不因为单日上涨改变结论。</div></div></div>
     <div class="d-sec"><h4>财务与估值明细</h4><div class="card facts-card"><table class="kv">
@@ -3920,7 +3862,7 @@ function renderAShareAnalysis(x){
   const cashFlow=aShareCashFlowFacts(x);
   const dividendPerShare=Number.isFinite(current)&&Number.isFinite(currentYield)?current*currentYield/100:null;
   const priceLevels=[
-    ['当前价格',current,x.currentPrice],
+    ['历史记录价',current,x.currentPrice],
     ['推荐关注',parsePriceText(x.recommendPrice),x.recommendPrice],
     ['观察低位',parsePriceText(x.buyPrice),x.buyPrice],
     ['高安全边际',parsePriceText(x.safeMarginPrice),x.safeMarginPrice],
@@ -3960,7 +3902,7 @@ function renderAShareAnalysis(x){
     backRoute:`#/a-share/${x.code.replace(/\.(SH|SZ)$/i,'')}`,
     title:`${x.name} · 收息深度分析`,
     subtitle:'把分红稳定性、可持续股息率、观察价格与分红下调风险一起看。',
-    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${scoreProfile.overall}</b><span>综合评分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}组内排名</span></div><div class="stat"><b>${aShareRating(x)}</b><span>收息评级</span></div><div class="stat"><b>${x.currentAdvice}</b><span>当前动作</span></div></div>${insightMeters([['收息质量',scoreProfile.overall,`${rankInfo.label}组第 ${rankInfo.rank}/${rankInfo.total} 名`]])}<div class="analysis-source">页面只展示最终分数、组内排名、公开资料和风险，不公开内部计算过程。</div></div></div>
+    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${scoreProfile.overall}</b><span>综合评分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}组内排名</span></div><div class="stat"><b>${aShareRating(x)}</b><span>收息评级</span></div><div class="stat"><b>${x.currentAdvice}</b><span>历史观察</span></div></div>${insightMeters([['收息质量',scoreProfile.overall,`${rankInfo.label}组第 ${rankInfo.rank}/${rankInfo.total} 名`]])}<div class="analysis-source">页面只展示最终分数、组内排名、公开资料和风险，不公开内部计算过程。</div></div></div>
     <div class="d-sec"><h4>资金成本答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${Number.isFinite(fundingCostCeiling)?`${fundingCostCeiling.toFixed(1)}% 以下`:'待确认'}</b><span>资金成本参考上限</span></div><div class="stat"><b class="num">${Number.isFinite(currentYield)?`${currentYield.toFixed(1)}%`:'—'}</b><span>可持续股息率</span></div><div class="stat"><b class="num">${Number.isFinite(staticPaybackYears)?`${staticPaybackYears.toFixed(1)} 年`:'—'}</b><span>静态分红回本年限</span></div></div><div class="analysis-source">资金成本上限是保守研究参考，未计税费、股价变化和未来分红调整。</div></div></div>
     <div class="d-sec"><h4>现金流质量</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b>${cashFlow.label}</b><span>自由现金流结论</span></div><div class="stat"><b class="num">${Number.isFinite(financials.operatingCashFlow)?fmtCNY(financials.operatingCashFlow):'待核验'}</b><span>经营现金流</span></div><div class="stat"><b class="num">${Number.isFinite(financials.freeCashFlow)?fmtCNY(financials.freeCashFlow):'待核验'}</b><span>自由现金流</span></div><div class="stat"><b class="num">${Number.isFinite(financials.cashConversion)?`${financials.cashConversion.toFixed(2)} 倍`:'待核验'}</b><span>现金利润比</span></div></div><div class="analysis-source">${cashFlow.detail} · ${cashFlow.source}。自由现金流用于检查分红可持续性，不单独构成买入结论。</div></div></div>
     <div class="d-sec"><h4>收息与现金流总榜</h4><div class="card">${incomeRanking.map((item,index)=>{const itemCashFlow=aShareCashFlowFacts(item);return `<a class="scenario-row ranking-row ${item.code===x.code?'current':''}" href="#/a-share/${item.code.replace(/\.(SH|SZ)$/i,'')}"><b><span class="num">${index+1}</span> · ${item.name}</b><span>${itemCashFlow.label} · 可持续股息率 ${rateOrDash(item.sustainableDividendYield)}</span><strong>${aShareScoreProfile(item).overall} 分</strong></a>`}).join('')}<div class="analysis-source">按最终收息质量分横向排序，并同时展示自由现金流结论；分数只用于比较，不代表未来收益。</div></div></div>
@@ -3970,7 +3912,7 @@ function renderAShareAnalysis(x){
     <div class="d-sec"><h4>接下来只看四个变化</h4><div class="card">${nextChecks.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-source">分红、现金流或价格任一明显恶化，都应重新评估，而不是只看历史股息率。</div></div></div>
     <div class="d-sec"><h4>同类收息标的</h4><div class="peer-grid">${peers.map(item=>`<a class="peer-card" href="#/a-share/${item.code.replace(/\.(SH|SZ)$/i,'')}"><div class="peer-top"><b>${item.name}</b><strong>${aShareScoreProfile(item).overall} 分</strong></div><span>${item.currentAdvice} · 股息率 ${fmtPct(item.currentDividendYield)}</span><small>${item.industry} · ${item.buyPrice||'观察低位待确认'}</small></a>`).join('')}</div><div class="analysis-source">用于比较分红质量和价格位置，不构成买卖建议。</div></div>
     <div class="d-sec"><h4>优点与风险</h4><div class="analysis-grid"><div class="analysis-card"><h4>为什么可以看</h4><ul class="list pro">${x.pros.map(item=>`<li>${item}</li>`).join('')}</ul></div><div class="analysis-card"><h4>主要风险</h4><ul class="list con">${x.cons.map(item=>`<li>${item}</li>`).join('')}</ul></div></div></div>
-    <div class="d-sec"><h4>关键资料</h4><div class="card facts-card"><table class="kv"><tr><td>分红稳定性</td><td>${x.dividendStability}</td></tr><tr><td>分红覆盖</td><td>${x.dividendCoverage}</td></tr><tr><td>分红下降风险</td><td>${x.dividendRisk}</td></tr><tr><td>当前股息率</td><td>${fmtPct(x.currentDividendYield)}</td></tr><tr><td>可持续股息率</td><td>${fmtPct(x.sustainableDividendYield)}</td></tr><tr><td>分红再投资</td><td>${x.dividendReinvestment}</td></tr>${aShareFinancialRows(x)}</table></div></div>`,
+    <div class="d-sec"><h4>关键资料</h4><div class="card facts-card"><table class="kv"><tr><td>分红稳定性</td><td>${x.dividendStability}</td></tr><tr><td>分红覆盖</td><td>${x.dividendCoverage}</td></tr><tr><td>分红下降风险</td><td>${x.dividendRisk}</td></tr><tr><td>历史股息率</td><td>${fmtPct(x.currentDividendYield)}</td></tr><tr><td>可持续股息率</td><td>${fmtPct(x.sustainableDividendYield)}</td></tr><tr><td>分红再投资</td><td>${x.dividendReinvestment}</td></tr>${aShareFinancialRows(x)}</table></div></div>`,
     disclaimer:'A股分红、股息率和压力测试基于当前公开数据估算，过往分红不代表未来承诺。',
   });
 }

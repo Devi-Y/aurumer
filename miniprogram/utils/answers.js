@@ -606,12 +606,12 @@ function goldItems(snapshot) {
   const riskIntl = formatRange(plan.internationalRisk);
   const buyCny = formatRange(plan.domesticWatch, 1);
   const sellCny = formatRange(plan.domesticUpper, 1);
-  const action = answer.action || answer.researchLabel || "继续观察";
+  const action = "历史走势参考";
   const rows = [
     [
       "track",
       "track",
-      "现在怎么做",
+      "黄金历史走势",
       action,
       [
         action,
@@ -625,16 +625,10 @@ function goldItems(snapshot) {
     [
       "plan",
       "plan",
-      "观察区参考",
-      "价格观察",
-      [
-        // 这四段取的是 pricePlan 的 watch / upper，产品别处一律叫「观察低位」
-        // 「观察上沿」，只有这一行写成了「持有 / 卖出」，读起来像在给买卖指令。
-        buyIntl ? `国际金观察低位 ${buyIntl}` : null,
-        sellIntl ? `国际金观察上沿 ${sellIntl}` : null,
-        buyCny ? `人民币金观察低位 ${buyCny}` : null,
-        sellCny ? `人民币金观察上沿 ${sellCny}` : null,
-      ].filter(Boolean).join(" · ") || quoteLine,
+      "历史区间对照",
+      "历史样本",
+      quoteLine,
+
     ],
   ];
   return rows.map(([id, group, name, badge, one]) => ({

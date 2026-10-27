@@ -18,11 +18,15 @@
 // 前者才是用户真正在意的性质，而且在「连运行记录都没产生」的情况下同样成立。
 
 import { createRequire } from "node:module";
-const { weekdayAgeMs } = createRequire(import.meta.url)("../miniprogram/utils/action-freshness.js");
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { validBatchTime } from "./check-mini-freshness.mjs";
+const require = createRequire(import.meta.url);
+const { weekdayAgeMs } = require("../miniprogram/utils/action-freshness.js");
+const PRODUCT = require("../miniprogram/config/product.js");
 
 const SNAPSHOT_URL =
   process.env.SNAPSHOT_URL || "https://devi-y.github.io/aurumer/data/live-snapshot.json";
-const MAX_AGE_HOURS = Number(process.env.MAX_AGE_HOURS || 36);
 const TIMEOUT_MS = 30000;
 
 function hours(ms) {
@@ -33,14 +37,15 @@ function fmt(n) {
   return Number(n).toFixed(1);
 }
 
-async function main() {
+export async function checkPublicSnapshot({ snapshotUrl = SNAPSHOT_URL, fetchImpl = fetch, dataMode = PRODUCT.dataMode, now = Date.now(), maxAgeHours = Number(process.env.MAX_AGE_HOURS || (dataMode === "historical-reference" ? 7 * 24 : 36)) } = {}) {
   const problems = [];
   const facts = [];
+  if (!Number.isFinite(maxAgeHours) || maxAgeHours <= 0) problems.push("资料更新提示门槛必须是大于零的小时数");
 
   let response;
   let body;
   try {
-    response = await fetch(SNAPSHOT_URL, {
+    response = await fetchImpl(snapshotUrl, {
       signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: { "cache-control": "no-cache" },
     });
@@ -55,35 +60,47 @@ async function main() {
   } else if (body) {
     try {
       snapshot = JSON.parse(body);
+      if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
+        problems.push("对外快照缺少有效的数据对象");
+        snapshot = null;
+      }
     } catch (error) {
       problems.push(`对外快照不是合法 JSON：${error.message}`);
     }
+  } else if (response) {
+    problems.push("对外快照响应为空");
   }
 
   let ageHours = null;
   if (snapshot) {
-    const updatedAt = snapshot.updatedAt || snapshot.generatedAt || null;
-    const parsed = Date.parse(updatedAt || "");
+    const updatedAt = snapshot.updatedAt || null;
+    const parsed = validBatchTime(updatedAt);
     if (!Number.isFinite(parsed)) {
       problems.push(`对外快照缺少可解析的 updatedAt（当前值：${updatedAt ?? "无"}）`);
     } else {
-      ageHours = hours(Date.now() - parsed);
+      ageHours = hours(now - parsed);
       facts.push(`updatedAt = ${updatedAt}`);
-      const workHours = hours(weekdayAgeMs(updatedAt));
-      facts.push(`距今 = ${fmt(ageHours)} 小时；工作时段 ${fmt(workHours)} 小时（门槛 ${MAX_AGE_HOURS} 工作小时）`);
-      if (workHours > MAX_AGE_HOURS) {
+      const historical = dataMode === "historical-reference";
+      const checkedHours = historical ? ageHours : hours(weekdayAgeMs(updatedAt, now));
+      const unit = historical ? "自然小时" : "工作小时";
+      facts.push(`资料批次距今 = ${fmt(ageHours)} 小时；提示门槛 ${maxAgeHours} ${unit}`);
+      if (historical) facts.push("历史走势参考；巡检核对资料与来源可用性，不要求盘中或每日新报价");
+      if (checkedHours > maxAgeHours) {
         problems.push(
-          `对外快照已经 ${fmt(workHours)} 个工作小时没有更新，超过 ${MAX_AGE_HOURS} 工作小时门槛`,
+          `对外资料批次已有 ${fmt(checkedHours)} ${unit}，超过 ${maxAgeHours} ${unit}的资料更新提示门槛`,
         );
       }
       // 未来时间通常意味着生成机器的时钟不对，或者快照被手工改过。
-      if (ageHours < -1) {
+      if (ageHours < 0) {
         problems.push(`对外快照的 updatedAt 在未来（${fmt(-ageHours)} 小时后）`);
       }
     }
 
     if (snapshot.status && snapshot.status !== "live") {
       problems.push(`对外快照状态不是 live：${snapshot.status}`);
+    }
+    if (!Array.isArray(snapshot.sources) || !snapshot.sources.some((source) => source && source.id && /^https?:\/\//.test(source.url || ""))) {
+      problems.push("对外快照缺少可核查的来源清单");
     }
 
     // 停更时最先塌的就是这几块，顺手一起报出来，省得再去翻数据。
@@ -103,9 +120,13 @@ async function main() {
     if (counts.机构 < 9) problems.push(`对外快照机构不足 9 位（当前 ${counts.机构}）`);
   }
 
-  const ok = problems.length === 0;
+  return { ok: problems.length === 0, problems, facts, ageHours };
+}
+
+async function main() {
+  const { ok, problems, facts, ageHours } = await checkPublicSnapshot();
   const lines = [
-    `## 对外快照新鲜度 ${ok ? "✅ 正常" : "❌ 异常"}`,
+    `## 对外历史资料健康巡检 ${ok ? "✅ 正常" : "❌ 异常"}`,
     "",
     `检查地址：${SNAPSHOT_URL}`,
     "",
@@ -134,4 +155,4 @@ async function main() {
   if (!ok) process.exitCode = 1;
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await main();

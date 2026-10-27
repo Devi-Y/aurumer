@@ -4,6 +4,7 @@ const { openPage, goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { MEMBER_DISCLAIMER } = require("../../utils/disclaimer");
 const legalInfo = require("../../config/legal");
+const PRODUCT = require("../../config/product");
 
 const ANNUAL_PLAN = {
   id: "research-365d",
@@ -63,7 +64,7 @@ function viewState(state) {
     && legalVersions.privacyVersion === legalInfo.privacyVersion,
   );
   const operatorReady = state.environment !== "production" || legalInfo.operatorReady;
-  const purchaseAllowed = Boolean(state.paymentReady && serverLegalReady && operatorReady);
+  const purchaseAllowed = Boolean(PRODUCT.memberToolsEnabled && state.paymentReady && serverLegalReady && operatorReady);
   return {
     ...state,
     active,
@@ -73,8 +74,9 @@ function viewState(state) {
     statusDetail: active
       ? `有效期至 ${formatDate(entitlement.expiresAt)}`
       : "",
-    paymentPubliclyReleased: Boolean(state.paymentPubliclyReleased),
-    plans: (state.plans || [])
+    paymentPubliclyReleased: Boolean(PRODUCT.memberToolsEnabled && state.paymentPubliclyReleased),
+    paymentReason: PRODUCT.memberToolsEnabled ? state.paymentReason : "研究内容免费，原年度研究会员已停止新购。历史订单和权益仍可查询。",
+    plans: (PRODUCT.memberToolsEnabled ? state.plans || [] : [])
       .filter((plan) => plan.id === ANNUAL_PLAN.id)
       .map((plan) => ({
         ...plan,
@@ -154,8 +156,8 @@ Page({
     if (this.data.paying || this.data.settling) return;
     if (!this.data.state.purchaseAllowed) {
       wx.showModal({
-        title: "支付通道准备中",
-        content: "当前还不能发起付款，请稍后再试或联系微信客服。",
+        title: PRODUCT.memberToolsEnabled ? "支付通道准备中" : "原方案已停售",
+        content: this.data.state.paymentReason || "当前还不能发起付款，请稍后再试或联系微信客服。",
         showCancel: false,
         confirmText: "知道了",
       });
@@ -173,13 +175,13 @@ Page({
       privacyVersion: legalInfo.privacyVersion,
     })
       .then((result) => {
-        track("pay_ok");
+        track("payment_submitted");
         this.setData({
           paying: false,
           settling: true,
           lastOrderId: (result && result.orderId) || "",
         });
-        wx.showToast({ title: "支付成功", icon: "success" });
+        wx.showToast({ title: "正在核对支付结果", icon: "none" });
         this.refreshAfterPayment(0);
       })
       .catch((error) => {
@@ -190,7 +192,7 @@ Page({
         }
         wx.showModal({
           title: "暂未完成",
-          content: "没有完成付款，也不会开通会员。请稍后重试或联系微信客服。",
+          content: "支付结果尚未确认，请先查看购买记录或刷新权益，避免重复付款。",
           showCancel: false,
         });
       })
@@ -203,7 +205,9 @@ Page({
     loadMemberState().then((state) => {
       const nextState = viewState(state);
       this.setData({ state: nextState });
-      if (nextState.active) {
+      const orderConfirmed = nextState.orders.some((order) => order.orderId === this.data.lastOrderId && order.status === "fulfilled");
+      if (nextState.active && orderConfirmed) {
+        track("pay_ok", { plan: ANNUAL_PLAN.id });
         this.setData({ settling: false });
         wx.showToast({ title: "会员已开通", icon: "success" });
         return;

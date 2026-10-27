@@ -38,6 +38,11 @@
     </view>
   </view>
 
+  <view wx:if="{{choices.length}}" class="page-card offer-card">
+    <view wx:for="{{choices}}" wx:key="topic" class="offer-action" data-topic="{{item.topic}}"
+      bindtap="openChoice" hover-class="offer-action-active" aria-role="button" aria-label="{{item.title}}">{{item.title}} ›</view>
+  </view>
+
   <view wx:if="{{offer}}" class="page-card offer-card">
     <text class="offer-head">{{offer.head}}</text>
     <text class="offer-body">{{offer.body}}</text>

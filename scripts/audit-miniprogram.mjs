@@ -338,9 +338,9 @@ assert(
     && detailSource.includes('title: "经营风险"')
     && detailSource.includes('title: "行业风险"')
     && detailSource.includes('title: "价格风险"')
-    && detailSource.includes('title: "退出触发"')
+    && detailSource.includes('title: "历史风险复核"')
     && detailTemplate.includes("riskItems"),
-  "A 股详情缺少经营/行业/价格/退出触发四类投研风险提醒",
+  "A股详情缺少经营、行业、价格及历史风险复核",
 );
 assert(detailSource.includes("国际观察分") && detailSource.includes("人民币观察分"), "黄金详情缺少双观察分展示");
 assert(indexSource.includes("pages/section/index"), "小程序首页仍未进入原生二级页");
@@ -529,15 +529,8 @@ assert(
   !gridDefinition.includes('id: "news"') && !indexSource.includes("/pages/news/") && !indexSource.includes("news.svg"),
   "首页九宫格不应再有新闻资讯入口",
 );
-assert(
-  /\.\.\.CORE_ENTRIES\.map\([^\n]*\),\n\s*\{ id: "reserved", reserved: true \},\n\s*\.\.\.SERVICES/.test(indexSource),
-  "九宫格应在五个研究栏目之后、服务格之前保留一个预留格",
-);
-assert(
-  /<view wx:if="\{\{item\.reserved\}\}" class="grid-card is-reserved" aria-hidden="true">/.test(indexTemplate)
-    && !/wx:if="\{\{item\.reserved\}\}"[^>]*bindtap/.test(indexTemplate),
-  "预留格应只占位、对读屏隐藏且不可点",
-);
+assert(indexSource.includes("...SERVICES.map"), "九宫格应将四项服务接在五个研究入口后");
+assert(!indexSource.includes('id: "reserved"'), "用户已要求九格填满，不应再保留空格");
 assert(gridDefinition.trimEnd().endsWith("},") && gridDefinition.lastIndexOf('id: "guru"') > gridDefinition.lastIndexOf('id: "member"'), "聪明钱跟踪必须位于核心入口最下面的最后一格");
 for (const removedId of ['id: "today"', 'id: "watch"', 'id: "decision"']) {
   assert(!gridDefinition.includes(removedId), `低频入口仍占用首页核心网格：${removedId}`);
@@ -637,23 +630,24 @@ const offers = offersModule.exports;
   const communityTemplate = pageTemplatesByPath.get("pages/community/index") || "";
   const sectionTemplate = pageTemplatesByPath.get("pages/section/index") || "";
 
-  // 首页：宫格里的服务格最多三个，每个都指向真实的二级页；首页不复制东西，也不出现被撤掉的四路径文案。
-  const gridOffers = offers.filter((offer) => offer.icon);
-  assert(gridOffers.length <= 3, "首页九宫格只剩三个服务格位置（带 icon 的物料最多三项）");
-  for (const offer of gridOffers) {
-    assert(new RegExp(`"${offer.id}": \\{ url: "/pages/(guide|community)/index`).test(indexSource), `首页服务格 ${offer.id} 没有指向二级页`);
+  // 九格 = 五个研究 + 会员群、港美开户、A股开户、VPN开通。
+  const serviceSource = await readFile(path.join(miniRoot, "config", "services.js"), "utf8");
+  const services = requireCjs("../miniprogram/config/services.js");
+  assert(JSON.stringify(services.map((entry) => entry.title)) === JSON.stringify(["会员群", "港美股开户", "A股开户", "VPN开通"]), "首页后四格应保留用户指定的服务及顺序");
+  assert(new Set(services.map((entry) => entry.url)).size === 4, "四格服务应进入对应二级页");
+  for (const service of services) {
+    assert(service.offerIds.length && service.offerIds.every((id) => offers.some((offer) => offer.id === id)), `服务入口 ${service.title} 缺少物料配置`);
+    assert(/^\/pages\/(guide|community)\/index/.test(service.url), `服务入口 ${service.title} 未进入有效二级页`);
   }
-  for (const target of ["/pages/guide/index?topic=info", "/pages/guide/index?topic=us-start", "/pages/community/index"]) {
-    assert(indexSource.includes(target), `首页服务格缺少入口：${target}`);
-  }
-  assert(indexSource.includes('action === "page"') && indexSource.includes("openPage(entry.url)"), "首页服务格应点一下进二级页");
+  assert(JSON.stringify(GUIDES.accounts.choices.map((choice) => choice.title)) === JSON.stringify(["港股开户", "美股开户"]), "港美开户应保留两个独立选择");
+  assert(indexSource.includes('action: "page"') && indexSource.includes("openPage(entry.url)"), "服务格应点一下进入对应二级页");
   assert(!indexSource.includes("setClipboardData"), "首页不应直接复制推广链接或社群微信号，物料要挂在二级页末尾");
   for (const banned of ["看全球", "开全球", "买全球", "找同路人", "path-grid", "新手入门"]) {
     assert(!indexSource.includes(banned) && !indexTemplate.includes(banned), `首页不应再出现被撤掉的路径文案：${banned}`);
   }
 
   // 页面里写到的每个 topic 都要在 guides.js 里有内容；每个 /pages/... 都要在 app.json 注册。
-  const topicRefs = [indexSource, sectionPageSource, detailSource, guideSource, communitySource]
+  const topicRefs = [indexSource, serviceSource, sectionPageSource, detailSource, guideSource, communitySource]
     .flatMap((source) => [...source.matchAll(/topic(?::\s*"|=)([a-z0-9-]+)/g)].map((match) => match[1]));
   assert(topicRefs.length >= 5, "没找到页面里写的二级页话题引用，检查规则可能失效了");
   for (const topic of new Set(topicRefs)) {
@@ -661,6 +655,7 @@ const offers = offersModule.exports;
   }
   for (const [file, source] of [
     ["pages/index/index.js", indexSource],
+    ["config/services.js", serviceSource],
     ["pages/section/index.js", sectionPageSource],
     ["pages/detail/index.js", detailSource],
     ["pages/guide/index.js", guideSource],
@@ -692,7 +687,9 @@ const offers = offersModule.exports;
     }
   }
   assert(GUIDES.info?.offer?.id === "global-access", "「全球信息获取」页末尾应挂全球信息访问方案");
-  assert(GUIDES["us-start"]?.offer?.id === "open-account", "「海外开户」页末尾应挂开户方案");
+  assert(GUIDES["us-start"]?.offer?.id === "open-account", "美股开户页应挂美股咨询方案");
+  assert(GUIDES["hk-open"]?.offer?.id === "hk-open-account", "港股开户页应挂港股咨询方案");
+  assert(GUIDES.vpn?.offer?.id === "global-access", "VPN开通页应挂现有推荐链接");
   // A股开户二维码只能挂在 A股开户页：A股账户买不了美股，放到美股页里会把人引错。
   assert(GUIDES["a-open"]?.offer?.id === "a-open-account", "「A股开户」页应挂 A股开户二维码");
   assert(!Object.entries(GUIDES).some(([topic, guide]) => guide.offer?.id === "a-open-account" && topic !== "a-open"), "A股开户二维码不能挂在 A股开户页以外的页面");
@@ -719,7 +716,7 @@ const offers = offersModule.exports;
     const source = await readFile(file, "utf8");
     const relative = path.relative(root, file);
     // 全球信息访问的文案要中性合规：不出现这几类说法（代码注释也不写）。
-    assert(!/梯子|VPN|翻墙|绕过封锁|突破监管/i.test(source), `${relative} 出现了不合规的访问类说法`);
+    assert(!/梯子|翻墙|绕过封锁|突破监管/i.test(source), `${relative} 出现了无关的访问类宣传`);
     if (file === offersPath) continue;
     for (const offer of offers) {
       if (offer.copy) assert(!source.includes(offer.copy), `${relative} 写死了商业物料原文（应只在 config/offers.js）：${offer.id}`);

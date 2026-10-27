@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>望潮 Aurum｜每日投资答案</title>
-  <meta name="description" content="望潮 Aurum：每天先看今日结论，再看自己的持仓。覆盖美股投资、港股打新、聪明人持仓与A股收息。">
+  <title>望潮 Aurum｜历史资料参考</title>
+  <meta name="description" content="望潮 Aurum：对照历史价格、公开资料和本地持仓记录。覆盖美股投资、港股打新、聪明人持仓与A股收息。">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <meta name="theme-color" content="#F5F2EB">
   <meta name="mobile-web-app-capable" content="yes">
@@ -15,15 +15,15 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:site_name" content="望潮 Aurum">
-  <meta property="og:title" content="望潮 Aurum｜每日投资答案">
-  <meta property="og:description" content="30秒看清今日结论、持仓状态和下一步。">
+  <meta property="og:title" content="望潮 Aurum｜历史资料参考">
+  <meta property="og:description" content="对照历史价格、公开资料与本地持仓。">
   <meta property="og:url" content="https://devi-y.github.io/aurumer/daily.html">
   <meta property="og:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="望潮 Aurum｜每日投资答案">
-  <meta name="twitter:description" content="少看行情噪音，每天先看结论。">
+  <meta name="twitter:title" content="望潮 Aurum｜历史资料参考">
+  <meta name="twitter:description" content="查看历史资料，逐项确认数据日期。">
   <meta name="twitter:image" content="https://devi-y.github.io/aurumer/assets/aurum-share.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/aurum-192.png">
@@ -42,8 +42,8 @@
     <main>
       <section class="daily-head" aria-labelledby="hero-title">
         <div>
-          <span class="eyebrow">DAILY ANSWERS</span>
-          <h1 id="hero-title">今天先看五个答案</h1>
+          <span class="eyebrow">HISTORICAL REFERENCE</span>
+          <h1 id="hero-title">历史资料参考</h1>
         </div>
         <div class="update-status" aria-live="polite">
           <span id="updated-at" class="updated-at">数据加载中</span>
@@ -54,7 +54,7 @@
       <section class="section daily-answer-section" aria-labelledby="today-title">
         <div class="section-head">
           <div>
-            <h2 id="today-title">今日策略状态</h2>
+            <h2 id="today-title">五类历史资料</h2>
           </div>
           <a href="index.html#/us">打开完整研究 →</a>
         </div>
@@ -109,10 +109,10 @@
           <input id="holding-cost" name="cost" type="number" min="0" step="0.001" placeholder="有成本再填写（不填不算盈亏）">
         </label>
         <label>持仓数量（选填）
-          <input id="holding-shares" name="shares" type="number" min="0" step="0.001" placeholder="用于计算盈亏">
+          <input id="holding-shares" name="shares" type="number" min="0" step="0.001" placeholder="用于历史价格测算">
         </label>
       </div>
-      <p class="form-hint">成本可留空；未填写成本时只记录持仓，不计算浮盈或金额盈亏。数据只保存在当前浏览器。</p>
+      <p class="form-hint">成本可留空；未填写成本时只记录持仓，不计算历史价格差额。数据只保存在当前浏览器。</p>
       <button class="submit-button" type="submit">保存持仓</button>
     </form>
   </dialog>

@@ -3,23 +3,16 @@ const { track, trackHomeVisit } = require("../../utils/analytics");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const { MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 const OFFERS = require("../../config/offers");
-const PRODUCT = require("../../config/product");
+const SERVICE_LINKS = require("../../config/services");
 const { asOfText } = require("../../utils/dates");
+const { referenceDateText } = require("../../utils/historical-reference");
 const { openPage } = require("../../utils/nav");
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
-const { withLatestQuote } = require("../../utils/gold-series");
 
-// 服务格子只放已经拿到真实物料的项，或产品负责人明确要求先占位的项（pending）；
-// 其余不上九宫格，也不拿别的入口凑数。点一下进一个很短的二级页（说明 + 物料），
-// 推荐链接和微信号都挂在二级页末尾，首页不直接复制任何东西，物料下架这一格自己消失。
-const SERVICE_PAGES = {
-  "global-access": { url: "/pages/guide/index?topic=info", help: "有什么用 · 去哪看" },
-  "open-account": { url: "/pages/guide/index?topic=us-start", help: "怎么开户 · 怎么入金" },
-  "paid-group": { url: "/pages/community/index", help: "聊什么 · 怎么加入" },
-};
-const SERVICES = OFFERS.filter((item) => item && SERVICE_PAGES[item.id] && (item.copy || item.pending)
-  && (item.id !== "paid-group" || PRODUCT.showPaidCommunity));
+
+const SERVICES = SERVICE_LINKS.filter((entry) => OFFERS.some((offer) =>
+  entry.offerIds.includes(offer.id) && (offer.copy || offer.image || offer.pending)));
 
 // 九宫格的前五格是这五个研究栏目，照微信「服务」页的分组图标网格：只有图标和名字，
 // 没有副标题也没有箭头。help 不再上屏，但留着当读屏标签用。
@@ -50,7 +43,7 @@ const CORE_ENTRIES = [
     action: "section",
     icon: "/assets/home/gold.svg",
     title: "黄金追踪",
-    help: "金价·买卖·拐点",
+    help: "金价·历史走势·对照",
   },
   {
     id: "guru",
@@ -61,14 +54,11 @@ const CORE_ENTRIES = [
   },
 ];
 
-// 九宫格 = 五个研究栏目 + 一个预留格 + 已有物料的服务格。服务格点一下进二级页，不在首页复制。
-// 新闻资讯（2026-09-29）按产品要求整页删掉，它那一格原位留空，等以后放新栏目。
+// 用户指定九格：五个免费研究栏目 + 四个服务入口。
 const GRID_ENTRIES = [
   ...CORE_ENTRIES.map((item) => ({ ...item })),
-  { id: "reserved", reserved: true },
-  ...SERVICES.map(({ id, icon, title }) => ({ id, action: "page", icon, title, help: SERVICE_PAGES[id].help, url: SERVICE_PAGES[id].url })),
+  ...SERVICES.map((item) => ({ ...item, action: "page", help: item.title })),
 ];
-while (GRID_ENTRIES.length < 9) GRID_ENTRIES.push({ id: `reserved-${GRID_ENTRIES.length}`, reserved: true });
 
 // ---------- 首页走势卡：每张只用快照里的真实序列，序列不够整张不出 ----------
 
@@ -79,7 +69,7 @@ function signedPct(value, digits = 1) {
 
 // 折线卡：首尾涨跌写在数字旁边，线本身出成 SVG 图片（尺寸和 .trend-line 同比例）。
 // 数字带币种符号，「近N日」写全——光写「90日」读者不知道是时长还是日期。
-function lineTrend({ id, market, title, closes, digits, prefix = "", days }) {
+function lineTrend({ id, market, title, closes, digits, prefix = "", days, date }) {
   const values = closes.map(Number).filter((value) => Number.isFinite(value));
   if (values.length < 10) return null;
   const change = values[0] ? ((values[values.length - 1] - values[0]) / values[0]) * 100 : NaN;
@@ -88,6 +78,7 @@ function lineTrend({ id, market, title, closes, digits, prefix = "", days }) {
     market,
     title,
     kind: "line",
+    asOf: referenceDateText([date], "走势至"),
     value: `${prefix}${values[values.length - 1].toFixed(digits)}`,
     sub: `近${days || values.length}日 ${signedPct(change)}`,
     tone: toneOf(change),
@@ -105,6 +96,7 @@ function buildHomeTrends(snapshot) {
       id: "hk",
       market: "hk",
       title: "港股新股首日",
+      asOf: referenceDateText([ipos[ipos.length - 1].date], "上市至"),
       kind: "bars",
       // 不写「5/12」：斜杠两边都是小数字，读者第一眼当成 5 月 12 日。
       value: `${changes.filter((value) => value > 0).length}只涨`,
@@ -130,6 +122,7 @@ function buildHomeTrends(snapshot) {
       id: "us",
       market: "us",
       title: "美股七姐妹",
+      asOf: referenceDateText(stocks.filter((item) => MAGNIFICENT_SEVEN.includes(item.symbol)).map((item) => item.asOf)),
       kind: "bars",
       value: `${changes.filter((value) => value > 0).length}只涨`,
       sub: `共${changes.length}只 · 近${Math.min(...seven.map((item) => item.length))}日`,
@@ -146,20 +139,22 @@ function buildHomeTrends(snapshot) {
     closes: (fund.history || []).map((item) => item && item.close),
     digits: 3,
     prefix: "¥",
+    date: fund.history && fund.history.length ? fund.history[fund.history.length - 1].date : null,
   });
   if (fundCard) cards.push(fundCard);
 
-  // 金价跟黄金栏目页的大数字是同一个：日线收盘后面接上最新报价，不然首页 4168、栏目页 4166 对不上。
+  // 只画已收录的历史日线，不把独立报价拼成收盘记录。
   const gold = snapshot.gold || {};
   const goldBars = (gold.history && gold.history.international) || [];
   const goldCard = lineTrend({
     id: "gold",
     market: "gold",
     title: "国际金价",
-    closes: withLatestQuote(goldBars, gold.quotes && gold.quotes.international).map((item) => item.close),
+    closes: goldBars.map((item) => item.close),
     digits: 0,
     prefix: "$",
     days: goldBars.length,
+    date: goldBars.length ? goldBars[goldBars.length - 1].date : null,
   });
   if (goldCard) cards.push(goldCard);
 

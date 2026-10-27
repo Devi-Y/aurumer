@@ -1,6 +1,7 @@
 const OFFERS = require("../../config/offers");
+const COMMUNITY = require("../../config/community");
 const { track } = require("../../utils/analytics");
-const { goHome } = require("../../utils/nav");
+const { goHome, openPage } = require("../../utils/nav");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 
 // 交流群页只写三件事：群里聊什么、适合谁、怎么加入；不写没有发生过的活动、名额、价格或权益。
@@ -8,11 +9,9 @@ const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 const OFFER_ID = "paid-group";
 
 const TOPICS = [
-  { key: "info", label: "全球信息", value: "一起看值得看的一手信息" },
-  { key: "asset", label: "资产与标的", value: "讨论全球资产和具体标的" },
-  { key: "account", label: "账户实操", value: "开户、入金、换汇的经验" },
-  { key: "story", label: "真实经验", value: "交流各自真实的投资经历" },
-  { key: "meet", label: "线下见面会", value: "时间地点以群内通知为准" },
+  { key: "info", label: "公开资料", value: "交流一手信息和阅读方法" },
+  { key: "tool", label: "工具使用", value: "交流望潮使用方法和反馈" },
+  { key: "story", label: "自主经验", value: "分享各自的研究和使用经验" },
 ];
 
 const FIT = ["想长期配置全球资产", "愿意分享真实经验", "自己做决定、自己负责"];
@@ -24,23 +23,32 @@ Page({
     fit: FIT,
     unfit: UNFIT,
     join: null,
+    priceLabel: `${COMMUNITY.priceCny} 元 / ${COMMUNITY.termLabel}`,
+    purchaseNote: "暂未开放付款，可先了解服务与退款约定。",
+    promotionNote: COMMUNITY.promotionNote,
     footerDisclaimer: FOOTER_DISCLAIMER,
   },
   onLoad(options = {}) {
     const offer = OFFERS.find((item) => item && item.id === OFFER_ID);
     const join = offer && offer.copy ? { label: offer.label || "复制微信号", disclosure: offer.disclosure || "" } : null;
-    this.setData({ join });
+    const expired = Date.now() > Date.parse(COMMUNITY.promotionEndsAt);
+    this.setData({ join, ...(expired ? { priceLabel: "本期价格已结束", purchaseNote: "后续安排确认后公布，可先咨询。" } : {}) });
     track("community_open", { from: String(options.from || "direct") });
   },
   copyWechat() {
     const offer = OFFERS.find((item) => item && item.id === OFFER_ID);
     if (!offer || !offer.copy) return;
-    track("service_copy", { id: offer.id, from: "community" });
     wx.setClipboardData({
       data: offer.copy,
-      success: () => wx.showToast({ title: offer.toast || "已复制", icon: "none" }),
+      success: () => {
+        track("service_copy", { id: offer.id, from: "community" });
+        wx.showToast({ title: offer.toast || "已复制", icon: "none" });
+      },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
+  },
+  openTerms() {
+    openPage("/pages/community-terms/index");
   },
   goBack() {
     wx.navigateBack({ fail: () => goHome() });
@@ -50,12 +58,12 @@ Page({
   },
   onShareAppMessage() {
     track("share_tap", { page: "community" });
-    return { title: "付费交流群｜望潮", path: "/pages/community/index" };
+    return { title: "会员群｜望潮", path: "/pages/community/index" };
   },
   onShareTimeline() {
-    return { title: "付费交流群｜望潮" };
+    return { title: "会员群｜望潮" };
   },
   onAddToFavorites() {
-    return { title: "付费交流群｜望潮" };
+    return { title: "会员群｜望潮" };
   },
 });

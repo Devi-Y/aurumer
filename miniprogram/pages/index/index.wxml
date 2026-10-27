@@ -3,8 +3,8 @@
        柱图是零轴柱（红涨绿跌），折线是 SVG 图片，序列不够的卡整张不出。
        数据时间只在这里写一次，标题栏不写第二遍「望潮 Aurum」——导航栏已经有了。 -->
   <view class="group-head home-head">
-    <text class="group-label">市场走势</text>
-    <text class="group-meta">{{dataAsOf || '同步中'}}</text>
+    <text class="group-label">历史走势参考</text>
+    <text class="group-meta">{{dataAsOf || '读取历史资料'}}</text>
   </view>
   <view wx:if="{{trends.length}}" class="trend-grid">
     <view
@@ -19,6 +19,7 @@
       aria-label="{{item.title}} {{item.value}} {{item.sub}}"
     >
       <text class="trend-title">{{item.title}}</text>
+      <text class="trend-date">{{item.asOf}}</text>
       <view class="trend-figure">
         <text class="trend-value">{{item.value}}</text>
         <text class="trend-sub {{item.tone}}">{{item.sub}}</text>
@@ -33,19 +34,12 @@
     </view>
   </view>
 
-  <!-- 第二块：九宫格。五个研究栏目 + 预留格 + 服务格（config/offers.js，点一下进二级页），
-       一格只有图标和名字，不用先读一行说明。预留格是新闻资讯删掉后空出来的位置，
-       只画一个虚线框，不能点。
-       年费条（我的会员）已按产品要求从首页撤掉；开通入口在记录页「复盘」和详情页的会员提示里。 -->
+  <!-- 九格：五个免费研究栏目 + 会员群、港美股开户、A股开户、VPN开通。 -->
   <view class="page-card home-panel">
     <text class="group-label">免费决策参考</text>
     <view class="entry-grid">
       <block wx:for="{{entries}}" wx:key="id">
-      <view wx:if="{{item.reserved}}" class="grid-card is-reserved" aria-hidden="true">
-        <view class="entry-icon-chip is-reserved"></view>
-      </view>
       <view
-        wx:else
         class="grid-card"
         data-id="{{item.id}}"
         bindtap="openGridEntry"

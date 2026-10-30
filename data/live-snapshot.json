@@ -1,7 +1,7 @@
 {
   "status": "partial",
-  "updatedAt": "2026-10-29T02:27:38.336Z",
-  "durationMs": 47322,
+  "updatedAt": "2026-10-30T02:37:34.978Z",
+  "durationMs": 71187,
   "sources": [
     {
       "id": "yahoo",
@@ -68,8 +68,8 @@
       "name": "东方财富 A股明星基金经理持仓",
       "url": "https://fundf10.eastmoney.com/FundArchivesDatas.aspx",
       "advisory": true,
-      "ok": true,
-      "error": null
+      "ok": false,
+      "error": "No East Money guru fund data returned (chinaamc-largecap: fetch failed; fullgoal-tianhui: fetch failed; xq-herun: fetch failed)"
     },
     {
       "id": "tencent-a",
@@ -127,17 +127,16 @@
     "stocks": [
       {
         "symbol": "NVDA",
-        "price": 215.4,
-        "changePercent": -1.17,
-        "weeklyChange": -2.97,
-        "volumeRatio": 0.91,
-        "heatScore": 45,
+        "price": 213.7,
+        "changePercent": -0.8,
+        "weeklyChange": 0.68,
+        "volumeRatio": 0.76,
+        "heatScore": 33,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:00.000Z",
         "history": [
-          219.2,
           219,
           224,
           217.6,
@@ -196,31 +195,31 @@
           211,
           216,
           217.9,
-          215.4
+          215.4,
+          213.7
         ],
         "technicalPlan": {
-          "atr": 5.94,
-          "buy": 212.1,
-          "stop": 205.4,
+          "atr": 5.74,
+          "buy": 210.5,
+          "stop": 205.6,
           "tp": [
-            227.3,
-            234.4
+            225.1,
+            232
           ]
         }
       },
       {
         "symbol": "MSFT",
-        "price": 531,
-        "changePercent": -0.06,
-        "weeklyChange": -0.36,
-        "volumeRatio": 1.38,
-        "heatScore": 49,
+        "price": 530.1,
+        "changePercent": -0.16,
+        "weeklyChange": 1.74,
+        "volumeRatio": 1.95,
+        "heatScore": 73,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          487.5,
           499.9,
           500,
           506.1,
@@ -279,31 +278,31 @@
           524.5,
           532.6,
           531.3,
-          531
+          531,
+          530.1
         ],
         "technicalPlan": {
-          "atr": 10.84,
-          "buy": 519.5,
-          "stop": 507,
+          "atr": 11.47,
+          "buy": 519.7,
+          "stop": 506.5,
           "tp": [
-            552.7,
-            565.7
+            553.1,
+            566.8
           ]
         }
       },
       {
         "symbol": "AAPL",
-        "price": 343.8,
-        "changePercent": -0.94,
-        "weeklyChange": -0.05,
-        "volumeRatio": 0.91,
-        "heatScore": 38,
+        "price": 348.9,
+        "changePercent": 1.48,
+        "weeklyChange": 0.2,
+        "volumeRatio": 1.1,
+        "heatScore": 48,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          311,
           312.4,
           313.3,
           308.3,
@@ -362,31 +361,31 @@
           347.7,
           343.9,
           347.1,
-          343.8
+          343.8,
+          348.9
         ],
         "technicalPlan": {
-          "atr": 5.85,
-          "buy": 340.6,
-          "stop": 334,
+          "atr": 6.03,
+          "buy": 340.8,
+          "stop": 333.9,
           "tp": [
-            355.5,
-            362.5
+            361,
+            368.2
           ]
         }
       },
       {
         "symbol": "GOOGL",
-        "price": 324.9,
-        "changePercent": 1.34,
-        "weeklyChange": -2.95,
-        "volumeRatio": 2.48,
+        "price": 283.8,
+        "changePercent": -12.64,
+        "weeklyChange": -12.46,
+        "volumeRatio": 5.43,
         "heatScore": 100,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:00.000Z",
         "history": [
-          362.4,
           357.8,
           354.3,
           357.5,
@@ -445,31 +444,31 @@
           320.2,
           316.8,
           320.6,
-          324.9
+          324.9,
+          283.8
         ],
         "technicalPlan": {
-          "atr": 7.81,
-          "buy": 319.3,
-          "stop": 310.3,
+          "atr": 9.76,
+          "buy": 278.5,
+          "stop": 272.6,
           "tp": [
-            340.5,
-            349.9
+            303.3,
+            315.1
           ]
         }
       },
       {
         "symbol": "AMZN",
-        "price": 254.6,
-        "changePercent": 0.59,
-        "weeklyChange": -2.96,
-        "volumeRatio": 0.96,
-        "heatScore": 43,
+        "price": 243.8,
+        "changePercent": -4.25,
+        "weeklyChange": -2.63,
+        "volumeRatio": 2.35,
+        "heatScore": 100,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          272.6,
           272.3,
           274.5,
           278.1,
@@ -528,31 +527,31 @@
           248,
           249.1,
           253.1,
-          254.6
+          254.6,
+          243.8
         ],
         "technicalPlan": {
-          "atr": 6.41,
-          "buy": 248.7,
-          "stop": 241.3,
+          "atr": 6.83,
+          "buy": 240,
+          "stop": 235.8,
           "tp": [
-            267.4,
-            275.1
+            257.5,
+            265.7
           ]
         }
       },
       {
         "symbol": "META",
-        "price": 612.5,
-        "changePercent": -1.24,
-        "weeklyChange": -12.19,
-        "volumeRatio": 1.68,
-        "heatScore": 91,
+        "price": 624.5,
+        "changePercent": 1.96,
+        "weeklyChange": -3.75,
+        "volumeRatio": 1.44,
+        "heatScore": 70,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          588.8,
           589.9,
           592.1,
           594.9,
@@ -611,31 +610,31 @@
           642.6,
           630.6,
           620.2,
-          612.5
+          612.5,
+          624.5
         ],
         "technicalPlan": {
-          "atr": 22.94,
-          "buy": 599.9,
-          "stop": 590.6,
+          "atr": 23.28,
+          "buy": 611.7,
+          "stop": 590.4,
           "tp": [
-            658.4,
-            685.9
+            671.1,
+            699
           ]
         }
       },
       {
         "symbol": "TSLA",
-        "price": 404.2,
-        "changePercent": -0.8,
-        "weeklyChange": 4.59,
-        "volumeRatio": 0.94,
-        "heatScore": 47,
+        "price": 403.3,
+        "changePercent": -0.23,
+        "weeklyChange": 7.67,
+        "volumeRatio": 0.6,
+        "heatScore": 38,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:00.000Z",
         "history": [
-          321.5,
           319.5,
           328.6,
           330.9,
@@ -694,31 +693,31 @@
           372.2,
           391.6,
           407.5,
-          404.2
+          404.2,
+          403.3
         ],
         "technicalPlan": {
-          "atr": 13.5,
-          "buy": 354.1,
-          "stop": 338.5,
+          "atr": 12.76,
+          "buy": 353.8,
+          "stop": 339.1,
           "tp": [
-            431.2,
-            447.4
+            428.8,
+            444.1
           ]
         }
       },
       {
         "symbol": "AMD",
-        "price": 578.4,
-        "changePercent": 3.24,
-        "weeklyChange": 4.65,
-        "volumeRatio": 0.97,
-        "heatScore": 63,
+        "price": 566.4,
+        "changePercent": -2.08,
+        "weeklyChange": 11.52,
+        "volumeRatio": 0.85,
+        "heatScore": 65,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          482,
           489.3,
           483.4,
           469.6,
@@ -777,31 +776,31 @@
           516.8,
           531.3,
           560.3,
-          578.4
+          578.4,
+          566.4
         ],
         "technicalPlan": {
-          "atr": 27.61,
-          "buy": 512.3,
-          "stop": 480.5,
+          "atr": 26.98,
+          "buy": 512,
+          "stop": 481,
           "tp": [
-            633.7,
-            666.8
+            620.4,
+            652.8
           ]
         }
       },
       {
         "symbol": "AVGO",
-        "price": 351.8,
-        "changePercent": 2.77,
-        "weeklyChange": 4.15,
-        "volumeRatio": 1.04,
-        "heatScore": 61,
+        "price": 345,
+        "changePercent": -1.94,
+        "weeklyChange": 6.73,
+        "volumeRatio": 0.77,
+        "heatScore": 52,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          418.3,
           420.6,
           427.8,
           422.4,
@@ -860,31 +859,31 @@
           321.7,
           329.2,
           342.3,
-          351.8
+          351.8,
+          345
         ],
         "technicalPlan": {
-          "atr": 11.82,
+          "atr": 11.78,
           "buy": 324.4,
           "stop": 310.8,
           "tp": [
-            375.4,
-            389.6
+            368.6,
+            382.7
           ]
         }
       },
       {
         "symbol": "PLTR",
-        "price": 196.8,
-        "changePercent": -0.97,
-        "weeklyChange": -2.43,
-        "volumeRatio": 0.93,
-        "heatScore": 43,
+        "price": 196.4,
+        "changePercent": -0.2,
+        "weeklyChange": 0.12,
+        "volumeRatio": 0.89,
+        "heatScore": 33,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:00.000Z",
+        "asOf": "2026-10-29T20:00:00.000Z",
         "history": [
-          158.4,
           155.9,
           172,
           175.2,
@@ -943,31 +942,31 @@
           196.8,
           198.8,
           198.7,
-          196.8
+          196.8,
+          196.4
         ],
         "technicalPlan": {
-          "atr": 8.15,
+          "atr": 8.24,
           "buy": 187.3,
           "stop": 177.9,
           "tp": [
-            213.1,
-            222.9
+            212.9,
+            222.8
           ]
         }
       },
       {
         "symbol": "SMCI",
-        "price": 35.81,
-        "changePercent": 2.05,
-        "weeklyChange": 0.67,
-        "volumeRatio": 0.84,
-        "heatScore": 43,
+        "price": 34.43,
+        "changePercent": -3.85,
+        "weeklyChange": 2.11,
+        "volumeRatio": 0.71,
+        "heatScore": 52,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:00.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          30.32,
           29.38,
           31.13,
           31.46,
@@ -1026,31 +1025,31 @@
           32.94,
           32.69,
           35.09,
-          35.81
+          35.81,
+          34.43
         ],
         "technicalPlan": {
-          "atr": 2.5,
-          "buy": 31.79,
-          "stop": 28.92,
+          "atr": 2.45,
+          "buy": 31.78,
+          "stop": 28.96,
           "tp": [
-            40.81,
-            43.8
+            39.33,
+            42.26
           ]
         }
       },
       {
         "symbol": "ARM",
-        "price": 235.9,
-        "changePercent": 4.1,
-        "weeklyChange": 4.11,
-        "volumeRatio": 0.87,
-        "heatScore": 63,
+        "price": 228.8,
+        "changePercent": -3.02,
+        "weeklyChange": 8.89,
+        "volumeRatio": 1.01,
+        "heatScore": 71,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          274.6,
           286.7,
           282.6,
           267.9,
@@ -1109,31 +1108,31 @@
           210.3,
           223.4,
           226.6,
-          235.9
+          235.9,
+          228.8
         ],
         "technicalPlan": {
-          "atr": 14.13,
-          "buy": 213.2,
-          "stop": 197,
+          "atr": 13.36,
+          "buy": 213,
+          "stop": 197.6,
           "tp": [
-            264.2,
-            281.1
+            255.5,
+            271.5
           ]
         }
       },
       {
         "symbol": "TSM",
-        "price": 439.5,
-        "changePercent": 0.6,
-        "weeklyChange": 1.76,
-        "volumeRatio": 0.7,
-        "heatScore": 32,
+        "price": 431.8,
+        "changePercent": -1.75,
+        "weeklyChange": 4.72,
+        "volumeRatio": 0.74,
+        "heatScore": 46,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:02.000Z",
+        "asOf": "2026-10-29T20:00:02.000Z",
         "history": [
-          414,
           418.2,
           420,
           418.5,
@@ -1192,31 +1191,31 @@
           418.5,
           424.4,
           436.9,
-          439.5
+          439.5,
+          431.8
         ],
         "technicalPlan": {
-          "atr": 13.12,
-          "buy": 411.7,
-          "stop": 396.6,
+          "atr": 12.88,
+          "buy": 414.7,
+          "stop": 399.9,
           "tp": [
-            465.7,
-            481.5
+            457.6,
+            473
           ]
         }
       },
       {
         "symbol": "ASML",
-        "price": 1662.8,
-        "changePercent": 1.67,
-        "weeklyChange": -0.83,
-        "volumeRatio": 0.7,
-        "heatScore": 36,
+        "price": 1675.7,
+        "changePercent": 0.77,
+        "weeklyChange": 7.38,
+        "volumeRatio": 0.83,
+        "heatScore": 49,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          1678.2,
           1704.4,
           1741,
           1733.5,
@@ -1275,31 +1274,31 @@
           1571.8,
           1590.9,
           1635.6,
-          1662.8
+          1662.8,
+          1675.7
         ],
         "technicalPlan": {
-          "atr": 55.3,
-          "buy": 1569.4,
-          "stop": 1505.8,
+          "atr": 53.95,
+          "buy": 1568.9,
+          "stop": 1506.8,
           "tp": [
-            1773.4,
-            1839.8
+            1783.6,
+            1848.3
           ]
         }
       },
       {
         "symbol": "COIN",
-        "price": 162.3,
-        "changePercent": 0.76,
-        "weeklyChange": -8.34,
-        "volumeRatio": 0.74,
-        "heatScore": 47,
+        "price": 160.6,
+        "changePercent": -1.07,
+        "weeklyChange": -5.03,
+        "volumeRatio": 1.08,
+        "heatScore": 54,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          149.9,
           145.4,
           153.6,
           148.7,
@@ -1358,31 +1357,31 @@
           164.4,
           159.6,
           161.1,
-          162.3
+          162.3,
+          160.6
         ],
         "technicalPlan": {
-          "atr": 9.82,
-          "buy": 156.9,
-          "stop": 147.5,
+          "atr": 9.11,
+          "buy": 155.6,
+          "stop": 148,
           "tp": [
-            182,
-            193.7
+            178.8,
+            189.7
           ]
         }
       },
       {
         "symbol": "MSTR",
-        "price": 145.2,
-        "changePercent": 2.66,
-        "weeklyChange": -5.42,
-        "volumeRatio": 0.64,
-        "heatScore": 49,
+        "price": 141.6,
+        "changePercent": -2.44,
+        "weeklyChange": -2.87,
+        "volumeRatio": 0.68,
+        "heatScore": 44,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:00.000Z",
         "history": [
-          98.37,
           96.85,
           100,
           97.33,
@@ -1441,31 +1440,31 @@
           146,
           139.8,
           141.4,
-          145.2
+          145.2,
+          141.6
         ],
         "technicalPlan": {
-          "atr": 9.31,
-          "buy": 136.9,
-          "stop": 126.1,
+          "atr": 8.89,
+          "buy": 136.7,
+          "stop": 126.5,
           "tp": [
-            163.8,
-            175
+            159.4,
+            170.1
           ]
         }
       },
       {
         "symbol": "CRWD",
-        "price": 266.7,
-        "changePercent": -0.51,
-        "weeklyChange": 11.41,
-        "volumeRatio": 0.87,
-        "heatScore": 56,
+        "price": 261.1,
+        "changePercent": -2.07,
+        "weeklyChange": 9.75,
+        "volumeRatio": 1.1,
+        "heatScore": 70,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          209.9,
           207.4,
           214.4,
           225.2,
@@ -1524,31 +1523,31 @@
           257.6,
           261.8,
           268,
-          266.7
+          266.7,
+          261.1
         ],
         "technicalPlan": {
-          "atr": 12.28,
-          "buy": 225.7,
-          "stop": 211.5,
+          "atr": 12.86,
+          "buy": 225.9,
+          "stop": 211.1,
           "tp": [
-            291.2,
-            306
+            286.9,
+            302.3
           ]
         }
       },
       {
         "symbol": "NOW",
-        "price": 150.1,
-        "changePercent": -3,
-        "weeklyChange": -1.95,
-        "volumeRatio": 2.41,
+        "price": 109.7,
+        "changePercent": -26.95,
+        "weeklyChange": -30.15,
+        "volumeRatio": 6.07,
         "heatScore": 100,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:02.000Z",
+        "asOf": "2026-10-29T20:01:07.000Z",
         "history": [
-          117.2,
           117.3,
           124.9,
           127.4,
@@ -1607,31 +1606,31 @@
           159,
           158.2,
           154.8,
-          150.1
+          150.1,
+          109.7
         ],
         "technicalPlan": {
-          "atr": 5.96,
-          "buy": 141.7,
-          "stop": 134.8,
+          "atr": 7.82,
+          "buy": 105.4,
+          "stop": 102.4,
           "tp": [
-            162.1,
-            169.2
+            125.3,
+            134.7
           ]
         }
       },
       {
         "symbol": "V",
-        "price": 400.6,
-        "changePercent": -0.31,
-        "weeklyChange": -1.78,
-        "volumeRatio": 1.16,
-        "heatScore": 46,
+        "price": 410.5,
+        "changePercent": 2.48,
+        "weeklyChange": -0.92,
+        "volumeRatio": 1.28,
+        "heatScore": 61,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:02.000Z",
+        "asOf": "2026-10-29T20:00:03.000Z",
         "history": [
-          368.5,
           370.5,
           362.5,
           361.3,
@@ -1690,31 +1689,31 @@
           407.9,
           404.2,
           401.9,
-          400.6
+          400.6,
+          410.5
         ],
         "technicalPlan": {
-          "atr": 7.32,
-          "buy": 396.6,
-          "stop": 388.1,
+          "atr": 7.68,
+          "buy": 396.7,
+          "stop": 387.9,
           "tp": [
-            415.2,
-            424
+            425.9,
+            435.1
           ]
         }
       },
       {
         "symbol": "MA",
-        "price": 610.3,
-        "changePercent": 0.08,
-        "weeklyChange": -1.98,
-        "volumeRatio": 1.13,
-        "heatScore": 44,
+        "price": 635.7,
+        "changePercent": 4.16,
+        "weeklyChange": 0.39,
+        "volumeRatio": 1.47,
+        "heatScore": 77,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:03.000Z",
+        "asOf": "2026-10-29T20:00:02.000Z",
         "history": [
-          570.5,
           576,
           563,
           563.2,
@@ -1773,31 +1772,31 @@
           623.6,
           613.5,
           609.8,
-          610.3
+          610.3,
+          635.7
         ],
         "technicalPlan": {
-          "atr": 10.55,
-          "buy": 604.5,
-          "stop": 596.6,
+          "atr": 11.71,
+          "buy": 609.1,
+          "stop": 595.6,
           "tp": [
-            631.4,
-            644.1
+            659.1,
+            673.2
           ]
         }
       },
       {
         "symbol": "NFLX",
-        "price": 61.99,
-        "changePercent": -0.85,
-        "weeklyChange": -4.69,
-        "volumeRatio": 0.96,
-        "heatScore": 48,
+        "price": 62.05,
+        "changePercent": 0.1,
+        "weeklyChange": -7.46,
+        "volumeRatio": 1.03,
+        "heatScore": 51,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          74.2,
           73.69,
           74.14,
           76.29,
@@ -1856,31 +1855,31 @@
           65.85,
           63.9,
           62.52,
-          61.99
+          61.99,
+          62.05
         ],
         "technicalPlan": {
           "atr": 1.95,
-          "buy": 60.92,
-          "stop": 59.95,
+          "buy": 60.98,
+          "stop": 59.83,
           "tp": [
-            65.88,
-            68.22
+            65.95,
+            68.29
           ]
         }
       },
       {
         "symbol": "ORCL",
-        "price": 144.5,
-        "changePercent": 10.73,
-        "weeklyChange": 11.93,
-        "volumeRatio": 2.94,
-        "heatScore": 100,
+        "price": 139.6,
+        "changePercent": -3.45,
+        "weeklyChange": 11.17,
+        "volumeRatio": 1.27,
+        "heatScore": 88,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:03:50.000Z",
+        "asOf": "2026-10-29T20:04:43.000Z",
         "history": [
-          144.4,
           143.5,
           147,
           151.1,
@@ -1939,31 +1938,31 @@
           126.2,
           126.1,
           130.5,
-          144.5
+          144.5,
+          139.6
         ],
         "technicalPlan": {
-          "atr": 7.06,
-          "buy": 125.2,
+          "atr": 7.13,
+          "buy": 125.3,
           "stop": 117.1,
           "tp": [
-            158.7,
-            167.1
+            153.8,
+            162.4
           ]
         }
       },
       {
         "symbol": "CRM",
-        "price": 242.1,
-        "changePercent": 0.51,
-        "weeklyChange": 0.14,
-        "volumeRatio": 0.88,
-        "heatScore": 34,
+        "price": 230.9,
+        "changePercent": -4.63,
+        "weeklyChange": -7.75,
+        "volumeRatio": 1.06,
+        "heatScore": 80,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:02.000Z",
+        "asOf": "2026-10-29T20:00:02.000Z",
         "history": [
-          193,
           186.8,
           192.7,
           197.5,
@@ -2022,31 +2021,31 @@
           248.6,
           247.6,
           240.9,
-          242.1
+          242.1,
+          230.9
         ],
         "technicalPlan": {
-          "atr": 8.32,
-          "buy": 237.5,
-          "stop": 228.9,
+          "atr": 8.91,
+          "buy": 226,
+          "stop": 217.9,
           "tp": [
-            258.7,
-            268.7
+            248.7,
+            259.4
           ]
         }
       },
       {
         "symbol": "SNOW",
-        "price": 339.9,
-        "changePercent": 0.74,
-        "weeklyChange": 5.32,
-        "volumeRatio": 0.62,
-        "heatScore": 37,
+        "price": 330.3,
+        "changePercent": -2.84,
+        "weeklyChange": 5.19,
+        "volumeRatio": 0.79,
+        "heatScore": 55,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:03.000Z",
+        "asOf": "2026-10-29T20:00:02.000Z",
         "history": [
-          316.8,
           318,
           330.5,
           334.7,
@@ -2105,31 +2104,31 @@
           325.4,
           335,
           337.4,
-          339.9
+          339.9,
+          330.3
         ],
         "technicalPlan": {
-          "atr": 15.64,
-          "buy": 307.7,
-          "stop": 289.7,
+          "atr": 15.81,
+          "buy": 307.8,
+          "stop": 289.6,
           "tp": [
-            371.2,
-            390
+            361.9,
+            380.9
           ]
         }
       },
       {
         "symbol": "SHOP",
-        "price": 168.2,
-        "changePercent": 1.45,
-        "weeklyChange": -3.48,
-        "volumeRatio": 0.73,
-        "heatScore": 41,
+        "price": 166.9,
+        "changePercent": -0.79,
+        "weeklyChange": -1.14,
+        "volumeRatio": 0.58,
+        "heatScore": 27,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:00.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          144.2,
           147.4,
           151.6,
           155.2,
@@ -2188,31 +2187,31 @@
           168.7,
           168.2,
           165.8,
-          168.2
+          168.2,
+          166.9
         ],
         "technicalPlan": {
-          "atr": 7.38,
-          "buy": 164.2,
-          "stop": 157.4,
+          "atr": 7.49,
+          "buy": 162.8,
+          "stop": 156.5,
           "tp": [
-            183,
-            191.8
+            181.9,
+            190.9
           ]
         }
       },
       {
         "symbol": "UBER",
-        "price": 65.27,
-        "changePercent": -0.78,
-        "weeklyChange": -3.48,
-        "volumeRatio": 1.14,
-        "heatScore": 51,
+        "price": 65.74,
+        "changePercent": 0.72,
+        "weeklyChange": -4.82,
+        "volumeRatio": 1,
+        "heatScore": 49,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:02.000Z",
+        "asOf": "2026-10-29T20:00:02.000Z",
         "history": [
-          68.18,
           70.47,
           75.02,
           78.03,
@@ -2271,31 +2270,31 @@
           66.7,
           66.13,
           65.78,
-          65.27
+          65.27,
+          65.74
         ],
         "technicalPlan": {
-          "atr": 1.7,
-          "buy": 64.34,
-          "stop": 63.33,
+          "atr": 1.72,
+          "buy": 64.64,
+          "stop": 62.66,
           "tp": [
-            68.66,
-            70.7
+            69.19,
+            71.25
           ]
         }
       },
       {
         "symbol": "JPM",
-        "price": 339.3,
-        "changePercent": 1.05,
-        "weeklyChange": 1.23,
-        "volumeRatio": 0.73,
-        "heatScore": 34,
+        "price": 343.6,
+        "changePercent": 1.26,
+        "weeklyChange": 2.09,
+        "volumeRatio": 0.83,
+        "heatScore": 41,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:02.000Z",
+        "asOf": "2026-10-29T20:00:02.000Z",
         "history": [
-          359.2,
           356.3,
           357.5,
           359.8,
@@ -2354,31 +2353,31 @@
           331.6,
           334,
           335.8,
-          339.3
+          339.3,
+          343.6
         ],
         "technicalPlan": {
-          "atr": 5.85,
-          "buy": 332.4,
+          "atr": 5.93,
+          "buy": 332.5,
           "stop": 325.7,
           "tp": [
-            351,
-            358
+            355.4,
+            362.6
           ]
         }
       },
       {
         "symbol": "BRK.B",
-        "price": 540.3,
-        "changePercent": -0.49,
-        "weeklyChange": 0.25,
-        "volumeRatio": 0.73,
-        "heatScore": 29,
+        "price": 542,
+        "changePercent": 0.3,
+        "weeklyChange": -0.92,
+        "volumeRatio": 0.97,
+        "heatScore": 38,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:13.000Z",
+        "asOf": "2026-10-29T20:00:02.000Z",
         "history": [
-          518.8,
           524.6,
           521.8,
           529.4,
@@ -2437,31 +2436,31 @@
           542.2,
           548.6,
           543,
-          540.3
+          540.3,
+          542
         ],
         "technicalPlan": {
-          "atr": 6.28,
-          "buy": 527.7,
-          "stop": 520.5,
+          "atr": 6.48,
+          "buy": 530.3,
+          "stop": 522.8,
           "tp": [
-            552.9,
-            560.4
+            554.9,
+            562.7
           ]
         }
       },
       {
         "symbol": "LLY",
-        "price": 1288.3,
-        "changePercent": 0.5,
-        "weeklyChange": 1.38,
-        "volumeRatio": 0.88,
-        "heatScore": 37,
+        "price": 1373.7,
+        "changePercent": 6.63,
+        "weeklyChange": 5.13,
+        "volumeRatio": 1.93,
+        "heatScore": 100,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:03:31.000Z",
+        "asOf": "2026-10-29T20:03:18.000Z",
         "history": [
-          1169.9,
           1191.9,
           1185.7,
           1231.9,
@@ -2520,31 +2519,31 @@
           1273.5,
           1279.1,
           1281.9,
-          1288.3
+          1288.3,
+          1373.7
         ],
         "technicalPlan": {
-          "atr": 37.98,
-          "buy": 1244,
-          "stop": 1200.3,
+          "atr": 42.81,
+          "buy": 1254.1,
+          "stop": 1204.9,
           "tp": [
-            1364.3,
-            1409.8
+            1459.3,
+            1510.7
           ]
         }
       },
       {
         "symbol": "COST",
-        "price": 982.7,
-        "changePercent": -0.95,
-        "weeklyChange": -1.56,
-        "volumeRatio": 0.81,
-        "heatScore": 37,
+        "price": 996.1,
+        "changePercent": 1.36,
+        "weeklyChange": -2.17,
+        "volumeRatio": 0.76,
+        "heatScore": 39,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-10-28T20:00:01.000Z",
+        "asOf": "2026-10-29T20:00:01.000Z",
         "history": [
-          942,
           949.2,
           947.8,
           952.8,
@@ -2603,15 +2602,16 @@
           1003.3,
           1005.2,
           992.1,
-          982.7
+          982.7,
+          996.1
         ],
         "technicalPlan": {
-          "atr": 15.57,
-          "buy": 974.2,
-          "stop": 964.8,
+          "atr": 15.68,
+          "buy": 985.8,
+          "stop": 967.8,
           "tp": [
-            1013.9,
-            1032.5
+            1027.4,
+            1046.3
           ]
         }
       }
@@ -2630,10 +2630,10 @@
         "shortTermInvestments": 51951000,
         "liquidAssets": 62556000,
         "netIncome": 120067000,
-        "marketCap": 5190658000000,
-        "pe": 43.2,
+        "marketCap": 5149206000000,
+        "pe": 42.9,
         "targetPrice": 315,
-        "targetUpside": 46.2,
+        "targetUpside": 47.4,
         "revenueHistory": [
           215938000,
           130497000,
@@ -2648,7 +2648,7 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 66,
+        "valueScore": 67,
         "finalScore": 90,
         "qualityEligible": true
       },
@@ -2665,10 +2665,10 @@
         "shortTermInvestments": 55908000,
         "liquidAssets": 76843000,
         "netIncome": 133749000,
-        "marketCap": 3943506852056,
-        "pe": 29.5,
+        "marketCap": 3937045860811,
+        "pe": 29.4,
         "targetPrice": 600,
-        "targetUpside": 13,
+        "targetUpside": 13.2,
         "revenueHistory": [
           331839000,
           281724000,
@@ -2700,10 +2700,10 @@
         "shortTermInvestments": 18763000,
         "liquidAssets": 54697000,
         "netIncome": 112010000,
-        "marketCap": 5017916909400,
-        "pe": 44.8,
+        "marketCap": 5092055343800,
+        "pe": 45.5,
         "targetPrice": 335,
-        "targetUpside": -2.6,
+        "targetUpside": -4,
         "revenueHistory": [
           416161000,
           391035000,
@@ -2718,8 +2718,8 @@
         ],
         "growthScore": 59,
         "profitScore": 100,
-        "valueScore": 47,
-        "finalScore": 72,
+        "valueScore": 45,
+        "finalScore": 71,
         "qualityEligible": true
       },
       {
@@ -2735,10 +2735,10 @@
         "shortTermInvestments": 96135000,
         "liquidAssets": 126843000,
         "netIncome": 132170000,
-        "marketCap": 3973404700000,
-        "pe": 30.1,
-        "targetPrice": 430,
-        "targetUpside": 32.3,
+        "marketCap": 3471118600000,
+        "pe": 26.3,
+        "targetPrice": 432.5,
+        "targetUpside": 52.4,
         "revenueHistory": [
           402836000,
           350018000,
@@ -2753,8 +2753,8 @@
         ],
         "growthScore": 71,
         "profitScore": 96,
-        "valueScore": 79,
-        "finalScore": 83,
+        "valueScore": 91,
+        "finalScore": 87,
         "qualityEligible": true
       },
       {
@@ -2770,10 +2770,10 @@
         "shortTermInvestments": 36219000,
         "liquidAssets": 123029000,
         "netIncome": 77670000,
-        "marketCap": 2746195435431,
-        "pe": 35.4,
+        "marketCap": 2629595385718,
+        "pe": 33.9,
         "targetPrice": 329,
-        "targetUpside": 29.2,
+        "targetUpside": 34.9,
         "revenueHistory": [
           716924000,
           637959000,
@@ -2788,8 +2788,8 @@
         ],
         "growthScore": 67,
         "profitScore": 65,
-        "valueScore": 71,
-        "finalScore": 67,
+        "valueScore": 75,
+        "finalScore": 69,
         "qualityEligible": true
       },
       {
@@ -2805,10 +2805,10 @@
         "shortTermInvestments": 45719000,
         "liquidAssets": 81592000,
         "netIncome": 60458000,
-        "marketCap": 1565672205050,
-        "pe": 25.9,
+        "marketCap": 1596423787324,
+        "pe": 26.4,
         "targetPrice": 850,
-        "targetUpside": 38.8,
+        "targetUpside": 36.1,
         "revenueHistory": [
           200966000,
           164501000,
@@ -2823,8 +2823,8 @@
         ],
         "growthScore": 81,
         "profitScore": 91,
-        "valueScore": 87,
-        "finalScore": 87,
+        "valueScore": 85,
+        "finalScore": 86,
         "qualityEligible": true
       },
       {
@@ -2840,10 +2840,10 @@
         "shortTermInvestments": 27546000,
         "liquidAssets": 44059000,
         "netIncome": 3794000,
-        "marketCap": 1597783816932,
-        "pe": 421.1,
+        "marketCap": 1594147279622,
+        "pe": 420.2,
         "targetPrice": 422.5,
-        "targetUpside": 4.5,
+        "targetUpside": 4.8,
         "revenueHistory": [
           94827000,
           97690000,
@@ -2875,10 +2875,10 @@
         "shortTermInvestments": 5013000,
         "liquidAssets": 10552000,
         "netIncome": 4335000,
-        "marketCap": 944288863294,
-        "pe": 217.8,
+        "marketCap": 924666513290,
+        "pe": 213.3,
         "targetPrice": 650,
-        "targetUpside": 12.4,
+        "targetUpside": 14.8,
         "revenueHistory": [
           34639000,
           25785000,
@@ -2910,10 +2910,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 16178000,
         "netIncome": 23126000,
-        "marketCap": 1679410722806,
-        "pe": 72.6,
+        "marketCap": 1646902303425,
+        "pe": 71.2,
         "targetPrice": 530,
-        "targetUpside": 50.7,
+        "targetUpside": 53.6,
         "revenueHistory": [
           63887000,
           51574000,
@@ -2928,7 +2928,7 @@
         ],
         "growthScore": 83,
         "profitScore": 98,
-        "valueScore": 28,
+        "valueScore": 31,
         "finalScore": 73,
         "qualityEligible": true
       },
@@ -2945,10 +2945,10 @@
         "shortTermInvestments": 5753247,
         "liquidAssets": 7177043,
         "netIncome": 1625033,
-        "marketCap": 472748145399,
-        "pe": 290.9,
+        "marketCap": 471811344542,
+        "pe": 290.3,
         "targetPrice": 224,
-        "targetUpside": 13.8,
+        "targetUpside": 14.1,
         "revenueHistory": [
           4475446,
           2865507,
@@ -2980,10 +2980,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 7521474,
         "netIncome": 2230453,
-        "marketCap": 23525930401,
-        "pe": 10.5,
+        "marketCap": 22619318171,
+        "pe": 10.1,
         "targetPrice": 44,
-        "targetUpside": 22.9,
+        "targetUpside": 27.8,
         "revenueHistory": [
           39063072,
           21972042,
@@ -3015,10 +3015,10 @@
         "shortTermInvestments": 850000,
         "liquidAssets": 3601000,
         "netIncome": 904000,
-        "marketCap": 251010633947,
-        "pe": 277.7,
-        "targetPrice": 300,
-        "targetUpside": 27.2,
+        "marketCap": 243423920000,
+        "pe": 269.3,
+        "targetPrice": 280,
+        "targetUpside": 22.4,
         "revenueHistory": [
           4920000,
           4007000,
@@ -3050,10 +3050,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 88090800,
         "netIncome": 53949600,
-        "marketCap": 2279520770357,
-        "pe": 42.3,
+        "marketCap": 2239584682596,
+        "pe": 41.5,
         "targetPrice": 537,
-        "targetUpside": 22.2,
+        "targetUpside": 24.4,
         "revenueHistory": [
           121228300,
           88282800,
@@ -3068,7 +3068,7 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 59,
+        "valueScore": 61,
         "finalScore": 88,
         "qualityEligible": true
       },
@@ -3085,10 +3085,10 @@
         "shortTermInvestments": 476700,
         "liquidAssets": 15645900,
         "netIncome": 11285800,
-        "marketCap": 640891764245,
-        "pe": 56.8,
+        "marketCap": 645844381241,
+        "pe": 57.2,
         "targetPrice": 2225,
-        "targetUpside": 33.8,
+        "targetUpside": 32.8,
         "revenueHistory": [
           38366200,
           29266400,
@@ -3103,7 +3103,7 @@
         ],
         "growthScore": 94,
         "profitScore": 97,
-        "valueScore": 43,
+        "valueScore": 42,
         "finalScore": 80,
         "qualityEligible": true
       },
@@ -3120,10 +3120,10 @@
         "shortTermInvestments": 309765,
         "liquidAssets": 11929535,
         "netIncome": 1260327,
-        "marketCap": 42826009341,
-        "pe": 34,
+        "marketCap": 42369571465,
+        "pe": 33.6,
         "targetPrice": 205,
-        "targetUpside": 26.3,
+        "targetUpside": 27.6,
         "revenueHistory": [
           7181325,
           6564028,
@@ -3155,10 +3155,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 2303343,
         "netIncome": -3848152,
-        "marketCap": 61254313125,
+        "marketCap": 59760511331,
         "pe": null,
         "targetPrice": 211.5,
-        "targetUpside": 45.7,
+        "targetUpside": 49.4,
         "revenueHistory": [
           477233,
           463456,
@@ -3173,8 +3173,8 @@
         ],
         "growthScore": 54,
         "profitScore": 0,
-        "valueScore": 73,
-        "finalScore": 38,
+        "valueScore": 75,
+        "finalScore": 39,
         "qualityEligible": false
       },
       {
@@ -3190,10 +3190,10 @@
         "shortTermInvestments": 99591,
         "liquidAssets": 5329716,
         "netIncome": -162502,
-        "marketCap": 273042464968,
+        "marketCap": 267400583988,
         "pe": null,
         "targetPrice": 250,
-        "targetUpside": -6.3,
+        "targetUpside": -4.3,
         "revenueHistory": [
           4812005,
           3953624,
@@ -3208,7 +3208,7 @@
         ],
         "growthScore": 80,
         "profitScore": 40,
-        "valueScore": 47,
+        "valueScore": 48,
         "finalScore": 54,
         "qualityEligible": false
       },
@@ -3225,10 +3225,10 @@
         "shortTermInvestments": 2558000,
         "liquidAssets": 6284000,
         "netIncome": 1748000,
-        "marketCap": 155234420000,
-        "pe": 88.8,
-        "targetPrice": 165,
-        "targetUpside": 9.9,
+        "marketCap": 113398780000,
+        "pe": 64.9,
+        "targetPrice": 162.5,
+        "targetUpside": 48.1,
         "revenueHistory": [
           13278000,
           10984000,
@@ -3243,8 +3243,8 @@
         ],
         "growthScore": 79,
         "profitScore": 66,
-        "valueScore": 0,
-        "finalScore": 50,
+        "valueScore": 37,
+        "finalScore": 61,
         "qualityEligible": false
       },
       {
@@ -3260,10 +3260,10 @@
         "shortTermInvestments": 1833000,
         "liquidAssets": 21987000,
         "netIncome": 20058000,
-        "marketCap": 715774143135,
-        "pe": 35.7,
-        "targetPrice": 430,
-        "targetUpside": 7.3,
+        "marketCap": 733534490072,
+        "pe": 36.6,
+        "targetPrice": 440,
+        "targetUpside": 7.2,
         "revenueHistory": [
           40000000,
           35926000,
@@ -3278,8 +3278,8 @@
         ],
         "growthScore": 66,
         "profitScore": 100,
-        "valueScore": 63,
-        "finalScore": 79,
+        "valueScore": 61,
+        "finalScore": 78,
         "qualityEligible": true
       },
       {
@@ -3295,10 +3295,10 @@
         "shortTermInvestments": 332000,
         "liquidAssets": 13580000,
         "netIncome": 14968000,
-        "marketCap": 534637626481,
-        "pe": 35.7,
+        "marketCap": 556879518858,
+        "pe": 37.2,
         "targetPrice": 670,
-        "targetUpside": 9.8,
+        "targetUpside": 5.4,
         "revenueHistory": [
           32791000,
           28167000,
@@ -3313,8 +3313,8 @@
         ],
         "growthScore": 73,
         "profitScore": 100,
-        "valueScore": 63,
-        "finalScore": 81,
+        "valueScore": 60,
+        "finalScore": 80,
         "qualityEligible": false
       },
       {
@@ -3330,10 +3330,10 @@
         "shortTermInvestments": 28678,
         "liquidAssets": 9062359,
         "netIncome": 10981201,
-        "marketCap": 254551142727,
+        "marketCap": 254797522281,
         "pe": 23.2,
         "targetPrice": 85,
-        "targetUpside": 37.1,
+        "targetUpside": 37,
         "revenueHistory": [
           45183036,
           39000966,
@@ -3365,10 +3365,10 @@
         "shortTermInvestments": 605000,
         "liquidAssets": 31894000,
         "netIncome": 17087000,
-        "marketCap": 437050801440,
-        "pe": 25.6,
+        "marketCap": 421992596160,
+        "pe": 24.7,
         "targetPrice": 225,
-        "targetUpside": 55.7,
+        "targetUpside": 61.2,
         "revenueHistory": [
           67357000,
           57399000,
@@ -3383,8 +3383,8 @@
         ],
         "growthScore": 74,
         "profitScore": 90,
-        "valueScore": 93,
-        "finalScore": 86,
+        "valueScore": 96,
+        "finalScore": 87,
         "qualityEligible": true
       },
       {
@@ -3400,10 +3400,10 @@
         "shortTermInvestments": 2238000,
         "liquidAssets": 9565000,
         "netIncome": 7457000,
-        "marketCap": 199256530000,
-        "pe": 26.7,
+        "marketCap": 190030700000,
+        "pe": 25.5,
         "targetPrice": 289.5,
-        "targetUpside": 19.6,
+        "targetUpside": 25.4,
         "revenueHistory": [
           41525000,
           37895000,
@@ -3418,8 +3418,8 @@
         ],
         "growthScore": 63,
         "profitScore": 71,
-        "valueScore": 79,
-        "finalScore": 71,
+        "valueScore": 83,
+        "finalScore": 72,
         "qualityEligible": false
       },
       {
@@ -3435,10 +3435,10 @@
         "shortTermInvestments": 1201523,
         "liquidAssets": 4029686,
         "netIncome": -1331616,
-        "marketCap": 119920248000,
+        "marketCap": 116519256000,
         "pe": null,
         "targetPrice": 447,
-        "targetUpside": 31.5,
+        "targetUpside": 35.3,
         "revenueHistory": [
           4683946,
           3626396,
@@ -3453,8 +3453,8 @@
         ],
         "growthScore": 91,
         "profitScore": 0,
-        "valueScore": 66,
-        "finalScore": 47,
+        "valueScore": 68,
+        "finalScore": 48,
         "qualityEligible": false
       },
       {
@@ -3470,10 +3470,10 @@
         "shortTermInvestments": 4233000,
         "liquidAssets": 5778000,
         "netIncome": 1231000,
-        "marketCap": 217981330626,
-        "pe": 177.1,
+        "marketCap": 216257901962,
+        "pe": 175.7,
         "targetPrice": 180,
-        "targetUpside": 7,
+        "targetUpside": 7.8,
         "revenueHistory": [
           11556000,
           8880000,
@@ -3505,10 +3505,10 @@
         "shortTermInvestments": 528000,
         "liquidAssets": 8264000,
         "netIncome": 10053000,
-        "marketCap": 133317899098,
-        "pe": 13.3,
+        "marketCap": 134277902355,
+        "pe": 13.4,
         "targetPrice": 103,
-        "targetUpside": 57.8,
+        "targetUpside": 56.7,
         "revenueHistory": [
           52017000,
           43978000,
@@ -3540,10 +3540,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 679764000,
         "netIncome": 57048000,
-        "marketCap": 901922575964,
-        "pe": 15.8,
+        "marketCap": 913299612878,
+        "pe": 16,
         "targetPrice": 370,
-        "targetUpside": 9,
+        "targetUpside": 7.7,
         "revenueHistory": [
           168235000,
           166878000,
@@ -3558,8 +3558,8 @@
         ],
         "growthScore": 51,
         "profitScore": 81,
-        "valueScore": 90,
-        "finalScore": 75,
+        "valueScore": 89,
+        "finalScore": 74,
         "qualityEligible": true
       },
       {
@@ -3575,10 +3575,10 @@
         "shortTermInvestments": 321434000,
         "liquidAssets": 373311000,
         "netIncome": 66968000,
-        "marketCap": 1194271731678,
-        "pe": 17.8,
+        "marketCap": 1202439495000,
+        "pe": 18,
         "targetPrice": 792000,
-        "targetUpside": 146485.2,
+        "targetUpside": 146025.5,
         "revenueHistory": [
           410522000,
           424232000,
@@ -3610,10 +3610,10 @@
         "shortTermInvestments": 109100,
         "liquidAssets": 7377100,
         "netIncome": 20640000,
-        "marketCap": 1212750306840,
-        "pe": 58.8,
+        "marketCap": 1293142200191,
+        "pe": 62.7,
         "targetPrice": 1400,
-        "targetUpside": 8.7,
+        "targetUpside": 1.9,
         "revenueHistory": [
           65179000,
           45043000,
@@ -3628,8 +3628,8 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 32,
-        "finalScore": 80,
+        "valueScore": 24,
+        "finalScore": 77,
         "qualityEligible": true
       },
       {
@@ -3645,10 +3645,10 @@
         "shortTermInvestments": 1094000,
         "liquidAssets": 21301000,
         "netIncome": 9226000,
-        "marketCap": 435476505143,
-        "pe": 47.2,
+        "marketCap": 441392281952,
+        "pe": 47.8,
         "targetPrice": 1100,
-        "targetUpside": 11.9,
+        "targetUpside": 10.4,
         "revenueHistory": [
           303154000,
           275235000,
@@ -3663,26 +3663,134 @@
         ],
         "growthScore": 64,
         "profitScore": 58,
-        "valueScore": 49,
+        "valueScore": 47,
         "finalScore": 57,
         "qualityEligible": true
       }
     ],
     "temperature": {
-      "value": 55,
+      "value": 54,
       "label": "中性",
-      "hint": "VIX 16.91，标普500相对近60日均线 +0.5%——该温度由真实行情计算，不是官方指数"
+      "hint": "VIX 17.2，标普500相对近60日均线 +0.1%——该温度由真实行情计算，不是官方指数"
     },
     "filings": [
       {
         "symbol": "GOOGL",
+        "form": "10-Q",
+        "filingDate": "2026-10-29",
+        "items": "",
+        "labels": [
+          "季度报告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000084/goog-20260930.htm"
+      },
+      {
+        "symbol": "AMZN",
         "form": "8-K",
-        "filingDate": "2026-10-28",
+        "filingDate": "2026-10-29",
         "items": "2.02,9.01",
         "labels": [
           "业绩公告"
         ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000080/goog-20261028.htm"
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000038/amzn-20261029.htm"
+      },
+      {
+        "symbol": "META",
+        "form": "8-K",
+        "filingDate": "2026-10-29",
+        "items": "1.01,3.03,5.03,9.01",
+        "labels": [
+          "订立重大协议",
+          "证券持有人权利变更",
+          "公司章程变更"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000119312526438017/d183592d8k.htm"
+      },
+      {
+        "symbol": "COIN",
+        "form": "10-Q",
+        "filingDate": "2026-10-29",
+        "items": "",
+        "labels": [
+          "季度报告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000122/coin-20260930.htm"
+      },
+      {
+        "symbol": "COIN",
+        "form": "8-K",
+        "filingDate": "2026-10-29",
+        "items": "2.02,9.01",
+        "labels": [
+          "业绩公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000121/coin-20261029.htm"
+      },
+      {
+        "symbol": "MSTR",
+        "form": "8-K",
+        "filingDate": "2026-10-29",
+        "items": "3.03,5.03,5.07,7.01,8.01,9.01",
+        "labels": [
+          "证券持有人权利变更",
+          "公司章程变更",
+          "股东投票结果",
+          "自愿披露（Reg FD）",
+          "其他重大事项"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1050446/000119312526437776/mstr-20261028.htm"
+      },
+      {
+        "symbol": "MSTR",
+        "form": "8-K",
+        "filingDate": "2026-10-29",
+        "items": "2.02,5.02,7.01,9.01",
+        "labels": [
+          "业绩公告",
+          "董事或高管变动",
+          "自愿披露（Reg FD）"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1050446/000105044626000047/mstr-20261026.htm"
+      },
+      {
+        "symbol": "MA",
+        "form": "10-Q",
+        "filingDate": "2026-10-29",
+        "items": "",
+        "labels": [
+          "季度报告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1141391/000114139126000124/ma-20260930.htm"
+      },
+      {
+        "symbol": "MA",
+        "form": "8-K",
+        "filingDate": "2026-10-29",
+        "items": "2.02,9.01",
+        "labels": [
+          "业绩公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1141391/000114139126000122/ma-20261029.htm"
+      },
+      {
+        "symbol": "LLY",
+        "form": "10-Q",
+        "filingDate": "2026-10-29",
+        "items": "",
+        "labels": [
+          "季度报告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947826000108/lly-20260930.htm"
+      },
+      {
+        "symbol": "LLY",
+        "form": "8-K",
+        "filingDate": "2026-10-29",
+        "items": "2.02,9.01",
+        "labels": [
+          "业绩公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947826000104/lly-20261029.htm"
       },
       {
         "symbol": "MSFT",
@@ -3713,6 +3821,16 @@
           "业绩公告"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312526436122/msft-20261028.htm"
+      },
+      {
+        "symbol": "GOOGL",
+        "form": "8-K",
+        "filingDate": "2026-10-28",
+        "items": "2.02,9.01",
+        "labels": [
+          "业绩公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000080/goog-20261028.htm"
       },
       {
         "symbol": "MSTR",
@@ -3774,17 +3892,6 @@
           "其他重大事项"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1403161/000140316126000126/v-20261027.htm"
-      },
-      {
-        "symbol": "MSTR",
-        "form": "8-K",
-        "filingDate": "2026-10-26",
-        "items": "7.01,8.01",
-        "labels": [
-          "自愿披露（Reg FD）",
-          "其他重大事项"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1050446/000119312526431146/mstr-20261026.htm"
       },
       {
         "symbol": "META",
@@ -3859,16 +3966,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000025/smci-20261020.htm"
       },
       {
-        "symbol": "NFLX",
-        "form": "8-K",
-        "filingDate": "2026-10-20",
-        "items": "2.02,9.01",
-        "labels": [
-          "业绩公告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1065280/000106528026000290/nflx-20261020.htm"
-      },
-      {
         "symbol": "CRM",
         "form": "8-K",
         "filingDate": "2026-10-20",
@@ -3877,6 +3974,16 @@
           "自愿披露（Reg FD）"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1108524/000119312526425881/d516983d8k.htm"
+      },
+      {
+        "symbol": "NFLX",
+        "form": "8-K",
+        "filingDate": "2026-10-20",
+        "items": "2.02,9.01",
+        "labels": [
+          "业绩公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1065280/000106528026000290/nflx-20261020.htm"
       },
       {
         "symbol": "JPM",
@@ -3889,17 +3996,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/19617/000119312526426704/d351999d8k.htm"
       },
       {
-        "symbol": "MSTR",
-        "form": "8-K",
-        "filingDate": "2026-10-19",
-        "items": "7.01,8.01",
-        "labels": [
-          "自愿披露（Reg FD）",
-          "其他重大事项"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1050446/000119312526424688/mstr-20261019.htm"
-      },
-      {
         "symbol": "COST",
         "form": "8-K",
         "filingDate": "2026-10-16",
@@ -3910,16 +4006,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000090983226000100/cost-20261013.htm"
       },
       {
-        "symbol": "SMCI",
-        "form": "8-K",
-        "filingDate": "2026-10-15",
-        "items": "5.02,9.01",
-        "labels": [
-          "董事或高管变动"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000024/smci-20261014.htm"
-      },
-      {
         "symbol": "TSM",
         "form": "6-K",
         "filingDate": "2026-10-15",
@@ -3928,6 +4014,16 @@
           "境外发行人公告"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000726/tsm-20261015x6k.htm"
+      },
+      {
+        "symbol": "SMCI",
+        "form": "8-K",
+        "filingDate": "2026-10-15",
+        "items": "5.02,9.01",
+        "labels": [
+          "董事或高管变动"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000024/smci-20261014.htm"
       },
       {
         "symbol": "ASML",
@@ -3970,16 +4066,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/19617/000162828026065582/jpm-20261013.htm"
       },
       {
-        "symbol": "SMCI",
-        "form": "8-K",
-        "filingDate": "2026-10-08",
-        "items": "5.02,9.01",
-        "labels": [
-          "董事或高管变动"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000023/smci-20261007.htm"
-      },
-      {
         "symbol": "TSM",
         "form": "6-K",
         "filingDate": "2026-10-08",
@@ -3988,6 +4074,16 @@
           "境外发行人公告"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000680/tsm-revenue20261008.htm"
+      },
+      {
+        "symbol": "SMCI",
+        "form": "8-K",
+        "filingDate": "2026-10-08",
+        "items": "5.02,9.01",
+        "labels": [
+          "董事或高管变动"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000023/smci-20261007.htm"
       },
       {
         "symbol": "COST",
@@ -4034,28 +4130,10 @@
       }
     ],
     "filingCoverage": {
-      "GOOGL": {
-        "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
-        "error": null,
-        "matchedCount": 1,
-        "returnedCount": 1,
-        "truncated": false
-      },
-      "MSFT": {
-        "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
-        "error": null,
-        "matchedCount": 3,
-        "returnedCount": 3,
-        "truncated": false
-      },
       "AAPL": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 0,
         "returnedCount": 0,
@@ -4063,53 +4141,35 @@
       },
       "NVDA": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 0,
         "returnedCount": 0,
         "truncated": false
       },
-      "AMZN": {
+      "MSFT": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
-        "matchedCount": 0,
-        "returnedCount": 0,
+        "matchedCount": 3,
+        "returnedCount": 3,
         "truncated": false
       },
-      "META": {
+      "GOOGL": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
         "truncated": false
       },
-      "TSLA": {
+      "AMZN": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
-        "error": null,
-        "matchedCount": 4,
-        "returnedCount": 3,
-        "truncated": true
-      },
-      "PLTR": {
-        "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
-        "error": null,
-        "matchedCount": 0,
-        "returnedCount": 0,
-        "truncated": false
-      },
-      "AVGO": {
-        "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 1,
         "returnedCount": 1,
@@ -4117,35 +4177,44 @@
       },
       "AMD": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 0,
         "returnedCount": 0,
         "truncated": false
       },
-      "SMCI": {
+      "META": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 3,
         "returnedCount": 3,
         "truncated": false
       },
-      "ASML": {
+      "PLTR": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
-        "matchedCount": 1,
-        "returnedCount": 1,
+        "matchedCount": 0,
+        "returnedCount": 0,
         "truncated": false
       },
-      "COIN": {
+      "TSLA": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
+        "error": null,
+        "matchedCount": 3,
+        "returnedCount": 3,
+        "truncated": false
+      },
+      "AVGO": {
+        "status": "complete",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 1,
         "returnedCount": 1,
@@ -4153,71 +4222,89 @@
       },
       "ARM": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 0,
         "returnedCount": 0,
         "truncated": false
       },
-      "TSM": {
+      "COIN": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 3,
         "returnedCount": 3,
         "truncated": false
       },
-      "MA": {
+      "ASML": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
-        "error": null,
-        "matchedCount": 0,
-        "returnedCount": 0,
-        "truncated": false
-      },
-      "MSTR": {
-        "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
-        "error": null,
-        "matchedCount": 7,
-        "returnedCount": 3,
-        "truncated": true
-      },
-      "NOW": {
-        "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
-        "error": null,
-        "matchedCount": 2,
-        "returnedCount": 2,
-        "truncated": false
-      },
-      "V": {
-        "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 1,
         "returnedCount": 1,
         "truncated": false
       },
+      "TSM": {
+        "status": "complete",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
+        "error": null,
+        "matchedCount": 3,
+        "returnedCount": 3,
+        "truncated": false
+      },
+      "SMCI": {
+        "status": "complete",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
+        "error": null,
+        "matchedCount": 3,
+        "returnedCount": 3,
+        "truncated": false
+      },
+      "MSTR": {
+        "status": "complete",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
+        "error": null,
+        "matchedCount": 9,
+        "returnedCount": 3,
+        "truncated": true
+      },
+      "MA": {
+        "status": "complete",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
+        "error": null,
+        "matchedCount": 2,
+        "returnedCount": 2,
+        "truncated": false
+      },
       "CRWD": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 0,
         "returnedCount": 0,
         "truncated": false
       },
-      "NFLX": {
+      "V": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
+        "truncated": false
+      },
+      "NOW": {
+        "status": "complete",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
@@ -4225,8 +4312,8 @@
       },
       "CRM": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 1,
         "returnedCount": 1,
@@ -4234,44 +4321,44 @@
       },
       "SHOP": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 0,
         "returnedCount": 0,
         "truncated": false
       },
-      "SNOW": {
+      "NFLX": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
-        "matchedCount": 1,
-        "returnedCount": 1,
+        "matchedCount": 2,
+        "returnedCount": 2,
         "truncated": false
       },
       "ORCL": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 1,
         "returnedCount": 1,
         "truncated": false
       },
-      "UBER": {
+      "SNOW": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
-        "matchedCount": 0,
-        "returnedCount": 0,
+        "matchedCount": 1,
+        "returnedCount": 1,
         "truncated": false
       },
-      "LLY": {
+      "BRK.B": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 0,
         "returnedCount": 0,
@@ -4279,26 +4366,35 @@
       },
       "COST": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 3,
         "returnedCount": 3,
         "truncated": false
       },
-      "BRK.B": {
+      "UBER": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 0,
         "returnedCount": 0,
         "truncated": false
       },
+      "LLY": {
+        "status": "complete",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
+        "error": null,
+        "matchedCount": 2,
+        "returnedCount": 2,
+        "truncated": false
+      },
       "JPM": {
         "status": "complete",
-        "since": "2026-09-29",
-        "fetchedAt": "2026-10-29T02:26:51.069Z",
+        "since": "2026-09-30",
+        "fetchedAt": "2026-10-30T02:36:23.902Z",
         "error": null,
         "matchedCount": 3,
         "returnedCount": 3,
@@ -4311,12 +4407,25 @@
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-10-28",
-        "fetchedAt": "2026-10-29T02:26:58.112Z",
+        "fetchedAt": "2026-10-30T02:36:32.021Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000080/goog-20261028.htm",
-        "checkedAt": "2026-10-29T02:26:58.112Z",
+        "checkedAt": "2026-10-30T02:36:32.021Z",
+        "reused": false
+      },
+      "AMZN": {
+        "symbol": "AMZN",
+        "facts": [],
+        "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
+        "filingDate": "2026-10-29",
+        "fetchedAt": "2026-10-30T02:36:32.021Z",
+        "priceCausation": "not_established",
+        "state": "unknown",
+        "scope": "recent-event-filings",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000038/amzn-20261029.htm",
+        "checkedAt": "2026-10-30T02:36:32.021Z",
         "reused": false
       },
       "NOW": {
@@ -4324,25 +4433,12 @@
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-10-28",
-        "fetchedAt": "2026-10-29T02:26:58.112Z",
+        "fetchedAt": "2026-10-30T02:36:32.021Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1373715/000137371526000092/erq3fy26-8xk.htm",
-        "checkedAt": "2026-10-29T02:26:58.112Z",
-        "reused": false
-      },
-      "ORCL": {
-        "symbol": "ORCL",
-        "facts": [],
-        "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
-        "filingDate": "2026-10-28",
-        "fetchedAt": "2026-10-29T02:26:58.112Z",
-        "priceCausation": "not_established",
-        "state": "unknown",
-        "scope": "recent-event-filings",
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1341439/000119312526435853/d75538d8k.htm",
-        "checkedAt": "2026-10-29T02:26:58.112Z",
+        "checkedAt": "2026-10-30T02:36:32.021Z",
         "reused": false
       },
       "NVDA": {
@@ -4351,7 +4447,7 @@
         "scope": "recent-event-filings",
         "sourceUrl": null,
         "filingDate": null,
-        "fetchedAt": "2026-10-29T02:26:58.112Z",
+        "fetchedAt": "2026-10-30T02:36:32.021Z",
         "facts": [],
         "priceCausation": "not_established",
         "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
@@ -4361,12 +4457,12 @@
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-10-28",
-        "fetchedAt": "2026-10-29T02:26:58.112Z",
+        "fetchedAt": "2026-10-30T02:36:32.021Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312526436149/msft-20261028.htm",
-        "checkedAt": "2026-10-29T02:26:58.112Z",
+        "checkedAt": "2026-10-30T02:36:32.021Z",
         "reused": false
       },
       "AAPL": {
@@ -4375,70 +4471,634 @@
         "scope": "recent-event-filings",
         "sourceUrl": null,
         "filingDate": null,
-        "fetchedAt": "2026-10-29T02:26:58.112Z",
-        "facts": [],
-        "priceCausation": "not_established",
-        "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
-      },
-      "AMZN": {
-        "symbol": "AMZN",
-        "state": "unknown",
-        "scope": "recent-event-filings",
-        "sourceUrl": null,
-        "filingDate": null,
-        "fetchedAt": "2026-10-29T02:26:58.112Z",
+        "fetchedAt": "2026-10-30T02:36:32.021Z",
         "facts": [],
         "priceCausation": "not_established",
         "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
       },
       "META": {
         "symbol": "META",
-        "eventKind": "capital_structure_proposal",
-        "eventDate": "2026-10-19",
-        "period": {
-          "end": "2026-10-19"
-        },
-        "filingDate": "2026-10-21",
-        "fetchedAt": "2026-10-23T06:03:39.507Z",
+        "facts": [],
+        "reason": "未完整核实股权结构调整、派股比例与生效条件",
+        "filingDate": "2026-10-29",
+        "fetchedAt": "2026-10-30T02:36:32.021Z",
         "priceCausation": "not_established",
-        "facts": [
-          {
-            "summary": "2026-10-19董事会批准设无投票权C类股，拟每股A/B股派一股C类股；须待章程生效，派发日未定。",
-            "metrics": [
-              {
-                "name": "classCDividendPerExistingShare",
-                "value": 1,
-                "unit": "share",
-                "qualifier": "conditional_planned"
-              }
-            ],
-            "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026066700/meta-20261019.htm",
-            "documentSha256": "45159fc0c8f805df90711e890ff3183ceeb09cd48ce98187d33ef8bcdcee8a07"
-          }
-        ],
-        "state": "verified",
+        "state": "unknown",
         "scope": "recent-event-filings",
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026066700/meta-20261019.htm",
-        "checkedAt": "2026-10-29T02:26:58.112Z",
-        "reused": true
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000119312526438017/d183592d8k.htm",
+        "checkedAt": "2026-10-30T02:36:32.021Z",
+        "reused": false
       },
       "TSLA": {
         "symbol": "TSLA",
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-10-21",
-        "fetchedAt": "2026-10-29T02:26:58.112Z",
+        "fetchedAt": "2026-10-30T02:36:32.021Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1318605/000162828026066738/tsla-20261021.htm",
-        "checkedAt": "2026-10-29T02:26:58.112Z",
+        "checkedAt": "2026-10-30T02:36:32.021Z",
         "reused": false
       }
     }
   },
   "hk": {
     "listings": [
+      {
+        "id": "hk-02206",
+        "code": "02206.HK",
+        "rawCode": "02206",
+        "name": "四川新荷花中药饮片股份有限公司",
+        "status": "招股文件已发布",
+        "listingDate": null,
+        "boardLot": "50",
+        "shortName": null,
+        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000014_c.pdf",
+        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000020_c.pdf",
+        "allotmentUrl": null,
+        "source": "HKEX",
+        "isLive": true,
+        "announcementExtraction": {
+          "ok": true,
+          "kind": "pricing",
+          "matchedFields": 3,
+          "totalFields": 7,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "offerStart": null,
+        "offerDeadline": null,
+        "dateValidation": {
+          "status": "unverified",
+          "reason": "招股开始、截止或上市日期缺失或无效",
+          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000014_c.pdf",
+          "parserVersion": "hk-offer-dates-v1",
+          "fields": {
+            "offerStart": [
+              {
+                "date": "2026-10-30",
+                "evidence": "香港公开发售开始.............................2026年10月30日"
+              }
+            ],
+            "offerDeadline": [
+              {
+                "date": "2026-11-06",
+                "evidence": "截止办理申请登记..............................2026年11月6日"
+              }
+            ],
+            "listingDate": []
+          }
+        },
+        "offerPrice": "50.55 港元",
+        "priceLow": 50.55,
+        "priceHigh": 50.55,
+        "entryFee": 2552.99,
+        "stabilizingManager": null,
+        "publicOfferShares": 651750,
+        "extractedFrom": "HKEX 新上市公告",
+        "sponsorNames": [
+          "广发融资（香港）有限公司",
+          "农银国际融资有限公司"
+        ],
+        "sponsor": "广发融资（香港）有限公司、农银国际融资有限公司",
+        "underwriterNames": [],
+        "cornerstoneInvestors": [],
+        "cornerstoneAmount": null,
+        "cornerstonePercent": null,
+        "prospectusExtracted": true,
+        "prospectusExtraction": {
+          "ok": true,
+          "matchedFields": 1,
+          "totalFields": 3,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "publicAnswer": {
+          "verdict": "待核验",
+          "action": "招股日期待核，暂不提供申购判断或倒计时。",
+          "score": null
+        },
+        "historicalReview": null,
+        "publishedEstimate": null
+      },
+      {
+        "id": "hk-01821",
+        "code": "01821.HK",
+        "rawCode": "01821",
+        "name": "中旅港澳文旅控股有限公司",
+        "status": "招股文件已发布",
+        "listingDate": null,
+        "boardLot": null,
+        "shortName": null,
+        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000174_c.pdf",
+        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000208_c.pdf",
+        "allotmentUrl": null,
+        "source": "HKEX",
+        "isLive": true,
+        "withdrawn": false,
+        "announcementExtraction": {
+          "ok": true,
+          "kind": "non-pricing",
+          "reason": "该公告未载列发行条款",
+          "engine": "pdftotext"
+        },
+        "extractedFrom": "HKEX 新上市公告",
+        "sponsorNames": [],
+        "sponsor": null,
+        "underwriterNames": [],
+        "cornerstoneInvestors": [],
+        "cornerstoneAmount": null,
+        "cornerstonePercent": null,
+        "prospectusExtracted": false,
+        "prospectusExtraction": {
+          "ok": false,
+          "matchedFields": 0,
+          "totalFields": 3,
+          "reason": "招股章程正文已取回，但保荐人、承销商与基石均未匹配到",
+          "engine": "pdftotext"
+        },
+        "publicAnswer": {
+          "verdict": "待核验",
+          "action": "招股日期待核，暂不提供申购判断或倒计时。",
+          "score": null
+        },
+        "historicalReview": null,
+        "publishedEstimate": null
+      },
+      {
+        "id": "hk-00054",
+        "code": "00054.HK",
+        "rawCode": "00054",
+        "name": "赣州和美药业股份有限公司 - B",
+        "status": "招股文件已发布",
+        "listingDate": "2026-11-09",
+        "boardLot": "100",
+        "shortName": null,
+        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000010_c.pdf",
+        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000030_c.pdf",
+        "allotmentUrl": null,
+        "source": "HKEX",
+        "isLive": true,
+        "announcementExtraction": {
+          "ok": true,
+          "kind": "pricing",
+          "matchedFields": 6,
+          "totalFields": 7,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "offerStart": "2026-10-30",
+        "offerDeadline": "2026-11-04",
+        "dateValidation": {
+          "status": "verified",
+          "reason": null,
+          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000010_c.pdf",
+          "parserVersion": "hk-offer-dates-v1",
+          "fields": {
+            "offerStart": [
+              {
+                "date": "2026-10-30",
+                "evidence": "香港公开发售开始.............................2026年10月30日"
+              }
+            ],
+            "offerDeadline": [
+              {
+                "date": "2026-11-04",
+                "evidence": "截止办理申请登记..............................2026年11月4日"
+              }
+            ],
+            "listingDate": [
+              {
+                "date": "2026-11-09",
+                "evidence": "预期H股开始于香港联交所买卖...................2026年11月9日"
+              },
+              {
+                "date": "2026-11-09",
+                "evidence": "2026年11月9日（星期一）上午九时正开始在联交所买卖"
+              }
+            ]
+          }
+        },
+        "offerPrice": "18.90 港元",
+        "priceLow": 18.9,
+        "priceHigh": 18.9,
+        "entryFee": 1909.06,
+        "stabilizingManager": null,
+        "publicOfferShares": 5521000,
+        "extractedFrom": "HKEX 新上市公告",
+        "sponsorNames": [
+          "国投证券融资（香港）有限公司",
+          "国投证券（香港）有限公司"
+        ],
+        "sponsor": "国投证券融资（香港）有限公司、国投证券（香港）有限公司",
+        "underwriterNames": [],
+        "cornerstoneInvestors": [
+          "配发结果公告",
+          "广发基金管理",
+          "广发基金香港",
+          "汇添富基金",
+          "东方证券",
+          "上海菁聚金",
+          "上海上报",
+          "东航产融",
+          "菁聚投资管理",
+          "上海菁聚木",
+          "上海菁聚水",
+          "CEAHC"
+        ],
+        "cornerstoneAmount": "227.6百万港元",
+        "cornerstonePercent": null,
+        "prospectusExtracted": true,
+        "prospectusExtraction": {
+          "ok": true,
+          "matchedFields": 2,
+          "totalFields": 3,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "publicAnswer": {
+          "verdict": "值得打",
+          "action": "可关注申购，但卖点与涨幅答案暂不发布。",
+          "score": 77
+        },
+        "historicalReview": null,
+        "publishedEstimate": null
+      },
+      {
+        "id": "hk-07672",
+        "code": "07672.HK",
+        "rawCode": "07672",
+        "name": "江苏芯德半导体科技股份有限公司",
+        "status": "招股文件已发布",
+        "listingDate": null,
+        "boardLot": "500",
+        "shortName": null,
+        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000012_c.pdf",
+        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000028_c.pdf",
+        "allotmentUrl": null,
+        "source": "HKEX",
+        "isLive": true,
+        "announcementExtraction": {
+          "ok": true,
+          "kind": "pricing",
+          "matchedFields": 3,
+          "totalFields": 7,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "offerStart": null,
+        "offerDeadline": null,
+        "dateValidation": {
+          "status": "unverified",
+          "reason": "招股开始、截止或上市日期缺失或无效",
+          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000012_c.pdf",
+          "parserVersion": "hk-offer-dates-v1",
+          "fields": {
+            "offerStart": [
+              {
+                "date": "2026-10-30",
+                "evidence": "香港公开发售开始.............................2026年10月30日"
+              }
+            ],
+            "offerDeadline": [],
+            "listingDate": [
+              {
+                "date": "2026-11-10",
+                "evidence": "预期H股开始在香港联交所买卖..................2026年11月10日"
+              },
+              {
+                "date": "2026-11-10",
+                "evidence": "2026年11月10日（星期二）上午九时正开始在联交所买卖"
+              },
+              {
+                "date": "2026-11-10",
+                "evidence": "上市日期（目前预期为2026年11月10日"
+              }
+            ]
+          }
+        },
+        "offerPrice": "9.60 港元",
+        "priceLow": 9.6,
+        "priceHigh": 9.6,
+        "entryFee": 4848.41,
+        "stabilizingManager": null,
+        "publicOfferShares": 10656500,
+        "extractedFrom": "HKEX 新上市公告",
+        "sponsorNames": [],
+        "sponsor": null,
+        "underwriterNames": [],
+        "cornerstoneInvestors": [
+          "广发基金管理",
+          "广发证券",
+          "国惠香港",
+          "Maxwell",
+          "苏州迈为",
+          "迈为珠海",
+          "禁售期",
+          "国际会计准则理事会"
+        ],
+        "cornerstoneAmount": "312.99百万港元",
+        "cornerstonePercent": null,
+        "prospectusExtracted": true,
+        "prospectusExtraction": {
+          "ok": true,
+          "matchedFields": 1,
+          "totalFields": 3,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "publicAnswer": {
+          "verdict": "待核验",
+          "action": "招股日期待核，暂不提供申购判断或倒计时。",
+          "score": null
+        },
+        "historicalReview": null,
+        "publishedEstimate": null
+      },
+      {
+        "id": "hk-09621",
+        "code": "09621.HK",
+        "rawCode": "09621",
+        "name": "深圳市远信储能技术股份有限公司",
+        "status": "招股文件已发布",
+        "listingDate": "2026-11-09",
+        "boardLot": "500",
+        "shortName": null,
+        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000008_c.pdf",
+        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000022_c.pdf",
+        "allotmentUrl": null,
+        "source": "HKEX",
+        "isLive": true,
+        "announcementExtraction": {
+          "ok": true,
+          "kind": "pricing",
+          "matchedFields": 6,
+          "totalFields": 7,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "offerStart": "2026-10-30",
+        "offerDeadline": "2026-11-04",
+        "dateValidation": {
+          "status": "verified",
+          "reason": null,
+          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000008_c.pdf",
+          "parserVersion": "hk-offer-dates-v1",
+          "fields": {
+            "offerStart": [
+              {
+                "date": "2026-10-30",
+                "evidence": "香港公开发售开始.................................2026年10月30日"
+              }
+            ],
+            "offerDeadline": [
+              {
+                "date": "2026-11-04",
+                "evidence": "截止办理申请登记..................................2026年11月4日"
+              }
+            ],
+            "listingDate": [
+              {
+                "date": "2026-11-09",
+                "evidence": "预期H股开始在联交所买卖..........................2026年11月9日"
+              }
+            ]
+          }
+        },
+        "offerPrice": "11.10 港元",
+        "priceLow": 11.1,
+        "priceHigh": 11.1,
+        "entryFee": 5605.97,
+        "stabilizingManager": null,
+        "publicOfferShares": 5754500,
+        "extractedFrom": "HKEX 新上市公告",
+        "sponsorNames": [
+          "招银国际融资有限公司"
+        ],
+        "sponsor": "招银国际融资有限公司",
+        "underwriterNames": [],
+        "cornerstoneInvestors": [],
+        "cornerstoneAmount": null,
+        "cornerstonePercent": null,
+        "prospectusExtracted": true,
+        "prospectusExtraction": {
+          "ok": true,
+          "matchedFields": 1,
+          "totalFields": 3,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "publicAnswer": {
+          "verdict": "值得打",
+          "action": "可关注申购，但卖点与涨幅答案暂不发布。",
+          "score": 77
+        },
+        "historicalReview": null,
+        "publishedEstimate": null
+      },
+      {
+        "id": "hk-02681",
+        "code": "02681.HK",
+        "rawCode": "02681",
+        "name": "深圳宏芯宇电子股份有限公司",
+        "status": "招股文件已发布",
+        "listingDate": null,
+        "boardLot": "100",
+        "shortName": null,
+        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000016_c.pdf",
+        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000026_c.pdf",
+        "allotmentUrl": null,
+        "source": "HKEX",
+        "isLive": true,
+        "announcementExtraction": {
+          "ok": true,
+          "kind": "pricing",
+          "matchedFields": 3,
+          "totalFields": 7,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "offerStart": null,
+        "offerDeadline": null,
+        "dateValidation": {
+          "status": "unverified",
+          "reason": "招股开始、截止或上市日期缺失或无效",
+          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000016_c.pdf",
+          "parserVersion": "hk-offer-dates-v1",
+          "fields": {
+            "offerStart": [],
+            "offerDeadline": [
+              {
+                "date": "2026-11-09",
+                "evidence": "截止办理申请登记...........................................2026年11月9日"
+              }
+            ],
+            "listingDate": [
+              {
+                "date": "2026-11-12",
+                "evidence": "预期H股开始在联交所买卖..................................2026年11月12日"
+              },
+              {
+                "date": "2026-11-12",
+                "evidence": "2026年11月12日（星期四）开始在联交所买卖"
+              },
+              {
+                "date": "2026-11-12",
+                "evidence": "2026年11月12日（星期四）上午九时正开始在联交所买卖"
+              },
+              {
+                "date": "2026-11-12",
+                "evidence": "上市日期（目前预期为2026年11月12日"
+              }
+            ]
+          }
+        },
+        "offerPrice": "82.90 港元",
+        "priceLow": 82.9,
+        "priceHigh": 82.9,
+        "entryFee": 8373.6,
+        "stabilizingManager": null,
+        "publicOfferShares": 1471800,
+        "extractedFrom": "HKEX 新上市公告",
+        "sponsorNames": [],
+        "sponsor": null,
+        "underwriterNames": [],
+        "cornerstoneInvestors": [
+          "Flourish",
+          "Pine Vigor",
+          "传音国际",
+          "江波龙投资",
+          "Gottfried",
+          "雄狮",
+          "深圳江波龙",
+          "SEPs",
+          "深圳MTL",
+          "禁售期",
+          "中国证监会备案",
+          "发售文件"
+        ],
+        "cornerstoneAmount": "451.56百万港元",
+        "cornerstonePercent": null,
+        "prospectusExtracted": true,
+        "prospectusExtraction": {
+          "ok": true,
+          "matchedFields": 1,
+          "totalFields": 3,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "publicAnswer": {
+          "verdict": "待核验",
+          "action": "招股日期待核，暂不提供申购判断或倒计时。",
+          "score": null
+        },
+        "historicalReview": null,
+        "publishedEstimate": null
+      },
+      {
+        "id": "hk-09917",
+        "code": "09917.HK",
+        "rawCode": "09917",
+        "name": "苏州登临科技股份有限公司 - P",
+        "status": "招股文件已发布",
+        "listingDate": "2026-11-10",
+        "boardLot": null,
+        "shortName": null,
+        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000006_c.pdf",
+        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000024_c.pdf",
+        "allotmentUrl": null,
+        "source": "HKEX",
+        "isLive": true,
+        "announcementExtraction": {
+          "ok": true,
+          "kind": "pricing",
+          "matchedFields": 6,
+          "totalFields": 7,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "offerStart": "2026-10-30",
+        "offerDeadline": "2026-11-05",
+        "dateValidation": {
+          "status": "verified",
+          "reason": null,
+          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000006_c.pdf",
+          "parserVersion": "hk-offer-dates-v1",
+          "fields": {
+            "offerStart": [
+              {
+                "date": "2026-10-30",
+                "evidence": "香港公开发售开始.................................2026年10月30日"
+              }
+            ],
+            "offerDeadline": [
+              {
+                "date": "2026-11-05",
+                "evidence": "截止办理申请登记..................................2026年11月5日"
+              }
+            ],
+            "listingDate": [
+              {
+                "date": "2026-11-10",
+                "evidence": "预期H股开始于联交所买卖.........................2026年11月10日"
+              },
+              {
+                "date": "2026-11-10",
+                "evidence": "2026年11月10日（星期二）开始在联交所买卖"
+              },
+              {
+                "date": "2026-11-10",
+                "evidence": "2026年11月10日（星期二）上午九时正开始在联交所买卖"
+              }
+            ]
+          }
+        },
+        "offerPrice": "288.00 港元",
+        "priceLow": 288,
+        "priceHigh": 288,
+        "entryFee": null,
+        "stabilizingManager": "中信里昂证券有限公司",
+        "publicOfferShares": 306250,
+        "extractedFrom": "HKEX 新上市公告",
+        "sponsorNames": [
+          "中信证券（香港）有限公司",
+          "中信建投（国际）融资有限公司",
+          "中银国际亚洲有限公司"
+        ],
+        "sponsor": "中信证券（香港）有限公司、中信建投（国际）融资有限公司、中银国际亚洲有限公司",
+        "underwriterNames": [],
+        "cornerstoneInvestors": [
+          "华圆",
+          "中方财团",
+          "巨天",
+          "ZGD Capital",
+          "光大理财",
+          "禁售期",
+          "参与股东",
+          "现金产生单位",
+          "预期信用损失",
+          "一般公司赎回权"
+        ],
+        "cornerstoneAmount": "646.4百万港元",
+        "cornerstonePercent": null,
+        "prospectusExtracted": true,
+        "prospectusExtraction": {
+          "ok": true,
+          "matchedFields": 2,
+          "totalFields": 3,
+          "reason": null,
+          "engine": "pdftotext"
+        },
+        "publicAnswer": {
+          "verdict": "待核验",
+          "action": "缺少一手股数，暂不提供申购结论。",
+          "score": 0
+        },
+        "historicalReview": null,
+        "publishedEstimate": null
+      },
       {
         "id": "hk-03275",
         "code": "03275.HK",
@@ -4746,41 +5406,19 @@
         },
         "historicalReview": null,
         "publishedEstimate": null
-      },
-      {
-        "id": "hk-02384",
-        "code": "02384.HK",
-        "rawCode": "02384",
-        "name": "苏州东山精密制造股份有限公司",
-        "status": "配发结果已公布",
-        "listingDate": null,
-        "boardLot": null,
-        "shortName": null,
-        "announcementUrl": null,
-        "prospectusUrl": null,
-        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1027/2026102701392_c.pdf",
-        "source": "HKEX",
-        "isLive": true,
-        "publicAnswer": {
-          "verdict": "申购已结束",
-          "action": "港交所已发布配发结果，申购窗口结束，仅保留为历史回顾。",
-          "score": 0
-        },
-        "historicalReview": null,
-        "publishedEstimate": null
       }
     ],
     "extraction": {
-      "attempted": 3,
+      "attempted": 9,
       "failed": 0,
       "ok": true,
       "missingBinary": false,
       "reason": null
     },
     "temperature": {
-      "value": 62,
-      "label": "中性",
-      "hint": "港交所当前抓取到 4 只尚未公布配发结果的新股——温度只反映新股供给活跃度，不代表收益"
+      "value": 85,
+      "label": "偏热",
+      "hint": "港交所当前抓取到 11 只尚未公布配发结果的新股——温度只反映新股供给活跃度，不代表收益"
     },
     "backtest": {
       "source": {
@@ -4864,7 +5502,7 @@
           "oneLotRate": 8,
           "greyMarketChange": 60.27,
           "firstDayChange": 64.11,
-          "fiveDayChange": 53.55,
+          "fiveDayChange": 45.3,
           "oneLotPnl": null,
           "industry": "软件服务",
           "sponsors": "海通国际资本有限公司、中银国际亚洲有限公司",
@@ -4877,12 +5515,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 16,
-          "fiveDayDate": "2026-08-13",
+          "fiveDayClose": 15.14,
+          "fiveDayDate": "2026-08-14",
           "fiveDayHighChange": 94.82,
           "fiveDayHigh": 20.3,
           "fiveDayHighDate": "2026-08-10",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "03223",
@@ -4984,7 +5622,7 @@
           "fiveDayHighChange": -11.2,
           "fiveDayHigh": 4.6,
           "fiveDayHighDate": "2026-06-05",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "01779",
@@ -5050,7 +5688,7 @@
           "fiveDayHighChange": 0.08,
           "fiveDayHigh": 66.45,
           "fiveDayHighDate": "2026-06-05",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "01187",
@@ -5066,7 +5704,7 @@
           "oneLotRate": null,
           "greyMarketChange": 1.8,
           "firstDayChange": -1.09,
-          "fiveDayChange": -4.91,
+          "fiveDayChange": -13.3,
           "oneLotPnl": null,
           "industry": "医疗设备",
           "sponsors": "华泰金融、法巴",
@@ -5079,12 +5717,12 @@
           "hasHuatai": true,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 37.4,
-          "fiveDayDate": "2026-05-12",
-          "fiveDayHighChange": 4.25,
-          "fiveDayHigh": 41,
-          "fiveDayHighDate": "2026-05-06",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 34.1,
+          "fiveDayDate": "2026-05-14",
+          "fiveDayHighChange": -1.14,
+          "fiveDayHigh": 38.88,
+          "fiveDayHighDate": "2026-05-12",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "01609",
@@ -5100,7 +5738,7 @@
           "oneLotRate": null,
           "greyMarketChange": 213.91,
           "firstDayChange": 118.27,
-          "fiveDayChange": 104.06,
+          "fiveDayChange": 104.87,
           "oneLotPnl": null,
           "industry": "医疗设备",
           "sponsors": "中信证券、建银国际",
@@ -5113,12 +5751,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 201,
-          "fiveDayDate": "2026-05-11",
-          "fiveDayHighChange": 203.55,
-          "fiveDayHigh": 299,
-          "fiveDayHighDate": "2026-05-05",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 201.8,
+          "fiveDayDate": "2026-05-13",
+          "fiveDayHighChange": 125.38,
+          "fiveDayHigh": 222,
+          "fiveDayHighDate": "2026-05-07",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "06810",
@@ -5134,7 +5772,7 @@
           "oneLotRate": 5,
           "greyMarketChange": 282.14,
           "firstDayChange": 241.11,
-          "fiveDayChange": 210.94,
+          "fiveDayChange": 216.57,
           "oneLotPnl": null,
           "industry": "物联网",
           "sponsors": "德意志银行、中信证券等",
@@ -5147,12 +5785,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 77.3,
-          "fiveDayDate": "2026-05-06",
-          "fiveDayHighChange": 301.45,
-          "fiveDayHigh": 99.8,
-          "fiveDayHighDate": "2026-04-29",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 78.7,
+          "fiveDayDate": "2026-05-07",
+          "fiveDayHighChange": 245.94,
+          "fiveDayHigh": 86,
+          "fiveDayHighDate": "2026-04-30",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "02493",
@@ -5168,7 +5806,7 @@
           "oneLotRate": 1,
           "greyMarketChange": 3.11,
           "firstDayChange": 0.58,
-          "fiveDayChange": -1.45,
+          "fiveDayChange": -2.03,
           "oneLotPnl": null,
           "industry": "生物医药",
           "sponsors": "中信证券、国泰海通",
@@ -5181,12 +5819,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 27.24,
-          "fiveDayDate": "2026-05-05",
+          "fiveDayClose": 27.08,
+          "fiveDayDate": "2026-05-06",
           "fiveDayHighChange": 13.82,
           "fiveDayHigh": 31.46,
           "fiveDayHighDate": "2026-04-30",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         }
       ]
     },
@@ -5328,7 +5966,7 @@
           "verdict": "已结束",
           "greyMarketChange": 60.27,
           "firstDayChange": 64.11,
-          "fiveDayChange": 53.55,
+          "fiveDayChange": 45.3,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -5632,7 +6270,7 @@
           "verdict": "已结束",
           "greyMarketChange": 1.8,
           "firstDayChange": -1.09,
-          "fiveDayChange": -4.91,
+          "fiveDayChange": -13.3,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -5683,7 +6321,7 @@
           "verdict": "已结束",
           "greyMarketChange": 213.91,
           "firstDayChange": 118.27,
-          "fiveDayChange": 104.06,
+          "fiveDayChange": 104.87,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -5734,7 +6372,7 @@
           "verdict": "已结束",
           "greyMarketChange": 282.14,
           "firstDayChange": 241.11,
-          "fiveDayChange": 210.94,
+          "fiveDayChange": 216.57,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -5785,7 +6423,7 @@
           "verdict": "已结束",
           "greyMarketChange": 3.11,
           "firstDayChange": 0.58,
-          "fiveDayChange": -1.45,
+          "fiveDayChange": -2.03,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -13117,7 +13755,7 @@
         "historyStatus": "live",
         "historyFallbackReason": null,
         "fallbackReason": "本轮基金行情未取回，沿用上一份已核验快照",
-        "fallbackAt": "2026-10-29T02:27:38.336Z"
+        "fallbackAt": "2026-10-30T02:37:34.978Z"
       }
     ],
     "asOf": null,
@@ -13125,59 +13763,59 @@
   },
   "gold": {
     "status": "live",
-    "updatedAt": "2026-10-29T02:26:56.849Z",
+    "updatedAt": "2026-10-30T02:36:30.318Z",
     "quotes": {
       "international": {
         "symbol": "GC=F",
         "name": "COMEX 黄金",
-        "price": 4065.1,
+        "price": 4017.6,
         "currency": "USD/oz",
-        "changePercent": 0.33,
-        "asOf": "2026-10-29T02:16:49.000Z",
+        "changePercent": -0.34,
+        "asOf": "2026-10-30T02:26:22.000Z",
         "returns": {
-          "day20": -3.3,
-          "day60": -5.6,
-          "day180": -20.3
+          "day20": -3.5,
+          "day60": -6.6,
+          "day180": -18.8
         },
-        "percentile180": 9
+        "percentile180": 3
       },
       "domestic": {
         "symbol": "Au99.99",
         "name": "上海金 Au99.99",
-        "price": 869,
+        "price": 865.3,
         "currency": "CNY/g",
-        "changePercent": 1.01,
-        "asOf": "2026-10-28",
+        "changePercent": -0.43,
+        "asOf": "2026-10-29",
         "percentile30": 13
       },
       "etf": {
         "symbol": "GLD",
-        "price": 373.5,
-        "changePercent": 0.33,
-        "asOf": "2026-10-28T20:00:00.000Z"
+        "price": 368.6,
+        "changePercent": -1.32,
+        "asOf": "2026-10-29T20:00:00.000Z"
       },
       "usdCny": {
         "symbol": "USD/CNY",
-        "price": 6.66,
-        "changePercent": -0.1,
-        "asOf": "2026-10-29T02:26:25.000Z"
+        "price": 6.65,
+        "changePercent": -0.26,
+        "asOf": "2026-10-30T02:36:16.000Z"
       }
     },
     "indicators": [
       {
         "id": "realYield",
         "label": "10年实际利率",
-        "value": 2.64,
+        "value": 2.67,
         "unit": "%",
-        "asOf": "2026-10-27",
+        "asOf": "2026-10-28",
         "note": "越高，持有黄金的机会成本通常越高。"
       },
       {
         "id": "breakeven",
         "label": "10年通胀预期",
-        "value": 2.38,
+        "value": 2.35,
         "unit": "%",
-        "asOf": "2026-10-28",
+        "asOf": "2026-10-29",
         "note": "反映市场对未来平均通胀的定价。"
       },
       {
@@ -13208,14 +13846,14 @@
       {
         "id": "domesticPremium",
         "label": "上海金折算溢价",
-        "value": -0.2,
+        "value": 0.7,
         "unit": "%",
-        "asOf": "2026-10-28",
+        "asOf": "2026-10-29",
         "note": "比较 Au99.99 与国际金价人民币折算值。"
       }
     ],
     "answer": {
-      "score": 56,
+      "score": 55,
       "scores": {
         "international": {
           "score": 50,
@@ -13228,12 +13866,11 @@
           ]
         },
         "domestic": {
-          "score": 66,
+          "score": 62,
           "label": "人民币金观察分",
           "basis": "上海金价格位置、人民币汇率与国内折溢价",
           "signals": [
-            "人民币金回到近 30 个交易日相对低位",
-            "上海金低于国际金人民币折算价"
+            "人民币金回到近 30 个交易日相对低位"
           ]
         }
       },
@@ -13252,13 +13889,13 @@
       "pricePlan": {
         "status": "research",
         "internationalWatch": {
-          "low": 3953,
-          "high": 4073,
+          "low": 3920,
+          "high": 4040,
           "currency": "USD/oz"
         },
         "internationalUpper": {
-          "low": 4200,
-          "high": 4281,
+          "low": 4154,
+          "high": 4236,
           "currency": "USD/oz"
         },
         "internationalRisk": {
@@ -13267,28 +13904,24 @@
           "currency": "USD/oz"
         },
         "domesticWatch": {
-          "low": 844.7,
-          "high": 870.4,
+          "low": 844,
+          "high": 869.8,
           "currency": "CNY/g"
         },
         "domesticUpper": {
-          "low": 897.5,
-          "high": 914.8,
+          "low": 894.4,
+          "high": 912,
           "currency": "CNY/g"
         },
         "domesticRisk": {
-          "low": 840.9,
-          "high": 840.9,
+          "low": 847.2,
+          "high": 847.2,
           "currency": "CNY/g"
         }
       }
     },
     "history": {
       "international": [
-        {
-          "date": "2026-02-12",
-          "close": 4948.4
-        },
         {
           "date": "2026-02-13",
           "close": 5046.3
@@ -14003,7 +14636,11 @@
         },
         {
           "date": "2026-10-29",
-          "close": 4065.1
+          "close": 4031.4
+        },
+        {
+          "date": "2026-10-30",
+          "close": 4017.6
         }
       ],
       "domestic": [
@@ -14341,7 +14978,11 @@
         },
         {
           "date": "2026-10-29",
-          "close": 869
+          "close": 865.26
+        },
+        {
+          "date": "2026-10-30",
+          "close": 865.3
         }
       ]
     },
@@ -14352,10 +14993,10 @@
         "priceType": "daily-close",
         "sourceUrl": "https://www.sge.com.cn/sjzx/quotation_daily_new",
         "firstDate": "2026-07-01",
-        "lastDate": "2026-10-28",
-        "sessions": 80,
+        "lastDate": "2026-10-29",
+        "sessions": 81,
         "requestedStart": "2026-07-01",
-        "requestedEnd": "2026-10-29",
+        "requestedEnd": "2026-10-30",
         "completeQueries": true,
         "interpolated": false,
         "requests": [
@@ -14396,8 +15037,8 @@
             "pageCount": 2
           },
           {
-            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-10-01&end_date=2026-10-29&inst_ids=Au99.99&p=1",
-            "rowCount": 15,
+            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-10-01&end_date=2026-10-30&inst_ids=Au99.99&p=1",
+            "rowCount": 16,
             "page": 1,
             "pageCount": 1
           }
@@ -17389,235 +18030,7 @@
       "source": "Value Partners 基金月度 Factsheet",
       "sourceUrl": "https://www.valuepartners-group.com/ftp/files/reports/vpaf/001_fact_sheet/eng/vpaf_fact_sheet_2026-09-01_en.pdf",
       "isLive": false
-    },
-    {
-      "id": "chinaamc-largecap",
-      "name": "华夏大盘精选混合",
-      "reportDate": "2026-09-30",
-      "filingDate": "2026-09-30",
-      "previousReportDate": "2026-06-30",
-      "portfolioValue": null,
-      "holdings": [
-        {
-          "ticker": "新易盛",
-          "issuer": "新易盛",
-          "weight": 4.99,
-          "changeLabel": "增持 +25%"
-        },
-        {
-          "ticker": "三环集团",
-          "issuer": "三环集团",
-          "weight": 4.6,
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "中芯国际",
-          "issuer": "中芯国际",
-          "weight": 4.54,
-          "changeLabel": "增持 +1%"
-        },
-        {
-          "ticker": "宁德时代",
-          "issuer": "宁德时代",
-          "weight": 4.44,
-          "changeLabel": "增持 +19%"
-        },
-        {
-          "ticker": "沪电股份",
-          "issuer": "沪电股份",
-          "weight": 3.88,
-          "changeLabel": "增持 +22%"
-        },
-        {
-          "ticker": "紫金矿业",
-          "issuer": "紫金矿业",
-          "weight": 3.31,
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "北方华创",
-          "issuer": "北方华创",
-          "weight": 2.9,
-          "changeLabel": "减持 -21%"
-        },
-        {
-          "ticker": "东山精密",
-          "issuer": "东山精密",
-          "weight": 2.85,
-          "changeLabel": "减持 -6%"
-        },
-        {
-          "ticker": "寒武纪",
-          "issuer": "寒武纪",
-          "weight": 2.79,
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "海光信息",
-          "issuer": "海光信息",
-          "weight": 2.55,
-          "changeLabel": "基本不变"
-        }
-      ],
-      "sold": [],
-      "trackingScore": 90,
-      "trackingSummary": "定期披露持仓完整，可用于跟踪方向变化，但更新频率低于 13F。",
-      "source": "东方财富基金定期报告持仓",
-      "sourceUrl": "https://fundf10.eastmoney.com/ccmx_000011.html",
-      "isLive": false
-    },
-    {
-      "id": "fullgoal-tianhui",
-      "name": "富国天惠成长混合(LOF)",
-      "reportDate": "2026-09-30",
-      "filingDate": "2026-09-30",
-      "previousReportDate": "2026-06-30",
-      "portfolioValue": null,
-      "holdings": [
-        {
-          "ticker": "宁波银行",
-          "issuer": "宁波银行",
-          "weight": 9.92,
-          "changeLabel": "减持 -6%"
-        },
-        {
-          "ticker": "杰瑞股份",
-          "issuer": "杰瑞股份",
-          "weight": 7.75,
-          "changeLabel": "增持 +7%"
-        },
-        {
-          "ticker": "中际旭创",
-          "issuer": "中际旭创",
-          "weight": 4.58,
-          "changeLabel": "增持 +70%"
-        },
-        {
-          "ticker": "春风动力",
-          "issuer": "春风动力",
-          "weight": 4.38,
-          "changeLabel": "减持 -12%"
-        },
-        {
-          "ticker": "泽璟制药",
-          "issuer": "泽璟制药",
-          "weight": 3.67,
-          "changeLabel": "增持 +30%"
-        },
-        {
-          "ticker": "广钢气体",
-          "issuer": "广钢气体",
-          "weight": 3.66,
-          "changeLabel": "减持 -13%"
-        },
-        {
-          "ticker": "长鑫科技",
-          "issuer": "长鑫科技",
-          "weight": 3.27,
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "宁德时代",
-          "issuer": "宁德时代",
-          "weight": 2.86,
-          "changeLabel": "减持 -47%"
-        },
-        {
-          "ticker": "贵州茅台",
-          "issuer": "贵州茅台",
-          "weight": 2.25,
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "滨江集团",
-          "issuer": "滨江集团",
-          "weight": 2.16,
-          "changeLabel": "减持 -29%"
-        }
-      ],
-      "sold": [],
-      "trackingScore": 90,
-      "trackingSummary": "定期披露持仓完整，可用于跟踪方向变化，但更新频率低于 13F。",
-      "source": "东方财富基金定期报告持仓",
-      "sourceUrl": "https://fundf10.eastmoney.com/ccmx_161005.html",
-      "isLive": false
-    },
-    {
-      "id": "xq-herun",
-      "name": "兴全合润混合",
-      "reportDate": "2026-09-30",
-      "filingDate": "2026-09-30",
-      "previousReportDate": "2026-06-30",
-      "portfolioValue": null,
-      "holdings": [
-        {
-          "ticker": "晶合集成",
-          "issuer": "晶合集成",
-          "weight": 8.55,
-          "changeLabel": "增持 +56%"
-        },
-        {
-          "ticker": "立讯精密",
-          "issuer": "立讯精密",
-          "weight": 7.36,
-          "changeLabel": "减持 -2%"
-        },
-        {
-          "ticker": "晶晨股份",
-          "issuer": "晶晨股份",
-          "weight": 6.3,
-          "changeLabel": "增持 +21%"
-        },
-        {
-          "ticker": "泰格医药",
-          "issuer": "泰格医药",
-          "weight": 5.86,
-          "changeLabel": "基本不变"
-        },
-        {
-          "ticker": "药明康德",
-          "issuer": "药明康德",
-          "weight": 5.17,
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "通富微电",
-          "issuer": "通富微电",
-          "weight": 4.63,
-          "changeLabel": "新进"
-        },
-        {
-          "ticker": "巨化股份",
-          "issuer": "巨化股份",
-          "weight": 4.14,
-          "changeLabel": "减持 -34%"
-        },
-        {
-          "ticker": "蓝思科技",
-          "issuer": "蓝思科技",
-          "weight": 3.73,
-          "changeLabel": "增持 +37%"
-        },
-        {
-          "ticker": "海光信息",
-          "issuer": "海光信息",
-          "weight": 3.37,
-          "changeLabel": "减持 -34%"
-        },
-        {
-          "ticker": "盛科通信",
-          "issuer": "盛科通信",
-          "weight": 2.99,
-          "changeLabel": "新进"
-        }
-      ],
-      "sold": [],
-      "trackingScore": 90,
-      "trackingSummary": "定期披露持仓完整，可用于跟踪方向变化，但更新频率低于 13F。",
-      "source": "东方财富基金定期报告持仓",
-      "sourceUrl": "https://fundf10.eastmoney.com/ccmx_163406.html",
-      "isLive": false
     }
   ],
-  "revisionAt": "2026-10-29T02:27:38.402Z"
+  "revisionAt": "2026-10-30T02:37:35.097Z"
 }

@@ -1,7 +1,7 @@
 {
   "status": "live",
-  "updatedAt": "2026-11-10T04:38:26.145Z",
-  "durationMs": 55394,
+  "updatedAt": "2026-11-13T03:26:11.233Z",
+  "durationMs": 40622,
   "sources": [
     {
       "id": "yahoo",
@@ -68,8 +68,8 @@
       "name": "东方财富 A股明星基金经理持仓",
       "url": "https://fundf10.eastmoney.com/FundArchivesDatas.aspx",
       "advisory": true,
-      "ok": false,
-      "error": "No East Money guru fund data returned (chinaamc-largecap: fetch failed; fullgoal-tianhui: fetch failed; xq-herun: fetch failed)"
+      "ok": true,
+      "error": null
     },
     {
       "id": "tencent-a",
@@ -127,19 +127,16 @@
     "stocks": [
       {
         "symbol": "NVDA",
-        "price": 178.7,
-        "changePercent": -4.27,
-        "weeklyChange": -11.58,
-        "volumeRatio": 3.9,
+        "price": 166.2,
+        "changePercent": -4.34,
+        "weeklyChange": -8.49,
+        "volumeRatio": 4.49,
         "heatScore": 100,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:00.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          225,
-          219.7,
-          217.6,
           216.9,
           214.7,
           208.5,
@@ -196,33 +193,33 @@
           200.1,
           181.6,
           186.6,
-          178.7
+          178.7,
+          168.9,
+          173.7,
+          166.2
         ],
         "technicalPlan": {
-          "atr": 8.26,
-          "buy": 173.1,
-          "stop": 163.6,
+          "atr": 9.5,
+          "buy": 152.1,
+          "stop": 141.2,
           "tp": [
-            195.2,
-            205.1
+            185.2,
+            196.6
           ]
         }
       },
       {
         "symbol": "MSFT",
-        "price": 545.2,
-        "changePercent": 2.75,
-        "weeklyChange": 7.51,
-        "volumeRatio": 0.99,
-        "heatScore": 66,
+        "price": 523,
+        "changePercent": 0.36,
+        "weeklyChange": -2.41,
+        "volumeRatio": 0.7,
+        "heatScore": 32,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          480.4,
-          481.6,
-          484.3,
           481.1,
           483.2,
           487.3,
@@ -279,33 +276,33 @@
           555.8,
           535.9,
           530.6,
-          545.2
+          545.2,
+          533.2,
+          521.1,
+          523
         ],
         "technicalPlan": {
-          "atr": 15.26,
+          "atr": 15.38,
           "buy": 510.3,
-          "stop": 492.8,
+          "stop": 492.7,
           "tp": [
-            575.7,
-            594
+            553.8,
+            572.2
           ]
         }
       },
       {
         "symbol": "AAPL",
-        "price": 350.7,
-        "changePercent": 2.43,
-        "weeklyChange": 3.66,
-        "volumeRatio": 1,
-        "heatScore": 57,
+        "price": 354.9,
+        "changePercent": -0.21,
+        "weeklyChange": 3.11,
+        "volumeRatio": 0.65,
+        "heatScore": 30,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          305.6,
-          310,
-          316.8,
           311.3,
           309.4,
           310.3,
@@ -362,33 +359,33 @@
           349.5,
           344.2,
           342.4,
-          350.7
+          350.7,
+          348.5,
+          355.6,
+          354.9
         ],
         "technicalPlan": {
-          "atr": 8.5,
+          "atr": 8.52,
           "buy": 328.3,
           "stop": 318.5,
           "tp": [
-            367.7,
-            377.9
+            371.9,
+            382.1
           ]
         }
       },
       {
         "symbol": "GOOGL",
-        "price": 288.1,
-        "changePercent": 1.18,
-        "weeklyChange": 3.28,
-        "volumeRatio": 0.93,
-        "heatScore": 46,
+        "price": 298.7,
+        "changePercent": 1.79,
+        "weeklyChange": 5.71,
+        "volumeRatio": 0.88,
+        "heatScore": 53,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          344,
-          344.2,
-          344.7,
           340.7,
           344.8,
           348.1,
@@ -445,33 +442,33 @@
           288.9,
           282.6,
           284.8,
-          288.1
+          288.1,
+          287.4,
+          293.5,
+          298.7
         ],
         "technicalPlan": {
-          "atr": 11.15,
-          "buy": 280.8,
-          "stop": 268,
+          "atr": 10.5,
+          "buy": 280.6,
+          "stop": 268.5,
           "tp": [
-            310.5,
-            323.8
+            319.7,
+            332.3
           ]
         }
       },
       {
         "symbol": "AMZN",
-        "price": 266.9,
-        "changePercent": 2.94,
-        "weeklyChange": 8.67,
-        "volumeRatio": 1.06,
-        "heatScore": 72,
+        "price": 267.4,
+        "changePercent": 0.48,
+        "weeklyChange": 2.78,
+        "volumeRatio": 0.68,
+        "heatScore": 32,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          261.3,
-          259.5,
-          265.8,
           260.1,
           258.6,
           262.1,
@@ -528,33 +525,33 @@
           266,
           260.2,
           259.3,
-          266.9
+          266.9,
+          270.9,
+          266.2,
+          267.4
         ],
         "technicalPlan": {
-          "atr": 9.86,
-          "buy": 232.8,
-          "stop": 221.5,
+          "atr": 9.99,
+          "buy": 232.9,
+          "stop": 221.4,
           "tp": [
-            286.6,
-            298.5
+            287.4,
+            299.4
           ]
         }
       },
       {
         "symbol": "META",
-        "price": 641.4,
-        "changePercent": 5.12,
-        "weeklyChange": 5.71,
-        "volumeRatio": 0.76,
-        "heatScore": 69,
+        "price": 623.6,
+        "changePercent": -0.82,
+        "weeklyChange": 3.06,
+        "volumeRatio": 0.42,
+        "heatScore": 26,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          569,
-          543.7,
-          546,
           545.8,
           549.9,
           559,
@@ -611,33 +608,33 @@
           630,
           605.1,
           610.2,
-          641.4
+          641.4,
+          641.4,
+          628.8,
+          623.6
         ],
         "technicalPlan": {
-          "atr": 25.19,
-          "buy": 592.6,
-          "stop": 563.7,
+          "atr": 22.62,
+          "buy": 591.7,
+          "stop": 565.7,
           "tp": [
-            691.7,
-            722
+            668.9,
+            696
           ]
         }
       },
       {
         "symbol": "TSLA",
-        "price": 378.1,
-        "changePercent": 5.54,
-        "weeklyChange": -6.38,
-        "volumeRatio": 0.91,
-        "heatScore": 78,
+        "price": 397.4,
+        "changePercent": 1.69,
+        "weeklyChange": 15.64,
+        "volumeRatio": 0.71,
+        "heatScore": 66,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:00.000Z",
+        "asOf": "2026-11-12T21:00:00.000Z",
         "history": [
-          339.3,
-          336.9,
-          351.1,
           345.1,
           362.9,
           349,
@@ -694,33 +691,33 @@
           385.2,
           343.7,
           358.2,
-          378
+          378,
+          379.8,
+          390.8,
+          397.5
         ],
         "technicalPlan": {
-          "atr": 17.65,
+          "atr": 17.48,
           "buy": 344.3,
-          "stop": 324,
+          "stop": 324.2,
           "tp": [
-            413.4,
-            434.5
+            432.4,
+            453.4
           ]
         }
       },
       {
         "symbol": "AMD",
-        "price": 508.6,
-        "changePercent": 13.26,
-        "weeklyChange": 8.94,
-        "volumeRatio": 1.85,
+        "price": 585.3,
+        "changePercent": 5.86,
+        "weeklyChange": 44.73,
+        "volumeRatio": 1.72,
         "heatScore": 100,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          506,
-          484.4,
-          466.4,
           469.5,
           473.3,
           456.8,
@@ -777,33 +774,33 @@
           488.8,
           404.4,
           449,
-          508.6
+          508.6,
+          515.2,
+          552.9,
+          585.3
         ],
         "technicalPlan": {
-          "atr": 38.88,
-          "buy": 415.7,
-          "stop": 371,
+          "atr": 40.1,
+          "buy": 416.1,
+          "stop": 370,
           "tp": [
-            586.3,
-            633
+            665.5,
+            713.6
           ]
         }
       },
       {
         "symbol": "AVGO",
-        "price": 319.5,
-        "changePercent": 8.78,
-        "weeklyChange": -0.85,
-        "volumeRatio": 1.53,
+        "price": 364.4,
+        "changePercent": 5.54,
+        "weeklyChange": 24.98,
+        "volumeRatio": 1.68,
         "heatScore": 100,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          392.4,
-          380,
-          362.5,
           364,
           368.5,
           358.8,
@@ -860,33 +857,33 @@
           325.5,
           291.5,
           293.7,
-          319.5
+          319.5,
+          332,
+          345.2,
+          364.4
         ],
         "technicalPlan": {
-          "atr": 15.51,
-          "buy": 295.2,
-          "stop": 277.4,
+          "atr": 16.85,
+          "buy": 295.7,
+          "stop": 276.3,
           "tp": [
-            350.5,
-            369.1
+            398.1,
+            418.3
           ]
         }
       },
       {
         "symbol": "PLTR",
-        "price": 169.2,
-        "changePercent": 5.5,
-        "weeklyChange": -5.13,
-        "volumeRatio": 0.9,
-        "heatScore": 75,
+        "price": 171.6,
+        "changePercent": -0.48,
+        "weeklyChange": 10.7,
+        "volumeRatio": 0.47,
+        "heatScore": 41,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:00.000Z",
+        "asOf": "2026-11-12T21:00:00.000Z",
         "history": [
-          172.6,
-          171.5,
-          175.2,
           174,
           179.9,
           175.9,
@@ -943,33 +940,33 @@
           171.7,
           155,
           160.4,
-          169.2
+          169.2,
+          168.8,
+          172.4,
+          171.6
         ],
         "technicalPlan": {
-          "atr": 10.41,
-          "buy": 156.2,
-          "stop": 144.3,
+          "atr": 9.38,
+          "buy": 155.9,
+          "stop": 145.1,
           "tp": [
-            190,
-            202.5
+            190.3,
+            201.6
           ]
         }
       },
       {
         "symbol": "SMCI",
-        "price": 28.6,
-        "changePercent": -0.56,
-        "weeklyChange": -6.04,
-        "volumeRatio": 0.99,
-        "heatScore": 50,
+        "price": 26.99,
+        "changePercent": -11.3,
+        "weeklyChange": -0.33,
+        "volumeRatio": 2.6,
+        "heatScore": 100,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:00.000Z",
+        "asOf": "2026-11-12T21:00:00.000Z",
         "history": [
-          38.28,
-          37.41,
-          36.58,
           36.5,
           37.24,
           35.17,
@@ -1026,33 +1023,33 @@
           29.6,
           27.08,
           28.76,
-          28.6
+          28.6,
+          27.79,
+          30.43,
+          26.99
         ],
         "technicalPlan": {
-          "atr": 2.66,
-          "buy": 26.74,
-          "stop": 23.68,
+          "atr": 2.62,
+          "buy": 25.55,
+          "stop": 23.6,
           "tp": [
-            33.91,
-            37.1
+            32.24,
+            35.39
           ]
         }
       },
       {
         "symbol": "ARM",
-        "price": 186.3,
-        "changePercent": 6.69,
-        "weeklyChange": -5.33,
-        "volumeRatio": 1.05,
-        "heatScore": 87,
+        "price": 199.8,
+        "changePercent": -1.76,
+        "weeklyChange": 19.83,
+        "volumeRatio": 0.67,
+        "heatScore": 74,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          271.4,
-          253.3,
-          249.3,
           250.7,
           243.3,
           238.8,
@@ -1109,33 +1106,33 @@
           191.8,
           166.7,
           174.6,
-          186.3
+          186.3,
+          181.5,
+          203.4,
+          199.8
         ],
         "technicalPlan": {
-          "atr": 14.71,
-          "buy": 168.3,
-          "stop": 151.4,
+          "atr": 14.51,
+          "buy": 168.2,
+          "stop": 151.5,
           "tp": [
-            215.7,
-            233.4
+            228.8,
+            246.2
           ]
         }
       },
       {
         "symbol": "TSM",
-        "price": 388.6,
-        "changePercent": 3.51,
-        "weeklyChange": -2.51,
-        "volumeRatio": 1.06,
-        "heatScore": 63,
+        "price": 405.5,
+        "changePercent": -1.9,
+        "weeklyChange": 14.84,
+        "volumeRatio": 0.74,
+        "heatScore": 67,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:03.000Z",
+        "asOf": "2026-11-12T21:00:02.000Z",
         "history": [
-          431,
-          413.4,
-          412.1,
           416,
           419,
           410.1,
@@ -1192,33 +1189,33 @@
           395.8,
           353.1,
           375.4,
-          388.6
+          388.6,
+          396.5,
+          413.4,
+          405.5
         ],
         "technicalPlan": {
-          "atr": 17.37,
+          "atr": 17.43,
           "buy": 357.3,
-          "stop": 337.3,
+          "stop": 337.2,
           "tp": [
-            423.4,
-            444.2
+            440.3,
+            461.3
           ]
         }
       },
       {
         "symbol": "ASML",
-        "price": 1513.3,
-        "changePercent": 6.21,
-        "weeklyChange": -0.84,
-        "volumeRatio": 1.27,
-        "heatScore": 83,
+        "price": 1497.1,
+        "changePercent": -2.43,
+        "weeklyChange": 10.35,
+        "volumeRatio": 1.07,
+        "heatScore": 73,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          1883.1,
-          1803,
-          1751.7,
           1750.3,
           1763.8,
           1740.1,
@@ -1275,33 +1272,33 @@
           1496.3,
           1356.7,
           1424.8,
-          1513.3
+          1513.3,
+          1507.8,
+          1534.4,
+          1497.1
         ],
         "technicalPlan": {
-          "atr": 70.46,
-          "buy": 1379.7,
-          "stop": 1298.7,
+          "atr": 68.15,
+          "buy": 1378.9,
+          "stop": 1300.5,
           "tp": [
-            1654.2,
-            1738.7
+            1633.4,
+            1715.2
           ]
         }
       },
       {
         "symbol": "COIN",
-        "price": 136.1,
-        "changePercent": 0.99,
-        "weeklyChange": -1.26,
+        "price": 130.7,
+        "changePercent": -4.11,
+        "weeklyChange": -4.49,
         "volumeRatio": 0.75,
-        "heatScore": 35,
+        "heatScore": 60,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          150.6,
-          146.2,
-          160.2,
           172.4,
           186.5,
           179.5,
@@ -1358,33 +1355,33 @@
           151.5,
           136.8,
           134.8,
-          136.1
+          136.1,
+          132.1,
+          136.3,
+          130.7
         ],
         "technicalPlan": {
-          "atr": 10.9,
-          "buy": 130.1,
-          "stop": 122.4,
+          "atr": 9.56,
+          "buy": 125.4,
+          "stop": 121.8,
           "tp": [
-            157.9,
-            171
+            149.8,
+            161.3
           ]
         }
       },
       {
         "symbol": "MSTR",
-        "price": 125.6,
-        "changePercent": -2.59,
-        "weeklyChange": -3.95,
-        "volumeRatio": 0.85,
-        "heatScore": 53,
+        "price": 114.4,
+        "changePercent": -6.49,
+        "weeklyChange": -11.52,
+        "volumeRatio": 1.09,
+        "heatScore": 100,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          97.68,
-          92.52,
-          104.3,
           112.4,
           119.3,
           122.6,
@@ -1441,33 +1438,33 @@
           142.5,
           129.3,
           128.9,
-          125.6
+          125.6,
+          121.1,
+          122.3,
+          114.4
         ],
         "technicalPlan": {
-          "atr": 10.14,
-          "buy": 120,
-          "stop": 114.4,
+          "atr": 8.98,
+          "buy": 109.5,
+          "stop": 105.1,
           "tp": [
-            145.9,
-            158
+            132.4,
+            143.1
           ]
         }
       },
       {
         "symbol": "CRWD",
-        "price": 228.6,
-        "changePercent": 5.38,
-        "weeklyChange": -5.47,
-        "volumeRatio": 0.87,
-        "heatScore": 74,
+        "price": 229.9,
+        "changePercent": 0.35,
+        "weeklyChange": 5.83,
+        "volumeRatio": 0.64,
+        "heatScore": 36,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          213.9,
-          212.9,
-          201.6,
           190.3,
           191.9,
           190.7,
@@ -1524,33 +1521,33 @@
           241,
           217.2,
           216.9,
-          228.6
+          228.6,
+          225.8,
+          229.1,
+          229.9
         ],
         "technicalPlan": {
-          "atr": 14.63,
-          "buy": 218.3,
-          "stop": 201.5,
+          "atr": 14.18,
+          "buy": 218.2,
+          "stop": 201.9,
           "tp": [
-            257.8,
-            275.4
+            258.2,
+            275.2
           ]
         }
       },
       {
         "symbol": "NOW",
-        "price": 102.8,
-        "changePercent": 0.77,
-        "weeklyChange": -3.07,
-        "volumeRatio": 0.65,
+        "price": 100.7,
+        "changePercent": -2.04,
+        "weeklyChange": -1.66,
+        "volumeRatio": 0.53,
         "heatScore": 34,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:03.000Z",
+        "asOf": "2026-11-12T21:00:03.000Z",
         "history": [
-          117.7,
-          119.5,
-          127.2,
           129.8,
           128.5,
           128.1,
@@ -1607,33 +1604,33 @@
           108.8,
           102.4,
           102,
-          102.8
+          102.8,
+          99.61,
+          102.8,
+          100.7
         ],
         "technicalPlan": {
-          "atr": 7.68,
-          "buy": 98.53,
-          "stop": 94.4,
+          "atr": 6.87,
+          "buy": 96.88,
+          "stop": 91.51,
           "tp": [
-            118.1,
-            127.3
+            114.4,
+            122.6
           ]
         }
       },
       {
         "symbol": "V",
-        "price": 422.2,
-        "changePercent": -0.12,
-        "weeklyChange": -0.79,
-        "volumeRatio": 0.92,
-        "heatScore": 34,
+        "price": 420.3,
+        "changePercent": -1.23,
+        "weeklyChange": -0.54,
+        "volumeRatio": 0.78,
+        "heatScore": 36,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:02.000Z",
+        "asOf": "2026-11-12T21:00:02.000Z",
         "history": [
-          358.8,
-          364.3,
-          365.5,
           365.7,
           371,
           382.4,
@@ -1690,33 +1687,33 @@
           436.6,
           422.6,
           422.6,
-          422.2
+          422.2,
+          423,
+          425.5,
+          420.3
         ],
         "technicalPlan": {
-          "atr": 9.17,
-          "buy": 397.2,
-          "stop": 386.7,
+          "atr": 9.22,
+          "buy": 415,
+          "stop": 404.4,
           "tp": [
-            440.5,
-            451.5
+            438.7,
+            449.8
           ]
         }
       },
       {
         "symbol": "MA",
-        "price": 655.8,
-        "changePercent": 0.48,
-        "weeklyChange": -0.35,
-        "volumeRatio": 0.82,
-        "heatScore": 32,
+        "price": 652.6,
+        "changePercent": -1.23,
+        "weeklyChange": -0.51,
+        "volumeRatio": 0.57,
+        "heatScore": 28,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:03.000Z",
+        "asOf": "2026-11-12T21:00:02.000Z",
         "history": [
-          562.3,
-          574.3,
-          573.7,
           573.8,
           580.6,
           599.9,
@@ -1773,33 +1770,33 @@
           672.7,
           655.9,
           652.7,
-          655.8
+          655.8,
+          658.8,
+          660.7,
+          652.6
         ],
         "technicalPlan": {
-          "atr": 14.64,
-          "buy": 610.1,
-          "stop": 593.3,
+          "atr": 15.12,
+          "buy": 638.6,
+          "stop": 621.2,
           "tp": [
-            685.1,
-            702.7
+            682.8,
+            701
           ]
         }
       },
       {
         "symbol": "NFLX",
-        "price": 63.95,
-        "changePercent": 0.85,
-        "weeklyChange": 2.58,
-        "volumeRatio": 0.76,
-        "heatScore": 37,
+        "price": 62.69,
+        "changePercent": -2.87,
+        "weeklyChange": -4.38,
+        "volumeRatio": 0.67,
+        "heatScore": 50,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:00.000Z",
+        "asOf": "2026-11-12T21:00:00.000Z",
         "history": [
-          76.02,
-          77.77,
-          80.22,
           80.14,
           79.59,
           80.01,
@@ -1856,33 +1853,33 @@
           66.39,
           65.56,
           63.41,
-          63.95
+          63.95,
+          63.26,
+          64.54,
+          62.69
         ],
         "technicalPlan": {
-          "atr": 2.15,
-          "buy": 62.14,
-          "stop": 59.67,
+          "atr": 2.04,
+          "buy": 61.57,
+          "stop": 60.01,
           "tp": [
-            68.25,
-            70.83
+            66.77,
+            69.21
           ]
         }
       },
       {
         "symbol": "ORCL",
-        "price": 119.8,
-        "changePercent": 3.18,
-        "weeklyChange": 0.48,
-        "volumeRatio": 0.63,
-        "heatScore": 42,
+        "price": 127.1,
+        "changePercent": -0.99,
+        "weeklyChange": 10.38,
+        "volumeRatio": 0.52,
+        "heatScore": 45,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:03:41.000Z",
+        "asOf": "2026-11-12T21:04:03.000Z",
         "history": [
-          146.6,
-          142.8,
-          143.8,
           142.1,
           146.5,
           142.4,
@@ -1939,33 +1936,33 @@
           123.7,
           115.2,
           116.1,
-          119.8
+          119.8,
+          118,
+          128.4,
+          127.1
         ],
         "technicalPlan": {
-          "atr": 8.51,
-          "buy": 112.2,
-          "stop": 102.4,
+          "atr": 8.24,
+          "buy": 112.1,
+          "stop": 102.6,
           "tp": [
-            136.8,
-            147
+            143.6,
+            153.5
           ]
         }
       },
       {
         "symbol": "CRM",
-        "price": 214.9,
-        "changePercent": 0.6,
-        "weeklyChange": -4.97,
-        "volumeRatio": 0.9,
-        "heatScore": 45,
+        "price": 217.6,
+        "changePercent": -0.2,
+        "weeklyChange": -2.18,
+        "volumeRatio": 0.5,
+        "heatScore": 23,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:02.000Z",
+        "asOf": "2026-11-12T21:00:02.000Z",
         "history": [
-          191,
-          196.1,
-          206.1,
           205.4,
           209.2,
           209.1,
@@ -2022,33 +2019,33 @@
           227.1,
           222.4,
           213.6,
-          214.9
+          214.9,
+          213.5,
+          218,
+          217.6
         ],
         "technicalPlan": {
-          "atr": 9.23,
-          "buy": 209.9,
-          "stop": 203.6,
+          "atr": 8.38,
+          "buy": 211.8,
+          "stop": 202.2,
           "tp": [
-            233.4,
-            244.5
+            234.3,
+            244.4
           ]
         }
       },
       {
         "symbol": "SNOW",
-        "price": 291.1,
-        "changePercent": 5.53,
-        "weeklyChange": 0.16,
-        "volumeRatio": 0.81,
-        "heatScore": 62,
+        "price": 298.7,
+        "changePercent": -0.84,
+        "weeklyChange": 10.82,
+        "volumeRatio": 0.5,
+        "heatScore": 44,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:02.000Z",
+        "asOf": "2026-11-12T21:00:02.000Z",
         "history": [
-          330.1,
-          325.3,
-          325,
           321.3,
           332.8,
           322.8,
@@ -2105,33 +2102,33 @@
           290.6,
           269.5,
           275.9,
-          291.1
+          291.1,
+          295.8,
+          301.2,
+          298.7
         ],
         "technicalPlan": {
-          "atr": 17.84,
-          "buy": 272.6,
-          "stop": 252.1,
+          "atr": 15.51,
+          "buy": 271.8,
+          "stop": 253.9,
           "tp": [
-            326.8,
-            348.2
+            329.7,
+            348.3
           ]
         }
       },
       {
         "symbol": "SHOP",
-        "price": 152.1,
-        "changePercent": 2.12,
-        "weeklyChange": -2.66,
-        "volumeRatio": 0.63,
-        "heatScore": 40,
+        "price": 146.8,
+        "changePercent": -1.66,
+        "weeklyChange": 2.11,
+        "volumeRatio": 0.54,
+        "heatScore": 33,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:00.000Z",
+        "asOf": "2026-11-12T21:00:00.000Z",
         "history": [
-          148.6,
-          146.6,
-          146.6,
           147.2,
           149.3,
           149.8,
@@ -2188,33 +2185,33 @@
           153,
           143.8,
           148.9,
-          152.1
+          152.1,
+          146.6,
+          149.3,
+          146.8
         ],
         "technicalPlan": {
-          "atr": 9.14,
-          "buy": 138.8,
-          "stop": 128.3,
+          "atr": 8.21,
+          "buy": 138.5,
+          "stop": 129.1,
           "tp": [
-            170.3,
-            181.3
+            163.2,
+            173.1
           ]
         }
       },
       {
         "symbol": "UBER",
-        "price": 71.17,
-        "changePercent": 3.76,
-        "weeklyChange": 6.69,
-        "volumeRatio": 1.02,
-        "heatScore": 72,
+        "price": 69.12,
+        "changePercent": -2.21,
+        "weeklyChange": 0.49,
+        "volumeRatio": 0.73,
+        "heatScore": 40,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:03.000Z",
+        "asOf": "2026-11-12T21:00:03.000Z",
         "history": [
-          74.99,
-          74.66,
-          78.04,
           78.55,
           78.8,
           79.29,
@@ -2271,33 +2268,33 @@
           69.87,
           68.78,
           68.59,
-          71.17
+          71.17,
+          70.05,
+          70.68,
+          69.12
         ],
         "technicalPlan": {
-          "atr": 2.1,
-          "buy": 64.78,
-          "stop": 62.36,
+          "atr": 2.03,
+          "buy": 65.38,
+          "stop": 63.05,
           "tp": [
-            75.37,
-            77.9
+            73.18,
+            75.61
           ]
         }
       },
       {
         "symbol": "JPM",
-        "price": 342.1,
-        "changePercent": 2.27,
-        "weeklyChange": 0.44,
-        "volumeRatio": 0.94,
-        "heatScore": 47,
+        "price": 342.8,
+        "changePercent": -0.17,
+        "weeklyChange": 1.62,
+        "volumeRatio": 0.6,
+        "heatScore": 25,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:02.000Z",
+        "asOf": "2026-11-12T21:00:02.000Z",
         "history": [
-          361,
-          363.3,
-          357.3,
           351.5,
           351.6,
           356.4,
@@ -2354,33 +2351,33 @@
           352.1,
           337.3,
           334.5,
-          342.1
+          342.1,
+          342.1,
+          343.4,
+          342.8
         ],
         "technicalPlan": {
-          "atr": 7.95,
-          "buy": 335.8,
-          "stop": 326.6,
+          "atr": 7.36,
+          "buy": 335.6,
+          "stop": 327.1,
           "tp": [
-            358,
-            367.5
+            357.5,
+            366.4
           ]
         }
       },
       {
         "symbol": "BRK.B",
-        "price": 575.3,
-        "changePercent": 0.76,
-        "weeklyChange": 3.44,
-        "volumeRatio": 1.27,
-        "heatScore": 56,
+        "price": 589.8,
+        "changePercent": 0.27,
+        "weeklyChange": 3.06,
+        "volumeRatio": 1.08,
+        "heatScore": 45,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:05:01.000Z",
+        "asOf": "2026-11-12T21:03:45.000Z",
         "history": [
-          498.2,
-          503,
-          499.6,
           496.9,
           495.8,
           504.3,
@@ -2437,33 +2434,33 @@
           579.1,
           572.3,
           570.9,
-          575.3
+          575.3,
+          583.3,
+          588.2,
+          589.8
         ],
         "technicalPlan": {
-          "atr": 9.87,
-          "buy": 542.7,
-          "stop": 531.3,
+          "atr": 10.34,
+          "buy": 545.9,
+          "stop": 534.1,
           "tp": [
-            595,
-            606.8
+            610.5,
+            622.9
           ]
         }
       },
       {
         "symbol": "LLY",
-        "price": 1412,
-        "changePercent": 4.28,
-        "weeklyChange": 0.07,
-        "volumeRatio": 1.37,
-        "heatScore": 74,
+        "price": 1427.3,
+        "changePercent": -0.7,
+        "weeklyChange": 4.58,
+        "volumeRatio": 0.79,
+        "heatScore": 41,
         "currency": "USD",
         "exchange": "NYSE",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:03:46.000Z",
+        "asOf": "2026-11-12T21:03:23.000Z",
         "history": [
-          1183.2,
-          1225.7,
-          1280.3,
           1244.4,
           1255.4,
           1246.9,
@@ -2520,33 +2517,33 @@
           1418,
           1364.7,
           1354,
-          1411.9
+          1411.9,
+          1432.3,
+          1437.3,
+          1427.3
         ],
         "technicalPlan": {
-          "atr": 50.86,
-          "buy": 1278.1,
-          "stop": 1219.7,
+          "atr": 48.6,
+          "buy": 1350.2,
+          "stop": 1294.3,
           "tp": [
-            1513.7,
-            1574.7
+            1524.5,
+            1582.8
           ]
         }
       },
       {
         "symbol": "COST",
-        "price": 1066.2,
-        "changePercent": 1.2,
-        "weeklyChange": 2.46,
+        "price": 1092.2,
+        "changePercent": 0.42,
+        "weeklyChange": 2.5,
         "volumeRatio": 0.91,
-        "heatScore": 44,
+        "heatScore": 39,
         "currency": "USD",
         "exchange": "NasdaqGS",
         "marketState": "CLOSED",
-        "asOf": "2026-11-09T21:00:01.000Z",
+        "asOf": "2026-11-12T21:00:01.000Z",
         "history": [
-          953.5,
-          961.3,
-          957,
           933.5,
           947.7,
           971.4,
@@ -2603,15 +2600,18 @@
           1046.5,
           1065.6,
           1053.6,
-          1066.2
+          1066.2,
+          1066.1,
+          1087.6,
+          1092.2
         ],
         "technicalPlan": {
-          "atr": 20.97,
-          "buy": 987.7,
-          "stop": 963.5,
+          "atr": 19.81,
+          "buy": 1013.5,
+          "stop": 990.7,
           "tp": [
-            1108.1,
-            1133.3
+            1131.8,
+            1155.6
           ]
         }
       }
@@ -2630,10 +2630,10 @@
         "shortTermInvestments": 51951000,
         "liquidAssets": 62556000,
         "netIncome": 120067000,
-        "marketCap": 4305947000000,
-        "pe": 35.9,
+        "marketCap": 4005179000000,
+        "pe": 33.4,
         "targetPrice": 315,
-        "targetUpside": 76.3,
+        "targetUpside": 89.5,
         "revenueHistory": [
           215938000,
           130497000,
@@ -2648,8 +2648,8 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 86,
-        "finalScore": 96,
+        "valueScore": 95,
+        "finalScore": 99,
         "qualityEligible": true
       },
       {
@@ -2665,10 +2665,10 @@
         "shortTermInvestments": 55908000,
         "liquidAssets": 76843000,
         "netIncome": 133749000,
-        "marketCap": 4048612745859,
-        "pe": 30.3,
+        "marketCap": 3883899750696,
+        "pe": 29,
         "targetPrice": 630,
-        "targetUpside": 15.6,
+        "targetUpside": 20.5,
         "revenueHistory": [
           331839000,
           281724000,
@@ -2683,8 +2683,8 @@
         ],
         "growthScore": 75,
         "profitScore": 100,
-        "valueScore": 73,
-        "finalScore": 84,
+        "valueScore": 76,
+        "finalScore": 85,
         "qualityEligible": true
       },
       {
@@ -2700,10 +2700,10 @@
         "shortTermInvestments": 20417000,
         "liquidAssets": 56722000,
         "netIncome": 132175000,
-        "marketCap": 5096290905580,
-        "pe": 38.6,
+        "marketCap": 5157180748160,
+        "pe": 39,
         "targetPrice": 350,
-        "targetUpside": -0.2,
+        "targetUpside": -1.4,
         "revenueHistory": [
           478834000,
           416161000,
@@ -2718,7 +2718,7 @@
         ],
         "growthScore": 71,
         "profitScore": 100,
-        "valueScore": 56,
+        "valueScore": 55,
         "finalScore": 78,
         "qualityEligible": true
       },
@@ -2735,10 +2735,10 @@
         "shortTermInvestments": 96135000,
         "liquidAssets": 126843000,
         "netIncome": 132170000,
-        "marketCap": 3542516100000,
-        "pe": 26.8,
+        "marketCap": 3672217800000,
+        "pe": 27.8,
         "targetPrice": 400,
-        "targetUpside": 38.8,
+        "targetUpside": 33.9,
         "revenueHistory": [
           402836000,
           350018000,
@@ -2753,8 +2753,8 @@
         ],
         "growthScore": 71,
         "profitScore": 96,
-        "valueScore": 86,
-        "finalScore": 86,
+        "valueScore": 83,
+        "finalScore": 85,
         "qualityEligible": true
       },
       {
@@ -2770,10 +2770,10 @@
         "shortTermInvestments": 36219000,
         "liquidAssets": 123029000,
         "netIncome": 77670000,
-        "marketCap": 2886351008021,
+        "marketCap": 2891865708557,
         "pe": 37.2,
         "targetPrice": 330,
-        "targetUpside": 23.6,
+        "targetUpside": 23.4,
         "revenueHistory": [
           716924000,
           637959000,
@@ -2805,10 +2805,10 @@
         "shortTermInvestments": 45719000,
         "liquidAssets": 81592000,
         "netIncome": 60458000,
-        "marketCap": 1639496452437,
-        "pe": 27.1,
+        "marketCap": 1594097607783,
+        "pe": 26.4,
         "targetPrice": 850,
-        "targetUpside": 32.5,
+        "targetUpside": 36.3,
         "revenueHistory": [
           200966000,
           164501000,
@@ -2823,7 +2823,7 @@
         ],
         "growthScore": 81,
         "profitScore": 91,
-        "valueScore": 83,
+        "valueScore": 85,
         "finalScore": 86,
         "qualityEligible": true
       },
@@ -2840,10 +2840,10 @@
         "shortTermInvestments": 27546000,
         "liquidAssets": 44059000,
         "netIncome": 3794000,
-        "marketCap": 1494340141485,
-        "pe": 393.9,
+        "marketCap": 1571023645638,
+        "pe": 414.1,
         "targetPrice": 426.5,
-        "targetUpside": 12.8,
+        "targetUpside": 7.3,
         "revenueHistory": [
           94827000,
           97690000,
@@ -2875,10 +2875,10 @@
         "shortTermInvestments": 5013000,
         "liquidAssets": 10552000,
         "netIncome": 4335000,
-        "marketCap": 834115574114,
-        "pe": 192.4,
+        "marketCap": 959943068010,
+        "pe": 221.4,
         "targetPrice": 650,
-        "targetUpside": 27.8,
+        "targetUpside": 11.1,
         "revenueHistory": [
           34639000,
           25785000,
@@ -2910,10 +2910,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 16178000,
         "netIncome": 23126000,
-        "marketCap": 1525079269270,
-        "pe": 65.9,
+        "marketCap": 1739319777611,
+        "pe": 75.2,
         "targetPrice": 530,
-        "targetUpside": 65.9,
+        "targetUpside": 45.4,
         "revenueHistory": [
           63887000,
           51574000,
@@ -2928,8 +2928,8 @@
         ],
         "growthScore": 83,
         "profitScore": 98,
-        "valueScore": 42,
-        "finalScore": 77,
+        "valueScore": 23,
+        "finalScore": 71,
         "qualityEligible": true
       },
       {
@@ -2945,10 +2945,10 @@
         "shortTermInvestments": 5753247,
         "liquidAssets": 7177043,
         "netIncome": 1625033,
-        "marketCap": 407686972601,
-        "pe": 250.9,
+        "marketCap": 413421576589,
+        "pe": 254.4,
         "targetPrice": 235,
-        "targetUpside": 38.9,
+        "targetUpside": 36.9,
         "revenueHistory": [
           4475446,
           2865507,
@@ -2980,10 +2980,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 7521474,
         "netIncome": 2230453,
-        "marketCap": 18789209982,
-        "pe": 8.4,
+        "marketCap": 17792546635,
+        "pe": 8,
         "targetPrice": 43.5,
-        "targetUpside": 52.1,
+        "targetUpside": 61.2,
         "revenueHistory": [
           39063072,
           21972042,
@@ -3015,10 +3015,10 @@
         "shortTermInvestments": 850000,
         "liquidAssets": 3601000,
         "netIncome": 904000,
-        "marketCap": 198233493448,
-        "pe": 219.3,
+        "marketCap": 212576958245,
+        "pe": 235.2,
         "targetPrice": 260,
-        "targetUpside": 39.6,
+        "targetUpside": 30.1,
         "revenueHistory": [
           4920000,
           4007000,
@@ -3050,10 +3050,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 88090800,
         "netIncome": 53949600,
-        "marketCap": 2016150051332,
-        "pe": 37.4,
+        "marketCap": 2103905714308,
+        "pe": 39,
         "targetPrice": 540,
-        "targetUpside": 39,
+        "targetUpside": 33.2,
         "revenueHistory": [
           121228300,
           88282800,
@@ -3068,8 +3068,8 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 71,
-        "finalScore": 91,
+        "valueScore": 67,
+        "finalScore": 90,
         "qualityEligible": true
       },
       {
@@ -3085,10 +3085,10 @@
         "shortTermInvestments": 476700,
         "liquidAssets": 15645900,
         "netIncome": 11285800,
-        "marketCap": 583233281561,
-        "pe": 51.7,
+        "marketCap": 577016494625,
+        "pe": 51.1,
         "targetPrice": 2225,
-        "targetUpside": 47,
+        "targetUpside": 48.6,
         "revenueHistory": [
           38366200,
           29266400,
@@ -3103,7 +3103,7 @@
         ],
         "growthScore": 94,
         "profitScore": 97,
-        "valueScore": 55,
+        "valueScore": 56,
         "finalScore": 84,
         "qualityEligible": true
       },
@@ -3120,10 +3120,10 @@
         "shortTermInvestments": 309765,
         "liquidAssets": 11929535,
         "netIncome": 1260327,
-        "marketCap": 36034301190,
-        "pe": 28.6,
+        "marketCap": 34596635830,
+        "pe": 27.5,
         "targetPrice": 197.5,
-        "targetUpside": 45.1,
+        "targetUpside": 51.1,
         "revenueHistory": [
           7181325,
           6564028,
@@ -3138,8 +3138,8 @@
         ],
         "growthScore": 63,
         "profitScore": 69,
-        "valueScore": 85,
-        "finalScore": 72,
+        "valueScore": 89,
+        "finalScore": 73,
         "qualityEligible": false
       },
       {
@@ -3155,10 +3155,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 2303343,
         "netIncome": -3848152,
-        "marketCap": 53043515093,
+        "marketCap": 48321590587,
         "pe": null,
         "targetPrice": 211.5,
-        "targetUpside": 68.4,
+        "targetUpside": 84.9,
         "revenueHistory": [
           477233,
           463456,
@@ -3173,8 +3173,8 @@
         ],
         "growthScore": 54,
         "profitScore": 0,
-        "valueScore": 84,
-        "finalScore": 41,
+        "valueScore": 92,
+        "finalScore": 44,
         "qualityEligible": false
       },
       {
@@ -3190,10 +3190,10 @@
         "shortTermInvestments": 99591,
         "liquidAssets": 5329716,
         "netIncome": -162502,
-        "marketCap": 234051026184,
+        "marketCap": 235371902131,
         "pe": null,
         "targetPrice": 250,
-        "targetUpside": 9.4,
+        "targetUpside": 8.7,
         "revenueHistory": [
           4812005,
           3953624,
@@ -3208,8 +3208,8 @@
         ],
         "growthScore": 80,
         "profitScore": 40,
-        "valueScore": 55,
-        "finalScore": 57,
+        "valueScore": 54,
+        "finalScore": 56,
         "qualityEligible": false
       },
       {
@@ -3225,10 +3225,10 @@
         "shortTermInvestments": 2558000,
         "liquidAssets": 6284000,
         "netIncome": 1748000,
-        "marketCap": 106664880000,
-        "pe": 61,
+        "marketCap": 104516220000,
+        "pe": 59.8,
         "targetPrice": 160,
-        "targetUpside": 55.6,
+        "targetUpside": 58.9,
         "revenueHistory": [
           13278000,
           10984000,
@@ -3243,8 +3243,8 @@
         ],
         "growthScore": 79,
         "profitScore": 66,
-        "valueScore": 45,
-        "finalScore": 64,
+        "valueScore": 48,
+        "finalScore": 65,
         "qualityEligible": false
       },
       {
@@ -3260,10 +3260,10 @@
         "shortTermInvestments": 1145000,
         "liquidAssets": 14711000,
         "netIncome": 23504000,
-        "marketCap": 761637251818,
-        "pe": 32.4,
+        "marketCap": 757868912591,
+        "pe": 32.2,
         "targetPrice": 455,
-        "targetUpside": 7.8,
+        "targetUpside": 8.3,
         "revenueHistory": [
           45903000,
           40000000,
@@ -3278,8 +3278,8 @@
         ],
         "growthScore": 71,
         "profitScore": 100,
-        "valueScore": 67,
-        "finalScore": 81,
+        "valueScore": 68,
+        "finalScore": 82,
         "qualityEligible": false
       },
       {
@@ -3295,10 +3295,10 @@
         "shortTermInvestments": 332000,
         "liquidAssets": 13580000,
         "netIncome": 14968000,
-        "marketCap": 571474107262,
-        "pe": 38.2,
-        "targetPrice": 725,
-        "targetUpside": 10.6,
+        "marketCap": 569644637422,
+        "pe": 38.1,
+        "targetPrice": 726,
+        "targetUpside": 11.2,
         "revenueHistory": [
           32791000,
           28167000,
@@ -3313,7 +3313,7 @@
         ],
         "growthScore": 73,
         "profitScore": 100,
-        "valueScore": 60,
+        "valueScore": 61,
         "finalScore": 80,
         "qualityEligible": false
       },
@@ -3330,10 +3330,10 @@
         "shortTermInvestments": 28678,
         "liquidAssets": 9062359,
         "netIncome": 10981201,
-        "marketCap": 262599541497,
-        "pe": 23.9,
+        "marketCap": 257425570859,
+        "pe": 23.4,
         "targetPrice": 85,
-        "targetUpside": 32.9,
+        "targetUpside": 35.6,
         "revenueHistory": [
           45183036,
           39000966,
@@ -3348,8 +3348,8 @@
         ],
         "growthScore": 72,
         "profitScore": 89,
-        "valueScore": 87,
-        "finalScore": 83,
+        "valueScore": 89,
+        "finalScore": 84,
         "qualityEligible": false
       },
       {
@@ -3365,10 +3365,10 @@
         "shortTermInvestments": 605000,
         "liquidAssets": 31894000,
         "netIncome": 17087000,
-        "marketCap": 362183098080,
-        "pe": 21.2,
+        "marketCap": 384437795040,
+        "pe": 22.5,
         "targetPrice": 225,
-        "targetUpside": 87.8,
+        "targetUpside": 77,
         "revenueHistory": [
           67357000,
           57399000,
@@ -3400,10 +3400,10 @@
         "shortTermInvestments": 2238000,
         "liquidAssets": 9565000,
         "netIncome": 7457000,
-        "marketCap": 176854470000,
-        "pe": 23.7,
+        "marketCap": 179060110000,
+        "pe": 24,
         "targetPrice": 289.5,
-        "targetUpside": 34.7,
+        "targetUpside": 33,
         "revenueHistory": [
           41525000,
           37895000,
@@ -3418,8 +3418,8 @@
         ],
         "growthScore": 63,
         "profitScore": 71,
-        "valueScore": 88,
-        "finalScore": 74,
+        "valueScore": 87,
+        "finalScore": 73,
         "qualityEligible": false
       },
       {
@@ -3435,10 +3435,10 @@
         "shortTermInvestments": 1201523,
         "liquidAssets": 4029686,
         "netIncome": -1331616,
-        "marketCap": 102721248000,
+        "marketCap": 105423696000,
         "pe": null,
         "targetPrice": 447,
-        "targetUpside": 53.6,
+        "targetUpside": 49.6,
         "revenueHistory": [
           4683946,
           3626396,
@@ -3453,7 +3453,7 @@
         ],
         "growthScore": 91,
         "profitScore": 0,
-        "valueScore": 77,
+        "valueScore": 75,
         "finalScore": 50,
         "qualityEligible": false
       },
@@ -3470,10 +3470,10 @@
         "shortTermInvestments": 4233000,
         "liquidAssets": 5778000,
         "netIncome": 1231000,
-        "marketCap": 195628537297,
-        "pe": 158.9,
+        "marketCap": 188835701068,
+        "pe": 153.4,
         "targetPrice": 180,
-        "targetUpside": 18.3,
+        "targetUpside": 22.6,
         "revenueHistory": [
           11556000,
           8880000,
@@ -3505,10 +3505,10 @@
         "shortTermInvestments": 528000,
         "liquidAssets": 8264000,
         "netIncome": 10053000,
-        "marketCap": 145281047681,
-        "pe": 14.5,
+        "marketCap": 141176832560,
+        "pe": 14,
         "targetPrice": 100,
-        "targetUpside": 40.5,
+        "targetUpside": 44.7,
         "revenueHistory": [
           52017000,
           43978000,
@@ -3540,10 +3540,10 @@
         "shortTermInvestments": null,
         "liquidAssets": 679764000,
         "netIncome": 57048000,
-        "marketCap": 908510569124,
-        "pe": 15.9,
+        "marketCap": 910820949397,
+        "pe": 16,
         "targetPrice": 370,
-        "targetUpside": 8.2,
+        "targetUpside": 7.9,
         "revenueHistory": [
           168235000,
           166878000,
@@ -3558,8 +3558,8 @@
         ],
         "growthScore": 51,
         "profitScore": 81,
-        "valueScore": 90,
-        "finalScore": 75,
+        "valueScore": 89,
+        "finalScore": 74,
         "qualityEligible": true
       },
       {
@@ -3575,10 +3575,10 @@
         "shortTermInvestments": 321434000,
         "liquidAssets": 373311000,
         "netIncome": 66968000,
-        "marketCap": 1267320901776,
-        "pe": 18.9,
+        "marketCap": 1300929218040,
+        "pe": 19.4,
         "targetPrice": 792000,
-        "targetUpside": 137567.3,
+        "targetUpside": 134182.8,
         "revenueHistory": [
           410522000,
           424232000,
@@ -3610,10 +3610,10 @@
         "shortTermInvestments": 109100,
         "liquidAssets": 7377100,
         "netIncome": 20640000,
-        "marketCap": 1328548355129,
-        "pe": 64.4,
-        "targetPrice": 1563.5,
-        "targetUpside": 10.7,
+        "marketCap": 1345387691184,
+        "pe": 65.2,
+        "targetPrice": 1571.5,
+        "targetUpside": 10.1,
         "revenueHistory": [
           65179000,
           45043000,
@@ -3628,8 +3628,8 @@
         ],
         "growthScore": 100,
         "profitScore": 100,
-        "valueScore": 25,
-        "finalScore": 78,
+        "valueScore": 24,
+        "finalScore": 77,
         "qualityEligible": true
       },
       {
@@ -3645,10 +3645,10 @@
         "shortTermInvestments": 1094000,
         "liquidAssets": 21301000,
         "netIncome": 9226000,
-        "marketCap": 472455649317,
-        "pe": 51.2,
+        "marketCap": 483990306271,
+        "pe": 52.5,
         "targetPrice": 1100,
-        "targetUpside": 3.2,
+        "targetUpside": 0.7,
         "revenueHistory": [
           303154000,
           275235000,
@@ -3663,17 +3663,78 @@
         ],
         "growthScore": 64,
         "profitScore": 58,
-        "valueScore": 40,
+        "valueScore": 38,
         "finalScore": 54,
         "qualityEligible": true
       }
     ],
     "temperature": {
-      "value": 47,
+      "value": 50,
       "label": "中性",
-      "hint": "VIX 19.92，标普500相对近60日均线 -1.7%——该温度由真实行情计算，不是官方指数"
+      "hint": "VIX 18.7，标普500相对近60日均线 -1.0%——该温度由真实行情计算，不是官方指数"
     },
     "filings": [
+      {
+        "symbol": "NVDA",
+        "form": "8-K",
+        "filingDate": "2026-11-12",
+        "items": "5.02,9.01",
+        "labels": [
+          "董事或高管变动"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000082/nvda-20261111.htm"
+      },
+      {
+        "symbol": "META",
+        "form": "8-K",
+        "filingDate": "2026-11-12",
+        "items": "8.01,9.01",
+        "labels": [
+          "其他重大事项"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000119312526458525/d177728d8k.htm"
+      },
+      {
+        "symbol": "TSM",
+        "form": "6-K",
+        "filingDate": "2026-11-12",
+        "items": "",
+        "labels": [
+          "境外发行人公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000800/a20261112statementregardin.htm"
+      },
+      {
+        "symbol": "TSM",
+        "form": "6-K",
+        "filingDate": "2026-11-10",
+        "items": "",
+        "labels": [
+          "境外发行人公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000797/tsm-boardx202611xx.htm"
+      },
+      {
+        "symbol": "TSM",
+        "form": "6-K",
+        "filingDate": "2026-11-10",
+        "items": "",
+        "labels": [
+          "境外发行人公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000796/tsm-revenue20261110.htm"
+      },
+      {
+        "symbol": "COST",
+        "form": "8-K",
+        "filingDate": "2026-11-10",
+        "items": "5.02,8.01,9.01",
+        "labels": [
+          "董事或高管变动",
+          "其他重大事项"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000090983226000134/cost-20261107.htm"
+      },
       {
         "symbol": "AAPL",
         "form": "8-K",
@@ -3726,16 +3787,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000027/smci-20260930.htm"
       },
       {
-        "symbol": "GOOGL",
-        "form": "8-K",
-        "filingDate": "2026-11-05",
-        "items": "8.01,9.01",
-        "labels": [
-          "其他重大事项"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1652044/000119312526449835/d174184d8k.htm"
-      },
-      {
         "symbol": "MSFT",
         "form": "8-K",
         "filingDate": "2026-11-05",
@@ -3744,6 +3795,16 @@
           "董事或高管变动"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312526448357/d177209d8k.htm"
+      },
+      {
+        "symbol": "GOOGL",
+        "form": "8-K",
+        "filingDate": "2026-11-05",
+        "items": "8.01,9.01",
+        "labels": [
+          "其他重大事项"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1652044/000119312526449835/d174184d8k.htm"
       },
       {
         "symbol": "META",
@@ -4053,16 +4114,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947826000104/lly-20261029.htm"
       },
       {
-        "symbol": "GOOGL",
-        "form": "8-K",
-        "filingDate": "2026-10-28",
-        "items": "2.02,9.01",
-        "labels": [
-          "业绩公告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000080/goog-20261028.htm"
-      },
-      {
         "symbol": "MSFT",
         "form": "8-K",
         "filingDate": "2026-10-28",
@@ -4071,6 +4122,16 @@
           "其他重大事项"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312526436149/msft-20261028.htm"
+      },
+      {
+        "symbol": "GOOGL",
+        "form": "8-K",
+        "filingDate": "2026-10-28",
+        "items": "2.02,9.01",
+        "labels": [
+          "业绩公告"
+        ],
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000080/goog-20261028.htm"
       },
       {
         "symbol": "NOW",
@@ -4132,26 +4193,6 @@
           "季度报告"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1318605/000162828026066775/tsla-20260930.htm"
-      },
-      {
-        "symbol": "META",
-        "form": "10-Q",
-        "filingDate": "2026-10-22",
-        "items": "",
-        "labels": [
-          "季度报告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026066773/meta-20260930.htm"
-      },
-      {
-        "symbol": "TSM",
-        "form": "6-K",
-        "filingDate": "2026-10-22",
-        "items": "",
-        "labels": [
-          "境外发行人公告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000728/tsm-monthend6kx20261022.htm"
       },
       {
         "symbol": "TSLA",
@@ -4224,16 +4265,6 @@
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000090983226000100/cost-20261013.htm"
       },
       {
-        "symbol": "TSM",
-        "form": "6-K",
-        "filingDate": "2026-10-15",
-        "items": "",
-        "labels": [
-          "境外发行人公告"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1046179/000104617926000726/tsm-20261015x6k.htm"
-      },
-      {
         "symbol": "ASML",
         "form": "6-K",
         "filingDate": "2026-10-14",
@@ -4252,104 +4283,94 @@
           "其他重大事项"
         ],
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000090983226000096/cost-20261014.htm"
-      },
-      {
-        "symbol": "JPM",
-        "form": "8-K",
-        "filingDate": "2026-10-13",
-        "items": "7.01,9.01",
-        "labels": [
-          "自愿披露（Reg FD）"
-        ],
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/19617/000162828026065616/jpm-20261013.htm"
       }
     ],
     "filingCoverage": {
-      "NVDA": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 0,
-        "returnedCount": 0,
-        "truncated": false
-      },
-      "AAPL": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 3,
-        "returnedCount": 3,
-        "truncated": false
-      },
-      "AMZN": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 2,
-        "returnedCount": 2,
-        "truncated": false
-      },
-      "GOOGL": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 3,
-        "returnedCount": 3,
-        "truncated": false
-      },
       "MSFT": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 5,
         "returnedCount": 3,
         "truncated": true
       },
-      "TSLA": {
+      "AMZN": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
         "truncated": false
       },
-      "META": {
+      "AAPL": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
-        "matchedCount": 4,
+        "matchedCount": 3,
         "returnedCount": 3,
-        "truncated": true
+        "truncated": false
       },
-      "AVGO": {
+      "GOOGL": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 3,
+        "returnedCount": 3,
+        "truncated": false
+      },
+      "NVDA": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 1,
         "returnedCount": 1,
         "truncated": false
       },
+      "META": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 5,
+        "returnedCount": 3,
+        "truncated": true
+      },
       "AMD": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
         "truncated": false
       },
+      "AVGO": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
+        "truncated": false
+      },
       "PLTR": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 2,
+        "returnedCount": 2,
+        "truncated": false
+      },
+      "TSLA": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
@@ -4357,8 +4378,8 @@
       },
       "ASML": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 1,
         "returnedCount": 1,
@@ -4366,26 +4387,26 @@
       },
       "SMCI": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 4,
         "returnedCount": 3,
         "truncated": true
       },
-      "ARM": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 2,
-        "returnedCount": 2,
-        "truncated": false
-      },
       "TSM": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 5,
+        "returnedCount": 3,
+        "truncated": true
+      },
+      "ARM": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
@@ -4393,8 +4414,8 @@
       },
       "COIN": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
@@ -4402,35 +4423,8 @@
       },
       "NOW": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 2,
-        "returnedCount": 2,
-        "truncated": false
-      },
-      "MSTR": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 10,
-        "returnedCount": 3,
-        "truncated": true
-      },
-      "CRWD": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 0,
-        "returnedCount": 0,
-        "truncated": false
-      },
-      "MA": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
@@ -4438,44 +4432,35 @@
       },
       "V": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
         "truncated": false
       },
-      "SHOP": {
+      "MSTR": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
-        "matchedCount": 2,
-        "returnedCount": 2,
+        "matchedCount": 9,
+        "returnedCount": 3,
+        "truncated": true
+      },
+      "CRWD": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 0,
+        "returnedCount": 0,
         "truncated": false
       },
-      "NFLX": {
+      "MA": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 2,
-        "returnedCount": 2,
-        "truncated": false
-      },
-      "CRM": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
-        "error": null,
-        "matchedCount": 1,
-        "returnedCount": 1,
-        "truncated": false
-      },
-      "ORCL": {
-        "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
@@ -4483,35 +4468,53 @@
       },
       "SNOW": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 0,
         "returnedCount": 0,
         "truncated": false
       },
-      "COST": {
+      "NFLX": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
         "truncated": false
       },
-      "BRK.B": {
+      "ORCL": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
+        "truncated": false
+      },
+      "SHOP": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 2,
+        "returnedCount": 2,
+        "truncated": false
+      },
+      "CRM": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 1,
+        "returnedCount": 1,
         "truncated": false
       },
       "LLY": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
@@ -4519,46 +4522,66 @@
       },
       "UBER": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
         "matchedCount": 2,
         "returnedCount": 2,
         "truncated": false
       },
+      "BRK.B": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 2,
+        "returnedCount": 2,
+        "truncated": false
+      },
+      "COST": {
+        "status": "complete",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
+        "error": null,
+        "matchedCount": 3,
+        "returnedCount": 3,
+        "truncated": false
+      },
       "JPM": {
         "status": "complete",
-        "since": "2026-10-11",
-        "fetchedAt": "2026-11-10T04:37:30.814Z",
+        "since": "2026-10-14",
+        "fetchedAt": "2026-11-13T03:25:30.645Z",
         "error": null,
-        "matchedCount": 4,
-        "returnedCount": 3,
-        "truncated": true
+        "matchedCount": 2,
+        "returnedCount": 2,
+        "truncated": false
       }
     },
     "eventFacts": {
       "NVDA": {
         "symbol": "NVDA",
+        "facts": [],
+        "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
+        "filingDate": "2026-11-12",
+        "fetchedAt": "2026-11-13T03:25:36.369Z",
+        "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
-        "sourceUrl": null,
-        "filingDate": null,
-        "fetchedAt": "2026-11-10T04:37:36.865Z",
-        "facts": [],
-        "priceCausation": "not_established",
-        "reason": "本轮未收录事件公告，不能据此判断公司没有事件"
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000082/nvda-20261111.htm",
+        "checkedAt": "2026-11-13T03:25:36.369Z",
+        "reused": false
       },
       "AMD": {
         "symbol": "AMD",
         "facts": [],
         "reason": "未完整核实收购对象、股票对价和待定发行股数",
         "filingDate": "2026-11-03",
-        "fetchedAt": "2026-11-10T04:37:36.865Z",
+        "fetchedAt": "2026-11-13T03:25:36.369Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000188/amd-20261103.htm",
-        "checkedAt": "2026-11-10T04:37:36.865Z",
+        "checkedAt": "2026-11-13T03:25:36.369Z",
         "reused": false
       },
       "AVGO": {
@@ -4566,12 +4589,12 @@
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-10-27",
-        "fetchedAt": "2026-11-10T04:37:36.865Z",
+        "fetchedAt": "2026-11-13T03:25:36.369Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1730168/000119312526434271/d148323d8k.htm",
-        "checkedAt": "2026-11-10T04:37:36.865Z",
+        "checkedAt": "2026-11-13T03:25:36.369Z",
         "reused": false
       },
       "MSFT": {
@@ -4579,12 +4602,12 @@
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-11-05",
-        "fetchedAt": "2026-11-10T04:37:36.865Z",
+        "fetchedAt": "2026-11-13T03:25:36.369Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312526448357/d177209d8k.htm",
-        "checkedAt": "2026-11-10T04:37:36.865Z",
+        "checkedAt": "2026-11-13T03:25:36.369Z",
         "reused": false
       },
       "AAPL": {
@@ -4592,12 +4615,12 @@
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-11-09",
-        "fetchedAt": "2026-11-10T04:37:36.865Z",
+        "fetchedAt": "2026-11-13T03:25:36.369Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/320193/000114036126042798/ef20085077_8k.htm",
-        "checkedAt": "2026-11-10T04:37:36.865Z",
+        "checkedAt": "2026-11-13T03:25:36.369Z",
         "reused": false
       },
       "GOOGL": {
@@ -4605,12 +4628,12 @@
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-11-05",
-        "fetchedAt": "2026-11-10T04:37:36.865Z",
+        "fetchedAt": "2026-11-13T03:25:36.369Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1652044/000119312526449835/d174184d8k.htm",
-        "checkedAt": "2026-11-10T04:37:36.865Z",
+        "checkedAt": "2026-11-13T03:25:36.369Z",
         "reused": false
       },
       "AMZN": {
@@ -4618,25 +4641,25 @@
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-10-29",
-        "fetchedAt": "2026-11-10T04:37:36.865Z",
+        "fetchedAt": "2026-11-13T03:25:36.369Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000038/amzn-20261029.htm",
-        "checkedAt": "2026-11-10T04:37:36.865Z",
+        "checkedAt": "2026-11-13T03:25:36.369Z",
         "reused": false
       },
       "META": {
         "symbol": "META",
         "facts": [],
         "reason": "未完整核实股权结构调整、派股比例与生效条件",
-        "filingDate": "2026-11-05",
-        "fetchedAt": "2026-11-10T04:37:36.865Z",
+        "filingDate": "2026-11-12",
+        "fetchedAt": "2026-11-13T03:25:36.369Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000119312526450074/d166273d8k.htm",
-        "checkedAt": "2026-11-10T04:37:36.865Z",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000119312526458525/d177728d8k.htm",
+        "checkedAt": "2026-11-13T03:25:36.369Z",
         "reused": false
       },
       "TSLA": {
@@ -4644,268 +4667,18 @@
         "facts": [],
         "reason": "尚无经过验证的正文事件解析规则；不以公告类别代替事实",
         "filingDate": "2026-10-21",
-        "fetchedAt": "2026-11-10T04:37:36.865Z",
+        "fetchedAt": "2026-11-13T03:25:36.369Z",
         "priceCausation": "not_established",
         "state": "unknown",
         "scope": "recent-event-filings",
         "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1318605/000162828026066738/tsla-20261021.htm",
-        "checkedAt": "2026-11-10T04:37:36.865Z",
+        "checkedAt": "2026-11-13T03:25:36.369Z",
         "reused": false
       }
     }
   },
   "hk": {
     "listings": [
-      {
-        "id": "hk-06935",
-        "code": "06935.HK",
-        "rawCode": "06935",
-        "name": "成都国星宇航科技股份有限公司",
-        "status": "招股文件已发布",
-        "listingDate": null,
-        "boardLot": null,
-        "shortName": null,
-        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1105/2026110500016_c.pdf",
-        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1105/2026110500056_c.pdf",
-        "allotmentUrl": null,
-        "source": "HKEX",
-        "isLive": true,
-        "announcementExtraction": {
-          "ok": true,
-          "kind": "pricing",
-          "matchedFields": 2,
-          "totalFields": 7,
-          "reason": null,
-          "engine": "pdftotext"
-        },
-        "offerStart": null,
-        "offerDeadline": null,
-        "dateValidation": {
-          "status": "unverified",
-          "reason": "招股开始、截止或上市日期缺失或无效",
-          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1105/2026110500016_c.pdf",
-          "parserVersion": "hk-offer-dates-v1",
-          "fields": {
-            "offerStart": [
-              {
-                "date": "2026-11-05",
-                "evidence": "香港公开发售开始..............................2026年11月5日"
-              }
-            ],
-            "offerDeadline": [],
-            "listingDate": [
-              {
-                "date": "2026-11-13",
-                "evidence": "2026年11月13日（星期五）上午九时正开始在联交所买卖"
-              },
-              {
-                "date": "2026-11-13",
-                "evidence": "上市日期（目前预期为2026年11月13日"
-              }
-            ]
-          }
-        },
-        "offerPrice": "33.20 港元",
-        "priceLow": 33.2,
-        "priceHigh": 33.2,
-        "entryFee": null,
-        "stabilizingManager": null,
-        "publicOfferShares": 3012100,
-        "extractedFrom": "HKEX 新上市公告",
-        "sponsorNames": [
-          "国泰君安融资有限公司",
-          "国泰君安证券（香港）有限公司"
-        ],
-        "sponsor": "国泰君安融资有限公司、国泰君安证券（香港）有限公司",
-        "underwriterNames": [],
-        "cornerstoneInvestors": [
-          "晶科能源投资",
-          "锦信",
-          "禁售期",
-          "终止时间",
-          "相关股份",
-          "首个六个月期间",
-          "产权负担",
-          "第二个六个月期间"
-        ],
-        "cornerstoneAmount": "60.0百万港元",
-        "cornerstonePercent": null,
-        "prospectusExtracted": true,
-        "prospectusExtraction": {
-          "ok": true,
-          "matchedFields": 2,
-          "totalFields": 3,
-          "reason": null,
-          "engine": "pdftotext"
-        },
-        "publicAnswer": {
-          "verdict": "待核验",
-          "action": "招股日期待核，暂不提供申购判断或倒计时。",
-          "score": null
-        },
-        "historicalReview": null,
-        "publishedEstimate": null
-      },
-      {
-        "id": "hk-02065",
-        "code": "02065.HK",
-        "rawCode": "02065",
-        "name": "珠海一微科技股份有限公司",
-        "status": "招股文件已发布",
-        "listingDate": "2026-11-12",
-        "boardLot": "500",
-        "shortName": null,
-        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103002350_c.pdf",
-        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103002355_c.htm",
-        "allotmentUrl": null,
-        "source": "HKEX",
-        "isLive": true,
-        "announcementExtraction": {
-          "ok": true,
-          "kind": "pricing",
-          "matchedFields": 6,
-          "totalFields": 7,
-          "reason": null,
-          "engine": "pdftotext"
-        },
-        "offerStart": "2026-10-31",
-        "offerDeadline": "2026-11-09",
-        "dateValidation": {
-          "status": "verified",
-          "reason": null,
-          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103002350_c.pdf",
-          "parserVersion": "hk-offer-dates-v1",
-          "fields": {
-            "offerStart": [
-              {
-                "date": "2026-10-31",
-                "evidence": "香港公开发售开始.....................................2026年10月31日"
-              }
-            ],
-            "offerDeadline": [
-              {
-                "date": "2026-11-09",
-                "evidence": "截止办理申请登记.....................................2026年11月9日"
-              }
-            ],
-            "listingDate": [
-              {
-                "date": "2026-11-12",
-                "evidence": "预期H股开始在联交所买卖..............................2026年11月12日"
-              },
-              {
-                "date": "2026-11-12",
-                "evidence": "2026年11月12日（星期四）开始于联交所买卖"
-              },
-              {
-                "date": "2026-11-12",
-                "evidence": "2026年11月12日（星期四）上午九时正开始在联交所买卖"
-              },
-              {
-                "date": "2026-11-12",
-                "evidence": "上市日期（目前预期为2026年11月12日"
-              }
-            ]
-          }
-        },
-        "offerPrice": "11.58 港元",
-        "priceLow": 11.58,
-        "priceHigh": 11.58,
-        "entryFee": 5848.39,
-        "stabilizingManager": null,
-        "publicOfferShares": 3584500,
-        "extractedFrom": "HKEX 新上市公告",
-        "prospectusExtraction": {
-          "ok": false,
-          "reason": "pdftotext 与 pdf-parse 均未取回中文正文：Command failed: pdftotext -layout -enc UTF-8 /tmp/wangchao-pdf-wfNDPo/document.pdf -\nSyntax Warning: May not be a PDF file (continuing anyway)\nSyntax Error (2): Illegal character <21> in hex string\nSyntax Error (3): Illegal character <2d> in hex string\nSyntax Error (4): Illegal character <2d> in hex string\nSyntax Error (5): Illegal character <53> in hex string\nSyntax Error (7): Illegal character <48> in hex string\nSyntax Error (8): Illegal character <4b> in hex string\nSyntax Error (9): Illegal character <4e> in hex string\nSyntax Error (11): Illegal character <57> in hex string\nSyntax Error (12): Illegal character <53> in hex string\nSyntax Error (13): Illegal character <2d> in hex string\nSyntax Error (14): Illegal character <2d> in hex string\nSyntax Error (18): Illegal character <68> in hex string\nSyntax Error (19): Illegal character <74> in hex string\nSyntax Error (20): Illegal character <6d> in hex string\nSyntax Error (21): Illegal character <6c> in hex string\nSyntax Error (26): Illegal character <68> in hex string\nSyntax Error (35): Illegal character <6d> in hex string\nSyntax Error (37): Illegal character <74> in hex string\nSyntax Error (40): Illegal character <6e> in hex string\nSyntax Error (42): Illegal character <6d> in hex string\nSyntax Error (44): Illegal character <3d> in hex string\nSyntax Error (45): Illegal character <22> in hex string\nSyntax Error (46): Illegal character <4d> in hex string\nSyntax Error (47): Illegal character <53> in hex string\nSyntax Error (48): Illegal character <2e> in hex string\nSyntax Error (49): Illegal character <4c> in hex string\nSyntax Error (50): Illegal character <4f> in hex string\nSyntax Error (53): Illegal character <4c> in hex string\nSyntax Error (55): Illegal character <22> in hex string\nSyntax Error (58): Illegal character <6f> in hex string\nSyntax Error (59): Illegal character <6e> in hex string\nSyntax Error (60): Illegal character <74> in hex string\nSyntax Error (62): Illegal character <6e> in hex string\nSyntax Error (63): Illegal character <74> in hex string\nSyntax Error (64): Illegal character <3d> in hex string\nSyntax Error (65): Illegal character <22> in hex string\nSyntax Error (67): Illegal character <4e> in hex string\nSyntax Error (68): Illegal character <2d> in hex string\nSyntax Error (69): Illegal character <55> in hex string\nSyntax Error (70): Illegal character <53> in hex string\nSyntax Error (71): Illegal character <22> in hex string\nSyntax Error (73): Illegal character <2f> in hex string\nSyntax Error (79): Illegal character <73> in hex string\nSyntax Error (80): Illegal character <74> in hex string\nSyntax Error (81): Illegal character <79> in hex string\nSyntax Error (82): Illegal character <6c> in hex string\nSyntax Error (85): Illegal character <74> in hex string\nSyntax Error (86): Illegal character <79> in hex string\nSyntax Error (87): Illegal character <70> in hex string\nSyntax Error (89): Illegal character <3d> in hex string\nSyntax Error (90): Illegal character <22> in hex string\nSyntax Error (91): Illegal character <74> in hex string\nSyntax Error (93): Illegal character <78> in hex string\nSyntax Error (94): Illegal character <74> in hex string\nSyntax Error (95): Illegal character <2f> in hex string\nSyntax Error (97): Illegal character <73> in hex string\nSyntax Error (98): Illegal character <73> in hex string\nSyntax Error (99): Illegal character <22> in hex string\nSyntax Error: Couldn't find trailer dictionary\nSyntax Error: Couldn't find trailer dictionary\nSyntax Error: Couldn't read xref table\n",
-          "engine": "unusable-text",
-          "failedAt": "2026-11-10T04:37:39.648Z"
-        },
-        "publicAnswer": {
-          "verdict": "谨慎打",
-          "action": "先观察，价格答案暂不发布。",
-          "score": 65
-        },
-        "historicalReview": null,
-        "publishedEstimate": null
-      },
-      {
-        "id": "hk-02206",
-        "code": "02206.HK",
-        "rawCode": "02206",
-        "name": "四川新荷花中药饮片股份有限公司",
-        "status": "招股文件已发布",
-        "listingDate": null,
-        "boardLot": "50",
-        "shortName": null,
-        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000014_c.pdf",
-        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000020_c.pdf",
-        "allotmentUrl": null,
-        "source": "HKEX",
-        "isLive": true,
-        "announcementExtraction": {
-          "ok": true,
-          "kind": "pricing",
-          "matchedFields": 3,
-          "totalFields": 7,
-          "reason": null,
-          "engine": "pdftotext"
-        },
-        "offerStart": null,
-        "offerDeadline": null,
-        "dateValidation": {
-          "status": "unverified",
-          "reason": "招股开始、截止或上市日期缺失或无效",
-          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000014_c.pdf",
-          "parserVersion": "hk-offer-dates-v1",
-          "fields": {
-            "offerStart": [
-              {
-                "date": "2026-10-30",
-                "evidence": "香港公开发售开始.............................2026年10月30日"
-              }
-            ],
-            "offerDeadline": [
-              {
-                "date": "2026-11-06",
-                "evidence": "截止办理申请登记..............................2026年11月6日"
-              }
-            ],
-            "listingDate": []
-          }
-        },
-        "offerPrice": "50.55 港元",
-        "priceLow": 50.55,
-        "priceHigh": 50.55,
-        "entryFee": 2552.99,
-        "stabilizingManager": null,
-        "publicOfferShares": 651750,
-        "extractedFrom": "HKEX 新上市公告",
-        "sponsorNames": [
-          "广发融资（香港）有限公司",
-          "农银国际融资有限公司"
-        ],
-        "sponsor": "广发融资（香港）有限公司、农银国际融资有限公司",
-        "underwriterNames": [],
-        "cornerstoneInvestors": [],
-        "cornerstoneAmount": null,
-        "cornerstonePercent": null,
-        "prospectusExtracted": true,
-        "prospectusExtraction": {
-          "ok": true,
-          "matchedFields": 1,
-          "totalFields": 3,
-          "reason": null,
-          "engine": "pdftotext"
-        },
-        "publicAnswer": {
-          "verdict": "待核验",
-          "action": "招股日期待核，暂不提供申购判断或倒计时。",
-          "score": null
-        },
-        "historicalReview": null,
-        "publishedEstimate": null
-      },
       {
         "id": "hk-01821",
         "code": "01821.HK",
@@ -5045,105 +4818,6 @@
           "verdict": "值得打",
           "action": "可关注申购，但卖点与涨幅答案暂不发布。",
           "score": 77
-        },
-        "historicalReview": null,
-        "publishedEstimate": null
-      },
-      {
-        "id": "hk-02681",
-        "code": "02681.HK",
-        "rawCode": "02681",
-        "name": "深圳宏芯宇电子股份有限公司",
-        "status": "招股文件已发布",
-        "listingDate": null,
-        "boardLot": "100",
-        "shortName": null,
-        "announcementUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000016_c.pdf",
-        "prospectusUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000026_c.pdf",
-        "allotmentUrl": null,
-        "source": "HKEX",
-        "isLive": true,
-        "announcementExtraction": {
-          "ok": true,
-          "kind": "pricing",
-          "matchedFields": 3,
-          "totalFields": 7,
-          "reason": null,
-          "engine": "pdftotext"
-        },
-        "offerStart": null,
-        "offerDeadline": null,
-        "dateValidation": {
-          "status": "unverified",
-          "reason": "招股开始、截止或上市日期缺失或无效",
-          "sourceUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1030/2026103000016_c.pdf",
-          "parserVersion": "hk-offer-dates-v1",
-          "fields": {
-            "offerStart": [],
-            "offerDeadline": [
-              {
-                "date": "2026-11-09",
-                "evidence": "截止办理申请登记...........................................2026年11月9日"
-              }
-            ],
-            "listingDate": [
-              {
-                "date": "2026-11-12",
-                "evidence": "预期H股开始在联交所买卖..................................2026年11月12日"
-              },
-              {
-                "date": "2026-11-12",
-                "evidence": "2026年11月12日（星期四）开始在联交所买卖"
-              },
-              {
-                "date": "2026-11-12",
-                "evidence": "2026年11月12日（星期四）上午九时正开始在联交所买卖"
-              },
-              {
-                "date": "2026-11-12",
-                "evidence": "上市日期（目前预期为2026年11月12日"
-              }
-            ]
-          }
-        },
-        "offerPrice": "82.90 港元",
-        "priceLow": 82.9,
-        "priceHigh": 82.9,
-        "entryFee": 8373.6,
-        "stabilizingManager": null,
-        "publicOfferShares": 1471800,
-        "extractedFrom": "HKEX 新上市公告",
-        "sponsorNames": [],
-        "sponsor": null,
-        "underwriterNames": [],
-        "cornerstoneInvestors": [
-          "Flourish",
-          "Pine Vigor",
-          "传音国际",
-          "江波龙投资",
-          "Gottfried",
-          "雄狮",
-          "深圳江波龙",
-          "SEPs",
-          "深圳MTL",
-          "禁售期",
-          "中国证监会备案",
-          "发售文件"
-        ],
-        "cornerstoneAmount": "451.56百万港元",
-        "cornerstonePercent": null,
-        "prospectusExtracted": true,
-        "prospectusExtraction": {
-          "ok": true,
-          "matchedFields": 1,
-          "totalFields": 3,
-          "reason": null,
-          "engine": "pdftotext"
-        },
-        "publicAnswer": {
-          "verdict": "待核验",
-          "action": "招股日期待核，暂不提供申购判断或倒计时。",
-          "score": null
         },
         "historicalReview": null,
         "publishedEstimate": null
@@ -5457,17 +5131,17 @@
         "publishedEstimate": null
       },
       {
-        "id": "hk-07672",
-        "code": "07672.HK",
-        "rawCode": "07672",
-        "name": "江苏芯德半导体科技股份有限公司",
+        "id": "hk-06935",
+        "code": "06935.HK",
+        "rawCode": "06935",
+        "name": "成都国星宇航科技股份有限公司",
         "status": "配发结果已公布",
         "listingDate": null,
         "boardLot": null,
         "shortName": null,
         "announcementUrl": null,
         "prospectusUrl": null,
-        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1109/2026110901274_c.pdf",
+        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1112/2026111201543_c.pdf",
         "source": "HKEX",
         "isLive": true,
         "publicAnswer": {
@@ -5479,17 +5153,39 @@
         "publishedEstimate": null
       },
       {
-        "id": "hk-09621",
-        "code": "09621.HK",
-        "rawCode": "09621",
-        "name": "深圳市远信储能技术股份有限公司",
+        "id": "hk-02065",
+        "code": "02065.HK",
+        "rawCode": "02065",
+        "name": "珠海一微科技股份有限公司",
         "status": "配发结果已公布",
         "listingDate": null,
         "boardLot": null,
         "shortName": null,
         "announcementUrl": null,
         "prospectusUrl": null,
-        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1106/2026110601521_c.pdf",
+        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1111/2026111101360_c.pdf",
+        "source": "HKEX",
+        "isLive": true,
+        "publicAnswer": {
+          "verdict": "申购已结束",
+          "action": "港交所已发布配发结果，申购窗口结束，仅保留为历史回顾。",
+          "score": 0
+        },
+        "historicalReview": null,
+        "publishedEstimate": null
+      },
+      {
+        "id": "hk-02681",
+        "code": "02681.HK",
+        "rawCode": "02681",
+        "name": "深圳宏芯宇电子股份有限公司",
+        "status": "配发结果已公布",
+        "listingDate": null,
+        "boardLot": null,
+        "shortName": null,
+        "announcementUrl": null,
+        "prospectusUrl": null,
+        "allotmentUrl": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/1111/2026111101284_c.pdf",
         "source": "HKEX",
         "isLive": true,
         "publicAnswer": {
@@ -5502,16 +5198,16 @@
       }
     ],
     "extraction": {
-      "attempted": 8,
+      "attempted": 4,
       "failed": 0,
       "ok": true,
       "missingBinary": false,
       "reason": null
     },
     "temperature": {
-      "value": 85,
+      "value": 72,
       "label": "偏热",
-      "hint": "港交所当前抓取到 10 只尚未公布配发结果的新股——温度只反映新股供给活跃度，不代表收益"
+      "hint": "港交所当前抓取到 6 只尚未公布配发结果的新股——温度只反映新股供给活跃度，不代表收益"
     },
     "backtest": {
       "source": {
@@ -5629,7 +5325,7 @@
           "oneLotRate": null,
           "greyMarketChange": -0.5,
           "firstDayChange": 0,
-          "fiveDayChange": 1.5,
+          "fiveDayChange": 1,
           "oneLotPnl": null,
           "industry": "半导体",
           "sponsors": "国泰君安融资有限公司",
@@ -5641,12 +5337,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 101.5,
-          "fiveDayDate": "2026-08-31",
+          "fiveDayClose": 101,
+          "fiveDayDate": "2026-09-03",
           "fiveDayHighChange": 2.6,
           "fiveDayHigh": 102.6,
           "fiveDayHighDate": "2026-08-31",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "03308",
@@ -5662,7 +5358,7 @@
           "oneLotRate": 70,
           "greyMarketChange": -1.07,
           "firstDayChange": -2.04,
-          "fiveDayChange": 13.27,
+          "fiveDayChange": 13.88,
           "oneLotPnl": null,
           "industry": "通讯器材",
           "sponsors": "高盛(亚洲)有限责任公司、中国国际金融香港证券有限公司、摩根士丹利亚洲有限公司、广发融资(香港)有限公司",
@@ -5677,12 +5373,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 1110,
-          "fiveDayDate": "2026-08-07",
-          "fiveDayHighChange": 27.45,
-          "fiveDayHigh": 1249,
-          "fiveDayHighDate": "2026-08-06",
-          "fiveDaySource": "腾讯港股日线"
+          "fiveDayClose": 1116,
+          "fiveDayDate": "2026-08-05",
+          "fiveDayHighChange": 21.22,
+          "fiveDayHigh": 1188,
+          "fiveDayHighDate": "2026-08-04",
+          "fiveDaySource": "东方财富港股日线"
         },
         {
           "stockCode": "02290",
@@ -5715,7 +5411,7 @@
           "fiveDayHighChange": -11.2,
           "fiveDayHigh": 4.6,
           "fiveDayHighDate": "2026-06-05",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "01779",
@@ -5797,7 +5493,7 @@
           "oneLotRate": null,
           "greyMarketChange": 1.8,
           "firstDayChange": -1.09,
-          "fiveDayChange": -4.91,
+          "fiveDayChange": -13.3,
           "oneLotPnl": null,
           "industry": "医疗设备",
           "sponsors": "华泰金融、法巴",
@@ -5810,12 +5506,12 @@
           "hasHuatai": true,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 37.4,
-          "fiveDayDate": "2026-05-12",
-          "fiveDayHighChange": 4.25,
-          "fiveDayHigh": 41,
-          "fiveDayHighDate": "2026-05-06",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 34.1,
+          "fiveDayDate": "2026-05-14",
+          "fiveDayHighChange": -1.14,
+          "fiveDayHigh": 38.88,
+          "fiveDayHighDate": "2026-05-12",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "01609",
@@ -5831,7 +5527,7 @@
           "oneLotRate": null,
           "greyMarketChange": 213.91,
           "firstDayChange": 118.27,
-          "fiveDayChange": 104.06,
+          "fiveDayChange": 104.87,
           "oneLotPnl": null,
           "industry": "医疗设备",
           "sponsors": "中信证券、建银国际",
@@ -5844,12 +5540,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 201,
-          "fiveDayDate": "2026-05-11",
-          "fiveDayHighChange": 203.55,
-          "fiveDayHigh": 299,
-          "fiveDayHighDate": "2026-05-05",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 201.8,
+          "fiveDayDate": "2026-05-13",
+          "fiveDayHighChange": 125.38,
+          "fiveDayHigh": 222,
+          "fiveDayHighDate": "2026-05-07",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "06810",
@@ -5865,7 +5561,7 @@
           "oneLotRate": 5,
           "greyMarketChange": 282.14,
           "firstDayChange": 241.11,
-          "fiveDayChange": 210.94,
+          "fiveDayChange": 216.57,
           "oneLotPnl": null,
           "industry": "物联网",
           "sponsors": "德意志银行、中信证券等",
@@ -5878,12 +5574,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 77.3,
-          "fiveDayDate": "2026-05-06",
-          "fiveDayHighChange": 301.45,
-          "fiveDayHigh": 99.8,
-          "fiveDayHighDate": "2026-04-29",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDayClose": 78.7,
+          "fiveDayDate": "2026-05-07",
+          "fiveDayHighChange": 245.94,
+          "fiveDayHigh": 86,
+          "fiveDayHighDate": "2026-04-30",
+          "fiveDaySource": "腾讯港股日线"
         },
         {
           "stockCode": "02493",
@@ -5899,7 +5595,7 @@
           "oneLotRate": 1,
           "greyMarketChange": 3.11,
           "firstDayChange": 0.58,
-          "fiveDayChange": -1.45,
+          "fiveDayChange": -2.03,
           "oneLotPnl": null,
           "industry": "生物医药",
           "sponsors": "中信证券、国泰海通",
@@ -5912,12 +5608,12 @@
           "hasHuatai": false,
           "hasLivermore": false,
           "approxSubscriptionAmount": null,
-          "fiveDayClose": 27.24,
-          "fiveDayDate": "2026-05-05",
+          "fiveDayClose": 27.08,
+          "fiveDayDate": "2026-05-06",
           "fiveDayHighChange": 13.82,
           "fiveDayHigh": 31.46,
           "fiveDayHighDate": "2026-04-30",
-          "fiveDaySource": "东方财富港股日线"
+          "fiveDaySource": "腾讯港股日线"
         }
       ]
     },
@@ -6109,7 +5805,7 @@
           "verdict": "已结束",
           "greyMarketChange": -0.5,
           "firstDayChange": 0,
-          "fiveDayChange": 1.5,
+          "fiveDayChange": 1,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -6162,7 +5858,7 @@
           "verdict": "已结束",
           "greyMarketChange": -1.07,
           "firstDayChange": -2.04,
-          "fiveDayChange": 13.27,
+          "fiveDayChange": 13.88,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -6363,7 +6059,7 @@
           "verdict": "已结束",
           "greyMarketChange": 1.8,
           "firstDayChange": -1.09,
-          "fiveDayChange": -4.91,
+          "fiveDayChange": -13.3,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -6414,7 +6110,7 @@
           "verdict": "已结束",
           "greyMarketChange": 213.91,
           "firstDayChange": 118.27,
-          "fiveDayChange": 104.06,
+          "fiveDayChange": 104.87,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -6465,7 +6161,7 @@
           "verdict": "已结束",
           "greyMarketChange": 282.14,
           "firstDayChange": 241.11,
-          "fiveDayChange": 210.94,
+          "fiveDayChange": 216.57,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -6516,7 +6212,7 @@
           "verdict": "已结束",
           "greyMarketChange": 3.11,
           "firstDayChange": 0.58,
-          "fiveDayChange": -1.45,
+          "fiveDayChange": -2.03,
           "fiveDayHighChange": null
         },
         "one": "历史样本，仅供回顾。",
@@ -6540,27 +6236,27 @@
       {
         "code": "600900.SH",
         "name": "长江电力",
-        "currentPrice": 29.75,
-        "currentDividendYield": 3.7,
-        "sustainableDividendYield": 3.49,
+        "currentPrice": 29.8,
+        "currentDividendYield": 3.69,
+        "sustainableDividendYield": 3.48,
         "currentAdvice": null,
         "score": 96,
         "summary": "水电现金流稳定，分红连续性最好，适合长期收息核心仓。",
         "industry": "公用事业 / 水电",
-        "annualDividendPer100k": 3489,
+        "annualDividendPer100k": 3484,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 29.83,
-        "changePercent": -0.27,
-        "asOf": "2026-11-10T04:05:51.000Z",
+        "previousClose": 29.61,
+        "changePercent": 0.64,
+        "asOf": "2026-11-13T03:25:28.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:51.000Z",
+        "priceAsOf": "2026-11-13T03:25:28.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6568,27 +6264,27 @@
       {
         "code": "600941.SH",
         "name": "中国移动",
-        "currentPrice": 101.31,
-        "currentDividendYield": 5.67,
-        "sustainableDividendYield": 5.34,
+        "currentPrice": 100.2,
+        "currentDividendYield": 5.73,
+        "sustainableDividendYield": 5.4,
         "currentAdvice": null,
         "score": 93,
         "summary": "现金流强、分红稳，适合作为 A 股收息的压舱石。",
         "industry": "通信运营 / 现金牛",
-        "annualDividendPer100k": 5345,
+        "annualDividendPer100k": 5399,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 103.03,
-        "changePercent": -1.67,
-        "asOf": "2026-11-10T04:05:32.000Z",
+        "previousClose": 98.7,
+        "changePercent": 1.52,
+        "asOf": "2026-11-13T03:25:29.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:32.000Z",
+        "priceAsOf": "2026-11-13T03:25:29.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6596,27 +6292,27 @@
       {
         "code": "601398.SH",
         "name": "工商银行",
-        "currentPrice": 8.61,
-        "currentDividendYield": 3.96,
-        "sustainableDividendYield": 3.6,
+        "currentPrice": 8.79,
+        "currentDividendYield": 3.88,
+        "sustainableDividendYield": 3.53,
         "currentAdvice": null,
         "score": 88,
         "summary": "大行分红稳定，股息率不低，适合稳健收息。",
         "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 3602,
+        "annualDividendPer100k": 3526,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 8.61,
-        "changePercent": 0,
-        "asOf": "2026-11-10T04:05:53.000Z",
+        "previousClose": 8.69,
+        "changePercent": 1.15,
+        "asOf": "2026-11-13T03:25:29.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:53.000Z",
+        "priceAsOf": "2026-11-13T03:25:29.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6624,27 +6320,27 @@
       {
         "code": "600036.SH",
         "name": "招商银行",
-        "currentPrice": 42.93,
-        "currentDividendYield": 3.79,
-        "sustainableDividendYield": 3.52,
+        "currentPrice": 42.82,
+        "currentDividendYield": 3.8,
+        "sustainableDividendYield": 3.53,
         "currentAdvice": null,
         "score": 91,
         "summary": "零售银行龙头，分红与资产质量兼顾，适合长期跟踪。",
         "industry": "银行 / 零售银行",
-        "annualDividendPer100k": 3517,
+        "annualDividendPer100k": 3529,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 43.01,
-        "changePercent": -0.19,
-        "asOf": "2026-11-10T04:05:46.000Z",
+        "previousClose": 42.63,
+        "changePercent": 0.45,
+        "asOf": "2026-11-13T03:25:28.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:46.000Z",
+        "priceAsOf": "2026-11-13T03:25:28.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6652,27 +6348,27 @@
       {
         "code": "601939.SH",
         "name": "建设银行",
-        "currentPrice": 12.04,
-        "currentDividendYield": 3.21,
-        "sustainableDividendYield": 2.96,
+        "currentPrice": 12.09,
+        "currentDividendYield": 3.2,
+        "sustainableDividendYield": 2.95,
         "currentAdvice": null,
         "score": 84,
         "summary": "分红稳，波动低，适合收息组合搭配。",
         "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 2962,
+        "annualDividendPer100k": 2948,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 12.14,
-        "changePercent": -0.82,
-        "asOf": "2026-11-10T04:05:33.000Z",
+        "previousClose": 12.01,
+        "changePercent": 0.67,
+        "asOf": "2026-11-13T03:25:28.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:33.000Z",
+        "priceAsOf": "2026-11-13T03:25:28.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6680,27 +6376,27 @@
       {
         "code": "600377.SH",
         "name": "宁沪高速",
-        "currentPrice": 14.02,
-        "currentDividendYield": 4.01,
-        "sustainableDividendYield": 3.73,
+        "currentPrice": 14,
+        "currentDividendYield": 4.02,
+        "sustainableDividendYield": 3.74,
         "currentAdvice": null,
         "score": 86,
         "summary": "高速公路现金流稳定，适合做稳健收息底仓。",
         "industry": "交通运输 / 高速公路",
-        "annualDividendPer100k": 3725,
+        "annualDividendPer100k": 3735,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "A",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 13.96,
-        "changePercent": 0.43,
-        "asOf": "2026-11-10T04:05:50.000Z",
+        "previousClose": 13.85,
+        "changePercent": 1.08,
+        "asOf": "2026-11-13T03:25:27.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:50.000Z",
+        "priceAsOf": "2026-11-13T03:25:27.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6708,27 +6404,27 @@
       {
         "code": "601088.SH",
         "name": "中国神华",
-        "currentPrice": 48.95,
-        "currentDividendYield": 6.57,
-        "sustainableDividendYield": 5.13,
+        "currentPrice": 49.85,
+        "currentDividendYield": 6.45,
+        "sustainableDividendYield": 5.04,
         "currentAdvice": null,
         "score": 78,
         "summary": "股息高，但周期属性更强，价格和周期位置很重要。",
         "industry": "能源 / 煤炭",
-        "annualDividendPer100k": 5125,
+        "annualDividendPer100k": 5037,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 49.57,
-        "changePercent": -1.25,
-        "asOf": "2026-11-10T04:05:56.000Z",
+        "previousClose": 48.96,
+        "changePercent": 1.82,
+        "asOf": "2026-11-13T03:25:29.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:56.000Z",
+        "priceAsOf": "2026-11-13T03:25:29.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6736,27 +6432,27 @@
       {
         "code": "600938.SH",
         "name": "中国海油",
-        "currentPrice": 29.95,
-        "currentDividendYield": 5.8,
-        "sustainableDividendYield": 4.72,
+        "currentPrice": 30.87,
+        "currentDividendYield": 5.63,
+        "sustainableDividendYield": 4.58,
         "currentAdvice": null,
         "score": 79,
         "summary": "高分红但受油价周期影响，适合等更舒服的价格。",
         "industry": "能源 / 油气",
-        "annualDividendPer100k": 4724,
+        "annualDividendPer100k": 4579,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 31.07,
-        "changePercent": -3.6,
-        "asOf": "2026-11-10T04:05:31.000Z",
+        "previousClose": 30.23,
+        "changePercent": 2.12,
+        "asOf": "2026-11-13T03:25:29.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:31.000Z",
+        "priceAsOf": "2026-11-13T03:25:29.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6764,27 +6460,27 @@
       {
         "code": "000651.SZ",
         "name": "格力电器",
-        "currentPrice": 38.97,
-        "currentDividendYield": 6.15,
-        "sustainableDividendYield": 5.08,
+        "currentPrice": 39.68,
+        "currentDividendYield": 6.04,
+        "sustainableDividendYield": 4.99,
         "currentAdvice": null,
         "score": 78,
         "summary": "白电龙头，分红不差，但地产和消费周期会影响弹性。",
         "industry": "家电 / 白电",
-        "annualDividendPer100k": 5077,
+        "annualDividendPer100k": 4989,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 39.07,
-        "changePercent": -0.26,
-        "asOf": "2026-11-10T04:05:12.000Z",
+        "previousClose": 38.89,
+        "changePercent": 2.03,
+        "asOf": "2026-11-13T03:25:27.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:12.000Z",
+        "priceAsOf": "2026-11-13T03:25:27.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6792,27 +6488,27 @@
       {
         "code": "600585.SH",
         "name": "海螺水泥",
-        "currentPrice": 18.38,
-        "currentDividendYield": 5.58,
-        "sustainableDividendYield": 4.95,
+        "currentPrice": 17.98,
+        "currentDividendYield": 5.7,
+        "sustainableDividendYield": 5.06,
         "currentAdvice": null,
         "score": 80,
         "summary": "老牌分红资产，适合稳健收息与估值折价时布局。",
         "industry": "建材 / 制造",
-        "annualDividendPer100k": 4953,
+        "annualDividendPer100k": 5060,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 18.57,
-        "changePercent": -1.02,
-        "asOf": "2026-11-10T04:05:44.000Z",
+        "previousClose": 17.84,
+        "changePercent": 0.78,
+        "asOf": "2026-11-13T03:25:27.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:44.000Z",
+        "priceAsOf": "2026-11-13T03:25:27.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6820,27 +6516,27 @@
       {
         "code": "000333.SZ",
         "name": "美的集团",
-        "currentPrice": 88.16,
-        "currentDividendYield": 2.23,
-        "sustainableDividendYield": 2.11,
+        "currentPrice": 89.36,
+        "currentDividendYield": 2.2,
+        "sustainableDividendYield": 2.08,
         "currentAdvice": null,
         "score": 81,
         "summary": "家电龙头和制造能力都强，收息与成长兼顾。",
         "industry": "家电 / 智能制造",
-        "annualDividendPer100k": 2111,
+        "annualDividendPer100k": 2082,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 89.79,
-        "changePercent": -1.82,
-        "asOf": "2026-11-10T04:05:51.000Z",
+        "previousClose": 87.99,
+        "changePercent": 1.56,
+        "asOf": "2026-11-13T03:25:27.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:51.000Z",
+        "priceAsOf": "2026-11-13T03:25:27.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6848,14 +6544,14 @@
       {
         "code": "600011.SH",
         "name": "华能国际",
-        "currentPrice": 7.61,
-        "currentDividendYield": 5.78,
-        "sustainableDividendYield": 5.02,
+        "currentPrice": 7.83,
+        "currentDividendYield": 5.62,
+        "sustainableDividendYield": 4.88,
         "currentAdvice": null,
         "score": 72,
         "summary": "电力资产有现金流，但受煤价和电价周期影响较明显。",
         "industry": "电力 / 火电",
-        "annualDividendPer100k": 5021,
+        "annualDividendPer100k": 4879,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
@@ -6863,12 +6559,12 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 7.63,
-        "changePercent": -0.26,
-        "asOf": "2026-11-10T04:05:38.000Z",
+        "changePercent": 2.62,
+        "asOf": "2026-11-13T03:25:29.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:38.000Z",
+        "priceAsOf": "2026-11-13T03:25:29.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6876,27 +6572,27 @@
       {
         "code": "601288.SH",
         "name": "农业银行",
-        "currentPrice": 7.35,
-        "currentDividendYield": 4.49,
-        "sustainableDividendYield": 4.14,
+        "currentPrice": 7.32,
+        "currentDividendYield": 4.51,
+        "sustainableDividendYield": 4.16,
         "currentAdvice": null,
         "score": 84,
         "summary": "国有大行，分红连续性较好，适合稳健收息观察。",
         "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 4136,
+        "annualDividendPer100k": 4157,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 7.39,
-        "changePercent": -0.54,
-        "asOf": "2026-11-10T04:05:47.000Z",
+        "previousClose": 7.26,
+        "changePercent": 0.83,
+        "asOf": "2026-11-13T03:25:27.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:47.000Z",
+        "priceAsOf": "2026-11-13T03:25:27.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6904,14 +6600,14 @@
       {
         "code": "601328.SH",
         "name": "交通银行",
-        "currentPrice": 8.44,
-        "currentDividendYield": 4.1,
-        "sustainableDividendYield": 3.78,
+        "currentPrice": 8.52,
+        "currentDividendYield": 4.06,
+        "sustainableDividendYield": 3.74,
         "currentAdvice": null,
         "score": 82,
         "summary": "国有大行收息样本，股息与估值需结合最新年报观察。",
         "industry": "银行 / 国有大行",
-        "annualDividendPer100k": 3777,
+        "annualDividendPer100k": 3745,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
@@ -6919,12 +6615,12 @@
         "buy_zone_low": null,
         "buy_zone_high": null,
         "previousClose": 8.45,
-        "changePercent": -0.12,
-        "asOf": "2026-11-10T04:05:47.000Z",
+        "changePercent": 0.83,
+        "asOf": "2026-11-13T03:25:29.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:47.000Z",
+        "priceAsOf": "2026-11-13T03:25:29.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6932,27 +6628,27 @@
       {
         "code": "601166.SH",
         "name": "兴业银行",
-        "currentPrice": 19.6,
-        "currentDividendYield": 4.68,
-        "sustainableDividendYield": 4.21,
+        "currentPrice": 19.69,
+        "currentDividendYield": 4.66,
+        "sustainableDividendYield": 4.19,
         "currentAdvice": null,
         "score": 80,
         "summary": "股份行收息观察标的，关注股息可持续性与资产质量。",
         "industry": "银行 / 股份行",
-        "annualDividendPer100k": 4213,
+        "annualDividendPer100k": 4191,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 19.69,
-        "changePercent": -0.46,
-        "asOf": "2026-11-10T04:05:38.000Z",
+        "previousClose": 19.58,
+        "changePercent": 0.56,
+        "asOf": "2026-11-13T03:25:29.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:38.000Z",
+        "priceAsOf": "2026-11-13T03:25:29.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6960,27 +6656,27 @@
       {
         "code": "600000.SH",
         "name": "浦发银行",
-        "currentPrice": 10.15,
-        "currentDividendYield": 3.81,
-        "sustainableDividendYield": 3.46,
+        "currentPrice": 10.38,
+        "currentDividendYield": 3.73,
+        "sustainableDividendYield": 3.38,
         "currentAdvice": null,
         "score": 76,
         "summary": "股份行收息样本，需重点核对最新分红与资产质量。",
         "industry": "银行 / 股份行",
-        "annualDividendPer100k": 3460,
+        "annualDividendPer100k": 3383,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 10.1,
-        "changePercent": 0.5,
-        "asOf": "2026-11-10T04:05:33.000Z",
+        "previousClose": 10.21,
+        "changePercent": 1.67,
+        "asOf": "2026-11-13T03:25:29.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:33.000Z",
+        "priceAsOf": "2026-11-13T03:25:29.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -6988,27 +6684,27 @@
       {
         "code": "601006.SH",
         "name": "大秦铁路",
-        "currentPrice": 4.88,
-        "currentDividendYield": 5.51,
-        "sustainableDividendYield": 4.92,
+        "currentPrice": 4.84,
+        "currentDividendYield": 5.56,
+        "sustainableDividendYield": 4.96,
         "currentAdvice": null,
         "score": 83,
         "summary": "铁路运力资产，现金流与分红可观察，适合收息对照。",
         "industry": "交通运输 / 铁路",
-        "annualDividendPer100k": 4920,
+        "annualDividendPer100k": 4961,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 4.92,
-        "changePercent": -0.81,
-        "asOf": "2026-11-10T04:05:44.000Z",
+        "previousClose": 4.8,
+        "changePercent": 0.83,
+        "asOf": "2026-11-13T03:25:28.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:44.000Z",
+        "priceAsOf": "2026-11-13T03:25:28.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -7016,27 +6712,27 @@
       {
         "code": "600028.SH",
         "name": "中国石化",
-        "currentPrice": 5.73,
-        "currentDividendYield": 5.33,
-        "sustainableDividendYield": 4.64,
+        "currentPrice": 5.72,
+        "currentDividendYield": 5.34,
+        "sustainableDividendYield": 4.65,
         "currentAdvice": null,
         "score": 81,
         "summary": "能源央企收息观察样本，分红受油价与炼化价差影响。",
         "industry": "能源 / 炼化",
-        "annualDividendPer100k": 4636,
+        "annualDividendPer100k": 4648,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 5.8,
-        "changePercent": -1.21,
-        "asOf": "2026-11-10T04:05:42.000Z",
+        "previousClose": 5.61,
+        "changePercent": 1.96,
+        "asOf": "2026-11-13T03:25:28.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:42.000Z",
+        "priceAsOf": "2026-11-13T03:25:28.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -7044,27 +6740,27 @@
       {
         "code": "601857.SH",
         "name": "中国石油",
-        "currentPrice": 11.96,
-        "currentDividendYield": 4.7,
-        "sustainableDividendYield": 4.16,
+        "currentPrice": 12.39,
+        "currentDividendYield": 4.54,
+        "sustainableDividendYield": 4.02,
         "currentAdvice": null,
         "score": 82,
         "summary": "油气央企收息样本，现金流与油价周期高度相关。",
         "industry": "能源 / 油气",
-        "annualDividendPer100k": 4158,
+        "annualDividendPer100k": 4016,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 12.62,
-        "changePercent": -5.23,
-        "asOf": "2026-11-10T04:05:50.000Z",
+        "previousClose": 12.03,
+        "changePercent": 2.99,
+        "asOf": "2026-11-13T03:25:28.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:50.000Z",
+        "priceAsOf": "2026-11-13T03:25:28.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -7072,27 +6768,27 @@
       {
         "code": "600019.SH",
         "name": "宝钢股份",
-        "currentPrice": 6.19,
-        "currentDividendYield": 4.2,
-        "sustainableDividendYield": 3.55,
+        "currentPrice": 6.1,
+        "currentDividendYield": 4.26,
+        "sustainableDividendYield": 3.6,
         "currentAdvice": null,
         "score": 74,
         "summary": "钢铁龙头收息观察样本，分红与钢价周期绑定。",
         "industry": "钢铁 / 制造",
-        "annualDividendPer100k": 3550,
+        "annualDividendPer100k": 3602,
         "recommendPrice": null,
         "buyPrice": null,
         "safeMarginPrice": null,
         "rating": "B",
         "buy_zone_low": null,
         "buy_zone_high": null,
-        "previousClose": 6.15,
-        "changePercent": 0.65,
-        "asOf": "2026-11-10T04:05:39.000Z",
+        "previousClose": 6.05,
+        "changePercent": 0.83,
+        "asOf": "2026-11-13T03:25:28.000Z",
         "source": "腾讯证券公开行情",
         "quoteStatus": "live",
         "quoteNote": null,
-        "priceAsOf": "2026-11-10T04:05:39.000Z",
+        "priceAsOf": "2026-11-13T03:25:28.000Z",
         "priceSource": "腾讯证券公开行情",
         "actionPriceStatus": "manual_disabled",
         "actionPriceNote": "静态动作价已停用；待公司公告驱动后再恢复"
@@ -10046,18 +9742,18 @@
             "perTenSharesRmb": 7.4,
             "distributions": [
               {
-                "exDividendDate": "2026-09-30",
-                "noticeDate": "2026-09-23",
-                "reportBasis": "2026-06-30",
-                "perTenSharesRmb": 1.3,
-                "plan": "10派1.30元(含税,扣税后1.17元)"
-              },
-              {
                 "exDividendDate": "2026-07-02",
                 "noticeDate": "2026-06-26",
                 "reportBasis": "2025-12-31",
                 "perTenSharesRmb": 6.1,
                 "plan": "10派6.10元(含税,扣税后5.49元)"
+              },
+              {
+                "exDividendDate": "2026-09-30",
+                "noticeDate": "2026-09-23",
+                "reportBasis": "2026-06-30",
+                "perTenSharesRmb": 1.3,
+                "plan": "10派1.30元(含税,扣税后1.17元)"
               }
             ]
           }
@@ -13468,13 +13164,13 @@
         "fundManager": "易方达基金",
         "inceptionDate": "2019-11-26",
         "expenseRatio": "管理费 0.15% · 托管费 0.05%",
-        "currentPrice": 1.371,
-        "previousClose": 1.379,
-        "changePercent": -0.58,
-        "asOf": "2026-11-10T04:05:49.000Z",
+        "currentPrice": 1.373,
+        "previousClose": 1.363,
+        "changePercent": 0.73,
+        "asOf": "2026-11-13T03:25:35.000Z",
         "source": "腾讯证券公开行情",
         "priceSource": "腾讯证券公开行情",
-        "priceAsOf": "2026-11-10T04:05:49.000Z",
+        "priceAsOf": "2026-11-13T03:25:35.000Z",
         "distributionNote": "基金分红不固定；以基金公告为准",
         "researchView": {
           "state": "complete",
@@ -13482,18 +13178,6 @@
           "note": "价格、指数和基金资料已接入；分红金额仍以公告为准。"
         },
         "history": [
-          {
-            "date": "2026-06-30",
-            "close": 1.277
-          },
-          {
-            "date": "2026-07-01",
-            "close": 1.3
-          },
-          {
-            "date": "2026-07-02",
-            "close": 1.311
-          },
           {
             "date": "2026-07-03",
             "close": 1.325
@@ -13841,9 +13525,21 @@
           {
             "date": "2026-11-10",
             "close": 1.371
+          },
+          {
+            "date": "2026-11-11",
+            "close": 1.369
+          },
+          {
+            "date": "2026-11-12",
+            "close": 1.363
+          },
+          {
+            "date": "2026-11-13",
+            "close": 1.373
           }
         ],
-        "retrievedAt": "2026-11-10T04:37:37.872Z",
+        "retrievedAt": "2026-11-13T03:25:38.487Z",
         "dataStatus": "live",
         "historyStatus": "live",
         "historyFallbackReason": null,
@@ -13851,64 +13547,64 @@
         "fallbackAt": "2026-10-30T02:37:34.978Z"
       }
     ],
-    "asOf": "2026-11-10T04:05:56.000Z",
+    "asOf": "2026-11-13T03:25:29.000Z",
     "source": "腾讯证券公开行情"
   },
   "gold": {
     "status": "live",
-    "updatedAt": "2026-11-10T04:37:35.853Z",
+    "updatedAt": "2026-11-13T03:25:33.893Z",
     "quotes": {
       "international": {
         "symbol": "GC=F",
         "name": "COMEX 黄金",
-        "price": 4123.3,
+        "price": 3921,
         "currency": "USD/oz",
-        "changePercent": 0.21,
-        "asOf": "2026-11-10T04:27:22.000Z",
+        "changePercent": 0.92,
+        "asOf": "2026-11-13T03:15:27.000Z",
         "returns": {
-          "day20": -1.3,
-          "day60": -7.8,
-          "day180": -20.3
+          "day20": -6.2,
+          "day60": -14.2,
+          "day180": -25.3
         },
-        "percentile180": 22
+        "percentile180": 2
       },
       "domestic": {
         "symbol": "Au99.99",
         "name": "上海金 Au99.99",
-        "price": 881,
+        "price": 851.3,
         "currency": "CNY/g",
-        "changePercent": 1.43,
-        "asOf": "2026-11-09",
-        "percentile30": 40
+        "changePercent": -2.48,
+        "asOf": "2026-11-12",
+        "percentile30": 10
       },
       "etf": {
         "symbol": "GLD",
-        "price": 379.5,
-        "changePercent": 1.88,
-        "asOf": "2026-11-09T21:00:00.000Z"
+        "price": 354.9,
+        "changePercent": -2.82,
+        "asOf": "2026-11-12T21:00:00.000Z"
       },
       "usdCny": {
         "symbol": "USD/CNY",
         "price": 6.67,
-        "changePercent": -0.09,
-        "asOf": "2026-11-10T04:37:08.000Z"
+        "changePercent": 0.01,
+        "asOf": "2026-11-13T03:25:11.000Z"
       }
     },
     "indicators": [
       {
         "id": "realYield",
         "label": "10年实际利率",
-        "value": 2.63,
+        "value": 2.78,
         "unit": "%",
-        "asOf": "2026-11-06",
+        "asOf": "2026-11-10",
         "note": "越高，持有黄金的机会成本通常越高。"
       },
       {
         "id": "breakeven",
         "label": "10年通胀预期",
-        "value": 2.22,
+        "value": 2.24,
         "unit": "%",
-        "asOf": "2026-11-09",
+        "asOf": "2026-11-12",
         "note": "反映市场对未来平均通胀的定价。"
       },
       {
@@ -13923,9 +13619,9 @@
       {
         "id": "financialConditions",
         "label": "金融条件",
-        "value": -0.459,
+        "value": -0.462,
         "unit": "",
-        "asOf": "2026-10-30",
+        "asOf": "2026-11-06",
         "note": "正值偏紧，负值偏松。"
       },
       {
@@ -13939,14 +13635,14 @@
       {
         "id": "domesticPremium",
         "label": "上海金折算溢价",
-        "value": -0.4,
+        "value": 1.2,
         "unit": "%",
-        "asOf": "2026-11-09",
+        "asOf": "2026-11-12",
         "note": "比较 Au99.99 与国际金价人民币折算值。"
       }
     ],
     "answer": {
-      "score": 50,
+      "score": 48,
       "scores": {
         "international": {
           "score": 44,
@@ -13959,15 +13655,16 @@
           ]
         },
         "domestic": {
-          "score": 60,
+          "score": 54,
           "label": "人民币金观察分",
           "basis": "上海金价格位置、人民币汇率与国内折溢价",
           "signals": [
-            "上海金低于国际金人民币折算价"
+            "人民币金回到近 30 个交易日相对低位",
+            "人民币金日内下跌 2.5%"
           ]
         }
       },
-      "grade": "C",
+      "grade": "D",
       "action": "等待更好价格",
       "conclusion": "等待更好价格；价格已回到近半年相对低位。",
       "macroAvailable": true,
@@ -13982,51 +13679,39 @@
       "pricePlan": {
         "status": "research",
         "internationalWatch": {
-          "low": 3849,
-          "high": 3966,
+          "low": 3814,
+          "high": 3930,
           "currency": "USD/oz"
         },
         "internationalUpper": {
-          "low": 4284,
-          "high": 4380,
+          "low": 4100,
+          "high": 4207,
           "currency": "USD/oz"
         },
         "internationalRisk": {
-          "low": 3815,
-          "high": 3815,
+          "low": 3785,
+          "high": 3785,
           "currency": "USD/oz"
         },
         "domesticWatch": {
-          "low": 822.1,
-          "high": 847.1,
+          "low": 827.7,
+          "high": 852.9,
           "currency": "CNY/g"
         },
         "domesticUpper": {
-          "low": 915,
-          "high": 935.5,
+          "low": 889.8,
+          "high": 913,
           "currency": "CNY/g"
         },
         "domesticRisk": {
-          "low": 814.8,
-          "high": 814.8,
+          "low": 821.4,
+          "high": 821.4,
           "currency": "CNY/g"
         }
       }
     },
     "history": {
       "international": [
-        {
-          "date": "2026-02-25",
-          "close": 5226.2
-        },
-        {
-          "date": "2026-02-26",
-          "close": 5194.2
-        },
-        {
-          "date": "2026-02-27",
-          "close": 5247.9
-        },
         {
           "date": "2026-03-02",
           "close": 5311.6
@@ -14733,7 +14418,19 @@
         },
         {
           "date": "2026-11-10",
-          "close": 4123.3
+          "close": 4030.2
+        },
+        {
+          "date": "2026-11-11",
+          "close": 4000.5
+        },
+        {
+          "date": "2026-11-12",
+          "close": 3885.3
+        },
+        {
+          "date": "2026-11-13",
+          "close": 3921
         }
       ],
       "domestic": [
@@ -15047,7 +14744,19 @@
         },
         {
           "date": "2026-11-10",
-          "close": 881
+          "close": 883.42
+        },
+        {
+          "date": "2026-11-11",
+          "close": 872.98
+        },
+        {
+          "date": "2026-11-12",
+          "close": 851.33
+        },
+        {
+          "date": "2026-11-13",
+          "close": 851.3
         }
       ]
     },
@@ -15058,10 +14767,10 @@
         "priceType": "daily-close",
         "sourceUrl": "https://www.sge.com.cn/sjzx/quotation_daily_new",
         "firstDate": "2026-08-03",
-        "lastDate": "2026-11-09",
-        "sessions": 65,
+        "lastDate": "2026-11-12",
+        "sessions": 68,
         "requestedStart": "2026-08-01",
-        "requestedEnd": "2026-11-10",
+        "requestedEnd": "2026-11-13",
         "completeQueries": true,
         "interpolated": false,
         "requests": [
@@ -15096,8 +14805,8 @@
             "pageCount": 1
           },
           {
-            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-11-01&end_date=2026-11-10&inst_ids=Au99.99&p=1",
-            "rowCount": 6,
+            "url": "https://www.sge.com.cn/sjzx/quotation_daily_new?start_date=2026-11-01&end_date=2026-11-13&inst_ids=Au99.99&p=1",
+            "rowCount": 9,
             "page": 1,
             "pageCount": 1
           }
@@ -17895,69 +17604,69 @@
     {
       "id": "jpm-china-growth",
       "name": "摩根中国增长与收益",
-      "reportDate": "2026-07-31",
-      "filingDate": "2026-07-31",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-09-30",
       "previousReportDate": null,
       "portfolioValue": null,
       "holdings": [
         {
           "ticker": "Tencent",
           "issuer": "Tencent",
-          "weight": 16.4,
+          "weight": 14,
           "changeLabel": null
         },
         {
           "ticker": "Alibaba",
           "issuer": "Alibaba",
-          "weight": 9.4,
+          "weight": 7,
           "changeLabel": null
         },
         {
-          "ticker": "PDD Holdings",
-          "issuer": "PDD Holdings",
-          "weight": 4.4,
+          "ticker": "Pinduoduo",
+          "issuer": "Pinduoduo",
+          "weight": 3.7,
           "changeLabel": null
         },
         {
-          "ticker": "Contemporary Amperex Technology",
-          "issuer": "Contemporary Amperex Technology",
+          "ticker": "Tsmc",
+          "issuer": "Tsmc",
           "weight": 3.5,
-          "changeLabel": null
-        },
-        {
-          "ticker": "Ping An Insurance H",
-          "issuer": "Ping An Insurance H",
-          "weight": 3.3,
           "changeLabel": null
         },
         {
           "ticker": "Netease",
           "issuer": "Netease",
-          "weight": 2.9,
+          "weight": 3.4,
           "changeLabel": null
         },
         {
-          "ticker": "Zhongji Innolight",
-          "issuer": "Zhongji Innolight",
-          "weight": 2.7,
+          "ticker": "Ping An Insurance",
+          "issuer": "Ping An Insurance",
+          "weight": 3.2,
           "changeLabel": null
         },
         {
-          "ticker": "Taiwan Semiconductor",
-          "issuer": "Taiwan Semiconductor",
-          "weight": 2.6,
+          "ticker": "Catl",
+          "issuer": "Catl",
+          "weight": 2.8,
           "changeLabel": null
         },
         {
           "ticker": "China Merchants Bank",
           "issuer": "China Merchants Bank",
-          "weight": 2.5,
+          "weight": 2.8,
           "changeLabel": null
         },
         {
-          "ticker": "Kweichow Moutai",
-          "issuer": "Kweichow Moutai",
-          "weight": 2.2,
+          "ticker": "Zhongji Innolight",
+          "issuer": "Zhongji Innolight",
+          "weight": 2.8,
+          "changeLabel": null
+        },
+        {
+          "ticker": "Beigene",
+          "issuer": "Beigene",
+          "weight": 2.1,
           "changeLabel": null
         }
       ],
@@ -18017,69 +17726,69 @@
     {
       "id": "value-partners-classic",
       "name": "惠理价值基金",
-      "reportDate": "2026-09-30",
-      "filingDate": "2026-09-30",
+      "reportDate": "2026-10-31",
+      "filingDate": "2026-10-31",
       "previousReportDate": null,
       "portfolioValue": null,
       "holdings": [
         {
           "ticker": "Taiwan Semiconductor Manufacturing Co Ltd",
           "issuer": "Taiwan Semiconductor Manufacturing Co Ltd",
-          "weight": 9.8,
+          "weight": 9.9,
           "changeLabel": null
         },
         {
           "ticker": "Tencent Holdings Ltd",
           "issuer": "Tencent Holdings Ltd",
-          "weight": 6.9,
+          "weight": 6.8,
           "changeLabel": null
         },
         {
           "ticker": "Elite Material Co Ltd",
           "issuer": "Elite Material Co Ltd",
-          "weight": 5.9,
-          "changeLabel": null
-        },
-        {
-          "ticker": "MediaTek Inc",
-          "issuer": "MediaTek Inc",
-          "weight": 5.2,
+          "weight": 6,
           "changeLabel": null
         },
         {
           "ticker": "Zijin Mining Group Co Ltd",
           "issuer": "Zijin Mining Group Co Ltd",
-          "weight": 4.9,
+          "weight": 4.7,
+          "changeLabel": null
+        },
+        {
+          "ticker": "MediaTek Inc",
+          "issuer": "MediaTek Inc",
+          "weight": 4.4,
           "changeLabel": null
         },
         {
           "ticker": "Alibaba Group Holding Ltd",
           "issuer": "Alibaba Group Holding Ltd",
-          "weight": 3.9,
+          "weight": 4,
           "changeLabel": null
         },
         {
           "ticker": "Taiwan Union Technology Corp",
           "issuer": "Taiwan Union Technology Corp",
-          "weight": 3.8,
-          "changeLabel": null
-        },
-        {
-          "ticker": "Wiwynn Corp",
-          "issuer": "Wiwynn Corp",
-          "weight": 2.7,
-          "changeLabel": null
-        },
-        {
-          "ticker": "Delta Electronics Inc",
-          "issuer": "Delta Electronics Inc",
-          "weight": 2.5,
+          "weight": 3.1,
           "changeLabel": null
         },
         {
           "ticker": "China Mobile Ltd",
           "issuer": "China Mobile Ltd",
-          "weight": 2.2,
+          "weight": 2.6,
+          "changeLabel": null
+        },
+        {
+          "ticker": "SIIC Environment Holdings Ltd",
+          "issuer": "SIIC Environment Holdings Ltd",
+          "weight": 2.5,
+          "changeLabel": null
+        },
+        {
+          "ticker": "Wiwynn Corp",
+          "issuer": "Wiwynn Corp",
+          "weight": 2.5,
           "changeLabel": null
         }
       ],
@@ -18087,9 +17796,161 @@
       "trackingScore": 95,
       "trackingSummary": "定期披露持仓完整，可用于跟踪方向变化，但更新频率低于 13F。",
       "source": "Value Partners 基金月度 Factsheet",
-      "sourceUrl": "https://www.valuepartners-group.com/ftp/files/reports/vpaf/001_fact_sheet/eng/vpaf_fact_sheet_2026-09-01_en.pdf",
+      "sourceUrl": "https://www.valuepartners-group.com/ftp/files/reports/vpaf/001_fact_sheet/eng/vpaf_fact_sheet_2026-10-01_en.pdf",
+      "isLive": false
+    },
+    {
+      "id": "chinaamc-largecap",
+      "name": "华夏大盘精选混合",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-09-30",
+      "previousReportDate": "2026-06-30",
+      "portfolioValue": null,
+      "holdings": [
+        {
+          "ticker": "新易盛",
+          "issuer": "新易盛",
+          "weight": 4.99,
+          "changeLabel": "增持 +25%"
+        },
+        {
+          "ticker": "三环集团",
+          "issuer": "三环集团",
+          "weight": 4.6,
+          "changeLabel": "新进"
+        },
+        {
+          "ticker": "中芯国际",
+          "issuer": "中芯国际",
+          "weight": 4.54,
+          "changeLabel": "增持 +1%"
+        },
+        {
+          "ticker": "宁德时代",
+          "issuer": "宁德时代",
+          "weight": 4.44,
+          "changeLabel": "增持 +19%"
+        },
+        {
+          "ticker": "沪电股份",
+          "issuer": "沪电股份",
+          "weight": 3.88,
+          "changeLabel": "增持 +22%"
+        },
+        {
+          "ticker": "紫金矿业",
+          "issuer": "紫金矿业",
+          "weight": 3.31,
+          "changeLabel": "新进"
+        },
+        {
+          "ticker": "北方华创",
+          "issuer": "北方华创",
+          "weight": 2.9,
+          "changeLabel": "减持 -21%"
+        },
+        {
+          "ticker": "东山精密",
+          "issuer": "东山精密",
+          "weight": 2.85,
+          "changeLabel": "减持 -6%"
+        },
+        {
+          "ticker": "寒武纪",
+          "issuer": "寒武纪",
+          "weight": 2.79,
+          "changeLabel": "新进"
+        },
+        {
+          "ticker": "海光信息",
+          "issuer": "海光信息",
+          "weight": 2.55,
+          "changeLabel": "基本不变"
+        }
+      ],
+      "sold": [],
+      "trackingScore": 90,
+      "trackingSummary": "定期披露持仓完整，可用于跟踪方向变化，但更新频率低于 13F。",
+      "source": "东方财富基金定期报告持仓",
+      "sourceUrl": "https://fundf10.eastmoney.com/ccmx_000011.html",
+      "isLive": false
+    },
+    {
+      "id": "fullgoal-tianhui",
+      "name": "富国天惠成长混合(LOF)",
+      "reportDate": "2026-09-30",
+      "filingDate": "2026-09-30",
+      "previousReportDate": "2026-06-30",
+      "portfolioValue": null,
+      "holdings": [
+        {
+          "ticker": "宁波银行",
+          "issuer": "宁波银行",
+          "weight": 9.92,
+          "changeLabel": "减持 -6%"
+        },
+        {
+          "ticker": "杰瑞股份",
+          "issuer": "杰瑞股份",
+          "weight": 7.75,
+          "changeLabel": "增持 +7%"
+        },
+        {
+          "ticker": "中际旭创",
+          "issuer": "中际旭创",
+          "weight": 4.58,
+          "changeLabel": "增持 +70%"
+        },
+        {
+          "ticker": "春风动力",
+          "issuer": "春风动力",
+          "weight": 4.38,
+          "changeLabel": "减持 -12%"
+        },
+        {
+          "ticker": "泽璟制药",
+          "issuer": "泽璟制药",
+          "weight": 3.67,
+          "changeLabel": "增持 +30%"
+        },
+        {
+          "ticker": "广钢气体",
+          "issuer": "广钢气体",
+          "weight": 3.66,
+          "changeLabel": "减持 -13%"
+        },
+        {
+          "ticker": "长鑫科技",
+          "issuer": "长鑫科技",
+          "weight": 3.27,
+          "changeLabel": "新进"
+        },
+        {
+          "ticker": "宁德时代",
+          "issuer": "宁德时代",
+          "weight": 2.86,
+          "changeLabel": "减持 -47%"
+        },
+        {
+          "ticker": "贵州茅台",
+          "issuer": "贵州茅台",
+          "weight": 2.25,
+          "changeLabel": "新进"
+        },
+        {
+          "ticker": "滨江集团",
+          "issuer": "滨江集团",
+          "weight": 2.16,
+          "changeLabel": "减持 -29%"
+        }
+      ],
+      "sold": [],
+      "trackingScore": 90,
+      "trackingSummary": "定期披露持仓完整，可用于跟踪方向变化，但更新频率低于 13F。",
+      "source": "东方财富基金定期报告持仓",
+      "sourceUrl": "https://fundf10.eastmoney.com/ccmx_161005.html",
       "isLive": false
     }
   ],
-  "revisionAt": "2026-11-10T04:38:26.229Z"
+  "revisionAt": "2026-11-13T03:26:11.272Z"
 }

@@ -40,13 +40,14 @@ function fixture(file, { reviewed = false, component = false, now = Date.parse("
   return { page, calls };
 }
 
-test("the group shows the confirmed annual price and offers consultation without payment", () => {
+test("the group shows the confirmed annual price and stays unpayable until server readiness resolves", () => {
   const { page, calls } = fixture("../miniprogram/pages/community/index.js");
   page.onLoad();
   assert.equal(community.priceCny, 298);
-  assert.equal(community.checkoutEnabled, false);
+  assert.equal(community.checkoutEnabled, true);
+  assert.equal(page.data.checkoutReady, false, "client never exposes buy CTA before server status confirms checkoutReady");
   assert.equal(page.data.priceLabel, "298 元 / 年");
-  assert.match(page.data.purchaseNote, /暂未开放付款/);
+  assert.match(page.data.purchaseNote, /核对支付状态|咨询/);
   page.copyWechat();
   assert.equal(calls.events.filter((event) => event.name === "service_copy").length, 0);
   calls.copies[0].fail();
@@ -105,7 +106,8 @@ test("an ended group price cannot silently become an active promotion or a highe
   const { page } = fixture("../miniprogram/pages/community/index.js", { now: Date.parse("2027-01-01T00:00:01+08:00") });
   page.onLoad();
   assert.equal(page.data.priceLabel, "本期价格已结束");
-  assert.equal(community.checkoutEnabled, false);
+  assert.equal(page.data.checkoutReady, false);
+  assert.match(page.data.purchaseNote, /后续安排确认后公布/);
   assert.ok(community.serviceTerms && community.refundTerms && community.deliveryTerms);
   assert.equal(community.priceCny, 298, "no automatic return to an unverified reference price");
 });

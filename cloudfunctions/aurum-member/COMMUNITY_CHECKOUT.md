@@ -1,8 +1,12 @@
-# 会员群付款（未开放）
+# 会员群付款（已开启公开收款）
 
 社群商品 `community-365d` 单独使用 `community_orders` 集合，服务端固定 29800 分；旧 `member_orders` 和 `member_entitlements` 不接收群订单或群权益。付款查单仅表示已付款、待添加微信并由工作人员安排入群；365 天从实际入群日起算，不在付款时计时。
 
-2026-11-04 群后台代码已部署至 `aurum-member`，公众收款保持关闭。受控测试模式已启用并仅允许负责人确认的一个微信；测试预览客户端已准备，尚未发起订单或付款。负责人已确认个人微信二维码可由另一个微信扫码添加；小程序付款后展示及扫码仍需真机验收。管理员白名单已配置，开发者工具调用线上管理权限接口返回允许；手机端管理界面仍需验收。续费及退款处理尚未接通，真实付款/退款尚未验收。
+2026-11-04 群后台代码已部署至 `aurum-member`，受控测试模式与管理员白名单就绪，负责人已确认个人微信二维码可由另一个微信扫码添加。
+
+2026-11-25 负责人确认将本期 298 元档期顺延至 `2026-12-31T23:59:59+08:00`（北京时间），到期后客户端及服务端均自动停单，不自动续费或跳价，并重新部署 `aurum-member` 生效。
+
+2026-11-26 负责人确认小程序真机核验无误，正式开启公开收款：客户端 `miniprogram/config/community.js` 的 `checkoutEnabled` 置为 `true`；云端 `aurum-member` 环境变量调整为 `WANGCHAO_COMMUNITY_TEST_MODE=false`、`WANGCHAO_COMMUNITY_RELEASE_APPROVED=true`（同时保留 `WANGCHAO_COMMUNITY_CHECKOUT_ENABLED=true`、`WANGCHAO_COMMUNITY_DELIVERY_READY=true` 及管理员白名单）。如需紧急暂停群收款，只需将云端 `WANGCHAO_COMMUNITY_CHECKOUT_ENABLED` 设为 `false` 即可秒级熔断，无需发版。
 
 `community-fulfillment.js` 为独立履约账本，管理员身份使用服务端 OpenID 哈希白名单，默认为空并拒绝访问；已绑定经用户确认的管理微信并验证开发者工具服务端授权，管理页和实际登记仍待手机和真实订单验收。用户页面仅在支付查单通过后显示登记的服务期限。
 

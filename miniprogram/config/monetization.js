@@ -7,10 +7,12 @@ const CHANNELS = {
   paidGroup: {
     tier: 1,
     name: "付费微信群（298元/年）",
-    status: "test_ready",
+    status: "public_active",
+    enabled: true,
+    reviewed: true,
     configFile: "config/community.js",
     cloudFunction: "aurum-member",
-    riskGate: "须完成真机真实支付、查单弹二维码、管理员登记入群与退款验收（本期 298 元档期已顺延至 2026-12-31），验收后再向公众开放。",
+    riskGate: "2026-11-26 负责人已完成真机验收并开启公开收款（本期 298 元档期至 2026-12-31）；服务端微信查单 SUCCESS 后弹二维码，服务期自实际入群日起算 365 天，不自动续费。",
     revenueEvidence: "服务端微信支付查单 SUCCESS + 实际入群履约记录",
   },
   wechatAd: {

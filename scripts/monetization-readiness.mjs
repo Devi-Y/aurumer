@@ -26,11 +26,12 @@ const report = {
   },
   community: {
     priceCny: community.priceCny, term: community.termLabel,
-    state: community.checkoutEnabled && community.wechatQrImage ? "configured-needs-live-verification" : "consultation-only",
+    state: community.checkoutEnabled && community.wechatQrImage ? "public-checkout-enabled" : "consultation-only",
     promotionEndsAt: community.promotionEndsAt,
     termsVersion: community.termsVersion,
     qrScanConfirmedByOwner: qrConfirmed,
-    missing: [!community.serviceTerms && "服务与交付约定", !community.refundTerms && "退款约定", !qrConfirmed && "二维码微信扫码及账号归属验证", "小程序内付款后展示与扫码真机验收", !community.checkoutEnabled && "客户端付款开关", "群支付平台准入及真实付款和入群验收"].filter(Boolean),
+    ownerAcceptanceConfirmedAt: "2026-11-26",
+    missing: [!community.serviceTerms && "服务与交付约定", !community.refundTerms && "退款约定", !qrConfirmed && "二维码微信扫码及账号归属验证", !community.checkoutEnabled && "客户端付款开关", "公众真实订单入群履约与退款结算台账持续核验"].filter(Boolean),
     settlementEvidence: "群服务独立订单、服务端支付确认及真实入群履约；不能沿用旧研究会员订单",
   },
   providers: ["hk-open-account", "open-account", "a-open-account", "global-access"].map((id) => {

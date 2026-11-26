@@ -19,11 +19,11 @@ function pageFixture({ qr = community.wechatQrImage, enabled = true } = {}) {
   });
   return { page, images, copies, routes, setAdminResult: (v) => { adminResult = v; }, setResult: (v) => { result = v; }, calls: () => calls };
 }
-test("configured personal QR is a bundled JPEG and checkout remains closed", () => {
+test("configured personal QR is a bundled JPEG and client checkout gate is enabled", () => {
   assert.match(community.wechatQrImage, /^\/assets\/offers\/[a-z0-9-]+\.jpg$/);
   const bytes = readFileSync(new URL(`../miniprogram${community.wechatQrImage}`, import.meta.url));
   assert.equal(bytes.subarray(0, 3).toString("hex"), "ffd8ff");
-  assert.equal(community.checkoutEnabled, false);
+  assert.equal(community.checkoutEnabled, true);
 });
 test("checkout stays closed when no personal QR image is configured", async () => {
   const f = pageFixture({ qr: "" });

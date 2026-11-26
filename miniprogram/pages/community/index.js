@@ -27,7 +27,7 @@ Page({
     unfit: UNFIT,
     join: null,
     priceLabel: `${COMMUNITY.priceCny} 元 / ${COMMUNITY.termLabel}`,
-    purchaseNote: "暂未开放付款，可先了解服务与退款约定。",
+    purchaseNote: COMMUNITY.checkoutEnabled ? "正在核对支付状态，请稍候；也可先复制微信号咨询。" : "暂未开放付款，可先了解服务与退款约定。",
     promotionNote: COMMUNITY.promotionNote,
     footerDisclaimer: FOOTER_DISCLAIMER,
     checkoutReady: false,
@@ -44,7 +44,7 @@ Page({
     const offer = OFFERS.find((item) => item && item.id === OFFER_ID);
     const join = offer && offer.copy ? { label: offer.label || "复制微信号", disclosure: offer.disclosure || "" } : null;
     const expired = Date.now() > Date.parse(COMMUNITY.promotionEndsAt);
-    this.setData({ join, ...(expired ? { priceLabel: "本期价格已结束", purchaseNote: "后续安排确认后公布，可先咨询。" } : {}) });
+    this.setData({ join, ...(expired ? { priceLabel: "本期价格已结束", purchaseNote: "后续安排确认后公布，可先咨询。", checkoutReady: false } : {}) });
     track("community_open", { from: String(options.from || "direct") });
     if (wx.cloud) this.refreshStatus(false);
     if (wx.cloud && typeof wx.cloud.callFunction === "function") this.checkAdminAccess();
@@ -57,11 +57,15 @@ Page({
   refreshStatus(openAfterPaid = false, attempt = 0) {
     this.setData({ checking: true });
     return communityService.status().then((state) => {
+      const expired = Date.now() > Date.parse(COMMUNITY.promotionEndsAt);
       const rawOrder = state.order || null;
       const order = rawOrder && rawOrder.paid && !state.verificationPending && rawOrder.fulfillment
         ? { ...rawOrder, endsText: displayBeijing(rawOrder.fulfillment.endsAt) } : rawOrder;
-      const checkoutReady = Boolean(COMMUNITY.checkoutEnabled && COMMUNITY.wechatQrImage && state.checkoutReady);
-      this.setData({ checkoutReady, order, verificationPending: Boolean(state.verificationPending), checking: false,
+      const checkoutReady = Boolean(!expired && COMMUNITY.checkoutEnabled && COMMUNITY.wechatQrImage && state.checkoutReady);
+      const nextNote = expired
+        ? "后续安排确认后公布，可先咨询。"
+        : (checkoutReady ? "" : (COMMUNITY.checkoutEnabled ? "当前暂未开放付款，可先了解服务约定或添加微信咨询。" : "暂未开放付款，可先了解服务与退款约定。"));
+      this.setData({ checkoutReady, order, verificationPending: Boolean(state.verificationPending), checking: false, purchaseNote: nextNote,
         ...(!order || !order.paid || state.verificationPending ? { showQr: false } : {}) });
       if (order && order.paid && !state.verificationPending && openAfterPaid) {
         this.openPaidQr();

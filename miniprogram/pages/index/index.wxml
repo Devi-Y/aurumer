@@ -69,60 +69,10 @@
     </view>
   </view>
 
-  <!-- 借鉴有知有行知行温度计 × 韭圈儿 × 且慢：深蓝精装头卡，三温带具象化 + 算法公开透明。 -->
-  <view wx:if="{{pulse}}" class="pulse-hero">
-    <view class="pulse-top">
-      <view class="pulse-eyebrow-row">
-        <text class="pulse-eyebrow">全市场历史温度</text>
-        <text class="pulse-rule-btn" bindtap="togglePulseInfo" aria-role="button">{{pulseInfoOpen ? '收起口径' : '怎么算的？'}}</text>
-      </view>
-      <text class="pulse-date">{{dataAsOf || '读取历史资料'}}</text>
-    </view>
-    <view class="pulse-main">
-      <view class="pulse-score-wrap">
-        <text class="pulse-score">{{pulse.score}}</text>
-        <text class="pulse-unit">°</text>
-      </view>
-      <view class="pulse-copy-wrap">
-        <text class="pulse-zone tone-{{pulse.zoneTone}}">{{pulse.zoneLabel}}</text>
-        <text class="pulse-desc">{{pulse.plainCopy}}</text>
-      </view>
-    </view>
-    <view class="pulse-gauge" aria-hidden="true">
-      <view class="pulse-gauge-track">
-        <view class="pulse-gauge-dot" style="left: {{pulse.score}}%;"></view>
-      </view>
-      <view class="pulse-gauge-labels">
-        <text>0–35° 偏冷区</text>
-        <text>36–67° 舒适区</text>
-        <text>68–100° 偏热区</text>
-      </view>
-    </view>
-    <view wx:if="{{pulseInfoOpen}}" class="pulse-info-drawer">
-      <text class="pulse-info-line">· 口径透明：由港股首日上涨比、美股七姐妹上涨比、红利ETF区间位置、国际金价区间位置四项已披露历史数据等权算得。</text>
-      <text class="pulse-info-line">· 理性边界：温度只反映过去一段样本冷暖，帮你减少情绪追涨杀跌，不预测明天涨跌。</text>
-    </view>
-    <view class="pulse-pills">
-      <view
-        wx:for="{{pulse.pills}}"
-        wx:key="id"
-        class="pulse-pill"
-        data-market="{{item.market}}"
-        data-detail-id="{{item.detailId}}"
-        bindtap="openTrend"
-        hover-class="pulse-pill-tap"
-        aria-role="button"
-      >
-        <text class="pulse-pill-k">{{item.shortName}}</text>
-        <text class="pulse-pill-v tone-{{item.moodTone}}">{{item.mood}}</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 四大市场走势卡：每张一个核心数字 + 白话温度标 + 升级渐变曲线/零轴柱图。 -->
+  <!-- 四大市场走势卡：一卡只说一件事（板块 + 大号核心结果 + 走势图），零多余标签。 -->
   <view class="group-head home-head">
     <text class="group-label">历史走势参考</text>
-    <text wx:if="{{!pulse}}" class="group-meta">历史样本对照</text>
+    <text class="group-meta">{{dataAsOf || '读取历史资料'}}</text>
   </view>
   <view wx:if="{{trends.length}}" class="trend-grid">
     <view
@@ -140,10 +90,6 @@
       <view class="trend-heading">
         <text class="trend-title">{{item.title}}</text>
         <text class="trend-arrow" aria-hidden="true">›</text>
-      </view>
-      <view class="trend-meta-row">
-        <text class="trend-date">{{item.asOf}}</text>
-        <text wx:if="{{item.mood}}" class="trend-mood tone-{{item.moodTone}}">{{item.mood}}</text>
       </view>
       <view class="trend-figure">
         <text class="trend-value">{{item.value}}</text>
@@ -163,7 +109,6 @@
   <view class="page-card home-panel">
     <view class="panel-head">
       <text class="group-label">免费决策参考</text>
-      <text class="panel-sub">五大免费研究 · 四项直达服务</text>
     </view>
     <view class="entry-grid">
       <block wx:for="{{entries}}" wx:key="id">

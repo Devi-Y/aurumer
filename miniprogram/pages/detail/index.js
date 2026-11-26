@@ -3192,12 +3192,6 @@ Page({
   // 方法名留着没改（调用点还叫 drawActiveLineCharts）。折线已经是 SVG 图片，
   // 这里只剩 radar/scatter 两种 canvas 图表，共用同一套节点探测与重试逻辑。
   drawActiveLineCharts() {
-    if (this.data.activeModule === "overview") {
-      const radar = this.data.view && this.data.view.overview && this.data.view.overview.radar;
-      if (radar && radar.canvasId && Array.isArray(radar.axes) && radar.axes.length >= 3) {
-        this.drawRadarChart(radar.canvasId, radar.axes);
-      }
-    }
     (this.data.activeCharts || []).forEach((item) => {
       if (!item) return;
       if (item.kind === "radar" && Array.isArray(item.axes)) {

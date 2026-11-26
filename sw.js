@@ -1,4 +1,4 @@
-const CACHE_NAME = "aurum-shell-v13";
+const CACHE_NAME = "aurum-shell-v14";
 const BASE = new URL(self.registration.scope).pathname;
 const SHELL = [
   BASE,
@@ -30,17 +30,30 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+function fetchWithTimeout(request, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("timeout")), timeoutMs);
+    fetch(request).then(
+      (response) => { clearTimeout(timer); resolve(response); },
+      (error) => { clearTimeout(timer); reject(error); },
+    );
+  });
+}
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || !url.pathname.startsWith(BASE)) return;
 
+  // 数据快照：网络优先，3.5 秒超时即回退缓存，弱网不白屏。
   if (url.pathname.endsWith("/data/live-snapshot.json") || url.pathname.endsWith("/data/daily-digest.json")) {
     event.respondWith(
-      fetch(event.request)
+      fetchWithTimeout(event.request, 3500)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
           return response;
         })
         .catch(() => caches.match(event.request)),
@@ -48,15 +61,19 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // 静态壳层资源：Stale-While-Revalidate，缓存命中即瞬开，后台静默更新。
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        }
-        return response;
-      })
-      .catch(async () => (await caches.match(event.request)) || caches.match(`${BASE}index.html`)),
+    caches.match(event.request).then((cached) => {
+      const network = fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => cached || caches.match(`${BASE}index.html`));
+      return cached || network;
+    }),
   );
 });

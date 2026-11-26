@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { test } from "node:test";
+import vm from "node:vm";
 const require = createRequire(import.meta.url);
 const { buildGuruTrend } = require("../miniprogram/utils/guru-trend.js");
 const holding = (ticker, changeType, extra = {}) => ({ ticker, changeType, putCall: null, weight: 5, ...extra });
@@ -58,4 +60,36 @@ test("single-manager direction accepts canonical up/down codes and leaves unknow
   assert.deepEqual(result.increased.map((row) => row.ticker), ["AAPL"]);
   assert.deepEqual(result.decreased.map((row) => row.ticker), ["MSFT"]);
   assert.deepEqual(result.topHoldings.map((row) => row.changeLabel), ["up", "down", "same", ""]);
+});
+
+function renderGuruModule(investors) {
+  const page = new URL("../miniprogram/pages/section/index.js", import.meta.url);
+  const context = { require: createRequire(page), Page() {} };
+  vm.runInNewContext(`${readFileSync(page, "utf8")}\nglobalThis.render = buildGuruModule;`, context);
+  return context.render({ investors });
+}
+
+test("the section shows distinct change types from the same two quarterly disclosures", () => {
+  const dates = { reportDate: "2026-06-30", previousReportDate: "2026-03-31" };
+  const view = renderGuruModule([
+    investor("existing", [holding("STM", "up"), holding("BAC", "down")], dates),
+    investor("new", [holding("STM", "new")], { ...dates, sold: [{ ticker: "BAC", putCall: null }] }),
+    investor("unpaired", [holding("STM", "new")], { reportDate: dates.reportDate }),
+    investor("skipped", [holding("BAC", "down")], { ...dates, previousReportDate: "2025-12-31" }),
+    investor("other-period", [holding("STM", "up")], { reportDate: "2026-09-30", previousReportDate: "2026-06-30" }),
+  ]);
+  assert.equal(view.trendTitle, "报告期截至 2026-06-30");
+  assert.match(view.trendHint, /^2家机构的部分持仓.*披露有滞后$/);
+  assert.equal(view.trendRows.find((row) => row.key === "STM").badge, "1家增持 · 1家新进");
+  assert.equal(view.trendRows.find((row) => row.key === "BAC").badge, "1家减持 · 1家清仓");
+});
+
+test("the section does not present undated or single-quarter holdings as changes", () => {
+  const view = renderGuruModule([
+    investor("undated", [holding("STM", "new")], { reportDate: "" }),
+    investor("single-quarter", [holding("BAC", "new")]),
+  ]);
+  assert.equal(view.trendRows.length, 0);
+  assert.equal(view.trendHint, "");
+  assert.equal(view.trendEmptyText, "暂无同一报告期可比较的持仓资料");
 });

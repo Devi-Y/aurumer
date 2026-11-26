@@ -140,6 +140,19 @@ test("duplicate events do not inflate a year and conflicting amounts block scori
   assert.deepEqual(result.conflictingYears, [2025]);
 });
 
+test("a dividend amount that disagrees with its plan is not shown as a verified event", () => {
+  const raw = rawFixture();
+  raw.financials.dividendHistory[0].distributions[0].plan = "10派9元(含税)";
+  const result = analyze(raw);
+  assert.equal(result.score, null);
+  assert.equal(result.window[0].perTenSharesRmb, null);
+  assert.ok(result.excluded.some((entry) => entry.reason === "plan-amount-conflict"));
+  const actual = snapshot.aShare.fundamentals.find((item) => item.code === "600900.SH");
+  const historical = getDividendStability(actual, { asOf: snapshot.updatedAt });
+  assert.ok(historical.excluded.some((entry) => entry.year === 2016 && entry.reason === "plan-amount-conflict"));
+  assert.ok(!historical.years.some((entry) => entry.year === 2016));
+});
+
 test("share-basis changes cannot create an unadjusted dividend-cut ranking", () => {
   const raw = rawFixture();
   raw.financials.dividendHistory[2].distributions[0].plan = "10转5派12元(含税)";
@@ -201,4 +214,41 @@ test("real 20-stock snapshot keeps year gaps and future distributions visible", 
   }
   const summary = results.map((result) => `${result.code} score=${result.score ?? "null"} years=${result.consecutiveYears}/5 cuts=${result.decreaseCount ?? "unknown"} missing=${result.missingYears.join(",") || "none"} future=${result.excluded.filter((row) => row.reason === "future-ex-date").length}`);
   console.log(`Real fixture: ${fixturePath}; asOf=${snapshot.updatedAt}\n${summary.join("\n")}`);
+});
+
+test("historical yield uses the latest complete fiscal year and dated price", () => {
+  const { getHistoricalDividendYield } = require("../miniprogram/utils/historical-dividend-yield.js");
+  const raw = { ...rawFixture(), currentPrice: 20, priceAsOf: "2026-10-20T07:00:00Z", priceSource: "test quote", snapshotUpdatedAt: "2026-10-20T09:00:00Z" };
+  const result = getHistoricalDividendYield(raw);
+  assert.equal(result.year, 2025);
+  assert.equal(result.dividendPerShare, 1.4);
+  assert.ok(Math.abs(result.yieldPercent - 7) < 1e-10);
+  assert.equal(result.priceAsOf, "2026-10-20");
+  for (const bad of [
+    { priceSource: "" }, { currentPrice: 0 }, { priceAsOf: "bad" }, { priceAsOf: "2026-02-30" },
+    { priceAsOf: "2026-10-21T07:00:00Z" },
+    { financials: { ...raw.financials, dividendHistorySource: "" } },
+    { assetType: "fund" },
+  ]) assert.equal(getHistoricalDividendYield({ ...raw, ...bad }), null);
+  const futureEvent = copy(raw);
+  futureEvent.financials.dividendHistory.at(-1).distributions[0].exDividendDate = "2026-10-21";
+  assert.equal(getHistoricalDividendYield(futureEvent), null);
+  const incomplete = copy(raw);
+  incomplete.financials.dividendHistory.at(-1).distributions[0].reportBasis = "2025-06-30";
+  assert.equal(getHistoricalDividendYield(incomplete), null);
+});
+
+test("both A-share rankings use their displayed metric with deterministic ties", () => {
+  const { allItems, aShareDividendStability } = require("../miniprogram/utils/answers.js");
+  const mini = require("../miniprogram/data/live-snapshot.js");
+  const rows = allItems(mini, "a");
+  for (const lens of ["stable5", "yield5"]) {
+    const ranked = rows.filter(row => row.lenses?.includes(lens)).sort((a, b) => a.lensRank[lens] - b.lensRank[lens]);
+    assert.equal(ranked.length, 5);
+    const metric = row => lens === "stable5" ? aShareDividendStability(row.raw) : row.raw.historicalDividendYield.yieldPercent;
+    for (let i = 1; i < ranked.length; i++) {
+      assert.ok(metric(ranked[i - 1]) >= metric(ranked[i]));
+      if (metric(ranked[i - 1]) === metric(ranked[i])) assert.ok(ranked[i - 1].code.localeCompare(ranked[i].code) < 0);
+    }
+  }
 });

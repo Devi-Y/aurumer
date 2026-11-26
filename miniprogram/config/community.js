@@ -11,7 +11,9 @@ module.exports = {
   deliveryTerms: "付款并提供可联系微信后24小时内安排入群，服务期自实际入群日起计算365天，不自动续费。",
   refundTerms: "入群前可全额退款；入群后7日内可退出并全额退款；第8日起可按剩余未使用天数占365天的比例退款，不影响法定消费者权利。",
   refundHandling: "退款申请3个工作日内受理，核实后原路退回；到账时间以支付平台和银行为准。",
-  promotionEndsAt: "2026-11-30T23:59:59+08:00",
-  promotionNote: "本次298元年费至2026年11月30日；期满后以重新公布的价格为准，不自动续费。",
+  promotionEndsAt: "2026-12-31T23:59:59+08:00",
+  promotionNote: "本次298元年费至2026年12月31日；期满后以重新公布的价格为准，不自动续费。",
   checkoutEnabled: false,
+  // 负责人提供的个人微信二维码；支付开通仍受独立客户端及服务端开关控制。
+  wechatQrImage: "/assets/offers/community-wechat.jpg",
 };

@@ -130,9 +130,15 @@ function preparedPayment() {
   };
 }
 
-assert(appConfig.pages.includes("pages/member/index"), "会员页未注册到 app.json");
-assert(appConfig.pages.includes("pages/legal/index"), "会员协议与隐私说明页未注册到 app.json");
-assert(appConfig.pages.includes("pages/workspace/index"), "研究工作台未注册到 app.json");
+const allAppPages = [
+  ...(appConfig.pages || []),
+  ...((appConfig.subpackages || appConfig.subPackages || []).flatMap((pkg) =>
+    (pkg.pages || []).map((sub) => `${String(pkg.root || "").replace(/\/+$/, "")}/${String(sub).replace(/^\/+/, "")}`)
+  )),
+];
+assert(allAppPages.includes("pages/member/index"), "会员页未注册到 app.json");
+assert(allAppPages.includes("pages/legal/index"), "会员协议与隐私说明页未注册到 app.json");
+assert(allAppPages.includes("pages/workspace/index"), "研究工作台未注册到 app.json");
 assert(rootProject.cloudfunctionRoot === "cloudfunctions/", "根项目未声明 cloudfunctionRoot");
 assert(/^wx[0-9a-f]{16}$/.test(rootProject.appid), "根项目尚未配置有效的独立小程序 AppID");
 assert(rootProject.appid === miniProject.appid, "根项目与 miniprogram 子项目 AppID 不一致");

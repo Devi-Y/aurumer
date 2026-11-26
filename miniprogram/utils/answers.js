@@ -1,4 +1,5 @@
 const { getDividendStability } = require("./dividend-stability");
+const { getHistoricalDividendYield } = require("./historical-dividend-yield");
 const { degradeStaleActions } = require("./action-freshness");
 const { guardHKDates } = require("./hk-date-state");
 const { guruOverlapItems } = require("./guru-overlap");
@@ -379,9 +380,14 @@ function hkItems(snapshot) {
 // 写「因为发布了某某产品」这种叙事性归因就是凭空编，所以这里一句都不编。
 // 放量下跌和放量上涨是两回事，热度高本身不代表方向，这条要能从文案里读出来。
 function usHeatDriver(stock) {
-  const ratio = Number(stock && stock.volumeRatio);
-  const week = Number(stock && stock.weeklyChange);
-  const day = Number(stock && stock.changePercent);
+  const readMetric = (value) => {
+    if ((typeof value !== "number" && typeof value !== "string") || (typeof value === "string" && !value.trim())) return null;
+    const result = Number(value);
+    return Number.isFinite(result) ? result : null;
+  };
+  const ratio = readMetric(stock && stock.volumeRatio);
+  const week = readMetric(stock && stock.weeklyChange);
+  const day = readMetric(stock && stock.changePercent);
   const bits = [];
   if (Number.isFinite(ratio) && ratio > 0) {
     if (ratio >= 2) bits.push(`成交是平时的 ${ratio.toFixed(1)} 倍`);
@@ -393,7 +399,7 @@ function usHeatDriver(stock) {
     bits.push(`一周${week >= 0 ? "涨" : "跌"} ${Math.abs(week).toFixed(1)}%`);
   }
   if (Number.isFinite(day) && Math.abs(day) >= 3) {
-    bits.push(`今日${day >= 0 ? "涨" : "跌"} ${Math.abs(day).toFixed(1)}%`);
+    bits.push(`报价日${day >= 0 ? "涨" : "跌"} ${Math.abs(day).toFixed(1)}%`);
   }
   return bits.join("、");
 }
@@ -751,6 +757,7 @@ function aShareItems(snapshot) {
   const makeStockItem = (item) => {
     const financials = fundamentals.get(item.code) || {};
     const raw = { ...item, financials };
+    raw.historicalDividendYield = getHistoricalDividendYield(raw);
     const score = aShareObserveScore(raw);
     const yieldNow = Number(item.currentDividendYield);
     const yieldSustain = Number(item.sustainableDividendYield);
@@ -773,16 +780,9 @@ function aShareItems(snapshot) {
       badge = "高息待核";
     }
 
-    const yieldText = hasYield ? `${yieldNow.toFixed(1)}%` : "股息待更";
-    const sustainText = hasSustain ? `可持续 ${yieldSustain.toFixed(1)}%` : null;
+    const historical = raw.historicalDividendYield;
+    const yieldText = historical ? `历史股息率 ${historical.yieldPercent.toFixed(2)}%` : "历史股息率暂缺";
     const scoreText = score != null ? `观察分 ${score}` : null;
-    // 参考买入价 / 参考卖出价 一直算得出来（按当前每股分红回推到目标股息率），
-    // 但只在「什么价可加大 / 什么价可兑现」两张卡里露过各两只，列表行里一只都没有。
-    // 排名点进去要能看到自己那只的价，所以每一行都带上。
-    const plan = yieldImpliedPlan(raw);
-    const planText = plan
-      ? [`参考买 ${money(plan.addPrice, "¥")}`, `参考卖 ${money(plan.trimPrice, "¥")}`]
-      : [];
     // 稳定性榜是按这个数排的，行里就得看得见，否则读的人没法核对排序凭什么。
     const stability = aShareDividendStability(raw);
     const stabilityText = stability != null ? `分红稳定性 ${stability}` : null;
@@ -798,7 +798,7 @@ function aShareItems(snapshot) {
       rank: null,
       scoreText: scoreText || badge,
       rankText: yieldText,
-      one: [yieldText, sustainText, stabilityText, scoreText, ...planText].filter(Boolean).join(" · "),
+      one: [yieldText, stabilityText].filter(Boolean).join(" · "),
       raw,
     };
     row.lenses = aShareLenses(row);
@@ -843,30 +843,20 @@ function aShareItems(snapshot) {
   };
 
   const stockItems = quotes.map(makeStockItem);
-  // 分红稳定性 / 分红收益性 两个维度的前五。同一个池子——股息、可持续股息、现价
-  // 齐全且回推得出参考买卖价的那些——只是排序不同，这就是「不同排序下的前五名」。
-  // 池子取的是全部 20 只实时标的，不是前台那 10 个样本：排名要在完整池子里排才算数。
-  const rankPool = stockItems.filter((item) => (
-    Number(item.raw.currentPrice) > 0 && Number(item.raw.currentDividendYield) > 0
-    && Number(item.raw.sustainableDividendYield) > 0
-  ));
+  // 两榜分别按实际数据覆盖决定资格，缺数据不以旧估计值补齐。
   // 名次跟着 lens 一起记下来：列表页给行标了 01–05 的序号，那个序号必须就是
   // 这个榜单的名次，否则页头写着「前五」、行里却按样本顺序编号，等于编了个假名次。
   const markTop5 = (pool, score, lens) => [...pool]
-    .sort((left, right) => score(right) - score(left))
+    .sort((left, right) => score(right) - score(left) || String(left.code).localeCompare(String(right.code)))
     .slice(0, 5)
     .forEach((item, index) => {
       item.lenses = [...(item.lenses || []), lens];
       item.lensRank = { ...(item.lensRank || {}), [lens]: index + 1 };
     });
-  // 稳定性：分红能不能拿得住，同分再看可持续股息率。
-  markTop5(rankPool.filter((item) => aShareDividendStability(item.raw) !== null), (item) => number(aShareDividendStability(item.raw)) * 1000
-    + number(item.raw.sustainableDividendYield), "stable5");
-  // 收益性：先把「高息待核」这种靠不住的挡在外面，剩下的才比可持续股息率——
-  // 比的是大概率能一直分到的钱，不是这次分得猛不猛。跟稳定性榜的差别在于，
-  // 这里只要求过了及格线就按到手金额多少排，不是按有多稳排。
-  const yieldPool = rankPool.filter((item) => item.group !== "watch");
-  markTop5(yieldPool, (item) => number(item.raw.sustainableDividendYield), "yield5");
+  markTop5(stockItems.filter((item) => aShareDividendStability(item.raw) !== null),
+    (item) => aShareDividendStability(item.raw), "stable5");
+  markTop5(stockItems.filter((item) => item.raw.historicalDividendYield),
+    (item) => item.raw.historicalDividendYield.yieldPercent, "yield5");
   const stockByCode = new Map(stockItems.map((item) => [item.code, item]));
   const fundSource = (snapshot.aShare && snapshot.aShare.funds || [])
     .find((item) => String(item.code || "").replace(/\.(SH|SZ)$/i, "") === "515180")
@@ -946,8 +936,8 @@ function groupDefinitions(snapshot, market) {
     ];
   } else if (market === "a") {
     definitions = [
-      ["stable5", "分红稳定性 前五", "最近五年分红比较，缺年不入榜"],
-      ["yield5", "分红收益性 前五", "先过滤高息待核，再按可持续股息率排序，每行带参考买卖价"],
+      ["stable5", "分红稳定性 前五", "近五个所属年度按未减息次数评分，同分按代码排列"],
+      ["yield5", "分红收益性 前五", "年度税前分红除以历史股价，不代表未来收益"],
       ["sample", "收息样本", "前台在展示的全部收息研究样本", false],
       ["prime", "优等收息", "股息可持续+现金支撑"],
       ["steady", "稳健收息", "综合观察分中等"],

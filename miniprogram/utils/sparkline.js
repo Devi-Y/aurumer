@@ -38,9 +38,9 @@ function sparklineSvg(values, { width = 300, height = 100, color = LINE_COLOR, g
   const low = Math.min(...series);
   const high = Math.max(...series);
   const span = Math.max(high - low, 1e-6);
-  const padTop = 8;
-  const padBottom = 6;
-  const padX = 6;
+  const padTop = 10;
+  const padBottom = 8;
+  const padX = 8;
   const plotH = height - padTop - padBottom;
   const stepX = (width - padX * 2) / (series.length - 1);
   const pts = series.map((value, index) => [padX + index * stepX, padTop + (1 - (value - low) / span) * plotH]);
@@ -51,16 +51,20 @@ function sparklineSvg(values, { width = 300, height = 100, color = LINE_COLOR, g
   const end = pts[pts.length - 1];
   line += `L${fmt(end[0])} ${fmt(end[1])}`;
   const area = `${line}L${fmt(end[0])} ${height}L${fmt(pts[0][0])} ${height}Z`;
+  // 起点参考虚线：一眼看出期末相对期初的高低位置，干净克制不抢视觉。
+  const baseLine = `<path d="M${padX} ${fmt(pts[0][1])}H${width - padX}" stroke="#dce3ee" stroke-width="1.2" stroke-dasharray="4 4" fill="none"/>`;
   // 详情页大图多两条浅网格线（1/3、2/3 高度），首页小卡不画，保持干净。
   const gridLines = grid
-    ? [1 / 3, 2 / 3].map((f) => `<path d="M${padX} ${fmt(padTop + plotH * f)}H${width - padX}" stroke="#e3e6ec" stroke-width="1.5" fill="none"/>`).join("")
+    ? [1 / 3, 2 / 3].map((f) => `<path d="M${padX} ${fmt(padTop + plotH * f)}H${width - padX}" stroke="#e7ecf3" stroke-width="1.2" fill="none"/>`).join("")
     : "";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">`
     + gridLines
-    + `<defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.2"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>`
+    + baseLine
+    + `<defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.18"/><stop offset="0.7" stop-color="${color}" stop-opacity="0.03"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>`
     + `<path d="${area}" fill="url(#f)"/>`
-    + `<path d="${line}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`
-    + `<circle cx="${fmt(end[0])}" cy="${fmt(end[1])}" r="5" fill="${color}"/>`
+    + `<path d="${line}" fill="none" stroke="${color}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`
+    + `<circle cx="${fmt(end[0])}" cy="${fmt(end[1])}" r="8" fill="${color}" fill-opacity="0.16"/>`
+    + `<circle cx="${fmt(end[0])}" cy="${fmt(end[1])}" r="4.2" fill="${color}"/>`
     + "</svg>";
   return `data:image/svg+xml;base64,${asciiBase64(svg)}`;
 }

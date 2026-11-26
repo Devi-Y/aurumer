@@ -1,0 +1,27 @@
+<view class="admin-shell">
+  <view class="admin-card">
+    <text class="title">会员群管理</text>
+    <text wx:if="{{checking && !allowed}}" class="note">正在核对管理权限…</text>
+    <text wx:elif="{{!allowed}}" class="note">{{error || '当前微信没有管理权限。'}}</text>
+    <block wx:else>
+      <text class="note">请让用户提供订单号，核对付款后登记实际入群时间。</text>
+      <text class="label">会员群订单号</text>
+      <input class="field" value="{{orderId}}" bindinput="onOrderInput" placeholder="粘贴用户订单号" maxlength="32" />
+      <button class="action" bindtap="lookup" loading="{{checking}}" disabled="{{checking || saving}}">核对订单</button>
+      <block wx:if="{{order}}">
+        <text class="status">订单已确认付款：{{order.orderId}}</text>
+        <text class="label">实际入群时间（北京时间）</text>
+        <picker mode="date" value="{{joinedDate}}" bindchange="onDateChange"><view class="field">{{joinedDate || '选择日期'}}</view></picker>
+        <picker mode="time" value="{{joinedTime}}" bindchange="onTimeChange"><view class="field">{{joinedTime || '选择时间'}}</view></picker>
+        <button class="action" bindtap="recordJoin" loading="{{saving}}" disabled="{{checking || saving}}">登记已入群</button>
+      </block>
+      <block wx:if="{{result}}">
+        <text class="status">{{result.alreadyRecorded ? '此前已登记' : '已登记入群'}}</text>
+        <text class="note">服务开始：{{result.startsText}}</text>
+        <text class="note">服务到期：{{result.endsText}}</text>
+      </block>
+      <text wx:if="{{error}}" class="error">{{error}}</text>
+    </block>
+  </view>
+  <view class="back" bindtap="goBack">‹ 返回</view>
+</view>

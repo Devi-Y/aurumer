@@ -68,6 +68,7 @@ function getDividendStability(raw = {}, options = {}) {
       const amount = finite(record.perTenSharesRmb);
       const stage = explicitStage(record);
       const plan = String(record.plan || "");
+      const planCash = plan.match(/派\s*(\d+(?:\.\d+)?)/);
       const item = { year, reportBasis, exDividendDate, perTenSharesRmb: amount };
       let reason = null;
       if (!asOf) reason = "invalid-as-of";
@@ -77,6 +78,10 @@ function getDividendStability(raw = {}, options = {}) {
       else if (!exDividendDate) reason = "unverified-ex-date";
       else if (exDividendDate > asOf) reason = "future-ex-date";
       else if (/特别|特殊|special/i.test(String(record.dividendType || "") + plan)) reason = "special-dividend";
+      else if (planCash && Math.abs(Number(planCash[1]) - amount) > 0.00001) {
+        conflicts.add(year);
+        reason = "plan-amount-conflict";
+      }
       if (reason) {
         excluded.push({ ...item, reason });
         continue;

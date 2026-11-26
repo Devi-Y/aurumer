@@ -2,11 +2,12 @@ page {
   box-sizing: border-box;
   width: 100%;
   min-height: 100%;
-  background: #f5f6f7;
-  color: #191c22;
+  background: #f6f7fa;
+  color: #111827;
   font-size: 32rpx;
-  line-height: 1.55;
+  line-height: 1.58;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 button::after {
@@ -22,14 +23,15 @@ button {
   width: 100%;
   min-height: 100vh;
   padding: 0 0 calc(36rpx + env(safe-area-inset-bottom));
-  background: #f5f6f7;
+  background: #f6f7fa;
 }
 
 .page-card {
   overflow: hidden;
-  border: 1rpx solid #e6e9ed;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
   border-radius: 24rpx;
   background: #ffffff;
+  box-shadow: 0 4rpx 20rpx rgba(15, 23, 42, 0.035);
 }
 
 .arrow {
@@ -69,30 +71,35 @@ button {
 
 .page-nav-button {
   display: flex;
-  min-height: 96rpx;
+  min-height: 92rpx;
   flex: 1;
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  border: 1rpx solid #d6d9de;
-  border-radius: 16rpx;
+  border: 1rpx solid rgba(15, 23, 42, 0.1);
+  border-radius: 20rpx;
   background: #ffffff;
-  color: #3b4351;
-  font-size: 30rpx;
-  font-weight: 600;
+  color: #334155;
+  font-size: 29rpx;
+  font-weight: 620;
+  box-shadow: 0 2rpx 10rpx rgba(15, 23, 42, 0.03);
+  transition: transform 0.12s ease, background-color 0.12s ease;
 }
 
 .page-nav-button:last-child {
   border-color: #1d5fd1;
-  background: #1d5fd1;
+  background: linear-gradient(135deg, #2568dc 0%, #1d5fd1 100%);
   color: #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(29, 95, 209, 0.22);
 }
 
 .page-nav-button.tap-active {
-  background: #edf0f4;
+  transform: scale(0.985);
+  background: #eef2f7;
 }
 
 .page-nav-button:last-child.tap-active {
+  transform: scale(0.985);
   background: #174ea9;
 }
 

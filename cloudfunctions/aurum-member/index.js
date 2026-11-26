@@ -1,5 +1,8 @@
 const cloud = require("wx-server-sdk");
 const crypto = require("node:crypto");
+const { createCommunityPurchase, isCommunityCallback, isCommunityTimer } = require("./community-purchase");
+const { createCommunityAdmin } = require("./community-admin");
+const { createCommunityFulfillment } = require("./community-fulfillment");
 const {
   RESEARCH_PURCHASES_ENABLED,
   RESEARCH_PURCHASE_MESSAGE,
@@ -1584,11 +1587,23 @@ async function preparePurchase(event, context) {
   return prepareCloudPayPurchase(context, plan, legalConsent);
 }
 
+const communityPurchase = createCommunityPurchase({ cloud, db, queryOrder: cloudPayQueryOrder, paymentParams: clientPaymentParams });
+const communityAdmin = createCommunityAdmin({
+  verifyOrder: communityPurchase.verifyForAdmin,
+  createFulfillment: ({ authorizeOperator }) => createCommunityFulfillment({ db, authorizeOperator }),
+});
+
 exports.main = async (event = {}) => {
   const context = cloud.getWXContext();
   const callbackRequest = isCloudPayCallback(event, context);
+  const communityCallback = isCommunityCallback(event, context);
   try {
+    if (communityCallback) return await communityPurchase.callback(event);
     if (callbackRequest) return await handleCloudPayCallback(event);
+    if (isCommunityTimer(event)) {
+      if (context.OPENID) return fail("TIMER_FORBIDDEN", "客户端不能触发群订单复核");
+      return ok(await communityPurchase.reconcileBatch());
+    }
     if (isGlobalReconcileTimer(event)) {
       if (context.OPENID) return fail("TIMER_FORBIDDEN", "客户端不能触发全局订单复核");
       const summary = await reconcileGlobalOrders();
@@ -1608,6 +1623,11 @@ exports.main = async (event = {}) => {
       return ok({ inbox, push });
     }
     if (!context.OPENID) return fail("NO_OPENID", "请从望潮小程序内打开会员页");
+    if (event.action === "communityAdminAccess") return ok(communityAdmin.access(context));
+    if (event.action === "communityAdminLookup") return ok(await communityAdmin.lookup(event, context));
+    if (event.action === "communityAdminRecordJoin") return ok(await communityAdmin.recordJoin(event, context));
+    if (event.action === "communityStatus") return ok(await communityPurchase.status(context.OPENID));
+    if (event.action === "prepareCommunityPurchase") return ok(await communityPurchase.prepare(event, context));
     if (event.action === "status") return ok(await memberStatus(context.OPENID));
     if (event.action === "workspace") return ok(await workspaceStatus(context.OPENID));
     if (event.action === "refreshSentinel") return ok(await refreshSentinel(context.OPENID));
@@ -1630,7 +1650,7 @@ exports.main = async (event = {}) => {
     if (event.action === "queryOrder") return ok(await reconcileOrder(context.OPENID, event.orderId));
     return fail("UNKNOWN_ACTION", "未知的会员服务操作");
   } catch (error) {
-    if (callbackRequest) {
+    if (callbackRequest || communityCallback) {
       console.error("aurum-member cloudPay callback", error);
       return { errcode: -1, errmsg: "支付结果暂未处理，请重试" };
     }

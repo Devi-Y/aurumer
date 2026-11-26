@@ -61,7 +61,6 @@ test("provider contact actions are recorded only after the native action succeed
   for (const [topic, method, resultKey, eventName] of [
     ["hk-open", "copyOffer", "copies", "service_copy"],
     ["us-start", "copyOffer", "copies", "service_copy"],
-    ["a-open", "previewOffer", "images", "offer_qr_open"],
   ]) {
     const { page, calls } = fixture("../miniprogram/pages/guide/index.js", { reviewed: true });
     page.onLoad({ topic }); page[method]();
@@ -72,6 +71,16 @@ test("provider contact actions are recorded only after the native action succeed
     assert.equal(calls.events.filter((event) => event.name === eventName).length, 1);
     assert.equal(calls.events.some((event) => /pay|fulfilled|income/.test(event.name)), false);
   }
+});
+
+test("QR image loading is not counted as a completed transaction", () => {
+  const { page, calls } = fixture("../miniprogram/pages/guide/index.js", { reviewed: true });
+  page.onLoad({ topic: "a-open" });
+  page.onOfferImageError();
+  assert.equal(calls.events.some((event) => event.name === "offer_qr_open"), false);
+  page.onOfferImageLoad();
+  assert.equal(calls.events.filter((event) => event.name === "offer_qr_open").length, 1);
+  assert.equal(calls.events.some((event) => /pay|fulfilled|income/.test(event.name)), false);
 });
 
 test("an empty ad slot stays absent; native load and errors never count as revenue", () => {
@@ -93,7 +102,7 @@ test("an empty ad slot stays absent; native load and errors never count as reven
 });
 
 test("an ended group price cannot silently become an active promotion or a higher-price renewal", () => {
-  const { page } = fixture("../miniprogram/pages/community/index.js", { now: Date.parse("2026-12-01T00:00:01+08:00") });
+  const { page } = fixture("../miniprogram/pages/community/index.js", { now: Date.parse("2027-01-01T00:00:01+08:00") });
   page.onLoad();
   assert.equal(page.data.priceLabel, "本期价格已结束");
   assert.equal(community.checkoutEnabled, false);

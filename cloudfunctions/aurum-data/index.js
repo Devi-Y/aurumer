@@ -7,7 +7,7 @@ const { degradeStaleActions, snapshotAgeMs, isActionFresh, compareSnapshotVersio
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-10-26-t1-free-v1";
+const SOURCE_REVISION = "2026-11-25-304-a90d-v1";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 // 三条官方通道都读取同一 main 分支的公开文件。有效来源胜出后取消其他请求；
 // 单独校验结构、日期和版本水位，较旧的来源不能覆盖已验证的新批次。
@@ -318,14 +318,39 @@ function applyServeFreshness(result) {
   return next;
 }
 
-function withCacheMeta(result, cache, extra = {}) {
+function withCacheMeta(result, cache, extra = {}, event = {}) {
   const fresh = applyServeFreshness(result);
-  return {
+  const response = {
     ...fresh,
     cache,
     revision: SOURCE_REVISION,
     ...extra,
   };
+  // 客户端版本协商：非强制刷新且客户端已持有同批次快照时，只返回百字节校验包，
+  // 省去每次 10 分钟 TTL 到期后重复传输 ~300KB JSON 的网络开销。
+  if (
+    !event.force
+    && event.clientUpdatedAt
+    && response.ok
+    && response.data
+    && response.updatedAt === event.clientUpdatedAt
+    && (response.revisionAt || response.updatedAt) === (event.clientRevisionAt || event.clientUpdatedAt)
+  ) {
+    return {
+      ok: true,
+      unchanged: true,
+      updatedAt: response.updatedAt,
+      revisionAt: response.revisionAt || response.updatedAt,
+      actionsFresh: response.actionsFresh,
+      contentAgeMs: response.contentAgeMs,
+      source: response.source,
+      cache: response.cache,
+      revision: response.revision,
+      ...(response.warning ? { warning: response.warning } : {}),
+      ...(response.actionDegradeReason ? { actionDegradeReason: response.actionDegradeReason } : {}),
+    };
+  }
+  return response;
 }
 
 function isWarmTimer(event) {
@@ -401,13 +426,13 @@ exports.main = async (event = {}) => {
   // 前台：内存 → 数据库缓存立刻返回；过期则后台回源，不阻塞。
   if (!event.force) {
     if (cachedResult && ageMs(cachedAt) < CACHE_TTL_MS) {
-      return withCacheMeta(cachedResult, "memory");
+      return withCacheMeta(cachedResult, "memory", {}, event);
     }
     if (cachedResult && ageMs(cachedAt) < SERVE_STALE_MAX_MS) {
       scheduleBackgroundRefresh();
       return withCacheMeta(cachedResult, "stale-memory", {
         warning: ageMs(cachedAt) > CACHE_TTL_MS ? "CACHE_REFRESHING" : undefined,
-      });
+      }, event);
     }
 
     const persisted = await readPersistedSnapshot();
@@ -417,14 +442,14 @@ exports.main = async (event = {}) => {
       if (ageMs(cachedAt) >= CACHE_TTL_MS) scheduleBackgroundRefresh();
       return withCacheMeta(persisted, ageMs(cachedAt) < CACHE_TTL_MS ? "database" : "stale-database", {
         warning: ageMs(cachedAt) >= CACHE_TTL_MS ? "CACHE_REFRESHING" : undefined,
-      });
+      }, event);
     }
   }
 
   // 无缓存或强制刷新：短超时回源；仍失败再兜底。
   try {
     const result = await refreshSnapshot(event.force ? WARM_REQUEST_TIMEOUT_MS : Math.min(PLATFORM_SAFE_MS, 2000));
-    return withCacheMeta(result, "refreshed");
+    return withCacheMeta(result, "refreshed", {}, event);
   } catch (error) {
     console.error("aurum-data refresh failed", error && error.message);
     await alertOpsOnce("refresh-failed", {
@@ -435,7 +460,7 @@ exports.main = async (event = {}) => {
       return withCacheMeta({
         ...cachedResult,
         warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
-      }, "stale-memory");
+      }, "stale-memory", {}, event);
     }
     const persisted = await readPersistedSnapshot();
     if (persisted) {
@@ -444,7 +469,7 @@ exports.main = async (event = {}) => {
       return withCacheMeta({
         ...persisted,
         warning: "UPSTREAM_TEMPORARILY_UNAVAILABLE",
-      }, "stale-database");
+      }, "stale-database", {}, event);
     }
     return { ok: false, error: "DATA_TEMPORARILY_UNAVAILABLE", revision: SOURCE_REVISION };
   }

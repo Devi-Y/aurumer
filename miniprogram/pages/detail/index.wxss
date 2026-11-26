@@ -1,6 +1,6 @@
 .detail-shell {
   padding: 20rpx 20rpx calc(40rpx + env(safe-area-inset-bottom));
-  background: #f4f5f6;
+  background: #f6f7fa;
 }
 
 .detail-content {
@@ -32,15 +32,37 @@
    底部留 40rpx，给下面那张白卡压上来的位置。 */
 .detail-hero {
   margin: -20rpx -20rpx 0;
-  padding: 18rpx 24rpx 40rpx;
-  background: linear-gradient(165deg, #2466d6 0%, #1d5fd1 55%, #174ea9 100%);
+  padding: 20rpx 24rpx 44rpx;
+  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
 }
 
 .hero-top {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 16rpx;
+}
+
+.hero-top-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.hero-poster-btn {
+  padding: 4rpx 14rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.28);
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: 640;
+}
+
+.hero-poster-btn.is-starred {
+  border-color: rgba(251, 191, 36, 0.65);
+  background: rgba(251, 191, 36, 0.24);
+  color: #fef08a;
 }
 
 .hero-label {
@@ -126,8 +148,9 @@
 
 .highlight-cell {
   box-sizing: border-box;
-  width: 25%;
-  padding: 16rpx 8rpx;
+  flex: 1;
+  min-width: 0;
+  padding: 18rpx 12rpx;
   text-align: center;
 }
 
@@ -154,14 +177,14 @@
   white-space: nowrap;
 }
 
-/* 详情页先给出一排两字模块；每次只渲染一个模块，避免把整份研究报告堆成长页。 */
+/* 详情页先给出一排清晰模块；每次只渲染一个模块，避免把整份研究报告堆成长页。 */
 .detail-tabs {
   width: 100%;
   height: 84rpx;
   margin-top: 16rpx;
   white-space: nowrap;
   border-radius: 999rpx;
-  background: #e9eaec;
+  background: #eaeef5;
 }
 
 .detail-tabs-inner {
@@ -177,20 +200,21 @@
   display: inline-flex;
   min-width: 112rpx;
   height: 68rpx;
-  padding: 0 22rpx;
+  padding: 0 24rpx;
   align-items: center;
   justify-content: center;
   border-radius: 999rpx;
-  color: #686c72;
-  font-size: 28rpx;
+  color: #5b6472;
+  font-size: 27rpx;
   font-weight: 620;
   white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .detail-tab.on {
-  background: #202123;
+  background: #1d5fd1;
   color: #ffffff;
-  box-shadow: 0 6rpx 18rpx rgba(32, 33, 35, .12);
+  box-shadow: 0 6rpx 16rpx rgba(29, 95, 209, 0.24);
 }
 
 .detail-tab-tap { opacity: .72; }
@@ -199,32 +223,36 @@
   box-sizing: border-box;
   width: 100%;
   margin-top: 16rpx;
-  padding: 22rpx 20rpx 24rpx;
+  padding: 24rpx 22rpx 26rpx;
   overflow: hidden;
-  border: 1rpx solid #e6e9ed;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
   border-radius: 24rpx;
   background: #ffffff;
+  box-shadow: 0 4rpx 20rpx rgba(15, 23, 42, 0.035);
 }
 
 .module-content { min-width: 0; }
 
 .module-title {
   display: block;
-  color: #1a1d22;
+  color: #0f172a;
   font-size: 32rpx;
   font-weight: 760;
+  letter-spacing: -0.3rpx;
 }
 
+/* Claude Callout 风格的核心研报结论卡：左侧品牌强调竖线 + 极淡蓝底 + 舒适行高。 */
 .module-answer {
   display: block;
   margin-top: 14rpx;
-  padding: 18rpx 20rpx;
-  border-radius: 18rpx;
-  background: #f2f4f7;
-  color: #242933;
-  font-size: 29rpx;
-  font-weight: 620;
-  line-height: 1.6;
+  padding: 20rpx 22rpx;
+  border-left: 6rpx solid #1d5fd1;
+  border-radius: 6rpx 18rpx 18rpx 6rpx;
+  background: #f4f7fd;
+  color: #1e293b;
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 1.68;
 }
 
 .module-empty {
@@ -685,21 +713,48 @@
 .visual-card {
   margin-top: 16rpx;
   padding: 22rpx 20rpx 24rpx;
-  border: 1rpx solid #e6e9ed;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
   background: #ffffff;
+  box-shadow: 0 2rpx 12rpx rgba(15, 23, 42, 0.025);
+}
+.visual-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12rpx;
 }
 .visual-title {
   display: block;
-  color: #1a1d22;
-  font-size: 34rpx;
-  font-weight: 760;
+  color: #0f172a;
+  font-size: 32rpx;
+  font-weight: 740;
+}
+.visual-ranges {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+.visual-range-pill {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #f1f4f9;
+  color: #5b6472;
+  font-size: 21rpx;
+  font-weight: 620;
+  line-height: 1.35;
+}
+.visual-range-pill.is-active {
+  background: #edf3ff;
+  color: #1d5fd1;
+  font-weight: 700;
 }
 .visual-hint {
   display: block;
   margin-top: 8rpx;
-  color: #5e626a;
-  font-size: 26rpx;
-  line-height: 1.5;
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.55;
 }
 .chart-stat text:first-child { color: #797d85; font-size: 20rpx; }
 .chart-stat text:last-child {
@@ -773,9 +828,10 @@
 .line-chart-img {
   display: block;
   width: 100%;
-  height: 200rpx;
-  border-radius: 8rpx;
-  background: #f7f8fa;
+  height: 204rpx;
+  border: 1rpx solid #eef2f7;
+  border-radius: 14rpx;
+  background: #f8fafd;
 }
 
 .radar-chart-wrap { margin-top: 16rpx; }
@@ -1366,3 +1422,516 @@
 }
 
 .reading-more { margin-top: 20rpx; padding: 22rpx 24rpx; border-radius: 18rpx; background: #f2f5fa; color: #1d5fd1; font-size: 27rpx; font-weight: 600; }
+
+/* Stock Events / Simply Wall St 体检微勋章 */
+.overview-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 14rpx;
+}
+
+.overview-badge {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #f1f4f9;
+  color: #475569;
+  font-size: 22rpx;
+  font-weight: 640;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+.overview-badge.tone-good {
+  background: #eaf2ff;
+  color: #1d5fd1;
+}
+
+.overview-badge.tone-warn {
+  background: #fef6e7;
+  color: #9a5b13;
+}
+
+.overview-facts-card {
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
+  background: #fafbfd;
+}
+
+/* Quartr 风格 SEC 公告时间轴 */
+.filing-card-row {
+  padding: 16rpx 22rpx;
+  border-top: 1rpx solid #edf0f5;
+}
+
+.filing-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.filing-form-pill {
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  background: #eaf2ff;
+  color: #1d5fd1;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.filing-date {
+  flex: 1;
+  color: #64748b;
+  font-size: 22rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.filing-summary {
+  display: block;
+  margin-top: 8rpx;
+  color: #1e293b;
+  font-size: 25rpx;
+  line-height: 1.55;
+}
+
+/* 抖音式左右连刷导航栏 */
+.peer-nav-bar {
+  display: flex;
+  margin-top: 18rpx;
+  padding: 12rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+}
+
+.peer-nav-btn {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  padding: 14rpx 16rpx;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4rpx;
+  border-radius: 16rpx;
+  background: #f5f7fb;
+}
+
+.peer-nav-btn.is-next {
+  align-items: flex-end;
+}
+
+.peer-nav-dir {
+  color: #1d5fd1;
+  font-size: 21rpx;
+  font-weight: 660;
+}
+
+.peer-nav-name {
+  max-width: 100%;
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 26rpx;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.peer-nav-index {
+  flex: none;
+  padding: 4rpx 10rpx;
+  color: #94a3b8;
+  font-size: 21rpx;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 韭圈儿式一键研报分享条 */
+.share-card-bar {
+  display: flex;
+  min-height: 84rpx;
+  margin-top: 16rpx;
+  padding: 0 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  border: 1rpx solid rgba(29, 95, 209, 0.14);
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #f4f8ff 0%, #edf3ff 100%);
+}
+
+.share-card-label {
+  color: #1e293b;
+  font-size: 26rpx;
+  font-weight: 620;
+}
+
+.share-card-go {
+  flex: none;
+  color: #1d5fd1;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+/* Simply Wall St 风格客观体检进度条卡片 */
+.health-check-card {
+  padding-bottom: 18rpx;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
+  background: #fafbfd;
+}
+
+.health-check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  padding: 6rpx 22rpx 6rpx;
+}
+
+.health-check-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.health-check-label {
+  color: #475569;
+  font-size: 24rpx;
+  font-weight: 560;
+}
+
+.health-check-val {
+  color: #0f172a;
+  font-size: 25rpx;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.health-check-val.tone-good { color: #166534; }
+.health-check-val.tone-warn { color: #b45309; }
+
+.health-check-track {
+  height: 12rpx;
+  margin-top: 8rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #e6ebf2;
+}
+
+.health-check-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #6fa0f2 0%, #1d5fd1 100%);
+}
+
+.health-check-fill.tone-good {
+  background: linear-gradient(90deg, #4ade80 0%, #15803d 100%);
+}
+
+.health-check-fill.tone-warn {
+  background: linear-gradient(90deg, #fbbf24 0%, #d97706 100%);
+}
+
+.filing-jump-row {
+  margin-top: 14rpx;
+  border: 1rpx solid rgba(29, 95, 209, 0.14);
+  border-radius: 16rpx;
+  background: #f4f8ff;
+}
+
+/* Simply Wall St 雪花雷达图容器 */
+.overview-radar-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 4rpx 16rpx 8rpx;
+}
+
+.overview-radar-canvas {
+  width: 500rpx;
+  height: 360rpx;
+}
+
+/* Stock Events 5 年分红点阵 */
+.detail-dots-row {
+  display: flex;
+  margin-top: 12rpx;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.detail-dots-label {
+  color: #64748b;
+  font-size: 21rpx;
+  font-weight: 600;
+}
+
+.detail-dot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5rpx;
+}
+
+.detail-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.detail-dot.is-ok { background: #16a34a; }
+.detail-dot.is-cut { background: #f59e0b; }
+.detail-dot.is-miss { background: #d5dce6; }
+
+.detail-dot-yr {
+  color: #64748b;
+  font-size: 20rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stock Events 按股数历史分红对照卡 */
+.div-calc-card {
+  padding-bottom: 18rpx;
+  border: 1rpx solid rgba(29, 95, 209, 0.12);
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.div-calc-head {
+  display: flex;
+  padding-right: 22rpx;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.div-calc-year {
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: #eaf2ff;
+  color: #1d5fd1;
+  font-size: 20rpx;
+  font-weight: 640;
+}
+
+.div-calc-pills {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10rpx;
+  padding: 4rpx 22rpx 14rpx;
+}
+
+.div-calc-pill {
+  padding: 10rpx 0;
+  border: 1rpx solid #dfe6f0;
+  border-radius: 12rpx;
+  background: #ffffff;
+  color: #475569;
+  font-size: 23rpx;
+  font-weight: 620;
+  text-align: center;
+}
+
+.div-calc-pill.is-active {
+  border-color: #1d5fd1;
+  background: #1d5fd1;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.div-calc-result {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12rpx;
+  padding: 0 22rpx;
+}
+
+.div-calc-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 14rpx;
+  background: #f4f7fc;
+}
+
+.div-calc-k {
+  color: #64748b;
+  font-size: 21rpx;
+}
+
+.div-calc-v {
+  color: #15803d;
+  font-size: 32rpx;
+  font-weight: 740;
+  font-variant-numeric: tabular-nums;
+}
+
+.div-calc-v.is-sub {
+  color: #0f172a;
+}
+
+.div-calc-note {
+  display: block;
+  margin-top: 12rpx;
+  padding: 0 22rpx;
+  color: #94a3b8;
+  font-size: 20rpx;
+  line-height: 1.45;
+}
+
+/* 韭圈儿×Claude 双分享操作条 */
+.share-action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14rpx;
+  margin-top: 16rpx;
+}
+
+.share-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  min-height: 92rpx;
+  padding: 12rpx 16rpx;
+  border: 1rpx solid rgba(29, 95, 209, 0.16);
+  border-radius: 20rpx;
+  background: #ffffff;
+}
+
+.share-action-btn.is-primary {
+  border-color: #1d5fd1;
+  background: linear-gradient(135deg, #1d5fd1 0%, #1648a8 100%);
+  box-shadow: 0 6rpx 18rpx rgba(29, 95, 209, 0.22);
+}
+
+.share-action-title {
+  color: #1d5fd1;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.share-action-sub {
+  color: #64748b;
+  font-size: 20rpx;
+}
+
+.share-action-btn.is-primary .share-action-title {
+  color: #ffffff;
+}
+
+.share-action-btn.is-primary .share-action-sub {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.share-poster-canvas {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+  width: 375px;
+  height: 540px;
+}
+
+/* TradingView 风格多周期历史涨跌条 */
+.period-strip {
+  display: flex;
+  margin-top: 14rpx;
+  gap: 8rpx;
+}
+
+.period-cell {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 12rpx 6rpx;
+  border-radius: 14rpx;
+  background: #f5f7fb;
+}
+
+.period-label {
+  color: #64748b;
+  font-size: 19rpx;
+}
+
+.period-val {
+  color: #0f172a;
+  font-size: 24rpx;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.period-val.is-up { color: #c2412d; }
+.period-val.is-down { color: #0b7a53; }
+
+/* Perplexity Finance 风格三秒快问快答 */
+.qa-card-list {
+  padding-bottom: 10rpx;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
+}
+
+.qa-row {
+  padding: 14rpx 22rpx;
+  border-top: 1rpx solid #edf0f5;
+}
+
+.qa-q {
+  display: block;
+  color: #1d5fd1;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.qa-a {
+  display: block;
+  margin-top: 6rpx;
+  color: #334155;
+  font-size: 25rpx;
+  line-height: 1.55;
+}
+
+/* Perplexity Finance 同池可比公司三宫格 */
+.peer-cmp-card {
+  padding-bottom: 18rpx;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
+}
+
+.peer-cmp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10rpx;
+  padding: 4rpx 22rpx 0;
+}
+
+.peer-cmp-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  padding: 14rpx 12rpx;
+  border: 1rpx solid #e6ebf2;
+  border-radius: 14rpx;
+  background: #f8fafd;
+}
+
+.peer-cmp-name {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 24rpx;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.peer-cmp-m1 {
+  color: #1d5fd1;
+  font-size: 22rpx;
+  font-weight: 660;
+  font-variant-numeric: tabular-nums;
+}
+
+.peer-cmp-m2 {
+  overflow: hidden;
+  color: #64748b;
+  font-size: 20rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

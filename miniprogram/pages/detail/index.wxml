@@ -1,6 +1,21 @@
 <template name="chart-visual">
   <view class="visual-card">
-    <text class="visual-title">{{item.title}}</text>
+    <view class="visual-head">
+      <text class="visual-title">{{item.title}}</text>
+      <view wx:if="{{item.isDividendHistory && item.ranges && item.ranges.length}}" class="visual-ranges">
+        <text
+          wx:for="{{item.ranges}}"
+          wx:for-item="rg"
+          wx:key="id"
+          class="visual-range-pill {{item.activeRange === rg.id ? 'is-active' : ''}}"
+          data-range="{{rg.id}}"
+          bindtap="switchDividendRange"
+          hover-class="tap-active"
+          aria-role="button"
+          aria-selected="{{item.activeRange === rg.id}}"
+        >{{rg.label}}</text>
+      </view>
+    </view>
     <text wx:if="{{item.hint}}" class="visual-hint">{{item.hint}}</text>
 
     <view wx:if="{{item.stats && item.stats.length}}" class="chart-stats">
@@ -78,7 +93,11 @@
     <view class="detail-hero">
       <view class="hero-top">
         <text class="hero-label">{{view.marketLabel}}</text>
-        <text class="hero-meta">{{dataAsOf || '读取历史资料'}}</text>
+        <view class="hero-top-right">
+          <text class="hero-meta">{{dataAsOf || '读取历史资料'}}</text>
+          <text class="hero-poster-btn {{starred ? 'is-starred' : ''}}" bindtap="toggleStar" aria-role="button" aria-label="{{starred ? '取消星标' : '加入星标'}}">{{starred ? '★ 已星标' : '☆ 星标'}}</text>
+          <text class="hero-poster-btn" bindtap="generateSharePoster" aria-role="button" aria-label="生成研报海报图">生成海报</text>
+        </view>
       </view>
       <view class="hero-name-row">
         <text class="hero-title">{{view.title}}</text>
@@ -253,10 +272,58 @@
         </view>
       </view>
 
-      <!-- 美股/A股/港股新股/机构持仓/黄金：决策概览＋标签，见说明四/五。 -->
+      <!-- 美股/A股/港股新股/机构持仓/黄金：Claude 一页精装研报（结论 + 体检徽章 + 核心图 + 两条依据 + 主要风险）。 -->
       <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
 
         <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
+        <view wx:if="{{view.overview.badges && view.overview.badges.length}}" class="overview-badges">
+          <text wx:for="{{view.overview.badges}}" wx:key="label" class="overview-badge tone-{{item.tone}}">{{item.label}}</text>
+        </view>
+        <view wx:if="{{view.overview.yearDots && view.overview.yearDots.length}}" class="detail-dots-row" aria-hidden="true">
+          <text class="detail-dots-label">近5年分红</text>
+          <view wx:for="{{view.overview.yearDots}}" wx:for-item="dot" wx:key="year" class="detail-dot-item">
+            <view class="detail-dot is-{{dot.state}}"></view>
+            <text class="detail-dot-yr">{{dot.year}}</text>
+          </view>
+        </view>
+        <view wx:if="{{view.overview.periodReturns && view.overview.periodReturns.length}}" class="period-strip">
+          <view wx:for="{{view.overview.periodReturns}}" wx:key="label" class="period-cell">
+            <text class="period-label">{{item.label}}</text>
+            <text class="period-val is-{{item.tone}}">{{item.valueText}}</text>
+          </view>
+        </view>
+        <view wx:if="{{(view.overview.healthChecks && view.overview.healthChecks.length) || view.overview.radar}}" class="section-card health-check-card">
+          <text class="block-title">客观体检对照</text>
+          <view wx:if="{{view.overview.radar}}" class="overview-radar-wrap">
+            <canvas type="2d" id="{{view.overview.radar.canvasId}}" class="overview-radar-canvas"></canvas>
+          </view>
+          <view wx:if="{{view.overview.healthChecks && view.overview.healthChecks.length}}" class="health-check-list">
+            <view wx:for="{{view.overview.healthChecks}}" wx:key="label" class="health-check-row">
+              <view class="health-check-head">
+                <text class="health-check-label">{{item.label}}</text>
+                <text class="health-check-val tone-{{item.tone}}">{{item.valueText}}</text>
+              </view>
+              <view class="health-check-track">
+                <view class="health-check-fill tone-{{item.tone}}" style="width: {{item.percent}}%;"></view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view
+          wx:if="{{view.market == 'us' && view.overview.filingCount > 0}}"
+          class="source-link-row filing-jump-row"
+          data-module="dynamics"
+          bindtap="switchModule"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text class="source-link-name">已收录 {{view.overview.filingCount}} 份 SEC 公开备案</text>
+          <text class="source-link-action">查看时间轴 ›</text>
+        </view>
+        <view wx:if="{{view.market == 'us' && view.dynamics.eventSourceUrl}}" class="source-link-row" data-url="{{view.dynamics.eventSourceUrl}}" bindtap="copySourceLink" hover-class="tap-active" aria-role="button">
+          <text class="source-link-name">美国证监会公告</text>
+          <text class="source-link-action">复制原文链接</text>
+        </view>
 
         <view wx:if="{{view.overview.orderPlan}}" class="reading-more" bindtap="togglePricePlan" aria-role="button">{{pricePlanOpen ? '收起买卖参考' : '看买卖参考'}} {{pricePlanOpen ? '−' : '›'}}</view>
         <view wx:if="{{view.overview.orderPlan && pricePlanOpen}}" class="exit-plan order-plan">
@@ -272,16 +339,50 @@
 
         <template wx:if="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
 
+        <view wx:if="{{view.overview.keyFacts && view.overview.keyFacts.length}}" class="section-card overview-facts-card">
+          <text class="block-title">关键依据</text>
+          <view class="evidence-list">
+            <view wx:for="{{view.overview.keyFacts}}" wx:key="*this" class="evidence-item">
+              <text>{{item}}</text>
+            </view>
+          </view>
+        </view>
 
-
-
-
-        <view wx:if="{{view.overview.keyRisk || view.overview.nextWatch}}" class="reading-more" bindtap="toggleOverviewMore" aria-role="button">{{overviewMoreOpen ? '收起注意事项' : '看注意事项'}} {{overviewMoreOpen ? '−' : '›'}}</view>
-        <view wx:if="{{overviewMoreOpen && view.overview.keyRisk}}" class="risk-card">
-          <text class="risk-label">关键风险</text>
+        <view wx:if="{{view.overview.keyRisk}}" class="risk-card">
+          <text class="risk-label">主要风险</text>
           <text class="risk-body">{{view.overview.keyRisk}}</text>
         </view>
 
+        <!-- 借鉴 Perplexity Finance：三秒快问快答，消除新手翻表门槛。 -->
+        <view wx:if="{{view.overview.qaCards && view.overview.qaCards.length}}" class="section-card qa-card-list">
+          <text class="block-title">三秒快问快答</text>
+          <view wx:for="{{view.overview.qaCards}}" wx:key="q" class="qa-row">
+            <text class="qa-q">Q · {{item.q}}</text>
+            <text class="qa-a">{{item.a}}</text>
+          </view>
+        </view>
+
+        <!-- 借鉴 Perplexity Finance 同池可比公司：1 点即切，横向比高低。 -->
+        <view wx:if="{{peerCompare && peerCompare.length}}" class="section-card peer-cmp-card">
+          <text class="block-title">同池横向速比（点按直切）</text>
+          <view class="peer-cmp-grid">
+            <view
+              wx:for="{{peerCompare}}"
+              wx:key="id"
+              class="peer-cmp-cell"
+              data-id="{{item.id}}"
+              bindtap="switchPeer"
+              hover-class="tap-active"
+              aria-role="button"
+            >
+              <text class="peer-cmp-name">{{item.name}}</text>
+              <text class="peer-cmp-m1">{{item.metric1}}</text>
+              <text wx:if="{{item.metric2}}" class="peer-cmp-m2">{{item.metric2}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{view.overview.nextWatch}}" class="reading-more" bindtap="toggleOverviewMore" aria-role="button">{{overviewMoreOpen ? '收起下一步关注' : '看下一步关注'}} {{overviewMoreOpen ? '−' : '›'}}</view>
         <view wx:if="{{overviewMoreOpen && view.overview.nextWatch}}" class="exit-plan">
           <view class="exit-plan-head">
             <text class="exit-plan-title">下一步关注</text>
@@ -305,12 +406,31 @@
           <text class="analysis-body">{{view.dynamics.event}}</text>
           <text wx:if="{{view.dynamics.eventVerified}}" class="collapsed-hint">SEC原文见来源；同期发生不代表涨跌原因。</text>
         </view>
-        <text class="module-answer">{{view.dynamics.heat}}</text>
-        <view class="section-card" wx:if="{{view.dynamics.filings}}">
+        <text wx:if="{{view.dynamics.heat}}" class="module-answer">{{view.dynamics.heat}}</text>
+        <view class="section-card" wx:if="{{view.dynamics.filingCards && view.dynamics.filingCards.length}}">
+          <text class="block-title">同期公开备案（SEC原文）</text>
+          <view
+            wx:for="{{view.dynamics.filingCards}}"
+            wx:key="key"
+            class="filing-card-row"
+            data-url="{{item.sourceUrl}}"
+            bindtap="copySourceLink"
+            hover-class="{{item.sourceUrl ? 'tap-active' : ''}}"
+            aria-role="button"
+          >
+            <view class="filing-card-top">
+              <text class="filing-form-pill">{{item.form}}</text>
+              <text class="filing-date">{{item.date}}</text>
+              <text wx:if="{{item.sourceUrl}}" class="source-link-action">复制原文</text>
+            </view>
+            <text class="filing-summary">{{item.summary}}</text>
+          </view>
+          <text class="collapsed-hint">公告与股价同期发生，不代表涨跌原因。</text>
+        </view>
+        <view class="section-card" wx:elif="{{view.dynamics.filings}}">
           <text class="block-title">同期公开备案</text>
           <text class="analysis-body">{{view.dynamics.filings}}</text>
         </view>
-        <text wx:if="{{view.dynamics.mag7Label}}" class="collapsed-hint">{{view.dynamics.mag7Label}}</text>
         <block wx:if="{{activeCharts.length}}">
           <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
         </block>
@@ -327,6 +447,30 @@
 
       <view wx:if="{{activeModule == 'dividend' && view.market == 'a'}}" class="module-content">
         <text class="module-title">分红与现金质量</text>
+        <!-- 借鉴 Stock Events：按持股股数纯算历史已实施税前分红，不预测未来。 -->
+        <view wx:if="{{dividendCalcView}}" class="section-card div-calc-card">
+          <view class="div-calc-head">
+            <text class="block-title">按股数历史分红对照</text>
+            <text class="div-calc-year">{{dividendCalcView.year}}年度已实施</text>
+          </view>
+          <view class="div-calc-pills">
+            <text class="div-calc-pill {{dividendShares === 100 ? 'is-active' : ''}}" data-shares="100" bindtap="selectDividendShares" aria-role="button">100股</text>
+            <text class="div-calc-pill {{dividendShares === 1000 ? 'is-active' : ''}}" data-shares="1000" bindtap="selectDividendShares" aria-role="button">1000股</text>
+            <text class="div-calc-pill {{dividendShares === 5000 ? 'is-active' : ''}}" data-shares="5000" bindtap="selectDividendShares" aria-role="button">5000股</text>
+            <text class="div-calc-pill {{dividendShares === 10000 ? 'is-active' : ''}}" data-shares="10000" bindtap="selectDividendShares" aria-role="button">1万股</text>
+          </view>
+          <view class="div-calc-result">
+            <view class="div-calc-metric">
+              <text class="div-calc-k">历史税前分红</text>
+              <text class="div-calc-v">{{dividendCalcView.cashText}}</text>
+            </view>
+            <view class="div-calc-metric">
+              <text class="div-calc-k">{{dividendCalcView.priceAsOf}} 对应市值</text>
+              <text class="div-calc-v is-sub">{{dividendCalcView.costText}}</text>
+            </view>
+          </view>
+          <text class="div-calc-note">按每股税前分红 {{dividendCalcView.dpsText}} 算术对照，纯历史口径，不预测未来分红。</text>
+        </view>
         <block wx:if="{{activeCharts.length}}">
           <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
         </block>
@@ -488,6 +632,48 @@
       </view>
     </view>
 
+    <!-- 借鉴抖音连刷：在当前标的队列中一键切上一只/下一只，零跳转成本。 -->
+    <view wx:if="{{peerNav}}" class="page-card peer-nav-bar">
+      <view
+        class="peer-nav-btn"
+        data-id="{{peerNav.prev.id}}"
+        bindtap="switchPeer"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="切换上一只：{{peerNav.prev.name}}"
+      >
+        <text class="peer-nav-dir">‹ 上一只</text>
+        <text class="peer-nav-name">{{peerNav.prev.name}}</text>
+      </view>
+      <text class="peer-nav-index">{{peerNav.indexText}}</text>
+      <view
+        class="peer-nav-btn is-next"
+        data-id="{{peerNav.next.id}}"
+        bindtap="switchPeer"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-label="切换下一只：{{peerNav.next.name}}"
+      >
+        <text class="peer-nav-dir">下一只 ›</text>
+        <text class="peer-nav-name">{{peerNav.next.name}}</text>
+      </view>
+    </view>
+
+    <!-- 借鉴韭圈儿×Claude：一键生成高清研报图片卡，或一键复制结构化文字摘要发群。 -->
+    <view class="share-action-row">
+      <view class="share-action-btn is-primary" bindtap="generateSharePoster" hover-class="tap-active" aria-role="button" aria-label="生成高清研报海报图">
+        <text class="share-action-title">{{posterBusy ? '正在生成...' : '生成研报海报图'}}</text>
+        <text class="share-action-sub">长按保存 / 发朋友圈</text>
+      </view>
+      <view class="share-action-btn" bindtap="copyShareCard" hover-class="tap-active" aria-role="button" aria-label="复制本页研报摘要">
+        <text class="share-action-title">复制文字摘要</text>
+        <text class="share-action-sub">一键粘贴到微信群</text>
+      </view>
+    </view>
+
+    <!-- 离屏高清研报海报画布（375×540 逻辑像素 × 设备 DPR）。 -->
+    <canvas type="2d" id="share-poster-canvas" class="share-poster-canvas"></canvas>
+
     <!-- 美股详情看完了还没有账户：接开户教程，不直接给开户链接。 -->
     <view
       wx:if="{{market === 'us'}}"
@@ -500,6 +686,8 @@
       <text class="us-start-ask">第一次买美股？</text>
       <text class="us-start-go">查看开户教程 ›</text>
     </view>
+
+    <partner-strip market="{{market}}" />
 
     <text class="disclaimer">{{view.disclaimer}}</text>
   </view>

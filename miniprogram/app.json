@@ -1,21 +1,58 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/workspace/index",
-    "pages/member/index",
     "pages/section/index",
     "pages/list/index",
-    "pages/detail/index",
-    "pages/legal/index",
-    "pages/guide/index",
-    "pages/community/index",
-    "pages/community-terms/index"
+    "pages/detail/index"
   ],
+  "subpackages": [
+    {
+      "root": "pages/guide",
+      "name": "guide",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/community",
+      "name": "community",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/community-terms",
+      "name": "communityTerms",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/community-admin",
+      "name": "communityAdmin",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/member",
+      "name": "member",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/legal",
+      "name": "legal",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/workspace",
+      "name": "workspace",
+      "pages": ["index"]
+    }
+  ],
+  "preloadRule": {
+    "pages/index/index": {
+      "network": "all",
+      "packages": ["guide", "community"]
+    }
+  },
   "window": {
     "navigationBarTitleText": "望潮 Aurum",
     "navigationBarBackgroundColor": "#FFFFFF",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#F4F6F9",
+    "backgroundColor": "#F6F7FA",
     "backgroundTextStyle": "dark"
   },
   "lazyCodeLoading": "requiredComponents",

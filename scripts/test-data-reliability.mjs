@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { test } from "node:test";
 import { validUSActionReference } from "./public-quote-contract.mjs";
+import { assertMiniPricePlans } from "./mini-price-plan-audit.mjs";
 
 // Run with: node --test scripts/test-data-reliability.mjs
 // No network, cloud writes, wx payments, snapshot writes, or fixed calendar dates.
@@ -85,6 +86,27 @@ function freshFixture(offset = -hour) {
   };
   return data;
 }
+
+test("mini price audit compares fresh plans strictly and applies the same stale cutoff", () => {
+  const source = freshFixture();
+  const stock = source.us.stocks[0];
+  stock.technicalPlan = { buy: 90, stop: 80, tp: [110, 120], atr: 3 };
+  const freshNow = Date.now();
+  const bundled = sanitizeSnapshot(source, freshNow);
+  assert.ok(bundled.us.stocks[0].pricePlan);
+  assert.doesNotThrow(() => assertMiniPricePlans(bundled, sanitizeSnapshot(source, freshNow), freshNow));
+
+  const changed = clone(bundled);
+  changed.us.stocks[0].pricePlan.buy += 1;
+  assert.throws(() => assertMiniPricePlans(changed, sanitizeSnapshot(source, freshNow), freshNow), /pricePlan/);
+  delete changed.us.stocks[0].pricePlan;
+  assert.throws(() => assertMiniPricePlans(changed, sanitizeSnapshot(source, freshNow), freshNow), /pricePlan/);
+
+  const staleNow = freshNow + 7 * 24 * hour;
+  const staleSource = sanitizeSnapshot(source, staleNow);
+  assert.equal(staleSource.us.stocks[0].pricePlan, undefined);
+  assert.doesNotThrow(() => assertMiniPricePlans(bundled, staleSource, staleNow));
+});
 
 function partialGoldFixture() {
   const data = freshFixture();

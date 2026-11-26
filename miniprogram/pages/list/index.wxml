@@ -98,7 +98,7 @@
       bindtap="openItem"
       hover-class="tap-active"
       aria-role="button"
-      aria-label="{{item.shortName}}，{{item.badge}}"
+      aria-label="{{item.shortName}}，{{item.badge}} {{item.metricLabel}} {{item.fact}}"
     >
       <!-- 一行的节奏和新闻资讯页的条目一致：
            头行（结论徽章 / 关键数值）→ 标题（名称+代码）→ 正文（这一条独有的事实）

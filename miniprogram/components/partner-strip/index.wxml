@@ -1,0 +1,37 @@
+<view wx:if="{{sponsor || familyBrand}}" class="partner-stack">
+  <view
+    wx:if="{{sponsor}}"
+    class="partner-card"
+    data-appid="{{sponsor.appId}}"
+    data-path="{{sponsor.path}}"
+    bindtap="{{sponsor.appId ? 'openMiniProgram' : ''}}"
+    hover-class="{{sponsor.appId ? 'partner-tap' : ''}}"
+  >
+    <view class="partner-top">
+      <text class="partner-badge">{{sponsor.badge}}</text>
+      <text class="partner-title">{{sponsor.title}}</text>
+      <text wx:if="{{sponsor.appId}}" class="partner-go">了解 ›</text>
+    </view>
+    <text wx:if="{{sponsor.tagline}}" class="partner-tagline">{{sponsor.tagline}}</text>
+    <text class="partner-disclosure">{{sponsor.disclosure}}</text>
+  </view>
+
+  <view
+    wx:if="{{familyBrand}}"
+    class="partner-card is-brand"
+    data-appid="{{familyBrand.appId}}"
+    data-path="{{familyBrand.path}}"
+    bindtap="openMiniProgram"
+    hover-class="partner-tap"
+    aria-role="button"
+    aria-label="进入{{familyBrand.title}}"
+  >
+    <view class="partner-top">
+      <text class="partner-badge is-brand">{{familyBrand.badge}}</text>
+      <text class="partner-title">{{familyBrand.title}}</text>
+      <text class="partner-go">去逛逛 ›</text>
+    </view>
+    <text wx:if="{{familyBrand.tagline}}" class="partner-tagline">{{familyBrand.tagline}}</text>
+    <text class="partner-disclosure">{{familyBrand.disclosure}}</text>
+  </view>
+</view>

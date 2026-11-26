@@ -1,27 +1,29 @@
 /* 二级页（全球信息获取 / 海外开户 / A股开户）：跟首页同一套蓝白灰。品牌蓝 #1d5fd1，文字三档灰。 */
 
 .guide-shell {
-  background: #f4f6f9;
+  background: #f4f6fa;
 }
 
 .guide-head {
   display: flex;
-  padding: 28rpx 28rpx 18rpx;
+  margin-bottom: 18rpx;
+  padding: 28rpx 28rpx 32rpx;
   flex-direction: column;
   gap: 10rpx;
+  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
 }
 
 .guide-title {
-  color: #1a1f27;
-  font-size: 42rpx;
-  font-weight: 700;
+  color: #ffffff;
+  font-size: 40rpx;
+  font-weight: 740;
   line-height: 1.3;
 }
 
 .guide-lead {
-  color: #5c6470;
-  font-size: 27rpx;
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 25rpx;
+  line-height: 1.58;
 }
 
 .section-list,
@@ -159,6 +161,13 @@
   line-height: 1.6;
 }
 
+.offer-qr {
+  display: block;
+  width: 440rpx;
+  max-width: 100%;
+  margin: 12rpx auto 0;
+}
+
 .offer-action {
   display: flex;
   width: 100%;
@@ -167,15 +176,18 @@
   padding: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 16rpx;
-  background: #1d5fd1;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #2568dc 0%, #1d5fd1 100%);
   color: #ffffff;
   font-size: 30rpx;
   font-weight: 650;
   line-height: 92rpx;
+  box-shadow: 0 6rpx 16rpx rgba(29, 95, 209, 0.22);
+  transition: transform 0.12s ease;
 }
 
 .offer-action-active {
+  transform: scale(0.985);
   background: #174ea9;
 }
 

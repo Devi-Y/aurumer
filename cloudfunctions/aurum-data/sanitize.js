@@ -213,9 +213,16 @@ function sanitizeAShareQuote(item = {}, financials = {}) {
     summary,
     ...rest
   } = item;
+  // 保留经过校验的真实日线收盘序列，拒绝无效点。
+  const cleanHistory = Array.isArray(item.history)
+    ? item.history
+      .map((row) => ({ date: String(row?.date || ""), close: Number(row?.close) }))
+      .filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date) && Number.isFinite(row.close) && row.close > 0)
+    : undefined;
   // 买入/推荐/安全边际价来自静态 HTML，不是公告驱动自动化；公开链路一律剥离。
   return {
     ...rest,
+    ...(cleanHistory && cleanHistory.length >= 2 ? { history: cleanHistory } : {}),
     researchView: aShareResearchView(item, financials),
   };
 }
@@ -333,7 +340,7 @@ function assertSourceSnapshot(snapshot) {
   }
 }
 
-function sanitizeSnapshot(snapshot) {
+function sanitizeSnapshot(snapshot, now = Date.now()) {
   assertSourceSnapshot(snapshot);
   const { degradeStaleActions } = require("./action-freshness");
   const aShareFundamentals = (snapshot.aShare && snapshot.aShare.fundamentals || [])
@@ -365,7 +372,7 @@ function sanitizeSnapshot(snapshot) {
     gold: sanitizeGold(snapshot.gold),
     investors: (snapshot.investors || []).map(sanitizeInvestor),
   };
-  return degradeStaleActions(sanitized);
+  return degradeStaleActions(sanitized, now);
 }
 
 module.exports = { assertSourceSnapshot, sanitizeSnapshot };

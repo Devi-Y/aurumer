@@ -27,7 +27,7 @@ module.exports = [
     label: "复制推荐开户链接",
     copy: "https://www.interactivebrokers.com/referral/wenlong409",
     toast: "已复制，去浏览器打开",
-    disclosure: "好友推荐链接：符合活动条件时推荐人可能获得奖励，资格与规则以盈透证券说明为准。",
+    disclosure: "好友推荐链接：中国大陆居民不适用该推荐奖励；开户资格以盈透证券规定为准。",
   },
   {
     id: "hk-open-account",
@@ -42,7 +42,7 @@ module.exports = [
   {
     id: "a-open-account",
     title: "A股开户",
-    label: "打开二维码，长按识别",
+    label: "打开企业微信联系二维码",
     image: "/assets/offers/a-open-account.png",
     disclosure: "推荐渠道：你通过它开户，望潮可能获得推荐佣金。",
   },

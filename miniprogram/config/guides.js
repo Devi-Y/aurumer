@@ -43,7 +43,7 @@ module.exports = {
     offer: {
       id: "open-account",
       head: "盈透证券（IBKR）",
-      body: "开户条件、费用及好友推荐活动资格以盈透证券官方说明为准。",
+      body: "复制链接，在浏览器打开。",
     },
   },
 
@@ -53,7 +53,7 @@ module.exports = {
     offer: {
       id: "hk-open-account",
       head: "盈立证券（uSMART）",
-      body: "开户条件、费用及邀请活动资格以盈立证券官方说明为准。",
+      body: "复制链接，在浏览器打开。",
     },
   },
 
@@ -63,7 +63,7 @@ module.exports = {
     offer: {
       id: "global-access",
       head: "查看VPN服务",
-      body: "复制现有推荐链接，在浏览器查看套餐和服务说明。",
+      body: "复制链接，在浏览器打开。",
     },
   },
 
@@ -72,8 +72,8 @@ module.exports = {
     sections: [],
     offer: {
       id: "a-open-account",
-      head: "还没有 A股账户？",
-      body: "买红利股和红利 ETF 都要先有 A股证券账户，想好再开。",
+      head: "开户咨询",
+      body: "长按二维码，添加企业微信一对一咨询开户。",
     },
   },
 };

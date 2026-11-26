@@ -28,7 +28,7 @@ function snapshot() {
 
 function pageFunctions(path, names) {
   const context = { require: createRequire(new URL(`../${path}`, import.meta.url)), Page() {}, console,
-    wx: {}, getApp() { return {}; } };
+    module: { exports: {} }, wx: {}, getApp() { return {}; } };
   vm.runInNewContext(`${read(path)}\nglobalThis.testApi = {${names.join(",")}};`, context);
   return context.testApi;
 }
@@ -77,10 +77,22 @@ test("native heat ranking includes a hottest Mag7 and both native views show the
   const view = buildUsModule(data);
   assert.equal(view.hotList[0].code, "META");
   assert.equal(view.hotList[0].event, "公布季度业绩");
+  assert.equal(view.hotList[0].eventDate, day);
   assert.equal(view.sevenList.find((item) => item.code === "META").event, "公布季度业绩");
   assert.doesNotMatch(view.hotHint, /不含七姐妹/);
   const template = read("miniprogram/pages/section/index.wxml");
-  assert.equal((template.match(/class="us-event-line">\{\{item.event\}\}/g) || []).length, 2);
+  assert.equal((template.match(/class="us-event-line">\{\{item.eventDate\}\} \{\{item.event\}\}/g) || []).length, 2);
+  const seven = template.split("wx:if=\"{{usSubTab === 'seven'}}\"")[1].split("wx:if=\"{{usSubTab === 'hot'}}\"")[0];
+  assert.doesNotMatch(seven, /item\.badgeText|item\.reason/);
+  assert.match(template, /热度不代表涨跌方向或投资价值/);
+  assert.match(template, /item\.asOfText.*item\.why/);
+});
+
+test("heat descriptions use quote-day data and do not turn missing values into zero", () => {
+  const { usHeatDriver } = pageFunctions("miniprogram/utils/answers.js", ["usHeatDriver"]);
+  assert.equal(usHeatDriver({ volumeRatio: null, weeklyChange: null, changePercent: null }), "");
+  assert.match(usHeatDriver({ volumeRatio: 2.6, changePercent: -4 }), /报价日跌 4\.0%/);
+  assert.doesNotMatch(usHeatDriver({ changePercent: -4 }), /今日/);
 });
 
 test("native details and answer cards prefer concrete facts over a filing category", () => {
@@ -90,12 +102,32 @@ test("native details and answer cards prefer concrete facts over a filing catego
   const view = detailView(findItem(data, "us", "META"), data);
   assert.match(view.dynamics.event, /公司披露季度营收/);
   assert.equal(view.dynamics.eventVerified, true);
+  assert.equal(view.primaryJudgment, "公司近况");
+  assert.match(view.overview.reason, /公司披露季度营收/);
+  assert.ok(view.overview.reason.includes(day));
+  assert.equal(view.dynamics.eventSourceUrl, exhibitUrl);
+  assert.equal(view.strategy, null);
   assert.ok(buildSourceLinks(findItem(data, "us", "META"), data).some((source) => source.url === exhibitUrl));
   const answers = buildDailyAnswers(data, "us");
   const hot = answers.find((card) => card.id === "us-hot");
   assert.match(hot.rows.body[0].note, /公司披露季度营收/);
   assert.match(hot.modal, /公司披露季度营收/);
   assert.match(answers.find((card) => card.id === "us-seven").modal, /公司披露季度营收/);
+});
+
+test("without verified company news, detail gives a historical price reading and skips empty activity claims", () => {
+  const data = snapshot();
+  data.us.eventFacts = {};
+  const { detailView } = pageFunctions("miniprogram/pages/detail/index.js", ["detailView"]);
+  const item = findItem(data, "us", "META");
+  item.raw = { ...item.raw, history: [10, null, 16, 20], price: 19, asOf: day,
+    weeklyChange: null, changePercent: null, volumeRatio: null };
+  const view = detailView(item, data);
+  assert.equal(view.primaryJudgment, "价格回顾");
+  assert.match(view.overview.reason, /3 个交易日样本.*靠近样本高点/);
+  assert.equal(view.overview.priceCard.title, "3 个交易日价格");
+  assert.equal(view.dynamics.eventSourceUrl, "");
+  assert.equal(view.dynamics.heat, "");
 });
 
 test("web top three use heat alone, include Mag7 and escape event text before HTML", () => {
@@ -127,7 +159,7 @@ test("cloud, native and browser use identical fact validation", () => {
   const browser = {};
   vm.runInNewContext(read("assets/us-event-facts.js"), browser);
   assert.equal(browser.AurumEventFacts.eventSummary(snapshot(), "META"), events.eventSummary(snapshot(), "META"));
-  assert.match(read("scripts/audit-release-consistency.mjs"), /miniSnapshot\.us\?\.eventFacts/);
+  assert.match(read("scripts/audit-release-consistency.mjs"), /sanitizedMini\.us\?\.eventFacts/);
 });
 
 // Opt-in real captured evidence; no network or production writes in this test.

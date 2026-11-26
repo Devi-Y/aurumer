@@ -1,6 +1,6 @@
 const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { allItems, groupDefinitions, shortCompanyName, matchesGroup } = require("../../utils/answers");
+const { allItems, groupDefinitions, shortCompanyName, matchesGroup, aShareDividendStability } = require("../../utils/answers");
 const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
@@ -46,7 +46,7 @@ function leadingNumber(text) {
   return hit ? Number(hit[0]) : null;
 }
 
-function comparisonMetric(item, market) {
+function comparisonMetric(item, market, group) {
   if (market === "us") {
     if ((item.group === "hot" || item.group === "hot10") && hasNumber(item.raw?.heatScore)) {
       return { value: Number(item.raw.heatScore), label: `热度 ${Number(item.raw.heatScore)}` };
@@ -63,9 +63,13 @@ function comparisonMetric(item, market) {
       };
     }
   }
-  if (market === "a" && hasNumber(item.raw?.currentDividendYield)) {
-    const value = Number(item.raw.currentDividendYield);
-    return { value, label: `股息 ${value.toFixed(2)}%` };
+  if (market === "a") {
+    if (group === "stable5") {
+      const value = aShareDividendStability(item.raw);
+      return value == null ? null : { value, label: `稳定性 ${value}分` };
+    }
+    const historical = item.raw?.historicalDividendYield;
+    return historical ? { value: historical.yieldPercent, label: `历史股息率 ${historical.yieldPercent.toFixed(2)}%` } : null;
   }
   if (market === "gold") {
     const gold = item.raw || {};
@@ -200,7 +204,9 @@ Page({
     loadSnapshot((snapshot, source, meta = {}) => {
       const historical = require("../../config/product").dataMode === "historical-reference";
       const actionGroups = new Set(this.data.market === "a" ? ["add", "trim"] : this.data.market === "us" ? ["cheap7", "risk7"] : this.data.market === "gold" ? ["plan"] : []);
-      const definitions = groupDefinitions(snapshot, this.data.market).filter((item) => item.count > 0 && !(historical && actionGroups.has(item.id)));
+      const definitions = groupDefinitions(snapshot, this.data.market).filter((item) => item.count > 0
+        && !(historical && actionGroups.has(item.id))
+        && !(historical && this.data.market === "a" && !["stable5", "yield5", "sample"].includes(item.id)));
       const group = definitions.find((item) => item.id === this.data.group) || definitions[0];
       const activeGroup = group ? group.id : (historical && actionGroups.has(this.data.group) ? ({ a: "core", us: "seven", gold: "track" }[this.data.market]) : this.data.group);
       const rawItems = allItems(snapshot, this.data.market)
@@ -215,7 +221,7 @@ Page({
           if (r == null) return -1;
           return l - r;
         });
-      const comparable = rawItems.map((item) => comparisonMetric(item, this.data.market));
+      const comparable = rawItems.map((item) => comparisonMetric(item, this.data.market, activeGroup));
       const maxValue = barScaleMax(comparable);
       const market = this.data.market;
       // 页头写着「七姐妹」、筛选条写着「七姐妹 7」，行里的徽章再写一遍「七姐妹」，
@@ -224,8 +230,9 @@ Page({
       const groupTitle = group ? String(group.title || "").trim() : "";
       const items = rawItems.map((item, index) => {
         const visual = comparable[index];
-        const scored = scoreForItem(item);
-        const strategy = buildStrategySignal(item, { evidence: strategyEvidence });
+        // A 股旧评级依赖未经核实的静态股息估算，不作为历史榜的判断。
+        const scored = market === "a" ? { score: null } : scoreForItem(item);
+        const strategy = market === "a" ? {} : buildStrategySignal(item, { evidence: strategyEvidence });
         // 0 分是"这条没打分"的占位，不是"研究下来给 0 分"。港股已结束的那些
         // 条目 publicAnswer.score 就是 0，照直写成「研究分 0」等于替它下了个
         // 根本没做过的结论。详情页早就是这么处理的（`item.score > 0` 才写分数），
@@ -267,7 +274,7 @@ Page({
           name: item.name,
           shortName: item.raw?.shortName || shortCompanyName(item.name, item.code || "标的", 8),
           code: item.code,
-          badge: String(item.badge || "").trim() === groupTitle ? "" : item.badge,
+          badge: market === "a" && item.raw?.assetType !== "fund" ? "" : (String(item.badge || "").trim() === groupTitle ? "" : item.badge),
           badgeTone: market,
           badgeSentiment: badgeSentimentFor(market, item.group),
           position: index + 1,
@@ -281,15 +288,17 @@ Page({
           barWidth: showBar
             ? Math.min(100, Math.max(12, Math.round((visual.value / maxValue) * 100)))
             : 0,
-          fact: rowFact(item, market, {
+          fact: market === "a" ? (activeGroup === "stable5" ? "" : (item.raw?.historicalDividendYield
+            ? `${item.raw.historicalDividendYield.year}年分红 · ${item.raw.historicalDividendYield.priceAsOf}股价（税前）`
+            : (item.raw?.assetType === "fund" ? "基金分红以公告为准" : "历史股息率资料待核"))) : rowFact(item, market, {
             badge: item.badge,
             score: scored.score,
             dropChange: metricLabel.indexOf("报价日") === 0,
             metricLabel,
             metricPercent,
           }),
-          strategyLabel: strategy.label,
-          strategyTone: strategy.tone,
+          strategyLabel: strategy.label || "",
+          strategyTone: strategy.tone || "",
           // 「交叉重叠」那几条点开是弹窗不是详情页，弹窗内容要用到这个字段。
           overlap: item.raw?.overlap || null,
         };

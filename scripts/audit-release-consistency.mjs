@@ -36,12 +36,14 @@ const miniPath = path.join(root, "miniprogram", "data", "live-snapshot.js");
 const miniSnapshot = require(miniPath);
 assert(miniSnapshot.updatedAt === localSnapshot.updatedAt, "小程序随包快照与本地 updatedAt 不一致");
 assert((miniSnapshot.revisionAt || null) === (localSnapshot.revisionAt || null), "小程序内容修订版本与本地不一致");
+// 清洗会按检查时刻降级过期动作；双方必须在同一时刻应用同一规则再比较。
+const sanitizedMini = sanitizeSnapshot(miniSnapshot);
 for (const [label, actual, expected] of [
-  ["港股日期", miniSnapshot.hk, sanitized.hk],
-  ["SEC公告", miniSnapshot.us?.filings, sanitized.us?.filings],
-  ["SEC核验范围", miniSnapshot.us?.filingCoverage, sanitized.us?.filingCoverage],
-  ["SEC公司事件", miniSnapshot.us?.eventFacts, sanitized.us?.eventFacts],
-  ["黄金历史", miniSnapshot.gold?.history, sanitized.gold?.history],
+  ["港股日期", sanitizedMini.hk, sanitized.hk],
+  ["SEC公告", sanitizedMini.us?.filings, sanitized.us?.filings],
+  ["SEC核验范围", sanitizedMini.us?.filingCoverage, sanitized.us?.filingCoverage],
+  ["SEC公司事件", sanitizedMini.us?.eventFacts, sanitized.us?.eventFacts],
+  ["黄金历史", sanitizedMini.gold?.history, sanitized.gold?.history],
 ]) assert(isDeepStrictEqual(actual, expected), `小程序随包${label}与本地事实不一致`);
 const miniFund = (miniSnapshot.us?.fundamentals || []).find((item) => item.symbol === "NVDA");
 assert(miniFund && miniFund.amountUnit === "USD", "小程序随包美股财务未规范化");

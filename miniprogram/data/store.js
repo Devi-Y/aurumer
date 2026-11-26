@@ -1,5 +1,9 @@
 const bundledSnapshot = require("./live-snapshot");
 const { degradeStaleActions, compareSnapshotVersions, weekdayAgeMs } = require("../utils/action-freshness");
+let runtimeConfig = {};
+let cdnTransport = null;
+try { runtimeConfig = require("../config/runtime"); } catch (error) { runtimeConfig = {}; }
+try { cdnTransport = require("./cdn-transport"); } catch (error) { cdnTransport = null; }
 
 const REMOTE_TTL_MS = 10 * 60 * 1000;
 // 云端本轮结论不完整时的重试间隔。这种情况多半是云函数冷启动先读到旧的
@@ -16,18 +20,76 @@ const UPSTREAM_DOWN_RE = /UPSTREAM_TEMPORARILY_UNAVAILABLE|上游暂不可用/i;
 const CURRENT_PUBLISH_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 const STALE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
-let memorySnapshot = degradeStaleActions(bundledSnapshot);
+const STORAGE_CACHE_KEY = "aurum_snapshot_cache_v1";
+
+let memorySnapshot = null;
 let memorySource = "离线备用数据";
 let memoryWarning = "";
 let fetchedAt = 0;
 let fetchTtlMs = REMOTE_TTL_MS;
 let refreshPromise = null;
+let preparedRef = null;
+let preparedMinute = -1;
+let preparedValue = null;
+let storageChecked = false;
 
 const INVESTOR_MINIMUM = 6;
 const INVESTOR_EXPECTED = 9;
 
 function prepareSnapshot(snapshot) {
-  return degradeStaleActions(snapshot);
+  if (!snapshot || typeof snapshot !== "object") return snapshot;
+  const minute = Math.floor(Date.now() / 60000);
+  if (snapshot === preparedRef && minute === preparedMinute && preparedValue) {
+    return preparedValue;
+  }
+  const next = degradeStaleActions(snapshot);
+  preparedRef = snapshot;
+  preparedMinute = minute;
+  preparedValue = next;
+  return next;
+}
+
+function hydrateFromStorage() {
+  if (storageChecked) return;
+  storageChecked = true;
+  memorySnapshot = prepareSnapshot(bundledSnapshot);
+  if (typeof wx === "undefined" || !wx || typeof wx.getStorageSync !== "function") return;
+  try {
+    const cached = wx.getStorageSync(STORAGE_CACHE_KEY);
+    if (cached && isUsableSnapshot(cached.snapshot) && isRemoteNewerOrEqual(cached.snapshot, memorySnapshot)) {
+      if (compareSnapshotVersions(cached.snapshot, memorySnapshot) > 0) {
+        memorySnapshot = prepareSnapshot(cached.snapshot);
+        memorySource = cached.source || "自动更新";
+        memoryWarning = cached.warning || "";
+      }
+    }
+  } catch (error) {
+    // 忽略本地缓存异常，回退随包数据
+  }
+}
+
+function persistToStorage(snapshot, source, warning) {
+  if (typeof wx === "undefined" || !wx || typeof wx.setStorage !== "function") return;
+  if (!isUsableSnapshot(snapshot)) return;
+  try {
+    wx.setStorage({
+      key: STORAGE_CACHE_KEY,
+      data: { snapshot, source, warning: warning || "", savedAt: Date.now() },
+    });
+  } catch (error) {
+    // 存储空间不足或受限时静默降级
+  }
+}
+
+function snapshotVersionKey(snapshot, kind = "") {
+  if (!snapshot) return `empty|${kind}`;
+  return [
+    snapshot.updatedAt || "",
+    snapshot.revisionAt || "",
+    snapshot.status || "",
+    snapshot.actionsFresh === false ? "0" : "1",
+    kind || "",
+  ].join("|");
 }
 
 function isUsableSnapshot(snapshot) {
@@ -112,6 +174,7 @@ function isRemoteNewerOrEqual(next, current) {
 }
 
 function fetchLatest(force) {
+  hydrateFromStorage();
   const now = Date.now();
   if (!force && fetchedAt && now - fetchedAt < fetchTtlMs) {
     return Promise.resolve({
@@ -122,17 +185,53 @@ function fetchLatest(force) {
     });
   }
   if (refreshPromise) return refreshPromise;
-  if (!wx.cloud || typeof wx.cloud.callFunction !== "function") {
+  const cdnUrl = runtimeConfig && runtimeConfig.snapshotCdnUrl;
+  const canUseCdn = Boolean(cdnTransport && cdnTransport.isValidCdnUrl(cdnUrl));
+  const canUseCloud = Boolean(wx.cloud && typeof wx.cloud.callFunction === "function");
+  if (!canUseCdn && !canUseCloud) {
     return Promise.resolve(null);
   }
-  refreshPromise = wx.cloud.callFunction({
-    name: "aurum-data",
-    data: { action: "getSnapshot", force: Boolean(force) },
-  }).then((response) => {
-    const result = response && response.result;
+  const payload = { action: "getSnapshot", force: Boolean(force) };
+  if (!force && isUsableSnapshot(memorySnapshot) && memorySnapshot.updatedAt) {
+    payload.clientUpdatedAt = memorySnapshot.updatedAt;
+    payload.clientRevisionAt = memorySnapshot.revisionAt || memorySnapshot.updatedAt;
+  }
+  const requestRemote = async () => {
+    // 方案 A 优先：若配置了已备案国内静态 CDN，优先 20~50ms 直连；失败无缝降级云函数。
+    if (canUseCdn) {
+      const cdnResult = await cdnTransport.fetchSnapshotFromCdn(cdnUrl, {
+        force: Boolean(force),
+        clientUpdatedAt: payload.clientUpdatedAt || "",
+        clientRevisionAt: payload.clientRevisionAt || "",
+      });
+      if (cdnResult && cdnResult.ok && (cdnResult.unchanged || isUsableSnapshot(cdnResult.data))) {
+        return cdnResult;
+      }
+    }
+    if (!canUseCloud) throw new Error("云端快照暂不可用");
+    const response = await wx.cloud.callFunction({
+      name: "aurum-data",
+      data: payload,
+    });
+    return response && response.result;
+  };
+  refreshPromise = requestRemote().then((result) => {
     fetchedAt = Date.now();
-    if (!result || !result.ok || !isUsableSnapshot(result.data)) throw new Error("云端快照暂不可用");
+    if (!result || !result.ok) throw new Error("云端快照暂不可用");
     const warning = result.warning || "";
+    if (result.unchanged && isUsableSnapshot(memorySnapshot)) {
+      memorySnapshot = prepareSnapshot(memorySnapshot);
+      memorySource = UPSTREAM_DOWN_RE.test(warning) ? "缓存回退" : "自动更新";
+      memoryWarning = warning;
+      fetchTtlMs = REMOTE_TTL_MS;
+      return {
+        snapshot: memorySnapshot,
+        source: memorySource,
+        warning: memoryWarning,
+        unchanged: true,
+      };
+    }
+    if (!isUsableSnapshot(result.data)) throw new Error("云端快照暂不可用");
     const remoteSnapshot = prepareSnapshot(result.data);
     // 资料暂缺也是有效的新状态；不能因为黄金区间暂停，就拒收其他市场的新行情。
     if (isRemoteNewerOrEqual(remoteSnapshot, memorySnapshot)) {
@@ -141,6 +240,7 @@ function fetchLatest(force) {
       // 顺手刷新都在七个页面顶上挂一条橙色告警。只有取不到数才是回退。
       memorySource = UPSTREAM_DOWN_RE.test(warning) ? "缓存回退" : "自动更新";
       memoryWarning = warning;
+      persistToStorage(remoteSnapshot, memorySource, memoryWarning);
     }
     fetchTtlMs = REMOTE_TTL_MS;
     return {
@@ -160,7 +260,13 @@ function fetchLatest(force) {
   return refreshPromise;
 }
 
+function prefetchSnapshot() {
+  hydrateFromStorage();
+  return fetchLatest(false).catch(() => null);
+}
+
 function loadSnapshot(onUpdate, onComplete, options = {}) {
+  hydrateFromStorage();
   let initialSnapshot = prepareSnapshot(memorySnapshot);
   let initialSource = memorySource;
   let initialWarning = memoryWarning;
@@ -170,20 +276,26 @@ function loadSnapshot(onUpdate, onComplete, options = {}) {
     initialWarning = "";
   }
   memorySnapshot = initialSnapshot;
+  let deliveredKey = "";
   if (isUsableSnapshot(initialSnapshot)) {
+    const initialKind = freshnessKind(initialSnapshot, initialSource, initialWarning);
+    deliveredKey = snapshotVersionKey(initialSnapshot, initialKind);
     onUpdate(
       initialSnapshot,
       sourceLabel(initialSnapshot, initialSource, initialWarning),
-      { warning: initialWarning, kind: freshnessKind(initialSnapshot, initialSource, initialWarning) },
+      { warning: initialWarning, kind: initialKind, versionKey: deliveredKey },
     );
   }
   fetchLatest(Boolean(options.force))
     .then((latest) => {
       if (!latest || latest.reused || !isUsableSnapshot(latest.snapshot)) return;
+      const nextKind = freshnessKind(latest.snapshot, latest.source, latest.warning);
+      const nextKey = snapshotVersionKey(latest.snapshot, nextKind);
+      if (latest.unchanged && nextKey === deliveredKey && !options.force) return;
       onUpdate(
         latest.snapshot,
         sourceLabel(latest.snapshot, latest.source, latest.warning),
-        { warning: latest.warning || "", kind: freshnessKind(latest.snapshot, latest.source, latest.warning) },
+        { warning: latest.warning || "", kind: nextKind, versionKey: nextKey },
       );
     })
     .finally(() => {
@@ -195,6 +307,8 @@ module.exports = {
   bundledSnapshot,
   isUsableSnapshot,
   loadSnapshot,
+  prefetchSnapshot,
+  snapshotVersionKey,
   sourceLabel,
   freshnessKind,
   prepareSnapshot,

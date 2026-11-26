@@ -687,92 +687,41 @@ function buildAShareAnswers(snapshot, holdings = []) {
   // 「优先股票、次之基金」是用户点名的排法：同一榜里股票整体排在基金前面，
   // 各自内部再按分数降序。今天样本里唯一的红利 ETF 两个榜都进不去（见 fundNote），
   // 但排法先立在这儿，将来有基金进榜时不至于插到股票中间。
-  const isFund = (item) => item?.raw?.assetType === "fund";
-  const rankedBy = (lens, score) => items
-    .filter((item) => matchesGroup(item, lens))
-    .sort((left, right) => {
-      const byKind = Number(isFund(left)) - Number(isFund(right));
-      if (byKind) return byKind;
-      return score(right.raw || {}) - score(left.raw || {});
-    });
-  const stableTop = rankedBy("stable5", (raw) => Number(aShareDividendStability(raw) || 0) * 1000
-    + Number(raw.sustainableDividendYield || 0));
-  const yieldTop = rankedBy("yield5", (raw) => Number(raw.sustainableDividendYield || 0));
+  const rankedBy = (lens) => items.filter((item) => matchesGroup(item, lens))
+    .sort((left, right) => (left.lensRank?.[lens] || 999) - (right.lensRank?.[lens] || 999));
+  const stableTop = rankedBy("stable5");
+  const yieldTop = rankedBy("yield5");
   const stableIds = new Set(stableTop.map((item) => item.id));
   const bothTop = yieldTop.filter((item) => stableIds.has(item.id));
-  // 用户这一问要的是「前五名各自的参考买入价、参考卖出价」——那本来就是一张表。
-  // 原来卡面只放得下第一名（leadPrice），另外四只得点开展开层才看得到，
-  // 名次和两个价还分在两处。改成四列摆齐：名次标的｜排序依据｜参考买｜参考卖。
-  // 拿不到价的那只照样占一行，写「暂缺」，不按公式硬凑一个数。
-  const rankRows = (list, kind) => {
-    if (!list.length) return null;
-    return {
-      head: ["标的", kind === "stable" ? "稳定性" : "可持续股息率", "参考买", "参考卖"],
-      body: list.map((item, index) => {
-        const raw = item.raw || {};
-        const plan = yieldImpliedPlan(raw);
-        const basis = kind === "stable"
-          ? (hasNumber(aShareDividendStability(raw)) ? String(aShareDividendStability(raw)) : "暂缺")
-          : (hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(1)}%` : "暂缺");
-        return {
-          key: item.id || item.code || String(index),
-          cells: [
-            `${index + 1} ${shortCompanyName(item.name, "收息", 4)}`,
-            basis,
-            plan ? yuan(plan.addPrice) : "暂缺",
-            plan ? yuan(plan.trimPrice) : "暂缺",
-          ],
-          // 现价已经跌到参考买之下的那行标绿：这一栏用户每天真正要找的就是它。
-          tone: plan && plan.zone === "add" ? "good" : (plan && plan.zone === "trim" ? "warn" : ""),
-        };
-      }),
-    };
-  };
-  // 排序依据得摆出来，否则「凭什么它第一」只能靠信。
-  const stableWhy = stableTop[0]
-    ? `分红稳定性 ${aShareDividendStability(stableTop[0].raw)}`
-    : "";
-  const yieldWhy = stableTop.length && yieldTop[0]
-    ? `可持续股息 ${Number(yieldTop[0].raw?.sustainableDividendYield || 0).toFixed(1)}%`
-    : "";
-  // 用户要的是「优先股票、次之基金」。基金这半边现在给不出来，就说给不出来：
-  // 快照里的 A 股基金只有 1 只红利 ETF，且它的分红以基金公告为准、没有股息率字段，
-  // 排不进任何一个按股息率排的榜。凑不满五只就不凑。
-  // 卡面那句要短到能跟表格同屏，完整口径留在展开层（fundNoteFull）。
-  // 只印在两张榜单卡的第一张上——两张紧挨着，同一句话印两遍就成了水印。
-  const fundNote = "前五均为股票：样本内唯一的红利 ETF 无股息率字段，两榜都排不进";
-  const fundNoteFull = "样本内唯一的红利 ETF 分红以基金公告为准、没有股息率字段，两个榜都排不进，所以前五都是股票——不是把基金筛掉了，是它没有可比的字段。";
-
-  // 前五名的两个参考价一次摆齐。卡面只放得下第一名（leadPrice），另外四只原来
-  // 只能翻到列表里一行行找，可用户这一问要的就是「前五名各自的参考买入价、
-  // 参考卖出价」。拿不到价的那只照样列名次，写清缺哪个字段——不按公式硬凑一个数。
-  const zoneNote = {
-    add: "现价已在参考买入价之下",
-    trim: "现价已在参考卖出价之上",
-    hold: "现价在两条参考价之间",
-  };
+  const rankRows = (list, kind) => !list.length ? null : ({
+    head: ["标的", kind === "stable" ? "稳定性" : "历史股息率"],
+    body: list.map((item, index) => ({
+      key: item.id || item.code || String(index),
+      cells: [
+        `${index + 1} ${shortCompanyName(item.name, "收息", 4)}`,
+        kind === "stable" ? String(aShareDividendStability(item.raw))
+          : `${item.raw.historicalDividendYield.yieldPercent.toFixed(2)}%`,
+      ],
+    })),
+  });
+  const stableWhy = stableTop[0] ? `分红稳定性 ${aShareDividendStability(stableTop[0].raw)}` : "";
+  const yieldWhy = yieldTop[0] ? `历史股息率 ${yieldTop[0].raw.historicalDividendYield.yieldPercent.toFixed(2)}%` : "";
+  const fundNote = "基金缺可比数据，暂不参与排名";
   const rankModal = (list, kind) => {
     if (!list.length) return "";
     const rows = list.map((item, index) => {
       const raw = item.raw || {};
-      const stability = aShareDividendStability(raw);
+      const historical = raw.historicalDividendYield;
       const why = kind === "stable"
-        ? `分红稳定性 ${hasNumber(stability) ? stability : "暂缺"}`
-        : `可持续股息 ${hasNumber(raw.sustainableDividendYield) ? `${Number(raw.sustainableDividendYield).toFixed(2)}%` : "暂缺"}`;
-      const head = `${index + 1}. ${shortCompanyName(item.name, "收息", 8)} · ${why}`;
-      const plan = yieldImpliedPlan(raw);
-      if (!plan) return `${head}\n\u3000参考价暂缺：缺少现价或可持续股息率，不倒推价格。`;
-      return `${head}\n\u3000现价 ${yuan(plan.price)}｜参考买 ${yuan(plan.addPrice)}｜参考卖 ${yuan(plan.trimPrice)}（${zoneNote[plan.zone] || "观察中"}）`;
+        ? `分红稳定性 ${aShareDividendStability(raw)}`
+        : `${historical.year}年税前分红 ${historical.dividendPerShare}元/股 ÷ ${historical.priceAsOf}价格 ${yuan(historical.price)} = ${historical.yieldPercent.toFixed(2)}%`;
+      return `${index + 1}. ${shortCompanyName(item.name, "收息", 8)} · ${why}`;
     });
     return [
       kind === "stable"
-        ? "按分红能不能持续排：分红覆盖率、经营现金流、现金转换、股东回报四项加权，不看股息高低。"
-        : "先把「高息待核」这种靠不住的挡在外面，剩下的按可持续股息率从高到低排——两个榜都上榜的才是两头过得去。",
-      "",
-      ...rows,
-      "",
-      "两条参考价按每家自己的可持续股息率倒推：股息率回到「可持续 ×1.12 或 +0.4 个百分点（取高）」时对应的价是参考买，被压到「×0.88 或 −0.3 个百分点（取低）」时对应的价是参考卖。是观察价，不是目标价，也不是买卖指令。",
-      fundNoteFull,
+        ? "比较最近五个完整所属年度的现金分红，稳定性是四次同比未减息的占比；同分按代码排序。"
+        : "最近完整所属年度税前现金分红除以标注日期的历史价格；同数值按代码排序。不是持有期间收益，也不预测未来分红。",
+      "", ...rows, "", fundNote,
     ].join("\n");
   };
 
@@ -790,7 +739,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
       // 名次和两个参考价都在下面那张表里，这一行只交代榜首是谁、凭什么第一。
       answer: stableTop.length
         ? `${shortCompanyName(stableTop[0].name, "收息", 6)} 居首 · ${stableWhy}`
-        : "缺少分红分与可持续股息，暂不排名",
+        : "分红记录不足，暂不排名",
       names: fundNote,
       rows: rankRows(stableTop, "stable"),
       tone: stableTop.length ? "good" : "warn",
@@ -798,7 +747,7 @@ function buildAShareAnswers(snapshot, holdings = []) {
       group: "stable5",
       targetId: stableTop[0]?.id || "",
       enabled: stableTop.length > 0,
-      hint: "看的是分红能不能持续（覆盖率、现金流、股东回报），不含股息高低，也不是收益承诺。",
+      hint: "近五个完整所属年度，按四次同比未减息占比排序；不预测未来分红。",
       modal: rankModal(stableTop, "stable"),
     }),
     card({
@@ -806,20 +755,20 @@ function buildAShareAnswers(snapshot, holdings = []) {
       question: "分红收益性 前五",
       answer: yieldTop.length
         ? `${shortCompanyName(yieldTop[0].name, "收息", 6)} 居首 · ${yieldWhy}`
-        : "缺少当前股息率，暂不排名",
+        : "分红或历史价格不足，暂不排名",
       // fundNote 只印在上面那张榜单卡上——两张紧挨着，同一句话印两遍就成了水印。
       // 这一格放两榜的交集：稳定性和收益性都进前五的那几只，才是「两头过得去」，
       // 这是表格本身答不出来、又必须跨两张表才看得到的一件事。
       names: bothTop.length
         ? `两榜都上榜：${bothTop.map((item) => shortCompanyName(item.name, "收息", 4)).join("、")}`
-        : "两榜没有重合，高息与稳定这轮没落在同一只上",
+        : "两榜暂无重合",
       rows: rankRows(yieldTop, "yield"),
       tone: yieldTop.length ? "good" : "warn",
       action: "group",
       group: "yield5",
       targetId: yieldTop[0]?.id || "",
       enabled: yieldTop.length > 0,
-      hint: "先过滤高息待核，再按可持续股息率排；两个榜都上榜的才是两头过得去。",
+      hint: "按最近完整所属年度税前分红与历史价格计算，不代表持有收益。",
       modal: rankModal(yieldTop, "yield"),
     }),
     card({

@@ -1,21 +1,401 @@
-/* 首页配色：蓝白灰。品牌蓝 #1d5fd1，文字三档灰，涨跌只在数字和柱子上用红绿。 */
+/* 首页视觉体系：深海精装金融头图 × DeepSeek 极简白底卡片 × 品牌蓝 #1d5fd1。 */
 
 .home-shell {
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 0 0 calc(28rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 0 calc(32rpx + env(safe-area-inset-bottom));
   overflow-x: hidden;
-  background: #f4f6f9;
+  background: #f4f6fa;
 }
+
+/* ---------- DeepSeek 风格顶部极速秒搜 ---------- */
+
+.home-search-wrap {
+  margin: 0 20rpx 16rpx;
+}
+
+.home-search-box {
+  display: flex;
+  height: 78rpx;
+  padding: 0 22rpx;
+  align-items: center;
+  gap: 12rpx;
+  border: 1rpx solid rgba(15, 23, 42, 0.08);
+  border-radius: 999rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home-search-box.is-focused {
+  border-color: #1d5fd1;
+  box-shadow: 0 6rpx 20rpx rgba(29, 95, 209, 0.12);
+}
+
+.home-search-icon {
+  flex: none;
+  color: #64748b;
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.home-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 72rpx;
+  color: #0f172a;
+  font-size: 26rpx;
+}
+
+.home-search-placeholder {
+  color: #94a3b8;
+  font-size: 25rpx;
+}
+
+.home-search-clear {
+  flex: none;
+  padding: 6rpx 10rpx;
+  color: #1d5fd1;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.search-dropdown {
+  margin-top: 12rpx;
+  overflow: hidden;
+  border: 1rpx solid rgba(15, 23, 42, 0.08);
+  border-radius: 22rpx;
+  background: #ffffff;
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.08);
+}
+
+.search-result-row {
+  display: flex;
+  min-height: 86rpx;
+  padding: 14rpx 22rpx;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.search-result-row + .search-result-row {
+  border-top: 1rpx solid #f1f4f8;
+}
+
+.search-tag {
+  flex: none;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  background: #eef3fb;
+  color: #1d5fd1;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.search-tag.tag-a { background: #fdf1ef; color: #c2412d; }
+.search-tag.tag-gold { background: #fef6e7; color: #9a5b13; }
+.search-tag.tag-guru { background: #f3effe; color: #6d28d9; }
+
+.search-result-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.search-result-name {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-result-code {
+  color: #94a3b8;
+  font-size: 20rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.search-result-fig {
+  flex: none;
+  color: #334155;
+  font-size: 25rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+}
+
+.search-result-go {
+  flex: none;
+  color: #cbd5e1;
+  font-size: 30rpx;
+}
+
+.search-empty {
+  padding: 26rpx 24rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.search-picks-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.search-picks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.search-picks-label {
+  color: #64748b;
+  font-size: 21rpx;
+  font-weight: 640;
+}
+
+.search-pick-chip {
+  padding: 6rpx 18rpx;
+  border: 1rpx solid rgba(29, 95, 209, 0.14);
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.search-pick-chip.is-star {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: #fffbeb;
+  color: #92400e;
+}
+
+/* ---------- 有知有行 × 韭圈儿 × 且慢：全市场历史综合温度计深色精装头卡 ---------- */
+
+.pulse-eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.pulse-rule-btn {
+  padding: 2rpx 12rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.22);
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 19rpx;
+}
+
+.pulse-info-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  margin-top: 14rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 14rpx;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.pulse-info-line {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 21rpx;
+  line-height: 1.5;
+}
+
+.pulse-hero {
+  margin: 0 20rpx 18rpx;
+  padding: 26rpx 26rpx 22rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
+  color: #ffffff;
+  box-shadow: 0 14rpx 36rpx rgba(13, 26, 51, 0.18);
+}
+
+.pulse-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.pulse-eyebrow {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 22rpx;
+  font-weight: 620;
+  letter-spacing: 0.6rpx;
+}
+
+.pulse-date {
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 20rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.pulse-main {
+  display: flex;
+  margin-top: 16rpx;
+  align-items: center;
+  gap: 22rpx;
+}
+
+.pulse-score-wrap {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  line-height: 1;
+}
+
+.pulse-score {
+  color: #ffffff;
+  font-size: 76rpx;
+  font-weight: 760;
+  letter-spacing: -2rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.pulse-unit {
+  margin-top: 8rpx;
+  margin-left: 2rpx;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.pulse-copy-wrap {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8rpx;
+}
+
+.pulse-zone {
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.pulse-zone.tone-cool { background: rgba(59, 130, 246, 0.34); color: #dbeafe; }
+.pulse-zone.tone-warm { background: rgba(245, 158, 11, 0.34); color: #fef3c7; }
+
+.pulse-desc {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 23rpx;
+  line-height: 1.48;
+}
+
+.pulse-gauge {
+  margin-top: 20rpx;
+}
+
+.pulse-gauge-track {
+  position: relative;
+  height: 14rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #38bdf8 0%, #34d399 35%, #fbbf24 68%, #f87171 100%);
+}
+
+.pulse-gauge-dot {
+  position: absolute;
+  top: 50%;
+  width: 24rpx;
+  height: 24rpx;
+  margin-top: -12rpx;
+  margin-left: -12rpx;
+  border: 4rpx solid #ffffff;
+  border-radius: 50%;
+  background: #0f172a;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.36);
+}
+
+.pulse-gauge-labels {
+  display: flex;
+  margin-top: 8rpx;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 19rpx;
+}
+
+.pulse-pills {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8rpx;
+  margin-top: 18rpx;
+}
+
+.pulse-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 10rpx 6rpx;
+  border-radius: 14rpx;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.pulse-pill-tap {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.pulse-pill-k {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 19rpx;
+}
+
+.pulse-pill-v {
+  max-width: 100%;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: 660;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pulse-pill-v.tone-up { color: #fca5a5; }
+.pulse-pill-v.tone-down { color: #86efac; }
+.pulse-pill-v.tone-cool { color: #93c5fd; }
+.pulse-pill-v.tone-warn { color: #fde68a; }
+
+/* ---------- 分组标题 ---------- */
 
 .home-panel {
-  margin: 16rpx 20rpx 0;
-  padding: 6rpx 0 0;
+  margin: 22rpx 20rpx 0;
+  padding: 6rpx 0 8rpx;
 }
 
-/* 走势在最上面：标题行不装进卡片，灰字贴在走势卡上方。 */
+.panel-head {
+  display: flex;
+  padding: 18rpx 24rpx 6rpx;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.panel-head .group-label {
+  padding: 0;
+}
+
+.panel-sub {
+  color: #94a3b8;
+  font-size: 21rpx;
+}
+
 .group-head.home-head {
-  margin: 12rpx 20rpx 0;
+  margin: 6rpx 20rpx 0;
   padding-right: 4rpx;
 }
 
@@ -23,13 +403,12 @@
   padding-left: 4rpx;
 }
 
-/* 分组标题是灰色小字，不跟正文抢重量。 */
 .group-label {
   display: block;
-  padding: 18rpx 24rpx 4rpx;
-  color: #8a929e;
+  padding: 12rpx 24rpx 4rpx;
+  color: #64748b;
   font-size: 24rpx;
-  font-weight: 600;
+  font-weight: 680;
 }
 
 .group-head {
@@ -48,7 +427,7 @@
   min-width: 0;
   flex: none;
   overflow: hidden;
-  color: #9aa1ab;
+  color: #94a3b8;
   font-size: 22rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -60,10 +439,9 @@
   display: flex;
   width: 100%;
   flex-wrap: wrap;
-  padding: 8rpx 0 20rpx;
+  padding: 8rpx 0 18rpx;
 }
 
-/* 年费条撤掉后，九宫格是首页主要的点按区；小屏收紧内边距时仍保住 176rpx 的触控高度。 */
 .grid-card {
   box-sizing: border-box;
   display: flex;
@@ -82,24 +460,27 @@
 
 .entry-icon-chip {
   display: flex;
-  width: 98rpx;
-  height: 98rpx;
+  width: 100rpx;
+  height: 100rpx;
   align-items: center;
   justify-content: center;
-  border-radius: 32rpx;
-  background: #edf2fb;
+  border: 1rpx solid rgba(29, 95, 209, 0.1);
+  border-radius: 30rpx;
+  background: linear-gradient(145deg, #f3f7ff 0%, #e4edfd 100%);
+  box-shadow: 0 6rpx 16rpx rgba(29, 95, 209, 0.08);
+  transition: transform 0.12s ease;
 }
 
-/* 服务格不是研究栏目，底色退成灰，和研究栏目分得开。 */
+.entry-icon-chip.gold {
+  border-color: rgba(180, 130, 30, 0.14);
+  background: linear-gradient(145deg, #faf8f2 0%, #f1e9d4 100%);
+  box-shadow: 0 6rpx 16rpx rgba(180, 130, 30, 0.08);
+}
+
 .entry-icon-chip.svc {
-  background: #f1f3f6;
-}
-
-/* 预留格：只留一个虚线框占住位置。 */
-.entry-icon-chip.is-reserved {
-  box-sizing: border-box;
-  border: 2rpx dashed #d3dae5;
-  background: transparent;
+  border-color: rgba(15, 23, 42, 0.06);
+  background: linear-gradient(145deg, #f7f8fb 0%, #eef1f6 100%);
+  box-shadow: none;
 }
 
 .entry-icon {
@@ -111,24 +492,25 @@
   display: block;
   max-width: 100%;
   overflow: hidden;
-  color: #1a1f27;
+  color: #0f172a;
   font-size: 27rpx;
-  font-weight: 620;
+  font-weight: 640;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .tap-active {
   background: #edf2fb;
+  transform: scale(0.985);
 }
 
-/* ---------- 走势：2×2，一个数 + 一张图 ---------- */
+/* ---------- 走势：2×2 精装金融卡片 ---------- */
 
 .trend-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16rpx;
-  margin: 8rpx 20rpx 0;
+  margin: 10rpx 20rpx 0;
 }
 
 .trend-card {
@@ -137,19 +519,34 @@
   min-width: 0;
   flex-direction: column;
   gap: 6rpx;
-  padding: 22rpx 22rpx 20rpx;
-  border: 1rpx solid #e6e9ef;
+  padding: 22rpx 22rpx 18rpx;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
   border-radius: 24rpx;
   background: #ffffff;
+  box-shadow: 0 6rpx 22rpx rgba(15, 23, 42, 0.045);
+  transition: transform 0.12s ease, background-color 0.12s ease;
+}
+
+.trend-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
 }
 
 .trend-title {
   overflow: hidden;
-  color: #8a929e;
-  font-size: 23rpx;
-  font-weight: 600;
+  color: #1e293b;
+  font-size: 25rpx;
+  font-weight: 680;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.trend-arrow {
+  color: #94a3b8;
+  font-size: 28rpx;
+  line-height: 1;
 }
 
 .trend-figure {
@@ -157,30 +554,29 @@
   align-items: baseline;
   gap: 10rpx;
   min-width: 0;
+  margin-top: 4rpx;
 }
 
 .trend-value {
   flex: none;
-  color: #1a1f27;
-  font-size: 38rpx;
-  font-weight: 700;
+  color: #0f172a;
+  font-size: 40rpx;
+  font-weight: 760;
+  letter-spacing: -0.8rpx;
   font-variant-numeric: tabular-nums;
 }
 
 .trend-sub {
   min-width: 0;
-  overflow: hidden;
-  color: #8a929e;
+  color: #475569;
   font-size: 21rpx;
   font-variant-numeric: tabular-nums;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
 }
 
-.trend-sub.up { color: #c2412d; }
-.trend-sub.down { color: #0b7a53; }
+.trend-sub.up { color: #c2412d; font-weight: 640; }
+.trend-sub.down { color: #0b7a53; font-weight: 640; }
 
-/* 折线图片的宽高比要和 sparklineSvg 的 300×104 一致，线才不会被拉变形。 */
 .trend-bars,
 .trend-line {
   display: block;
@@ -223,7 +619,7 @@
 
 .page-footer {
   display: flex;
-  padding: 24rpx 28rpx 0;
+  padding: 26rpx 28rpx 0;
   flex-direction: column;
   align-items: center;
   text-align: center;
@@ -231,24 +627,60 @@
 
 .footer-note {
   max-width: 560rpx;
-  color: #9aa1ab;
+  color: #94a3b8;
   font-size: 22rpx;
   line-height: 1.55;
 }
 
+.trend-meta-row {
+  display: flex;
+  margin-top: 2rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6rpx;
+}
+
+.trend-date {
+  min-width: 0;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 19rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trend-mood {
+  flex: none;
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
+  background: #f1f4f9;
+  color: #475569;
+  font-size: 18rpx;
+  font-weight: 660;
+  line-height: 1.4;
+}
+
+.trend-mood.tone-up { background: #fdf1ef; color: #c2412d; }
+.trend-mood.tone-down { background: #ecf8f2; color: #0b7a53; }
+.trend-mood.tone-warn { background: #fef6e7; color: #9a5b13; }
+.trend-mood.tone-cool { background: #edf3ff; color: #1d5fd1; }
+
 @media (max-width: 340px) {
-  .home-panel { margin-left: 12rpx; margin-right: 12rpx; }
+  .home-search-wrap, .pulse-hero, .home-panel, .trend-grid, .group-head.home-head {
+    margin-left: 12rpx;
+    margin-right: 12rpx;
+  }
   .grid-card { padding: 16rpx 6rpx; gap: 10rpx; }
   .entry-icon-chip { width: 84rpx; height: 84rpx; }
   .entry-icon { width: 44rpx; height: 44rpx; }
   .card-title { font-size: 24rpx; }
-  .trend-grid, .group-head.home-head { margin-left: 12rpx; margin-right: 12rpx; }
 }
 
 @media (min-width: 700px) {
-  .home-panel, .trend-grid, .group-head.home-head { margin-right: 32px; margin-left: 32px; }
-  .entry-icon-chip { width: 49px; height: 49px; }
+  .home-search-wrap, .pulse-hero, .home-panel, .trend-grid, .group-head.home-head {
+    margin-right: 32px;
+    margin-left: 32px;
+  }
+  .entry-icon-chip { width: 50px; height: 50px; }
   .entry-icon { width: 25px; height: 25px; }
 }
-
-.trend-date { display: block; margin-top: 4rpx; color: #64748b; font-size: 20rpx; }

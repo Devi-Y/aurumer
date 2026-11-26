@@ -1,13 +1,14 @@
-const { loadSnapshot } = require("../../data/store");
+const { loadSnapshot, snapshotVersionKey } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { allItems, groupDefinitions, shortCompanyName, money, aShareDividendStability, tickerZhLabel, usPoolItems, usQualityEligibility } = require("../../utils/answers");
+const { allItems, groupDefinitions, shortCompanyName, shortOrgList, money, aShareDividendStability, tickerZhLabel, usPoolItems, usQualityEligibility } = require("../../utils/answers");
+const { getDividendStability } = require("../../utils/dividend-stability");
 const PRODUCT = require("../../config/product");
 const {
   countTiles, usOrderState, usOrderLine, compareUsOrder, US_TRIGGERS,
-  aOrderState, aOrderLine, compareAOrder, A_TRIGGERS, hkApplyTiles, goldLevelNotes,
+  aOrderState, aOrderLine, compareAOrder, A_TRIGGERS, goldLevelNotes,
 } = require("../../utils/order-plan");
 // 结论行要按「低估 / 风险」这两个透镜选人，和今日答案用同一个判断。
-const { parseOfferPrice, yieldImpliedPlan, goldZoneForPrice, goldPlanView } = require("../../utils/market-lenses");
+const { parseOfferPrice, yieldImpliedPlan, goldZoneForPrice, goldPlanView, MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
 // 港股打新「中签后」每只股票自己的观察分位——已经是详情页在用的同一份
 // 真实数据计算，这里原样复用，不重新写一遍价格逻辑。
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
@@ -16,9 +17,9 @@ const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { goHome, openPage } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
-const { eventBrief } = require("../../utils/us-event-facts");
+const { eventBrief, eventFactFor } = require("../../utils/us-event-facts");
 const { plainLabel, plainOverview } = require("../../utils/plain-reading");
-const { getDividendStability } = require("../../utils/dividend-stability");
+const { getHistoricalDividendYield } = require("../../utils/historical-dividend-yield");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { MASTER_PLAYBOOKS } = require("../../utils/master-playbooks");
@@ -33,6 +34,7 @@ const { holdingLabel, instrumentSuffix } = require("../../utils/guru-changes");
 // 页头那句「数据截至 …」和新闻资讯页共用同一个写法。
 const { asOfText } = require("../../utils/dates");
 const { marketReferenceAsOf, referenceDateText } = require("../../utils/historical-reference");
+const { historicalGoldSeries, domesticGoldClose } = require("../../utils/gold-series");
 
 // 美股每行、红利 ETF 卡的小走势图，和首页走势卡同一套画法。
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
@@ -58,7 +60,7 @@ const META = {
     title: "A股收息",
     // 「周期短持」那张卡撤了以后副标题还写着周期。跟着今日答案那四张走：
     // 两个维度的前五，外加参考买卖两侧。
-    one: "稳定性前五 / 收益性前五 / 参考买卖",
+    one: "分红稳定性 / 历史股息率",
     tone: "a",
     icon: "/assets/home/a.svg",
     kicker: "分红清单",
@@ -73,8 +75,7 @@ const META = {
   },
   guru: {
     title: "聪明钱跟踪",
-    // 思路与借鉴收进了「未来持仓趋势」的展开层，副标题跟着答案卡走。
-    one: "持仓 · 本季加减 · 方向与边界",
+    one: "持仓 · 历史披露变化",
     tone: "guru",
     icon: "/assets/home/guru.svg",
     kicker: "学习与对照",
@@ -109,20 +110,6 @@ function hkDeadlineOffset(value) {
   return Math.round((target.getTime() - start.getTime()) / 86400000);
 }
 
-// 没有截止日就留空，不在每行底下印一句「待更新」。
-function hkDeadlineLabel(value) {
-  const match = String(value || "").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if (!match) return "";
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const offset = hkDeadlineOffset(value);
-  const dateText = `${month}月${day}日`;
-  if (offset < 0) return `${dateText} 已截止`;
-  if (offset === 0) return `今日 ${dateText} 截止`;
-  if (offset === 1) return `明日 ${dateText} 截止`;
-  return `${dateText} 截止 · ${offset}天后`;
-}
-
 // 「2,665.8百万港元」→「HK$26.7亿」；认不出单位就不显示，不猜。
 // 有占比写「基石占比 35.2%」，只有金额写「基石金额 HK$1.2亿」——同一列不能一行是百分比、
 // 一行是钱数还共用一个「基石」，读者分不清哪个是哪个。
@@ -151,27 +138,36 @@ function hkTone(group) {
 // 现在按各自的真实生命周期阶段分开取数，一只股票任一时刻只属于其中一边。
 function buildHkModule(snapshot) {
   const items = allItems(snapshot, "hk");
-  const priority = { worth: 0, caution: 1, avoid: 2 };
-  const applyItems = items.filter((item) => (item.lenses || []).includes("live"));
-  const sortedApply = [...applyItems].sort((left, right) => (priority[left.group] ?? 3) - (priority[right.group] ?? 3));
+  const applyItems = items.filter((item) => (item.lenses || []).some((lens) => lens === "live" || lens === "date-pending"));
   const exitItems = items.filter((item) => item.group === "settled");
 
-  const applyList = sortedApply.map((item) => {
+  const applyList = applyItems.map((item) => {
     const raw = item.raw || {};
     const offer = parseOfferPrice(raw.offerPrice || raw.priceHigh || raw.priceLow);
     const entryFee = finiteOrNull(raw.entryFee);
-    const score = finiteOrNull(raw.publicAnswer && raw.publicAnswer.score);
-    // 过了截止日还挂「值得打」，读者会以为还能打；和详情页结论一样改成「已截止」。
-    const deadlineOffset = hkDeadlineOffset(raw.offerDeadline || raw.offerEnd);
-    const closed = (deadlineOffset ?? 0) < 0;
+    const deadline = raw.offerDeadline || raw.offerEnd;
+    const deadlineOffset = hkDeadlineOffset(deadline);
+    const closed = deadlineOffset != null && deadlineOffset < 0;
+    const sponsorText = Array.isArray(raw.sponsorNames) && raw.sponsorNames.length
+      ? shortOrgList(raw.sponsorNames, "", 2)
+      : (raw.sponsor ? shortOrgList(String(raw.sponsor).split(/[、,，/]/).map((s) => s.trim()).filter(Boolean), "", 2) : "");
+    const metaTags = [raw.industry, sponsorText ? `保荐 ${sponsorText}` : ""].filter(Boolean).join(" · ");
+    // 借鉴捷利交易宝/长桥：4步生命周期进度条，新手零门槛看清处于打新哪一关。
+    const stageStep = item.group === "settled" ? 2 : (closed ? 1 : 0);
+    const stageSteps = ["招股", "截止", "配发", "上市"].map((label, idx) => ({
+      label,
+      state: idx < stageStep ? "done" : (idx === stageStep ? "now" : "todo"),
+    }));
     return {
       id: item.id,
       name: shortCompanyName(item.name, item.code || "新股", 10),
       code: String(item.code || "").replace(/\.HK$/i, ""),
-      badgeText: closed ? "已截止" : (item.badge || "待定"),
-      tone: closed ? "settled" : hkTone(item.group),
-      reason: item.one || "",
-      deadlineLabel: hkDeadlineLabel(raw.offerDeadline || raw.offerEnd),
+      metaTags,
+      stageSteps,
+      badgeText: closed ? "已截止" : (deadlineOffset == null ? "日期待核" : "日期参考"),
+      tone: closed ? "settled" : "caution",
+      reason: "招股资料仅供参考，请核对最新公告",
+      deadlineLabel: deadlineOffset == null ? "截止日期待核" : `截止 ${String(deadline).slice(0, 10)}`,
       deadlineOffset,
       closed,
       stats: [
@@ -179,7 +175,6 @@ function buildHkModule(snapshot) {
         { label: "一手金额", value: entryFee != null ? `HK$${Math.round(entryFee).toLocaleString("en-US")}` : "待更新" },
         hkCornerstoneStat(raw),
       ],
-      score: score && score > 0 ? Math.round(score) : null,
     };
   });
   // 招股中的排前面；已过截止日、还没出配发结果的排后面，每行底下的截止日写明哪只已截止。
@@ -206,8 +201,8 @@ function buildHkModule(snapshot) {
 
   return {
     applyList,
-    // 顶上三格：可申购几只 / 其中值得打几只 / 最近一只几天后截止，跟下面列表同一份。
-    applyTiles: items.length ? hkApplyTiles(applyList) : [],
+    // 未核实当前招股状态，历史资料不计算“可申购”数量。
+    applyTiles: [],
     firstDayChart: hkFirstDayChart(snapshot),
     exitList,
     exitChart: hkExitTierChart(buildHkExitBands(snapshot)),
@@ -217,14 +212,19 @@ function buildHkModule(snapshot) {
 // 「近期申购」顶上一张零轴柱：最近上市的新股首日涨跌，从早到晚一根一根排，
 // 看打新行情冷热。和首页「港股首日」卡同一份 hkFirstDaySeries。
 function hkFirstDayChart(snapshot) {
-  const changes = hkFirstDaySeries(snapshot).map((item) => item.change);
+  const series = hkFirstDaySeries(snapshot);
+  const changes = series.map((item) => item.change);
   if (changes.length < 3) return null;
   // 不写「5/12 收涨 +0.0% 中位」：斜杠像日期，「中位」是统计词。直接数只数。
   const up = changes.filter((value) => value > 0).length;
+  const maxVal = Math.max(...changes);
+  const minVal = Math.min(...changes);
   return {
     count: changes.length,
+    lastDate: series[series.length - 1].date,
     upText: `${up}只涨`,
     flatDownText: `${changes.length - up}只没涨`,
+    rangeText: `最高 ${signedPct(maxVal, 1)} · 最低 ${signedPct(minVal, 1)}`,
     ...zeroAxisBars(changes),
   };
 }
@@ -357,8 +357,97 @@ function usOrderFields() {
   return { order: null, hasOrder: false, orderTone: "", orderLabel: "", orderValue: "", orderNote: "" };
 }
 
-function usStockRow(item) {
+function usFactChips(item, spark) {
+  const fund = (item.raw && item.raw.fund) || {};
+  const chips = [];
+  const pe = finiteOrNull(fund.pe);
+  const revG = finiteOrNull(fund.revenueGrowth);
+  if (pe != null && pe > 0) chips.push({ label: `PE ${pe.toFixed(1)}x`, tone: "plain" });
+  if (revG != null) chips.push({ label: `营收 ${signedPct(revG, 1)}`, tone: revG >= 0 ? "up" : "down" });
+  if (spark && spark.hasSpark && spark.sparkChangeText) {
+    chips.push({ label: `${spark.sparkDays}日 ${spark.sparkChangeText}`, tone: spark.sparkTone || "plain" });
+  }
+  return chips;
+}
+
+function heatTileTone(delta, strongThreshold = 3) {
+  if (delta == null || !Number.isFinite(delta)) return "flat";
+  if (delta >= strongThreshold) return "up-strong";
+  if (delta > 0.05) return "up-soft";
+  if (delta <= -strongThreshold) return "down-strong";
+  if (delta < -0.05) return "down-soft";
+  return "flat";
+}
+
+function yieldTileTone(yieldPct) {
+  if (yieldPct == null || !Number.isFinite(yieldPct)) return "flat";
+  if (yieldPct >= 5) return "yield-high";
+  if (yieldPct >= 3.5) return "yield-mid";
+  return "yield-low";
+}
+
+function buildUsHeatmap(allList, mode = "day") {
+  return (Array.isArray(allList) ? allList : []).map((row) => {
+    const rawDelta = mode === "perf60" ? row.sortPerf60 : parseFloat(String(row.changeText || "").replace("%", ""));
+    const val = Number.isFinite(rawDelta) ? rawDelta : null;
+    const threshold = mode === "perf60" ? 12 : 2.5;
+    return {
+      id: row.id,
+      shortName: String(row.name || "").slice(0, 6),
+      code: row.code,
+      valText: val != null ? signedPct(val, 1) : "—",
+      subText: row.priceText || "",
+      tileTone: heatTileTone(val, threshold),
+    };
+  });
+}
+
+function buildAHeatmap(allList, mode = "yield") {
+  return (Array.isArray(allList) ? allList : []).map((row) => {
+    if (mode === "change") {
+      const val = row.sortChange;
+      return {
+        id: row.id,
+        shortName: String(row.name || "").slice(0, 5),
+        code: String(row.code || "").replace(/\.(SH|SZ)$/i, ""),
+        valText: val != null ? signedPct(val, 2) : "—",
+        subText: row.priceText || "",
+        tileTone: heatTileTone(val, 2),
+      };
+    }
+    const y = row.sortYield;
+    return {
+      id: row.id,
+      shortName: String(row.name || "").slice(0, 5),
+      code: String(row.code || "").replace(/\.(SH|SZ)$/i, ""),
+      valText: y != null ? `${y.toFixed(2)}%` : "暂缺",
+      subText: row.sortStability != null ? `稳度${row.sortStability}分` : row.priceText,
+      tileTone: yieldTileTone(y),
+    };
+  });
+}
+
+function usStockRow(item, sparkCache = null) {
   const signal = buildStrategySignal(item);
+  const cacheKey = item.code || item.id;
+  const spark = sparkCache && cacheKey && sparkCache.has(cacheKey)
+    ? sparkCache.get(cacheKey)
+    : historySpark(item, US_SPARK_SIZE);
+  if (sparkCache && cacheKey) sparkCache.set(cacheKey, spark);
+  const raw = item.raw || {};
+  const fund = raw.fund || {};
+  const closes = (Array.isArray(raw.history) ? raw.history : [])
+    .map((entry) => finiteOrNull(entry && entry.close != null ? entry.close : entry))
+    .filter((value) => value != null);
+  const perf60 = closes.length >= 2 && closes[0] > 0
+    ? ((closes[closes.length - 1] - closes[0]) / closes[0]) * 100
+    : null;
+  const lo60 = closes.length >= 10 ? Math.min(...closes) : null;
+  const hi60 = closes.length >= 10 ? Math.max(...closes) : null;
+  const curPrice = finiteOrNull(raw.price);
+  const sortPos60 = (lo60 != null && hi60 != null && hi60 > lo60 && curPrice != null)
+    ? Math.max(0, Math.min(100, Math.round(((curPrice - lo60) / (hi60 - lo60)) * 100)))
+    : null;
   return {
     id: item.id,
     name: item.name,
@@ -366,9 +455,16 @@ function usStockRow(item) {
     badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
     reason: signal.action,
-    asOfText: referenceDateText([item.raw && item.raw.asOf]),
+    asOfText: referenceDateText([raw.asOf]),
+    factChips: usFactChips(item, spark),
+    isSeven: MAGNIFICENT_SEVEN.includes(String(item.code || "").toUpperCase()),
+    sortPe: finiteOrNull(fund.pe),
+    sortMargin: finiteOrNull(fund.grossMargin),
+    sortGrowth: finiteOrNull(fund.revenueGrowth),
+    sortPerf60: perf60,
+    sortPos60,
     ...usMetrics(item),
-    ...historySpark(item, US_SPARK_SIZE),
+    ...spark,
     ...usOrderFields(item, signal),
   };
 }
@@ -377,17 +473,20 @@ function buildUsModule(snapshot) {
   const items = allItems(snapshot, "us");
   const sevenItems = items.filter((item) => item.group === "seven");
   const hotItems = items.filter((item) => item.group === "hot");
+  const sparkCache = new Map();
 
-  // 「全部」：池里每一只，到价的在最上面，其余按离参考买入价由近到远。
-  // 顶上三格只数这一份列表，点开任何一只看到的是同一个价。
+  // 「全部」：池里每一只，复用 sparkCache 避免七姐妹和热门股重复做 SVG Base64 编码。
   const allRows = usPoolItems(snapshot)
-    .map(usStockRow)
+    .map((item) => usStockRow(item, sparkCache))
     .sort((left, right) => compareUsOrder(left.order, right.order));
-  const allOrders = allRows.map((row) => row.order);
   const triggerTiles = []; // 历史参考不生成即时到价提示。
   const allList = allRows.map(({ order, ...row }) => row);
 
-  const sevenList = sevenItems.map(usStockRow).map(({ order, ...row }) => ({ ...row, event: eventBrief(snapshot, row.code) }));
+  const sevenList = sevenItems.map((item) => usStockRow(item, sparkCache)).map(({ order, ...row }) => ({
+    ...row,
+    event: eventBrief(snapshot, row.code),
+    eventDate: eventFactFor(snapshot, row.code).eventDate || "",
+  }));
   const labelCounts = new Map();
   sevenList.forEach((item) => {
     const entry = labelCounts.get(item.badgeText) || { label: item.badgeText, tone: item.tone, count: 0 };
@@ -407,17 +506,24 @@ function buildUsModule(snapshot) {
     if (usQualityEligibility(fund) === true) { takeText = "质量达标"; takeTone = "worth"; }
     else if (usQualityEligibility(fund) === false) { takeText = "质量不达标"; takeTone = "avoid"; }
     const heat = finiteOrNull(raw.heatScore);
+    const cacheKey = item.code || item.id;
+    const spark = cacheKey && sparkCache.has(cacheKey)
+      ? sparkCache.get(cacheKey)
+      : historySpark(item, US_SPARK_SIZE);
     return {
       id: item.id,
       name: item.name,
       code: item.code,
       why: item.heatDriver || "",
       event: eventBrief(snapshot, item.code),
+      eventDate: eventFactFor(snapshot, item.code).eventDate || "",
       takeText,
       takeTone,
       heatText: heat != null ? String(Math.round(heat)) : "—",
       asOfText: referenceDateText([raw.asOf]),
-      ...historySpark(item, US_SPARK_SIZE),
+      factChips: usFactChips(item, spark),
+      ...usMetrics(item),
+      ...spark,
       ...orderFields,
     };
   });
@@ -425,7 +531,49 @@ function buildUsModule(snapshot) {
     ? `样本内热度前 ${hotList.length} 只`
     : "近期没有明显热度突出的美股";
 
-  return { allList, triggerTiles, sevenList, sevenHint, sevenMix, hotList, hotHint };
+  // 借鉴 Quartr：把全池真实 SEC 备案聚合成按日期倒序的公告速递流，支持直达详情或复制 SEC 原文。
+  const poolByCode = new Map(allList.map((row) => [String(row.code || "").toUpperCase(), row]));
+  const rawFilings = Array.isArray(snapshot && snapshot.us && snapshot.us.filings)
+    ? snapshot.us.filings
+    : [];
+  const filingsFeed = rawFilings
+    .filter((entry) => entry && entry.symbol && entry.filingDate)
+    .slice()
+    .sort((a, b) => String(b.filingDate || "").localeCompare(String(a.filingDate || "")))
+    .slice(0, 24)
+    .map((entry, idx) => {
+      const sym = String(entry.symbol || "").toUpperCase();
+      const matched = poolByCode.get(sym);
+      const labels = Array.isArray(entry.labels) ? entry.labels.filter(Boolean) : [];
+      return {
+        key: `sec-${sym}-${entry.filingDate}-${idx}`,
+        id: matched ? matched.id : sym,
+        name: matched ? matched.name : tickerZhLabel(sym, sym),
+        code: sym,
+        form: entry.form || "8-K",
+        date: String(entry.filingDate || ""),
+        summary: labels.join(" · ") || "公开备案",
+        sourceUrl: entry.sourceUrl || "",
+      };
+    });
+
+  return { allList, triggerTiles, sevenList, sevenHint, sevenMix, hotList, hotHint, filingsFeed };
+}
+
+// 借鉴 Stock Events：用 5 个颜色圆点展示近 5 个所属年度是否连续稳定派息（绿=稳/增，琥珀=减息，灰=缺记录）。
+function buildDividendDots(raw) {
+  const detail = getDividendStability(raw);
+  const win = Array.isArray(detail.window) ? detail.window : [];
+  if (!win.length) return [];
+  const changeByYear = new Map((detail.changes || []).map((c) => [c.toYear, c]));
+  return win.map((entry) => {
+    const yy = String(entry.year || "").slice(-2);
+    if (!entry.complete || !(entry.perTenSharesRmb > 0)) {
+      return { year: yy, state: "miss" };
+    }
+    const ch = changeByYear.get(entry.year);
+    return { year: yy, state: ch && ch.decreased ? "cut" : "ok" };
+  });
 }
 
 function aTone(group) {
@@ -440,13 +588,20 @@ function aRankedList(items, lens) {
     .sort((left, right) => left.lensRank[lens] - right.lensRank[lens])
     .map((item) => {
       const plan = null; // 历史榜单不展示模型买卖价。
-      // yield5 现在按可持续股息率排序（先过滤高息待核），这一列必须跟排序
-      // 依据同一个数，不能继续显示当前股息率——那是另一个数，会和名次对不上。
-      const sustainableYield = Number(item.raw.sustainableDividendYield);
-      const stability = aShareDividendStability(item.raw);
+      const historicalYield = getHistoricalDividendYield(item.raw);
+      const stabilityDetail = getDividendStability(item.raw);
+      const stability = stabilityDetail.score != null ? stabilityDetail.score : aShareDividendStability(item.raw);
+      const recordedYears = Array.isArray(stabilityDetail.years) ? stabilityDetail.years.length : 0;
       const metricText = lens === "stable5"
         ? (stability != null ? String(stability) : "—")
-        : (Number.isFinite(sustainableYield) ? `${sustainableYield.toFixed(1)}%` : "—");
+        : (historicalYield ? historicalYield.yieldPercent.toFixed(2) : "—");
+      const stableParts = [];
+      if (recordedYears > 0) stableParts.push(`收录${recordedYears}年分红`);
+      if (stabilityDetail.decreaseCount != null) stableParts.push(`近5年${stabilityDetail.decreaseCount}次减息`);
+      if (historicalYield) stableParts.push(`股息率 ${historicalYield.yieldPercent.toFixed(2)}%`);
+      const yieldParts = [];
+      if (historicalYield) yieldParts.push(`${historicalYield.year}年分红 · ${historicalYield.priceAsOf.slice(0, 10)}股价`);
+      if (stability != null) yieldParts.push(`稳度 ${stability}分`);
       // 现价落在「参考买—参考卖」之间的位置；越过两端就钉在端点，颜色标出越界方向。
       let pricePos = null;
       let priceZone = "";
@@ -463,10 +618,13 @@ function aRankedList(items, lens) {
         badgeText: item.badge,
         tone: aTone(item.group),
         metricText,
-        metricUnit: lens === "stable5" && stability != null ? "分" : "",
-        metricLabel: lens === "stable5" ? "稳定性" : "可持续股息率",
+        metricUnit: lens === "stable5" ? "分" : "%",
+        metricLabel: lens === "stable5" ? "稳定性" : "历史股息率",
         stability,
-        sustainableYield: Number.isFinite(sustainableYield) ? sustainableYield : null,
+        historicalYield: historicalYield ? historicalYield.yieldPercent : null,
+        stableBasis: stableParts.join(" · "),
+        yieldBasis: yieldParts.join(" · "),
+        yearDots: buildDividendDots(item.raw),
         buyText: plan ? money(plan.addPrice, "¥") : "待更新",
         sellText: plan ? money(plan.trimPrice, "¥") : "待更新",
         priceText: plan ? money(plan.price, "¥") : "",
@@ -480,10 +638,10 @@ function aRankedList(items, lens) {
 
 // 指标条按榜内最大值归一：稳定性满分 100，股息率按榜首那只画满。
 function withMetricBars(list, lens) {
-  const values = list.map((item) => (lens === "stable5" ? item.stability : item.sustainableYield)).filter((value) => value != null);
+  const values = list.map((item) => (lens === "stable5" ? item.stability : item.historicalYield)).filter((value) => value != null);
   const max = lens === "stable5" ? 100 : Math.max(...values, 1e-6);
   return list.map((item) => {
-    const value = lens === "stable5" ? item.stability : item.sustainableYield;
+    const value = lens === "stable5" ? item.stability : item.historicalYield;
     return { ...item, metricBar: value != null ? Math.max(4, Math.round((value / max) * 100)) : 0 };
   });
 }
@@ -491,11 +649,7 @@ function withMetricBars(list, lens) {
 // 前五只展示名字和对应分红指标，买卖参考留在详情。
 function buildAModule(snapshot) {
   const items = allItems(snapshot, "a");
-  const stableList = withMetricBars(aRankedList(items, "stable5"), "stable5").map((row) => {
-    const raw = items.find((item) => item.id === row.id)?.raw;
-    const years = getDividendStability(raw).consecutiveYears;
-    return { ...row, dividendText: years ? `连续${years}年分红` : "分红记录待核" };
-  });
+  const stableList = withMetricBars(aRankedList(items, "stable5"), "stable5");
   const yieldList = withMetricBars(aRankedList(items, "yield5"), "yield5");
   const fundItem = items.find((item) => item.raw && item.raw.assetType === "fund");
   const { allList, triggerTiles } = aAllModule(items, snapshot.actionsFresh !== false);
@@ -514,11 +668,23 @@ function aAllModule(items, fresh) {
       const line = aOrderLine(order);
       const price = finiteOrNull(raw.currentPrice);
       const change = finiteOrNull(raw.changePercent);
+      const historicalYield = getHistoricalDividendYield(raw);
+      const stabilityDetail = getDividendStability(raw);
+      const stability = stabilityDetail.score != null ? stabilityDetail.score : aShareDividendStability(raw);
+      const factParts = [];
+      if (historicalYield) factParts.push(`股息率 ${historicalYield.yieldPercent.toFixed(2)}%`);
+      if (stability != null) factParts.push(`稳度 ${stability}分`);
       return {
         order,
         id: item.id,
         name: item.name,
         code: item.code,
+        factSummary: factParts.join(" · "),
+        yearDots: buildDividendDots(raw),
+        sortYield: historicalYield ? historicalYield.yieldPercent : null,
+        sortStability: stability != null ? Number(stability) : null,
+        sortCuts: stabilityDetail.decreaseCount,
+        sortChange: change,
         badgeText: item.badge,
         tone: aTone(item.group),
         priceText: price != null ? money(price, "¥") : "—",
@@ -573,9 +739,9 @@ function aFundView(item) {
 // 编一个「1年」标签但只有180天数据，是拿数据长度撒谎。
 // 「1月」「3月」会被看成一月份、三月份，写成「1个月」「3个月」。
 const GOLD_PERIODS = [
-  { id: "month", label: "1个月", days: 30 },
-  { id: "quarter", label: "3个月", days: 90 },
-  { id: "all", label: "全部", days: 9999 },
+  { id: "month", label: "1个月", months: 1 },
+  { id: "quarter", label: "3个月", months: 3 },
+  { id: "all", label: "全部" },
 ];
 
 function goldTone(zoneTone) {
@@ -638,29 +804,53 @@ function goldLadder(price, watch, upper, risk, digits) {
 // 详情页和首页的折线已改成 utils/sparkline.js 的 SVG 图片。
 // canvasId 固定不变（这块画布切周期/币种时不会被 wx:if 销毁重建，只是重新画），
 // 每次数据变化后由 drawGoldChart() 重新 paint。
-function goldLineChart(history, digits, periodLabel) {
-  const values = (history || [])
-    .map((entry) => Number(entry.close))
-    .filter((value) => Number.isFinite(value));
+function goldLineChart(history, digits, source) {
+  const values = history.map((entry) => entry.close);
   if (values.length < 2) return null;
-  const sampleCount = Math.min(60, values.length);
-  const samples = Array.from({ length: sampleCount }, (_, index) => {
-    const sourceIndex = Math.round((index / Math.max(1, sampleCount - 1)) * (values.length - 1));
-    return values[sourceIndex];
-  });
   const low = Math.min(...values);
   const high = Math.max(...values);
   const latest = values[values.length - 1];
-  const change = values[0] ? ((latest - values[0]) / values[0]) * 100 : null;
+  const change = ((latest - values[0]) / values[0]) * 100;
+  const rangePos = high > low ? Math.max(0, Math.min(100, Math.round(((latest - low) / (high - low)) * 100))) : 50;
+  const rangeMood = rangePos <= 25 ? "靠近区间低位" : (rangePos >= 75 ? "靠近区间高位" : "处于区间中段");
+  const rangeTone = rangePos <= 25 ? "cool" : (rangePos >= 75 ? "warn" : "flat");
   return {
     canvasId: "gold-price-line",
-    values: samples,
-    changeText: `近${periodLabel === "全部" ? `${values.length - 1}日` : periodLabel} ${signedPct(change, 1)}`,
+    values,
+    changeText: `区间 ${signedPct(change, 1)}`,
     changeTone: change > 0 ? "up" : change < 0 ? "down" : "flat",
+    dateText: `${history[0].date} 至 ${history[history.length - 1].date}`,
+    source,
     lowLabel: `最低 ${low.toFixed(digits)}`,
     latestLabel: `期末 ${latest.toFixed(digits)}`,
     highLabel: `最高 ${high.toFixed(digits)}`,
+    rangePos,
+    rangeMood,
+    rangeTone,
   };
+}
+
+function goldPeriodCharts(series, digits) {
+  const chartsByPeriod = {};
+  const last = series.rows[series.rows.length - 1];
+  if (!last) return { chartsByPeriod, periods: [] };
+  const periods = GOLD_PERIODS.filter((period) => {
+    let rows = series.rows;
+    if (period.months) {
+      const cutoff = new Date(`${last.date}T00:00:00Z`);
+      const endDay = cutoff.getUTCDate();
+      cutoff.setUTCMonth(cutoff.getUTCMonth() - period.months, 1);
+      const monthDays = new Date(Date.UTC(cutoff.getUTCFullYear(), cutoff.getUTCMonth() + 1, 0)).getUTCDate();
+      cutoff.setUTCDate(Math.min(endDay, monthDays));
+      const firstDay = cutoff.toISOString().slice(0, 10);
+      rows = rows.filter((row) => row.date >= firstDay);
+    }
+    const chart = goldLineChart(rows, digits, series.source);
+    if (!chart) return false;
+    chartsByPeriod[period.id] = chart;
+    return true;
+  }).map(({ id, label }) => ({ id, label }));
+  return { chartsByPeriod, periods };
 }
 
 // 画法：先描浅色网格线，再用二次贝塞尔
@@ -746,19 +936,13 @@ function buildGoldModule(snapshot) {
   const answer = gold.answer || {};
   const plan = goldPlanView(answer.pricePlan);
   const international = gold.quotes?.international || {};
-  const domestic = gold.quotes?.domestic || {};
+  const domestic = domesticGoldClose(snapshot) || {};
 
   const intlZone = goldZoneForPrice(international.price, plan.internationalWatch, plan.internationalUpper, plan.internationalRisk);
   const cnyZone = goldZoneForPrice(domestic.price, plan.domesticWatch, plan.domesticUpper, plan.domesticRisk);
 
-  // 历史日线与独立报价分开；不以盘中报价覆盖历史收盘。
-  const intlHistory = gold.history?.international || [];
-  const cnyHistory = gold.history?.domestic || [];
-  const chartsByPeriod = {};
-  GOLD_PERIODS.forEach((period) => {
-    chartsByPeriod[period.id] = goldLineChart(intlHistory.slice(-(period.days + 1)), 0, period.label);
-  });
-
+  const intlChange = finiteOrNull(international.changePercent);
+  const domChange = finiteOrNull(domestic.changePercent);
   const quotes = [
     {
       id: "usd",
@@ -766,13 +950,17 @@ function buildGoldModule(snapshot) {
       priceText: hasNumber(international.price) ? Number(international.price).toFixed(0) : "待更新",
       unit: "美元 / 盎司",
       asOfText: referenceDateText([international.asOf]),
+      changeText: intlChange != null ? signedPct(intlChange, 2) : "",
+      changeTone: intlChange == null ? "flat" : (intlChange >= 0 ? "up" : "down"),
     },
     {
       id: "cny",
       label: "人民币金",
-      priceText: hasNumber(domestic.price) ? Number(domestic.price).toFixed(1) : "待更新",
+      priceText: hasNumber(domestic.price) ? Number(domestic.price).toFixed(2) : "待更新",
       unit: "元 / 克",
-      asOfText: referenceDateText([domestic.asOf]),
+      asOfText: referenceDateText([domestic.asOf], "收盘"),
+      changeText: domChange != null ? signedPct(domChange, 2) : "",
+      changeTone: domChange == null ? "flat" : (domChange >= 0 ? "up" : "down"),
     },
   ];
 
@@ -782,20 +970,16 @@ function buildGoldModule(snapshot) {
       zoneLabel: intlZone.label,
       zoneTone: goldTone(intlZone.tone),
       ladder: goldLadder(international.price, plan.internationalWatch, plan.internationalUpper, plan.internationalRisk, 0),
-      periods: GOLD_PERIODS.map((period) => ({ id: period.id, label: period.label })),
-      chartsByPeriod,
-      chartNote: "",
+      ...goldPeriodCharts(historicalGoldSeries(snapshot, "international"), 0),
+      chartNote: "国际金收盘资料不足",
     },
     cny: {
       currencyLabel: "人民币金 · 元 / 克",
       zoneLabel: cnyZone.label,
       zoneTone: goldTone(cnyZone.tone),
       ladder: goldLadder(domestic.price, plan.domesticWatch, plan.domesticUpper, plan.domesticRisk, 1),
-      // 人民币金历史目前只有2个真实交易日，画不出有意义的走势图，如实说明，
-      // 不拿两个点硬凑一条线。
-      periods: [],
-      chartsByPeriod: {},
-      chartNote: `走势样本仅 ${cnyHistory.length} 个交易日`,
+      ...goldPeriodCharts(historicalGoldSeries(snapshot, "domestic"), 2),
+      chartNote: "人民币金收盘资料待核验",
     },
   };
 
@@ -847,27 +1031,16 @@ function guruHoldingName(holding) {
 // 「机构持仓」跟随原型的「共同方向/机构持仓」两个视图，数据全部来自
 // smartMoneyItems（今日答案同一份 profiles）和 buildGuruTrend（未来持仓
 // 趋势同一份季度加减仓聚合），不新起一套计算。
-function guruTrendRow(row, investorCount) {
-  const adderCount = (row.adders || []).length;
-  const cutterCount = (row.cutters || []).length;
-  let tone = "caution";
-  let badge = `${adderCount}家加·${cutterCount}家减`;
-  if (adderCount && !cutterCount) {
-    tone = "worth";
-    badge = `${adderCount}家增持`;
-  } else if (cutterCount && !adderCount) {
-    tone = "avoid";
-    badge = `${cutterCount}家减持`;
-  }
-  const totalTouch = adderCount + cutterCount;
-  // 条形长度只示意同向程度，不是仓位规模；8% 是给最小样本留的可见下限，
-  // 不是编出来的数据。
-  const widthPct = investorCount > 0
-    ? Math.max(8, Math.min(100, Math.round((totalTouch / investorCount) * 100)))
-    : 8;
-  // 裸代码（TSM/AMD…）括注中文名，「TSM」对没炒过美股的读者不成句子。
+function guruTrendRow(row) {
+  const counts = { up: 0, new: 0, down: 0, exit: 0 };
+  for (const entry of [...row.adders, ...row.cutters]) counts[entry.type] += 1;
+  const badge = [["up", "增持"], ["new", "新进"], ["down", "减持"], ["exit", "清仓"]]
+    .filter(([type]) => counts[type] > 0)
+    .map(([type, label]) => `${counts[type]}家${label}`)
+    .join(" · ");
+  const tone = row.adders.length && row.cutters.length ? "caution" : (row.adders.length ? "worth" : "avoid");
   const label = tickerZhLabel(row.name || row.symbol, row.issuer) || "待更新";
-  return { key: row.symbol || row.name, label, tone, badge, widthPct };
+  return { key: row.symbol || row.name, label, tone, badge };
 }
 
 function guruTrendRowsFrom(trend) {
@@ -879,7 +1052,16 @@ function guruTrendRowsFrom(trend) {
   ];
   // 没有 2 家以上同向的，就诚实展示单家的加/减各一条，不硬凑「共识」。
   const rows = picked.length ? picked : [...(trend.adds || []).slice(0, 1), ...(trend.cuts || []).slice(0, 1)];
-  return rows.map((row) => guruTrendRow(row, trend.investorCount || 0));
+  return rows.map(guruTrendRow);
+}
+
+function hasAdjacentGuruReports(investor) {
+  const match = /^(\d{4})-(03-31|06-30|09-30|12-31)$/.exec(investor?.reportDate || "");
+  if (!match) return false;
+  const [, year, quarterEnd] = match;
+  if (quarterEnd === "03-31") return investor.previousReportDate === `${Number(year) - 1}-12-31`;
+  const previousQuarterEnd = { "06-30": "03-31", "09-30": "06-30", "12-31": "09-30" }[quarterEnd];
+  return investor.previousReportDate === `${year}-${previousQuarterEnd}`;
 }
 
 // 报告期"2026-06-30" → "26年2季"，8 期历史挤在一条横向图表里，完整日期放不下；
@@ -949,8 +1131,13 @@ function guruHistoryRows(history, currency) {
 
 function buildGuruModule(snapshot) {
   const profiles = allItems(snapshot, "guru").filter((item) => item.group !== "overlap");
-  const trend = buildGuruTrend(snapshot);
+  // 增减需要前后两期可比。单期申报里的持仓不能当成新进。
+  const investors = Array.isArray(snapshot.investors) ? snapshot.investors.filter(hasAdjacentGuruReports) : [];
+  const trend = buildGuruTrend({ investors });
   const trendRows = guruTrendRowsFrom(trend);
+  const trendTitle = trend.reportPeriod ? `报告期截至 ${trend.reportPeriod}` : "持仓变化";
+  const trendHint = trend.reportPeriod ? `${trend.investorCount}家机构的部分持仓 · 与上季度比较，披露有滞后` : "";
+  const trendEmptyText = trend.reportPeriod ? "这些样本暂无可展示的持仓变化" : "暂无同一报告期可比较的持仓资料";
   const marketTag = { us: "美", hk: "港", a: "A" };
   const institutionList = profiles.map((item) => {
     // 「约 30% 年化」「12.18% 年化」抽出数字，右侧只摆一个大数；原文带「约」的
@@ -1023,7 +1210,7 @@ function buildGuruModule(snapshot) {
       || (profiles[0] && profiles[0].id)
       || "",
   );
-  return { profiles, trend, trendRows, institutionList, holdingsByInstitution, defaultId };
+  return { profiles, trend, trendRows, trendTitle, trendHint, trendEmptyText, institutionList, holdingsByInstitution, defaultId };
 }
 
 const GURU_EMPTY_HOLDINGS = {
@@ -1074,31 +1261,15 @@ function resolveGuruInstitution(guruModule, institutionId) {
 
 function buildOverview(snapshot, market) {
   if (market === "hk") {
-    const items = allItems(snapshot, "hk").filter((item) => item.group !== "ended" && item.group !== "settled");
-    // 结论只从还没过截止日的里面挑：已截止的「值得打」挂在页头，用户会以为还能打。
-    const stillOpen = (item) => {
-      const offset = hkDeadlineOffset(item.raw && (item.raw.offerDeadline || item.raw.offerEnd));
-      return offset == null || offset >= 0;
-    };
-    const rank = { worth: 0, caution: 1, avoid: 2 };
-    const live = items
-      .filter((item) => item.group !== "cancelled" && stillOpen(item))
-      .sort((left, right) => (rank[left.group] ?? 3) - (rank[right.group] ?? 3));
-    const lead = live[0];
-    const leadId = lead ? String(lead.id || "") : "";
-    // 「在售」「值得打」这两格原来在结论行下面单独占一整排，可是今日答案里
-    // 的「近期上新」「哪些值得打」两张卡说的是同一件事，同一个数字印两遍。
-    // 结论行只写名字和徽章：分数在下面列表里已经标着「评分」，这里再叫一个
-    // 「研究分」，读者会以为是两个不同的分。
+    // 历史资料无法保证当前招股状态，不给单只新股生成页头结论。
     return {
       metrics: [],
-      // 6 个字会把「北京奕斯伟计算技术」削成「北京奕斯伟计」，读着像错字。
-      target: lead ? shortCompanyName(lead.name, "新股", 10) : "暂无在售",
-      targetId: leadId,
-      grade: lead ? (lead.badge || "待定") : "—",
-      gradeGroup: lead?.group || "worth",
-      canOpenTarget: Boolean(leadId),
-      canOpenGrade: Boolean(lead?.group),
+      target: "",
+      targetId: "",
+      grade: "",
+      gradeGroup: "",
+      canOpenTarget: false,
+      canOpenGrade: false,
     };
   }
 
@@ -1250,6 +1421,26 @@ const NEXT_LINKS = {
   guru: { id: "community", ask: "想继续交流？", go: "了解交流群", url: "/pages/community/index?from=section" },
 };
 
+// 跨页内存缓存：同一份快照版本内反复进出某栏目时直接命中，零重复计算。
+const SECTION_CACHE = new Map();
+
+function getCachedSectionData(snapshot, market, versionKey) {
+  const cacheKey = `${versionKey}|${market}`;
+  if (SECTION_CACHE.has(cacheKey)) return SECTION_CACHE.get(cacheKey);
+  if (SECTION_CACHE.size > 10) SECTION_CACHE.clear();
+  const entry = {
+    overview: plainOverview(buildOverview(snapshot, market)),
+    sourceLinks: market === "guru" ? marketSources(snapshot, market) : [],
+    hkModule: market === "hk" ? buildHkModule(snapshot) : null,
+    usModule: market === "us" ? buildUsModule(snapshot) : null,
+    aModule: market === "a" ? buildAModule(snapshot) : null,
+    goldModule: market === "gold" ? buildGoldModule(snapshot) : null,
+    guruModule: market === "guru" ? buildGuruModule(snapshot) : null,
+  };
+  SECTION_CACHE.set(cacheKey, entry);
+  return entry;
+}
+
 Page({
   data: {
     market: "hk",
@@ -1282,8 +1473,12 @@ Page({
     hkExitSelectedId: "",
     hkExitView: null,
     hkExitChart: null,
-    // 美股专属：原型的「七姐妹/热门三只」两个视图，只有 market==='us' 时渲染。
+    // 美股专属：原型的「七姐妹/热门三只/SEC公告」视图，只有 market==='us' 时渲染。
     usSubTab: "seven",
+    usHeatMode: "day",
+    usHeatmap: [],
+    usAllFilter: "all",
+    usAllSort: "default",
     usAllList: [],
     usTriggerTiles: [],
     usSevenList: [],
@@ -1291,8 +1486,14 @@ Page({
     usSevenMix: [],
     usHotList: [],
     usHotHint: "",
+    usFilingsList: [],
+    usFilingsCount: 0,
     // A股收息专属：原型的「分红稳定性/分红收益性」两个前五榜单，只有 market==='a' 时渲染。
     aSubTab: "stable",
+    aHeatMode: "yield",
+    aHeatmap: [],
+    aAllFilter: "all",
+    aAllSort: "default",
     aAllList: [],
     aTriggerTiles: [],
     aStableList: [],
@@ -1312,9 +1513,9 @@ Page({
     // 机构持仓专属：原型的「共同方向/机构持仓」两个视图，只有 market==='guru' 时渲染。
     guruSubTab: "trend",
     guruTrendRows: [],
-    guruTrendRowsShown: [],
-    guruTrendExpanded: false,
+    guruTrendTitle: "持仓变化",
     guruTrendHint: "",
+    guruTrendEmptyText: "正在读取披露资料",
     guruInstitutionList: [],
     guruInstitutionListShown: [],
     guruInstitutionExpanded: false,
@@ -1449,98 +1650,130 @@ Page({
   },
   refresh(done, force = false) {
     loadSnapshot((snapshot, source, meta = {}) => {
-      const deepLinks = this.buildDeepLinks(snapshot, this.data.market)
+      const market = this.data.market;
+      const versionKey = meta.versionKey || snapshotVersionKey(snapshot, meta.kind);
+      if (!force && versionKey && versionKey === this._renderedKey) return;
+      this._renderedKey = versionKey;
+
+      const isDedicated = ["hk", "us", "a", "gold", "guru"].includes(market);
+      const deepLinks = isDedicated ? [] : this.buildDeepLinks(snapshot, market)
         .map((item) => ({ ...item, icon: tileIcon(item.group) }));
-      const answers = buildDailyAnswers(snapshot, this.data.market, { holdings: listHoldings() });
-      // 「今日答案」「历史样本对照」经常和分组网格指向同一张列表页——比如港股
-      // 「哪些值得打」答案卡和网格里的「值得打」格，点开是同一个 group=worth。
-      // 谁已经把这个分组的入口做出来了（而且真能点），网格里就不再重复放一张；
-      // 判断只看目的地是否相同，不关心具体是哪个市场，所以对5个模块都成立。
+      const answers = isDedicated ? [] : buildDailyAnswers(snapshot, market, { holdings: listHoldings() });
       const coveredGroups = new Set([
         ...deepLinks.filter((item) => item.enabled).map((item) => item.group),
         ...answers.filter((item) => item.enabled && item.action === "group" && item.group).map((item) => item.group),
       ]);
-      const groups = groupDefinitions(snapshot, this.data.market)
+      const groups = isDedicated ? [] : groupDefinitions(snapshot, market)
         .filter((item) => item.count > 0 && item.catalog !== false && !coveredGroups.has(item.id))
         .map((item) => ({ ...item, icon: tileIcon(item.id) }));
-      // 这一栏的数据是从哪儿来的。新闻资讯页每条都挂了官方出处，
-      // 五个栏目页一直只有一句"公开资料整理"，核对无门。
-      const sourceLinks = marketSources(snapshot, this.data.market);
-      const hkModule = this.data.market === "hk" ? buildHkModule(snapshot) : null;
-      const hkExitList = hkModule ? hkModule.exitList : [];
-      this._hkExitList = hkExitList;
-      const hkSelection = resolveHkExitSelection(hkExitList, this.data.hkExitSelectedId);
-      const usModule = this.data.market === "us" ? buildUsModule(snapshot) : null;
-      const aModule = this.data.market === "a" ? buildAModule(snapshot) : null;
-      const goldModule = this.data.market === "gold" ? buildGoldModule(snapshot) : null;
-      this._goldModule = goldModule;
-      const goldView = resolveGoldView(goldModule, this.data.goldCurrency, this.data.goldPeriod);
-      const guruModule = this.data.market === "guru" ? buildGuruModule(snapshot) : null;
-      this._guruModule = guruModule;
-      const guruSelection = resolveGuruInstitution(guruModule, this.data.guruInstitutionId || guruModule?.defaultId);
-      this.setData({
-        groups,
-        overview: plainOverview(buildOverview(snapshot, this.data.market)),
+
+      const cached = getCachedSectionData(snapshot, market, versionKey);
+      const patch = {
+        overview: cached.overview,
         // 聪明钱「本季他们在加/减什么」两张卡和下面「本季共同方向」那张条形图
         // 是同一批票、同一个家数，上下印两遍；2026-09-29 按产品要求只留下面那张。
         answers: this.data.market === "guru" ? [] : answers,
-        deepLinks,
         source,
         freshness: freshnessBanner(source, meta.kind),
-        sourceLinks,
-        dataAsOf: marketReferenceAsOf(snapshot, this.data.market, meta.kind),
-        hkApplyList: hkModule ? hkModule.applyList : [],
-        hkApplyTiles: hkModule ? hkModule.applyTiles : [],
-        hkFirstDayChart: hkModule ? hkModule.firstDayChart : null,
-        hkExitOptions: hkExitList.map((item) => ({ id: item.id, text: item.text })),
-        hkExitIndex: hkSelection.index,
-        hkExitSelectedId: hkSelection.id,
-        hkExitView: hkSelection.view,
-        hkExitChart: hkModule ? hkModule.exitChart : null,
-        usAllList: usModule ? usModule.allList : [],
-        usTriggerTiles: usModule ? usModule.triggerTiles : [],
-        usSevenList: usModule ? usModule.sevenList : [],
-        usSevenHint: usModule ? usModule.sevenHint : "",
-        usSevenMix: usModule ? usModule.sevenMix : [],
-        usHotList: usModule ? usModule.hotList : [],
-        usHotHint: usModule ? usModule.hotHint : "",
-        aAllList: aModule ? aModule.allList : [],
-        aTriggerTiles: aModule ? aModule.triggerTiles : [],
-        aStableList: aModule ? aModule.stableList : [],
-        aYieldList: aModule ? aModule.yieldList : [],
-        aFund: aModule ? aModule.fund : null,
-        goldQuotes: goldModule ? goldModule.quotes : [],
-        goldPeriod: goldView.period,
-        goldZoneTone: goldView.zoneTone,
-        goldCurrencyLabel: goldView.currencyLabel,
-        goldPeriods: goldView.periods,
-        goldChart: goldView.chart,
-        goldChartNote: goldView.chartNote,
-        goldLadder: goldView.ladder,
-        guruTrendRows: guruModule ? guruModule.trendRows : [],
-        guruTrendRowsShown: guruModule ? guruModule.trendRows.slice(0, this.data.guruTrendExpanded ? undefined : 5) : [],
-        guruTrendHint: (answers.find((item) => item.id === "guru-trend")?.answer || "")
-          .replace("家有增减资料", "家机构").replace("样本", " · 部分持仓"),
-        guruInstitutionList: guruModule ? guruModule.institutionList : [],
-        guruInstitutionListShown: institutionListShown(
-          guruModule ? guruModule.institutionList : [],
-          this.data.guruInstitutionExpanded,
-        ),
-        guruInstitutionIndex: guruSelection.index,
-        guruInstitutionId: guruSelection.id,
-        guruInstitutionName: guruSelection.name,
-        guruInstitutionOrg: guruSelection.org,
-        guruHoldingsRows: guruSelection.holdings.rows,
-        guruHoldingsRowsShown: holdingsRowsShown(guruSelection.holdings.rows, this.data.guruHoldingsExpanded),
-        guruHoldingsHint: guruSelection.holdings.hint,
-        guruHoldingStats: guruSelection.holdings.stats,
-        guruIsLive: guruSelection.holdings.isLive,
-        guruHistoryChart: guruSelection.holdings.historyChart,
-        guruHistoryRowsData: guruSelection.holdings.historyRowsData,
-        guruHistoryHint: guruSelection.holdings.historyHint,
-        guruHistoryChartEmptyText: guruSelection.holdings.historyChartEmptyText,
-      }, () => {
-        this.drawGoldChart();
+        dataAsOf: marketReferenceAsOf(snapshot, market, meta.kind),
+      };
+      if (!isDedicated) {
+        patch.groups = groups;
+        patch.deepLinks = deepLinks;
+      }
+
+      if (market === "hk" && cached.hkModule) {
+        const hkModule = cached.hkModule;
+        const hkExitList = hkModule.exitList;
+        this._hkExitList = hkExitList;
+        const hkSelection = resolveHkExitSelection(hkExitList, this.data.hkExitSelectedId);
+        Object.assign(patch, {
+          hkApplyList: hkModule.applyList,
+          hkApplyTiles: hkModule.applyTiles,
+          hkFirstDayChart: hkModule.firstDayChart,
+          hkExitOptions: hkExitList.map((item) => ({ id: item.id, text: item.text })),
+          hkExitIndex: hkSelection.index,
+          hkExitSelectedId: hkSelection.id,
+          hkExitView: hkSelection.view,
+          hkExitChart: hkModule.exitChart,
+        });
+      } else if (market === "us" && cached.usModule) {
+        const usModule = cached.usModule;
+        this._usAllList = usModule.allList;
+        this._usHotList = usModule.hotList;
+        this._usFilingsList = usModule.filingsFeed || [];
+        Object.assign(patch, {
+          usTriggerTiles: usModule.triggerTiles,
+          usSevenList: usModule.sevenList,
+          usSevenHint: usModule.sevenHint,
+          usSevenMix: usModule.sevenMix,
+          usHotHint: usModule.hotHint,
+          usFilingsCount: this._usFilingsList.length,
+        });
+        // 按激活子 tab 懒下发列表（含 SVG Base64），首屏只传七家大公司 7 条。
+        if (this.data.usSubTab === "hot") patch.usHotList = usModule.hotList;
+        if (this.data.usSubTab === "filings") patch.usFilingsList = this._usFilingsList;
+        if (this.data.usSubTab === "heatmap") patch.usHeatmap = buildUsHeatmap(usModule.allList, this.data.usHeatMode);
+        if (this.data.usSubTab === "all") patch.usAllList = this.applyUsView(usModule.allList, this.data.usAllFilter, this.data.usAllSort);
+      } else if (market === "a" && cached.aModule) {
+        const aModule = cached.aModule;
+        this._aAllList = aModule.allList;
+        this._aFund = aModule.fund;
+        this._aYieldList = aModule.yieldList;
+        Object.assign(patch, {
+          aTriggerTiles: aModule.triggerTiles,
+          aStableList: aModule.stableList,
+        });
+        if (this.data.aSubTab === "yield") patch.aYieldList = aModule.yieldList;
+        if (this.data.aSubTab === "heatmap") patch.aHeatmap = buildAHeatmap(aModule.allList, this.data.aHeatMode);
+        if (this.data.aSubTab === "all") {
+          patch.aAllList = this.applyAView(aModule.allList, this.data.aAllFilter, this.data.aAllSort);
+          patch.aFund = aModule.fund;
+        }
+      } else if (market === "gold" && cached.goldModule) {
+        const goldModule = cached.goldModule;
+        this._goldModule = goldModule;
+        const goldView = resolveGoldView(goldModule, this.data.goldCurrency, this.data.goldPeriod);
+        Object.assign(patch, {
+          goldQuotes: goldModule.quotes,
+          goldPeriod: goldView.period,
+          goldZoneTone: goldView.zoneTone,
+          goldCurrencyLabel: goldView.currencyLabel,
+          goldPeriods: goldView.periods,
+          goldChart: goldView.chart,
+          goldChartNote: goldView.chartNote,
+          goldLadder: goldView.ladder,
+        });
+      } else if (market === "guru" && cached.guruModule) {
+        const guruModule = cached.guruModule;
+        this._guruModule = guruModule;
+        const guruSelection = resolveGuruInstitution(guruModule, this.data.guruInstitutionId || guruModule.defaultId);
+        Object.assign(patch, {
+          sourceLinks: cached.sourceLinks,
+          guruTrendRows: guruModule.trendRows,
+          guruTrendTitle: guruModule.trendTitle,
+          guruTrendHint: guruModule.trendHint,
+          guruTrendEmptyText: guruModule.trendEmptyText,
+          guruInstitutionList: guruModule.institutionList,
+          guruInstitutionListShown: institutionListShown(guruModule.institutionList, this.data.guruInstitutionExpanded),
+          guruInstitutionIndex: guruSelection.index,
+          guruInstitutionId: guruSelection.id,
+          guruInstitutionName: guruSelection.name,
+          guruInstitutionOrg: guruSelection.org,
+          guruHoldingsRows: guruSelection.holdings.rows,
+          guruHoldingsRowsShown: holdingsRowsShown(guruSelection.holdings.rows, this.data.guruHoldingsExpanded),
+          guruHoldingsHint: guruSelection.holdings.hint,
+          guruHoldingStats: guruSelection.holdings.stats,
+          guruIsLive: guruSelection.holdings.isLive,
+          guruHistoryChart: guruSelection.holdings.historyChart,
+          guruHistoryRowsData: guruSelection.holdings.historyRowsData,
+          guruHistoryHint: guruSelection.holdings.historyHint,
+          guruHistoryChartEmptyText: guruSelection.holdings.historyChartEmptyText,
+        });
+      }
+
+      this.setData(patch, () => {
+        if (market === "gold") this.drawGoldChart();
       });
     }, done, { force });
   },
@@ -1570,8 +1803,70 @@ Page({
   switchUsSubTab(event) {
     const id = event.currentTarget.dataset.id;
     if (!id || id === this.data.usSubTab) return;
-    this.setData({ usSubTab: id });
+    const patch = { usSubTab: id };
+    if (id === "hot" && !this.data.usHotList.length && Array.isArray(this._usHotList)) {
+      patch.usHotList = this._usHotList;
+    }
+    if (id === "filings" && !this.data.usFilingsList.length && Array.isArray(this._usFilingsList)) {
+      patch.usFilingsList = this._usFilingsList;
+    }
+    if (id === "heatmap" && Array.isArray(this._usAllList)) {
+      patch.usHeatmap = buildUsHeatmap(this._usAllList, this.data.usHeatMode);
+    }
+    if (id === "all" && Array.isArray(this._usAllList)) {
+      patch.usAllList = this.applyUsView(this._usAllList, this.data.usAllFilter, this.data.usAllSort);
+    }
+    this.setData(patch);
     track("section_tab", { market: "us", tab: String(id) });
+  },
+  switchUsHeatMode(event) {
+    const mode = String(event.currentTarget.dataset.mode || "day");
+    if (mode === this.data.usHeatMode) return;
+    this.setData({
+      usHeatMode: mode,
+      usHeatmap: buildUsHeatmap(this._usAllList || [], mode),
+    });
+    track("section_tab", { market: "us", tab: `heat_${mode}` });
+  },
+  // 借鉴集思录高密度横向对比：多维筛选 + 一键排序美股全池。
+  applyUsSort(list, sortId) {
+    const rows = Array.isArray(list) ? list.slice() : [];
+    if (sortId === "perf60") {
+      return rows.sort((a, b) => (b.sortPerf60 ?? -1e9) - (a.sortPerf60 ?? -1e9));
+    }
+    if (sortId === "pe") {
+      return rows.sort((a, b) => ((a.sortPe > 0 ? a.sortPe : 1e9) - (b.sortPe > 0 ? b.sortPe : 1e9)));
+    }
+    if (sortId === "growth") {
+      return rows.sort((a, b) => (b.sortGrowth ?? -1e9) - (a.sortGrowth ?? -1e9));
+    }
+    return rows;
+  },
+  applyUsView(list, filterId, sortId) {
+    const base = Array.isArray(list) ? list : [];
+    let filtered = base;
+    if (filterId === "seven") filtered = base.filter((row) => row.isSeven);
+    else if (filterId === "margin50") filtered = base.filter((row) => row.sortMargin != null && row.sortMargin >= 50);
+    else if (filterId === "low35") filtered = base.filter((row) => row.sortPos60 != null && row.sortPos60 <= 35);
+    return this.applyUsSort(filtered, sortId);
+  },
+  filterUsAll(event) {
+    const filterId = String(event.currentTarget.dataset.filter || "all");
+    if (filterId === this.data.usAllFilter) return;
+    this.setData({
+      usAllFilter: filterId,
+      usAllList: this.applyUsView(this._usAllList || this.data.usAllList, filterId, this.data.usAllSort),
+    });
+    track("section_tab", { market: "us", tab: `filter_${filterId}` });
+  },
+  sortUsAll(event) {
+    const sortId = String(event.currentTarget.dataset.sort || "default");
+    if (sortId === this.data.usAllSort) return;
+    this.setData({
+      usAllSort: sortId,
+      usAllList: this.applyUsView(this._usAllList || this.data.usAllList, this.data.usAllFilter, sortId),
+    });
+    track("section_tab", { market: "us", tab: `sort_${sortId}` });
   },
   openUsDetail(event) {
     const id = event.currentTarget.dataset.id;
@@ -1581,8 +1876,68 @@ Page({
   switchASubTab(event) {
     const id = event.currentTarget.dataset.id;
     if (!id || id === this.data.aSubTab) return;
-    this.setData({ aSubTab: id });
+    const patch = { aSubTab: id };
+    if (id === "yield" && !this.data.aYieldList.length && Array.isArray(this._aYieldList)) {
+      patch.aYieldList = this._aYieldList;
+    }
+    if (id === "heatmap" && Array.isArray(this._aAllList)) {
+      patch.aHeatmap = buildAHeatmap(this._aAllList, this.data.aHeatMode);
+    }
+    if (id === "all" && Array.isArray(this._aAllList)) {
+      patch.aAllList = this.applyAView(this._aAllList, this.data.aAllFilter, this.data.aAllSort);
+      patch.aFund = this._aFund || null;
+    }
+    this.setData(patch);
     track("section_tab", { market: "a", tab: String(id) });
+  },
+  switchAHeatMode(event) {
+    const mode = String(event.currentTarget.dataset.mode || "yield");
+    if (mode === this.data.aHeatMode) return;
+    this.setData({
+      aHeatMode: mode,
+      aHeatmap: buildAHeatmap(this._aAllList || [], mode),
+    });
+    track("section_tab", { market: "a", tab: `heat_${mode}` });
+  },
+  // 借鉴集思录高密度横向对比：多维筛选 + 一键排序 A 股收息池。
+  applyASort(list, sortId) {
+    const rows = Array.isArray(list) ? list.slice() : [];
+    if (sortId === "yield") {
+      return rows.sort((a, b) => (b.sortYield ?? -1e9) - (a.sortYield ?? -1e9));
+    }
+    if (sortId === "stable") {
+      return rows.sort((a, b) => (b.sortStability ?? -1e9) - (a.sortStability ?? -1e9) || (b.sortYield ?? -1e9) - (a.sortYield ?? -1e9));
+    }
+    if (sortId === "change") {
+      return rows.sort((a, b) => (b.sortChange ?? -1e9) - (a.sortChange ?? -1e9));
+    }
+    return rows;
+  },
+  applyAView(list, filterId, sortId) {
+    const base = Array.isArray(list) ? list : [];
+    let filtered = base;
+    if (filterId === "yield4") filtered = base.filter((row) => row.sortYield != null && row.sortYield >= 4);
+    else if (filterId === "nocut") filtered = base.filter((row) => row.sortCuts === 0);
+    else if (filterId === "stable75") filtered = base.filter((row) => row.sortStability != null && row.sortStability >= 75);
+    return this.applyASort(filtered, sortId);
+  },
+  filterAAll(event) {
+    const filterId = String(event.currentTarget.dataset.filter || "all");
+    if (filterId === this.data.aAllFilter) return;
+    this.setData({
+      aAllFilter: filterId,
+      aAllList: this.applyAView(this._aAllList || this.data.aAllList, filterId, this.data.aAllSort),
+    });
+    track("section_tab", { market: "a", tab: `filter_${filterId}` });
+  },
+  sortAAll(event) {
+    const sortId = String(event.currentTarget.dataset.sort || "default");
+    if (sortId === this.data.aAllSort) return;
+    this.setData({
+      aAllSort: sortId,
+      aAllList: this.applyAView(this._aAllList || this.data.aAllList, this.data.aAllFilter, sortId),
+    });
+    track("section_tab", { market: "a", tab: `sort_${sortId}` });
   },
   openADetail(event) {
     const id = event.currentTarget.dataset.id;
@@ -1593,6 +1948,7 @@ Page({
     const currency = event.currentTarget.dataset.currency;
     if (!currency || currency === this.data.goldCurrency) return;
     const view = resolveGoldView(this._goldModule, currency, this.data.goldPeriod);
+    if (!view.chart) this._goldCanvas = null;
     this.setData({
       goldCurrency: currency,
       goldPeriod: view.period,
@@ -1615,9 +1971,12 @@ Page({
       goldChartNote: view.chartNote,
     }, () => this.drawGoldChart());
   },
-  // 和详情页 resolveCanvasNode 同一套重试逻辑：setData 回调触发时 canvas 节点
-  // 有时还没被原生层量出真实尺寸，size.width 读到 0，需要退避重试。
+  // 缓存已解析的 Canvas 2D 上下文，切周期/币种时零延迟同步重绘。
   resolveGoldCanvasNode(attempt, onReady) {
+    if (this._goldCanvas && this._goldCanvas.ctx && this._goldCanvas.width > 0) {
+      onReady(this._goldCanvas.ctx, this._goldCanvas.width, this._goldCanvas.height);
+      return;
+    }
     wx.createSelectorQuery()
       .in(this)
       .select("#gold-price-line")
@@ -1636,6 +1995,7 @@ Page({
         canvas.height = hit.height * dpr;
         const ctx = canvas.getContext("2d");
         ctx.scale(dpr, dpr);
+        this._goldCanvas = { ctx, width: hit.width, height: hit.height };
         onReady(ctx, hit.width, hit.height);
       });
   },
@@ -1643,10 +2003,6 @@ Page({
     const chart = this.data.goldChart;
     if (!chart || !Array.isArray(chart.values) || chart.values.length < 2) return;
     this.resolveGoldCanvasNode(0, (ctx, w, h) => paintGoldLineChart(ctx, w, h, chart.values));
-  },
-  toggleGuruTrend() {
-    const expanded = !this.data.guruTrendExpanded;
-    this.setData({ guruTrendExpanded: expanded, guruTrendRowsShown: this.data.guruTrendRows.slice(0, expanded ? undefined : 5) });
   },
   switchGuruSubTab(event) {
     const id = event.currentTarget.dataset.id;
@@ -1689,6 +2045,16 @@ Page({
     const picked = list[Number(event.detail.value)];
     if (!picked) return;
     this.applyGuruInstitution(picked.id);
+  },
+  tapGuruPill(event) {
+    const id = event.currentTarget.dataset.id;
+    if (!id || id === this.data.guruInstitutionId) return;
+    this.applyGuruInstitution(id);
+  },
+  openCurrentGuruDetail() {
+    const id = this.data.guruInstitutionId;
+    if (!id) return;
+    this.openDetail(id, "section_guru");
   },
   toggleGuruMore() {
     this.setData({ guruMoreOpen: !this.data.guruMoreOpen });

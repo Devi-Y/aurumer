@@ -1,27 +1,29 @@
 /* 付费交流群：版式和 pages/guide 一致，蓝白灰。品牌蓝 #1d5fd1，文字三档灰。 */
 
 .community-shell {
-  background: #f4f6f9;
+  background: #f4f6fa;
 }
 
 .community-head {
   display: flex;
-  padding: 28rpx 28rpx 18rpx;
+  margin-bottom: 18rpx;
+  padding: 28rpx 28rpx 32rpx;
   flex-direction: column;
   gap: 10rpx;
+  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
 }
 
 .community-title {
-  color: #1a1f27;
-  font-size: 42rpx;
-  font-weight: 700;
+  color: #ffffff;
+  font-size: 40rpx;
+  font-weight: 740;
   line-height: 1.3;
 }
 
 .community-sub {
-  color: #5c6470;
-  font-size: 27rpx;
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 25rpx;
+  line-height: 1.58;
 }
 
 .community-card {
@@ -117,15 +119,18 @@
   padding: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 16rpx;
-  background: #1d5fd1;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #2568dc 0%, #1d5fd1 100%);
   color: #ffffff;
   font-size: 30rpx;
   font-weight: 650;
   line-height: 92rpx;
+  box-shadow: 0 6rpx 16rpx rgba(29, 95, 209, 0.22);
+  transition: transform 0.12s ease;
 }
 
 .join-action-active {
+  transform: scale(0.985);
   background: #174ea9;
 }
 
@@ -152,6 +157,33 @@
 .tap-active {
   background: #edf2fb;
 }
+
+.qr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.qr-dialog {
+  display: flex;
+  width: 560rpx;
+  max-width: 88vw;
+  padding: 32rpx;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  border-radius: 20rpx;
+  background: #fff;
+}
+
+.qr-title { color: #1a1f27; font-size: 30rpx; font-weight: 650; }
+.qr-image { width: 100%; }
+.qr-hint { color: #5c6470; font-size: 25rpx; }
+.qr-close { padding: 12rpx 32rpx; color: #1d5fd1; font-size: 27rpx; }
 
 .page-footer {
   display: flex;

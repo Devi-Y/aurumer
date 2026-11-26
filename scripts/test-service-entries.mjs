@@ -8,13 +8,14 @@ const require = createRequire(import.meta.url);
 const offers = require("../miniprogram/config/offers.js");
 const originalReviews = require("../miniprogram/config/service-verification.js");
 
-function pageFixture(relative, reviews = originalReviews) {
+function pageFixture(relative, reviews = originalReviews, suppliedOffers = offers) {
   const filename = new URL(relative, import.meta.url);
   const localRequire = createRequire(filename);
   const calls = { copies: [], images: [], routes: [] };
   let page;
   const mocks = {
     "../../config/service-verification": reviews,
+    "../../config/offers": suppliedOffers,
     "../../utils/nav": { goHome() {}, openPage: (url) => calls.routes.push(url) },
     "../../utils/analytics": { track() {}, trackHomeVisit() {} },
   };
@@ -48,38 +49,58 @@ test("the shared overseas-account tile retains separate Hong Kong and US destina
   assert.equal(new Set(calls.routes).size, 2);
 });
 
-test("unverified channels stay closed through old deep links and direct action handlers", () => {
-  for (const topic of ["hk-open", "us-start", "a-open", "vpn", "info"]) {
+test("provided materials remain accessible without implying channel verification", () => {
+  for (const [topic, id] of [["hk-open", "hk-open-account"], ["us-start", "open-account"], ["a-open", "a-open-account"], ["vpn", "global-access"], ["info", "global-access"]]) {
     const { page, calls } = pageFixture("../miniprogram/pages/guide/index.js");
     page.onLoad({ topic });
-    assert.equal(page.data.offer.mode, "unavailable", topic);
-    page.copyOffer(); page.copyPendingContact(); page.previewOffer();
-    assert.equal(calls.copies.length, 0, topic);
-    assert.equal(calls.images.length, 0, topic);
+    const offer = offers.find(item => item.id === id);
+    assert.equal(page.data.offer.mode, offer.image ? "image" : "copy", topic);
+    if (offer.image) assert.equal(page.data.offer.image, offer.image, topic);
+    else { page.copyOffer(); assert.equal(calls.copies[0], offer.copy, topic); }
+    assert.equal(originalReviews[id].status, "pending", "display does not certify the provider");
   }
 });
 
-test("missing reviews or a bare verified flag cannot enable a channel", () => {
-  const reviews = Object.fromEntries(Object.keys(originalReviews).map((id) => [id, { status: "verified", provider: "fixture only" }]));
-  for (const records of [{}, reviews]) {
-    const { page, calls } = pageFixture("../miniprogram/pages/guide/index.js", records);
-    page.onLoad({ topic: "a-open" });
-    page.previewOffer();
-    assert.equal(page.data.offer.mode, "unavailable");
-    assert.equal(calls.images.length, 0);
-  }
+test("missing materials cannot trigger a copy or display a QR", () => {
+  const { page, calls } = pageFixture("../miniprogram/pages/guide/index.js", originalReviews, []);
+  page.onLoad({ topic: "a-open" });
+  assert.equal(page.data.offer, null);
+  page.copyOffer(); page.copyPendingContact();
+  assert.equal(calls.copies.length, 0);
+  assert.equal(calls.images.length, 0);
+});
+
+test("A-share consultation directly displays the supplied contact QR", () => {
+  const record = originalReviews["a-open-account"];
+  assert.equal(record.status, "pending");
+  assert.match(record.provider, /华宝证券/);
+  assert.equal(record.qualification, "");
+  assert.equal(record.authorization, "");
+  const { page } = pageFixture("../miniprogram/pages/guide/index.js");
+  page.onLoad({ topic: "a-open" });
+  assert.equal(page.data.offer.mode, "image");
+  assert.equal(page.data.offer.image, offers.find(item => item.id === "a-open-account").image);
+  assert.doesNotMatch(JSON.stringify(page.data), /华宝/);
+  const template = readFileSync(new URL("../miniprogram/pages/guide/index.wxml", import.meta.url), "utf8");
+  assert.doesNotMatch(template, /华宝/);
+  assert.match(template, /src="{{offer\.image}}"/);
+  assert.match(template, /show-menu-by-longpress="{{true}}"/);
+  assert.doesNotMatch(template, /bindtap="previewOffer"/);
+  page.onOfferImageError(); assert.equal(page.data.offerImageError, true);
+  page.onOfferImageLoad(); assert.equal(page.data.offerImageError, false);
 });
 
 test("complete offline review fixtures preserve the original material without sending or registering", () => {
   const reviews = Object.fromEntries(Object.keys(originalReviews).map((id) => [id, {
     status: "verified", provider: "offline test fixture", qualification: "offline fixture", authorization: "offline fixture",
   }]));
-  for (const [topic, id, action] of [["hk-open", "hk-open-account", "copyOffer"], ["us-start", "open-account", "copyOffer"], ["a-open", "a-open-account", "previewOffer"], ["vpn", "global-access", "copyOffer"]]) {
+  for (const [topic, id] of [["hk-open", "hk-open-account"], ["us-start", "open-account"], ["a-open", "a-open-account"], ["vpn", "global-access"]]) {
     const { page, calls } = pageFixture("../miniprogram/pages/guide/index.js", reviews);
-    page.onLoad({ topic }); page[action]();
+    page.onLoad({ topic });
     const offer = offers.find((entry) => entry.id === id);
-    if (offer.pendingContact) assert.equal(calls.copies[0], offers.find((entry) => entry.id === offer.pendingContact).copy);
-    else if (offer.image) assert.equal(calls.images[0], offer.image);
-    else assert.equal(calls.copies[0], offer.copy);
+    assert.equal(page.data.lead, "", topic);
+    if (id === "a-open-account") assert.match(page.data.offer.body, /企业微信.*一对一/);
+    if (offer.image) assert.equal(page.data.offer.image, offer.image);
+    else { page.copyOffer(); assert.equal(calls.copies[0], offer.copy); }
   }
 });

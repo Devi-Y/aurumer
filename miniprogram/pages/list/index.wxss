@@ -2,7 +2,7 @@
   min-height: 100vh;
   box-sizing: border-box;
   padding: 20rpx 20rpx calc(28rpx + env(safe-area-inset-bottom));
-  background: #f5f6f7;
+  background: #f6f7fa;
 }.freshness-banner {
   margin-top: 16rpx;
   padding: 16rpx 20rpx;
@@ -45,8 +45,8 @@
    下面的卡片还要靠它，所以只有这一块把边退回去。 */
 .list-hero {
   margin: -20rpx -20rpx 0;
-  padding: 18rpx 24rpx 34rpx;
-  background: linear-gradient(165deg, #2466d6 0%, #1d5fd1 55%, #174ea9 100%);
+  padding: 20rpx 24rpx 38rpx;
+  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
 }
 
 .list-hero-top {

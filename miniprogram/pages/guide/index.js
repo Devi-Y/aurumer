@@ -1,6 +1,5 @@
 const GUIDES = require("../../config/guides");
 const OFFERS = require("../../config/offers");
-const VERIFICATION = require("../../config/service-verification");
 const { OFFICIAL_SOURCES } = require("../../utils/sources");
 const { track } = require("../../utils/analytics");
 const { goHome, openPage } = require("../../utils/nav");
@@ -33,12 +32,11 @@ function buildOffer(guide) {
   const offer = OFFERS.find((item) => item && item.id === guide.offer.id);
   if (!offer) return null;
   const base = { id: offer.id, head: guide.offer.head, body: guide.offer.body };
-  if (!canUseOffer(offer)) return { ...base, mode: "unavailable", head: "暂未开放", body: "", note: "渠道核验完成后开放办理。" };
   if (offer.copy) {
     return { ...base, mode: "copy", label: offer.label || "复制", disclosure: offer.disclosure || "" };
   }
   if (offer.image) {
-    return { ...base, mode: "image", label: offer.label || "打开二维码", disclosure: offer.disclosure || "" };
+    return { ...base, mode: "image", image: offer.image, disclosure: offer.disclosure || "" };
   }
   if (offer.pending) {
     const contact = pendingContact(offer);
@@ -54,12 +52,6 @@ function buildOffer(guide) {
   return null;
 }
 
-function canUseOffer(offer) {
-  if (!offer) return false;
-  const record = VERIFICATION[offer.id];
-  return Boolean(record && record.status === "verified" && record.provider && record.qualification && record.authorization);
-}
-
 Page({
   data: {
     topic: "",
@@ -68,12 +60,14 @@ Page({
     sections: [],
     choices: [],
     offer: null,
+    offerImageError: false,
     sharePath: "",
     footerDisclaimer: FOOTER_DISCLAIMER,
   },
   onLoad(options = {}) {
     const topic = GUIDES[options.topic] ? options.topic : "info";
     const guide = GUIDES[topic];
+    const offer = buildOffer(guide);
     wx.setNavigationBarTitle({ title: guide.title });
     this.setData({
       topic,
@@ -81,7 +75,7 @@ Page({
       lead: guide.lead || "",
       sections: buildSections(guide),
       choices: (guide.choices || []).filter((item) => GUIDES[item.topic]),
-      offer: buildOffer(guide),
+      offer,
       sharePath: `/pages/guide/index?topic=${topic}`,
     });
     track("guide_open", { topic, from: String(options.from || "direct") });
@@ -103,7 +97,7 @@ Page({
   copyOffer() {
     const offer = this.data.offer;
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
-    if (!canUseOffer(source) || !source.copy) return;
+    if (!source || !source.copy) return;
     wx.setClipboardData({
       data: source.copy,
       success: () => {
@@ -118,7 +112,7 @@ Page({
     const offer = this.data.offer;
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
     const contact = pendingContact(source);
-    if (!canUseOffer(source) || !contact) return;
+    if (!source || !contact) return;
     wx.setClipboardData({
       data: contact.copy,
       success: () => {
@@ -128,17 +122,14 @@ Page({
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
   },
-  // 二维码物料：全屏打开原图，用户长按识别。图片就放在包里，不依赖网络。
-  previewOffer() {
-    const offer = this.data.offer;
-    const source = offer && OFFERS.find((item) => item && item.id === offer.id);
-    if (!canUseOffer(source) || !source.image) return;
-    wx.previewImage({
-      urls: [source.image],
-      current: source.image,
-      success: () => track("offer_qr_open", { id: source.id, from: `guide_${this.data.topic}` }),
-      fail: () => wx.showToast({ title: "打开失败，请重试", icon: "none" }),
-    });
+  // 直接展示包内二维码，微信长按图片识别；不依赖 wx.previewImage。
+  onOfferImageLoad() {
+    if (!this.data.offer || this.data.offer.mode !== "image") return;
+    this.setData({ offerImageError: false });
+    track("offer_qr_open", { id: this.data.offer.id, from: `guide_${this.data.topic}` });
+  },
+  onOfferImageError() {
+    this.setData({ offerImageError: true });
   },
   goBack() {
     wx.navigateBack({ fail: () => goHome() });

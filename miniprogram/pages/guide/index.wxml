@@ -51,7 +51,9 @@
       <text class="offer-disclosure">{{offer.disclosure}}</text>
     </block>
     <block wx:elif="{{offer.mode === 'image'}}">
-      <view class="offer-action" bindtap="previewOffer" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{offer.label}}</view>
+      <image class="offer-qr" src="{{offer.image}}" mode="widthFix" show-menu-by-longpress="{{true}}" bindload="onOfferImageLoad" binderror="onOfferImageError" aria-label="开户联系二维码" />
+      <text wx:if="{{offerImageError}}" class="offer-note">二维码加载失败，请返回后重试。</text>
+      <text wx:else class="offer-note">长按二维码识别</text>
       <text class="offer-disclosure">{{offer.disclosure}}</text>
     </block>
     <block wx:else>

@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { createRequire } from "node:module";
+import { assertMiniPricePlans } from "./mini-price-plan-audit.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const miniRoot = path.join(root, "miniprogram");
@@ -67,8 +68,14 @@ const sharedRoundedClasses = [...appStyles.matchAll(/\.([A-Za-z0-9_-]+)\s*\{([^}
   .map(([, name]) => name);
 
 const appConfig = JSON.parse(await readFile(path.join(miniRoot, "app.json"), "utf8"));
+const allRegisteredPages = [
+  ...(appConfig.pages || []),
+  ...((appConfig.subpackages || appConfig.subPackages || []).flatMap((pkg) =>
+    (pkg.pages || []).map((sub) => `${String(pkg.root || "").replace(/\/+$/, "")}/${String(sub).replace(/^\/+/, "")}`)
+  )),
+];
 for (const page of requiredPages) {
-  assert(appConfig.pages.includes(page), `app.json 缺少页面：${page}`);
+  assert(allRegisteredPages.includes(page), `app.json 缺少页面：${page}`);
   for (const extension of ["js", "json", "wxml", "wxss"]) {
     await access(path.join(miniRoot, `${page}.${extension}`));
   }
@@ -91,7 +98,7 @@ for (const page of requiredPages) {
   );
 }
 assert(appConfig.pages[0] === "pages/index/index", "小程序启动页必须是今日重点首页");
-assert(!appConfig.pages.some((page) => page.includes("webview")), "小程序仍注册了外部 web-view 页面");
+assert(!allRegisteredPages.some((page) => page.includes("webview")), "小程序仍注册了外部 web-view 页面");
 
 const generatedSource = await readFile(path.join(miniRoot, "data", "live-snapshot.js"), "utf8");
 const match = generatedSource.match(/module\.exports\s*=\s*([\s\S]+);\s*$/);
@@ -185,6 +192,7 @@ vm.runInNewContext(sectionSource, {
   module: miniModule,
   exports: miniModule.exports,
   require(request) {
+    if (request === "./historical-dividend-yield") return createRequire(import.meta.url)("../miniprogram/utils/historical-dividend-yield.js");
     if (request === "./hk-date-state") return createRequire(import.meta.url)("../miniprogram/utils/hk-date-state.js");
     if (request === "./dividend-stability") return createRequire(import.meta.url)("../miniprogram/utils/dividend-stability.js");
     if (request === "./action-freshness") return createRequire(import.meta.url)("../miniprogram/utils/action-freshness.js");
@@ -344,7 +352,7 @@ assert(
 );
 assert(detailSource.includes("国际观察分") && detailSource.includes("人民币观察分"), "黄金详情缺少双观察分展示");
 assert(indexSource.includes("pages/section/index"), "小程序首页仍未进入原生二级页");
-assert(appConfig.pages.includes("pages/member/index"), "小程序仍应保留会员页路由");
+assert(allRegisteredPages.includes("pages/member/index"), "小程序仍应保留会员页路由");
 // 首页年费条（我的会员）已按产品要求撤掉（2026-09-29）；开通入口改由详情页的会员功能承担，
 // 这里认详情页仍能进会员页，同时要求首页不再挂会员入口。
 assert(!indexSource.includes("pages/member/index") && !indexTemplate.includes("member-bar"), "首页不应再挂年费会员条");
@@ -389,7 +397,12 @@ assert(
   );
 }
 assert(indexTemplate.includes('class="entry-icon"') && !indexTemplate.includes('class="entry-badge"'), "小程序核心入口应只保留大图标，不应恢复年度会员角标");
-assert(indexTemplate.includes('aria-label="{{item.title}}，{{item.help}}"') && indexTemplate.includes('aria-hidden="true"'), "小程序核心入口缺少按钮朗读标签或装饰图标隐藏语义");
+assert(
+  (indexTemplate.includes('aria-label="{{item.title}}，{{item.help}}"')
+    || indexTemplate.includes("aria-label=\"{{item.help ? item.title + '，' + item.help : item.title}}\""))
+    && indexTemplate.includes('aria-hidden="true"'),
+  "小程序核心入口缺少按钮朗读标签或装饰图标隐藏语义",
+);
 assert(indexTemplate.includes('role="button"') && !indexTemplate.includes("<button"), "小程序首页整块入口不应受原生 button 默认宽度干扰");
 assert(
   indexTemplate.includes("免费决策参考"),
@@ -524,7 +537,7 @@ const miniEntryOrder = ["id: \"hk\"", "id: \"us\"", "id: \"a\"", "id: \"gold\"",
 assert(miniEntryOrder.every((position, index) => position >= 0 && (index === 0 || position > miniEntryOrder[index - 1])), "小程序首页顺序必须是港股、美股、A股、黄金、聪明钱跟踪");
 // 新闻资讯删掉后它那一格原位留空：宫格里紧跟五个研究栏目放一个预留格，
 // 只画虚线框、不能点，也不能悄悄把新闻资讯的路由、入口或图标带回来。
-assert(!appConfig.pages.includes("pages/news/index"), "新闻资讯页已删除，不应再注册路由");
+assert(!allRegisteredPages.includes("pages/news/index"), "新闻资讯页已删除，不应再注册路由");
 assert(
   !gridDefinition.includes('id: "news"') && !indexSource.includes("/pages/news/") && !indexSource.includes("news.svg"),
   "首页九宫格不应再有新闻资讯入口",
@@ -555,7 +568,7 @@ for (const [group, label] of [["hk", "港股"], ["us", "美股"], ["a", "A股"]]
 }
 // 「复制群卡片」原在 pages/today 独立页；那一页没有入口后于 2026-09-29 删除，
 // 功能挪进记录页「今日」tab（仅已开通会员可见），这里改为核对记录页保留这个功能。
-assert(!appConfig.pages.includes("pages/today/index"), "今日重点页已删除，不应再注册路由");
+assert(!allRegisteredPages.includes("pages/today/index"), "今日重点页已删除，不应再注册路由");
 assert(
   workspaceTemplate.includes('bindtap="copyDailyCard"')
     && workspaceTemplate.includes("state.active && dailyCardText")
@@ -662,7 +675,7 @@ const offers = offersModule.exports;
     ["pages/community/index.js", communitySource],
   ]) {
     for (const match of source.matchAll(/["'`]\/(pages\/[a-z-]+\/index)/g)) {
-      assert(appConfig.pages.includes(match[1]), `${file} 跳到了没注册的页面：${match[1]}`);
+      assert(allRegisteredPages.includes(match[1]), `${file} 跳到了没注册的页面：${match[1]}`);
     }
   }
 
@@ -723,18 +736,18 @@ const offers = offersModule.exports;
     }
   }
 
-  // 二级页和交流群页：不放联系客服（2026-10-06 产品负责人决定，会员页、协议页的客服入口是付款与退款的合规要求，
-  // 不在这条范围内，下面另有检查）；复制按钮旁边写推广关系或收费说明；有返回和回首页；不放「接着看」这类引流块。
+  // 二级页不放客服；群页有订单时提供查单和客服兜底。
   for (const [page, template, source] of [["二级页", guideTemplate, guideSource], ["交流群页", communityTemplate, communitySource]]) {
-    assert(!template.includes('open-type="contact"') && !source.includes("trackContact") && !source.includes("contact_open"), `${page}不应再有联系客服入口`);
+    if (page === "二级页") assert(!template.includes('open-type="contact"') && !template.includes("<button"), `${page}不应有客服或原生按钮`);
+    else assert(template.includes('open-type="contact"') && template.includes('bindtap="refreshOrder"'), "交流群订单应提供状态刷新和客服兜底");
+    assert(!source.includes("trackContact") && !source.includes("contact_open"), `${page}不应记录客服接触为转化`);
     assert(template.includes("disclosure}}"), `${page}的复制按钮旁边没写推广关系或收费说明`);
     assert(template.includes('bindtap="goBack"') && template.includes('bindtap="goHome"'), `${page}缺少返回和回首页`);
-    assert(!template.includes("<button"), `${page}不用 button（不放客服等原生按钮）`);
     assert(!template.includes("接着看") && !source.includes("openNext") && !source.includes("workspace"), `${page}不应再有「接着看」或按关注数引流的模块`);
   }
   assert(
-    guideSource.includes('mode: "image"') && guideSource.includes("wx.previewImage") && guideTemplate.includes('bindtap="previewOffer"') && guideTemplate.includes("offer.mode === 'image'"),
-    "二级页应能打开二维码物料（previewOffer / previewImage）",
+    guideSource.includes('mode: "image"') && guideSource.includes("image: offer.image") && guideTemplate.includes('src="{{offer.image}}"') && guideTemplate.includes('show-menu-by-longpress="{{true}}"') && guideTemplate.includes("offer.mode === 'image'"),
+    "二级页应直接展示二维码，支持微信长按识别",
   );
   assert(
     guideSource.includes('mode: "pending"') && guideSource.includes("offer.pending") && guideTemplate.includes("offer.note"),
@@ -804,7 +817,7 @@ for (const question of [
 }
 assert(miniUsItems.filter((item) => item.group === "industry").length >= 1, "美股行业观察榜不能为空");
 assert(miniAShareItems.some((item) => (item.lenses || []).includes("core")), "A 股收息样本应能分出底仓角色");
-assert(detailSource.includes("参考买入价") && detailSource.includes("参考卖出价"), "A 股详情应展示参考买入/参考卖出价");
+assert(detailSource.includes("税前历史股息率") && detailSource.includes("分红所属年度") && detailSource.includes("股息率报价日期"), "A 股详情应说明历史股息率、分红年度和报价日期");
 assert(detailSource.includes("国际金") && detailSource.includes("人民币金"), "黄金详情应分国际金与人民币金");
 assert(detailSource.includes("应该避免"), "机构详情应说明应该避免什么");
 assert(
@@ -820,7 +833,7 @@ for (const label of ["近 60 日最低", "近 60 日中位数", "近 60 日最�
 // 原来那个装饰图标撤掉了（它比数据本身还显眼）。所以这里认的是「有没有说清
 // 这份数据是什么时候的、有没有数据条」，不再认那几个已经不存在的类名。
 for (const [template, labels] of [
-  [pageTemplatesByPath.get("pages/section/index") || "", ["dataAsOf", "hero-title", "结论", "page-card", "hero-metrics"]],
+  [pageTemplatesByPath.get("pages/section/index") || "", ["dataAsOf", "hero-title", "page-card", "hkFirstDayChart.lastDate"]],
   [pageTemplatesByPath.get("pages/list/index") || "", ["dataAsOf", "list-hero-help", "item-bar", "item-panel"]],
   [detailTemplate, ["结论", "visual-card", "metric-panel", "chart-stats"]],
 ]) {
@@ -839,7 +852,8 @@ assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes(
   const requireCjs = createRequire(import.meta.url);
   const { sanitizeSnapshot } = requireCjs("../cloudfunctions/aurum-data/sanitize.js");
   const { degradeStaleActions } = requireCjs("../cloudfunctions/aurum-data/action-freshness.js");
-  const sanitized = sanitizeSnapshot(publicSnapshot);
+  const auditNow = Date.now();
+  const sanitized = sanitizeSnapshot(publicSnapshot, auditNow);
   const sourceBySymbol = new Map((publicSnapshot.us?.stocks || []).map((stock) => [stock.symbol, stock]));
   const sanitizedBySymbol = new Map((sanitized.us?.stocks || []).map((stock) => [stock.symbol, stock]));
   const sameNumbers = (left, right) => left.length === right.length && left.every((value, index) => value === right[index]);
@@ -861,13 +875,7 @@ assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes(
     );
     assert(stock.pricePlan.stop < stock.pricePlan.buy && stock.pricePlan.sell[0] > stock.pricePlan.buy, `美股 ${symbol} 三档价顺序不对`);
   }
-  for (const stock of snapshot.us.stocks) {
-    if (!stock.pricePlan) continue;
-    assert(
-      JSON.stringify(stock.pricePlan) === JSON.stringify(sanitizedBySymbol.get(stock.symbol)?.pricePlan),
-      `小程序离线包里 ${stock.symbol} 的 pricePlan 跟云函数清洗结果不一致，请运行 npm run sync:mini`,
-    );
-  }
+  assertMiniPricePlans(snapshot, sanitized, auditNow);
   const staleNow = Date.parse(snapshot.updatedAt) + 7 * 24 * 60 * 60 * 1000;
   for (const [label, degraded] of [
     ["离线包", degradeStaleActions(snapshot, staleNow)],
@@ -1007,7 +1015,8 @@ assert(!`${memberPageSource}\n${memberTemplate}`.includes("暗盘/首周出价")
 // 读屏用；today-sub 随今日重点一起撤掉，走势卡同样靠 aria-label 读出数值与涨跌。
 assert(
   indexTemplate.includes("item.help")
-    && indexTemplate.includes('aria-label="{{item.title}} {{item.value}} {{item.sub}}"')
+    && (indexTemplate.includes('aria-label="{{item.title}} {{item.value}} {{item.sub}}"')
+      || indexTemplate.includes('aria-label="打开{{item.title}}，{{item.asOf}}，{{item.value}} {{item.sub}}"'))
     && !indexTemplate.includes("today-sub"),
   "首页应通过读屏标签保留入口与走势卡的帮助信息",
 );
@@ -1030,7 +1039,8 @@ assert(
 // 栏目页只留条形图；答案卡本身还在 daily-answers 里给别处用。
 assert(
   (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes('answers: this.data.market === "guru" ? [] : answers')
-    && (pageTemplatesByPath.get("pages/section/index") || "").includes("最近披露的持仓变化"),
+    && ((pageTemplatesByPath.get("pages/section/index") || "").includes("最近披露的持仓变化")
+      || (pageTemplatesByPath.get("pages/section/index") || "").includes("guruTrendTitle")),
   "聪明钱栏目页不应把加/减仓同一批票印两遍",
 );
 assert((pageTemplatesByPath.get("pages/list/index") || "").includes("groupHelp"), "列表页应露出当前分组说明");

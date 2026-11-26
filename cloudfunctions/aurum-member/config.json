@@ -3,6 +3,7 @@
     "openapi": [
       "cloudPay.unifiedOrder",
       "cloudPay.queryOrder",
+      "cloudPay.closeOrder",
       "subscribeMessage.send"
     ]
   },
@@ -11,6 +12,11 @@
       "name": "member-order-reconcile",
       "type": "timer",
       "config": "0 */15 * * * * *"
+    },
+    {
+      "name": "community-order-reconcile",
+      "type": "timer",
+      "config": "0 5/15 * * * * *"
     },
     {
       "name": "member-event-remind",

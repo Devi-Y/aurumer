@@ -11,9 +11,9 @@ const { findItem } = require("../miniprogram/utils/answers");
 const { allItems } = require("../miniprogram/utils/answers");
 const { buildDailyAnswers } = require("../miniprogram/utils/daily-answers");
 
-function pageFunctions(path, names) {
+function pageFunctions(path, names, overrides = {}) {
   const url = new URL(`../${path}`, import.meta.url);
-  const context = { require: createRequire(url), Page() {}, console, wx: {}, getApp() { return {}; } };
+  const context = { require: createRequire(url), Page() {}, console, wx: {}, getApp() { return {}; }, ...overrides };
   vm.runInNewContext(`${readFileSync(url, "utf8")}\nglobalThis.testApi = {${names.join(",")}};`, context);
   return context.testApi;
 }
@@ -34,13 +34,49 @@ test("a newer independent gold quote cannot overwrite a historical close in eith
   const { buildHomeTrends } = pageFunctions("miniprogram/pages/index/index.js", ["buildHomeTrends"]);
   const home = buildHomeTrends(snapshot).find((card) => card.id === "gold");
   assert.equal(home.value, "$111");
-  assert.equal(home.asOf, "走势至 2026-10-12");
+  assert.equal(home.asOf, "2026-10-01—10-12");
   const { buildGoldModule } = pageFunctions("miniprogram/pages/section/index.js", ["buildGoldModule"]);
   const module = buildGoldModule(snapshot);
   assert.equal(module.perCurrency.usd.chartsByPeriod.all.latestLabel, "期末 111");
   assert.equal(module.quotes[0].priceText, "999", "independent quote remains intact and separately dated");
   assert.equal(module.quotes[0].asOfText, "报价 2026-10-13");
   assert.equal(JSON.stringify(snapshot), original);
+});
+
+test("home ETF card uses dated prices and opens the fund while the A-share tile opens the section", () => {
+  const history = Array.from({ length: 10 }, (_, index) => ({
+    date: `2026-${String(index + 1).padStart(2, "0")}-15`, close: 1 + index / 10,
+  })).reverse();
+  history.unshift({ date: "2026-10-31", close: null });
+  const fund = { code: "515180.SH", shortName: "红利ETF", history };
+  const snapshot = { aShare: { funds: [{ code: "000001.SH", history }, fund] } };
+  let page;
+  const targets = [];
+  const { buildHomeTrends } = pageFunctions("miniprogram/pages/index/index.js", ["buildHomeTrends"], {
+    Page(definition) { page = definition; },
+    wx: { navigateTo({ url }) { targets.push(url); } },
+  });
+  const card = buildHomeTrends(snapshot).find((item) => item.id === "a");
+  assert.equal(card.title, "红利ETF");
+  assert.equal(card.asOf, "2026-01-15—10-15");
+  assert.equal(card.value, "¥1.900");
+  assert.equal(card.sub, "+90.0%");
+  assert.equal(findItem(snapshot, "a", card.detailId).raw.assetType, "fund");
+  page.openTrend({ currentTarget: { dataset: { market: card.market, detailId: card.detailId } } });
+  page.openGridEntry({ currentTarget: { dataset: { id: "a" } } });
+  assert.deepEqual(targets, ["/pages/detail/index?market=a&id=515180", "/pages/section/index?market=a"]);
+});
+
+test("home compares companies over equal numbers of trading sessions", () => {
+  const { buildHomeTrends } = pageFunctions("miniprogram/pages/index/index.js", ["buildHomeTrends"]);
+  const snapshot = { us: { stocks: [
+    { symbol: "NVDA", asOf: "2026-10-23", history: [1, 20, ...Array(8).fill(15), 10] },
+    { symbol: "MSFT", asOf: "2026-10-23", history: [1, ...Array(9).fill(2)] },
+    { symbol: "AAPL", asOf: "2026-10-23", history: [1, ...Array(9).fill(3)] },
+  ] } };
+  const card = buildHomeTrends(snapshot).find((item) => item.id === "us");
+  assert.equal(card.value, "2只涨");
+  assert.equal(card.sub, "共3只 · 10个交易日");
 });
 
 test("historical views do not offer instant order cards even for an otherwise fresh quote", () => {

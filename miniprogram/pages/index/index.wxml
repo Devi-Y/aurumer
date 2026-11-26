@@ -1,10 +1,128 @@
 <view class="page-shell home-shell">
-  <!-- 第一块：走势。按产品要求放在最上面，每张卡一个数 + 一张图，点进去是对应栏目。
-       柱图是零轴柱（红涨绿跌），折线是 SVG 图片，序列不够的卡整张不出。
-       数据时间只在这里写一次，标题栏不写第二遍「望潮 Aurum」——导航栏已经有了。 -->
+  <!-- 顶部 DeepSeek 极简极速秒搜：零网络等待，直达全市场任意标的详情。 -->
+  <view class="home-search-wrap">
+    <view class="home-search-box {{searchFocused ? 'is-focused' : ''}}">
+      <text class="home-search-icon" aria-hidden="true">⌕</text>
+      <input
+        class="home-search-input"
+        type="text"
+        confirm-type="search"
+        value="{{searchQuery}}"
+        placeholder="搜股票、代码、新股或机构（如 英伟达、长江电力）"
+        placeholder-class="home-search-placeholder"
+        bindfocus="onSearchFocus"
+        bindinput="onSearchInput"
+      />
+      <text wx:if="{{searchQuery || searchFocused}}" class="home-search-clear" bindtap="clearSearch" aria-role="button" aria-label="清除搜索">取消</text>
+    </view>
+
+    <view wx:if="{{searchQuery && searchResults.length}}" class="search-dropdown">
+      <view
+        wx:for="{{searchResults}}"
+        wx:key="key"
+        class="search-result-row"
+        data-market="{{item.market}}"
+        data-id="{{item.id}}"
+        bindtap="openSearchResult"
+        hover-class="tap-active"
+        aria-role="button"
+      >
+        <text class="search-tag tag-{{item.market}}">{{item.marketTag}}</text>
+        <view class="search-result-main">
+          <text class="search-result-name">{{item.name}}</text>
+          <text wx:if="{{item.code}}" class="search-result-code">{{item.code}}</text>
+        </view>
+        <text wx:if="{{item.figure}}" class="search-result-fig">{{item.figure}}</text>
+        <text class="search-result-go" aria-hidden="true">›</text>
+      </view>
+    </view>
+    <view wx:elif="{{searchQuery && !searchResults.length}}" class="search-dropdown search-empty">
+      <text>当前样本库未匹配到“{{searchQuery}}”，可试试代码或中文简称</text>
+    </view>
+    <view wx:elif="{{searchFocused && (starPicks.length || quickPicks.length)}}" class="search-picks-panel">
+      <view wx:if="{{starPicks.length}}" class="search-picks">
+        <text class="search-picks-label">★ 星标直达</text>
+        <view
+          wx:for="{{starPicks}}"
+          wx:key="key"
+          class="search-pick-chip is-star"
+          data-market="{{item.market}}"
+          data-id="{{item.id}}"
+          bindtap="openSearchResult"
+          hover-class="tap-active"
+          aria-role="button"
+        >{{item.label}}</view>
+      </view>
+      <view wx:if="{{quickPicks.length}}" class="search-picks">
+        <text class="search-picks-label">热门直达</text>
+        <view
+          wx:for="{{quickPicks}}"
+          wx:key="key"
+          class="search-pick-chip"
+          data-market="{{item.market}}"
+          data-id="{{item.id}}"
+          bindtap="openSearchResult"
+          hover-class="tap-active"
+          aria-role="button"
+        >{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 借鉴有知有行知行温度计 × 韭圈儿 × 且慢：深蓝精装头卡，三温带具象化 + 算法公开透明。 -->
+  <view wx:if="{{pulse}}" class="pulse-hero">
+    <view class="pulse-top">
+      <view class="pulse-eyebrow-row">
+        <text class="pulse-eyebrow">全市场历史温度</text>
+        <text class="pulse-rule-btn" bindtap="togglePulseInfo" aria-role="button">{{pulseInfoOpen ? '收起口径' : '怎么算的？'}}</text>
+      </view>
+      <text class="pulse-date">{{dataAsOf || '读取历史资料'}}</text>
+    </view>
+    <view class="pulse-main">
+      <view class="pulse-score-wrap">
+        <text class="pulse-score">{{pulse.score}}</text>
+        <text class="pulse-unit">°</text>
+      </view>
+      <view class="pulse-copy-wrap">
+        <text class="pulse-zone tone-{{pulse.zoneTone}}">{{pulse.zoneLabel}}</text>
+        <text class="pulse-desc">{{pulse.plainCopy}}</text>
+      </view>
+    </view>
+    <view class="pulse-gauge" aria-hidden="true">
+      <view class="pulse-gauge-track">
+        <view class="pulse-gauge-dot" style="left: {{pulse.score}}%;"></view>
+      </view>
+      <view class="pulse-gauge-labels">
+        <text>0–35° 偏冷区</text>
+        <text>36–67° 舒适区</text>
+        <text>68–100° 偏热区</text>
+      </view>
+    </view>
+    <view wx:if="{{pulseInfoOpen}}" class="pulse-info-drawer">
+      <text class="pulse-info-line">· 口径透明：由港股首日上涨比、美股七姐妹上涨比、红利ETF区间位置、国际金价区间位置四项已披露历史数据等权算得。</text>
+      <text class="pulse-info-line">· 理性边界：温度只反映过去一段样本冷暖，帮你减少情绪追涨杀跌，不预测明天涨跌。</text>
+    </view>
+    <view class="pulse-pills">
+      <view
+        wx:for="{{pulse.pills}}"
+        wx:key="id"
+        class="pulse-pill"
+        data-market="{{item.market}}"
+        data-detail-id="{{item.detailId}}"
+        bindtap="openTrend"
+        hover-class="pulse-pill-tap"
+        aria-role="button"
+      >
+        <text class="pulse-pill-k">{{item.shortName}}</text>
+        <text class="pulse-pill-v tone-{{item.moodTone}}">{{item.mood}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 四大市场走势卡：每张一个核心数字 + 白话温度标 + 升级渐变曲线/零轴柱图。 -->
   <view class="group-head home-head">
     <text class="group-label">历史走势参考</text>
-    <text class="group-meta">{{dataAsOf || '读取历史资料'}}</text>
+    <text wx:if="{{!pulse}}" class="group-meta">历史样本对照</text>
   </view>
   <view wx:if="{{trends.length}}" class="trend-grid">
     <view
@@ -12,14 +130,21 @@
       wx:key="id"
       class="trend-card"
       data-market="{{item.market}}"
+      data-detail-id="{{item.detailId}}"
       bindtap="openTrend"
       hover-class="tap-active"
       hover-stay-time="80"
       aria-role="button"
-      aria-label="{{item.title}} {{item.value}} {{item.sub}}"
+      aria-label="打开{{item.title}}，{{item.asOf}}，{{item.value}} {{item.sub}}"
     >
-      <text class="trend-title">{{item.title}}</text>
-      <text class="trend-date">{{item.asOf}}</text>
+      <view class="trend-heading">
+        <text class="trend-title">{{item.title}}</text>
+        <text class="trend-arrow" aria-hidden="true">›</text>
+      </view>
+      <view class="trend-meta-row">
+        <text class="trend-date">{{item.asOf}}</text>
+        <text wx:if="{{item.mood}}" class="trend-mood tone-{{item.moodTone}}">{{item.mood}}</text>
+      </view>
       <view class="trend-figure">
         <text class="trend-value">{{item.value}}</text>
         <text class="trend-sub {{item.tone}}">{{item.sub}}</text>
@@ -36,7 +161,10 @@
 
   <!-- 九格：五个免费研究栏目 + 会员群、港美股开户、A股开户、VPN开通。 -->
   <view class="page-card home-panel">
-    <text class="group-label">免费决策参考</text>
+    <view class="panel-head">
+      <text class="group-label">免费决策参考</text>
+      <text class="panel-sub">五大免费研究 · 四项直达服务</text>
+    </view>
     <view class="entry-grid">
       <block wx:for="{{entries}}" wx:key="id">
       <view
@@ -46,7 +174,7 @@
         hover-class="tap-active"
         hover-stay-time="80"
         aria-role="button"
-        aria-label="{{item.title}}，{{item.help}}"
+        aria-label="{{item.help ? item.title + '，' + item.help : item.title}}"
       >
         <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}} {{item.action === 'page' ? 'svc' : ''}}">
           <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>

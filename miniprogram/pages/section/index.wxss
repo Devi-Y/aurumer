@@ -2,7 +2,7 @@
   min-height: 100vh;
   box-sizing: border-box;
   padding: 20rpx 20rpx calc(28rpx + env(safe-area-inset-bottom));
-  background: #f5f6f7;
+  background: #f6f7fa;
 }
 
 .freshness-banner {
@@ -46,8 +46,8 @@
    .section-shell 自己那 20rpx 的边留给下面的卡片继续用。 */
 .section-hero {
   margin: -20rpx -20rpx 0;
-  padding: 18rpx 24rpx 40rpx;
-  background: linear-gradient(165deg, #2466d6 0%, #1d5fd1 55%, #174ea9 100%);
+  padding: 20rpx 24rpx 42rpx;
+  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
 }
 
 .hero-top {
@@ -965,6 +965,13 @@
 
 .hk-fd-bar.up { background: #c2412d; }
 .hk-fd-bar.down { background: #0b7a53; }
+.hk-fd-link {
+  margin-top: 8rpx;
+  padding: 16rpx 4rpx 2rpx;
+  color: #1d5fd1;
+  font-size: 25rpx;
+  font-weight: 600;
+}
 
 .hk-stock-list {
   margin-top: 6rpx;
@@ -1560,9 +1567,11 @@
 }
 
 .us-right {
-  flex: 0 0 136rpx;
+  flex: 0 0 180rpx;
   text-align: right;
 }
+
+.us-right .us-code { white-space: nowrap; }
 
 .us-price {
   display: block;
@@ -2101,35 +2110,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 18rpx;
+  gap: 12rpx;
+  padding: 17rpx 0;
   color: #1a1d22;
   font-size: 26rpx;
   font-weight: 600;
 }
 
-.guru-direction:first-child {
-  margin-top: 6rpx;
+.guru-direction + .guru-direction {
+  border-top: 1rpx solid #edeef0;
 }
 
-.guru-bar-track {
-  overflow: hidden;
-  margin-top: 10rpx;
-  height: 14rpx;
-  border-radius: 999rpx;
-  background: #edeef0;
-}
-
-.guru-bar-fill {
-  height: 100%;
-  border-radius: 999rpx;
-}
-
-.guru-bar-fill.tone-worth { background: #1d5fd1; }
-.guru-bar-fill.tone-caution { background: #8b5b20; }
-.guru-bar-fill.tone-avoid { background: #a33b2b; }
-
-.guru-bars-body {
-  padding-bottom: 8rpx;
+.guru-direction .a-badge {
+  text-align: right;
 }
 
 .guru-institution-list {
@@ -2535,6 +2528,14 @@
 .gold-chart-labels text:nth-child(2) { color: #1d5fd1; font-weight: 700; text-align: center; }
 .gold-chart-labels text:last-child { text-align: right; }
 
+.gold-chart-caption {
+  display: block;
+  margin-top: 12rpx;
+  color: #585e6b;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
 .gold-chart-empty {
   display: block;
   margin-top: 16rpx;
@@ -2706,6 +2707,504 @@
 }
 
 /* A short list first; price references stay one tap deeper. */
-.more-list-link { padding: 24rpx 8rpx 8rpx; color: #1d5fd1; font-size: 25rpx; text-align: center; }
-.dividend-years { color: #1d5fd1; font-size: 25rpx; font-weight: 600; }
-.reading-hint { display: block; margin: 14rpx 0; color: #7d8188; font-size: 22rpx; }
+.more-list-link {
+  margin-top: 12rpx;
+  padding: 20rpx 12rpx 8rpx;
+  border-top: 1rpx solid #f0f2f6;
+  color: #1d5fd1;
+  font-size: 25rpx;
+  font-weight: 620;
+  text-align: center;
+}
+.dividend-years { color: #1d5fd1; font-size: 30rpx; font-weight: 720; font-variant-numeric: tabular-nums; }
+.reading-hint {
+  display: block;
+  margin: 14rpx 0 10rpx;
+  padding: 12rpx 16rpx;
+  border-radius: 12rpx;
+  background: #f5f7fb;
+  color: #64748b;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+/* 顶部主卡微压蓝色头图，拉近首屏核心信息、减少空白割裂感。 */
+.hk-card,
+.us-card,
+.a-card,
+.gold-card,
+.guru-card {
+  position: relative;
+  z-index: 1;
+  margin-top: -22rpx;
+}
+
+.freshness-banner + .hk-card,
+.freshness-banner + .us-card,
+.freshness-banner + .a-card,
+.freshness-banner + .gold-card,
+.freshness-banner + .guru-card {
+  margin-top: 14rpx;
+}
+
+/* 美股事实微胶囊：PE / 营收增速 / 60日区间涨跌，零点击横向对照。 */
+.fact-chips {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 2rpx;
+}
+
+.fact-chip {
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  background: #f3f5f9;
+  color: #475569;
+  font-size: 20rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+.fact-chip.tone-up {
+  background: #fdf2f0;
+  color: #c2412d;
+}
+
+.fact-chip.tone-down {
+  background: #eef8f3;
+  color: #0b7a53;
+}
+
+.us-inline-change {
+  font-size: 20rpx;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.us-inline-change.is-up { color: #c2412d; }
+.us-inline-change.is-down { color: #0b7a53; }
+.us-inline-change.is-flat { color: #94a3b8; }
+
+/* A股榜单前三名清晰标识，一眼扫描重点标的。 */
+.a-rank.is-top {
+  display: inline-flex;
+  width: 40rpx;
+  height: 40rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12rpx;
+  background: #edf3ff;
+  color: #1d5fd1;
+  font-size: 22rpx;
+  font-weight: 760;
+}
+
+/* 黄金双币种卡顶部涨跌微标。 */
+.gold-quote-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.gold-quote-delta {
+  padding: 1rpx 10rpx;
+  border-radius: 999rpx;
+  font-size: 19rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.45;
+}
+
+.gold-quote-delta.is-up { background: #fdf1ef; color: #c2412d; }
+.gold-quote-delta.is-down { background: #edf8f2; color: #0b7a53; }
+.gold-quote-delta.is-flat { background: #eef1f5; color: #64748b; }
+
+/* 聪明钱横向机构快选胶囊：一滑一点即切机构，零使用门槛。 */
+.guru-pills {
+  width: 100%;
+  margin-top: 18rpx;
+  white-space: nowrap;
+}
+
+.guru-pills-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 2rpx 0 6rpx;
+}
+
+.guru-pill {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 18rpx;
+  border: 1rpx solid #e4e8f0;
+  border-radius: 999rpx;
+  background: #f7f9fc;
+  color: #334155;
+  font-size: 23rpx;
+  font-weight: 600;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.guru-pill.is-active {
+  border-color: #1d5fd1;
+  background: #1d5fd1;
+  color: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(29, 95, 209, 0.22);
+}
+
+.guru-pill-tag {
+  padding: 1rpx 8rpx;
+  border-radius: 6rpx;
+  background: rgba(15, 23, 42, 0.07);
+  font-size: 18rpx;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.guru-pill.is-active .guru-pill-tag {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.guru-pill-name {
+  white-space: nowrap;
+}
+
+/* 港股打新 4 步状态轴（借鉴捷利交易宝/长桥：招股→截止→配发→上市）。 */
+.hk-stage-track {
+  display: flex;
+  margin-top: 16rpx;
+  padding: 10rpx 14rpx;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12rpx;
+  background: #f7f9fc;
+}
+
+.hk-stage-step {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+}
+
+.hk-stage-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.hk-stage-label {
+  color: #94a3b8;
+  font-size: 20rpx;
+  font-weight: 560;
+}
+
+.hk-stage-step.is-done .hk-stage-dot {
+  background: #93b4f1;
+}
+
+.hk-stage-step.is-done .hk-stage-label {
+  color: #64748b;
+}
+
+.hk-stage-step.is-now .hk-stage-dot {
+  width: 12rpx;
+  height: 12rpx;
+  background: #1d5fd1;
+  box-shadow: 0 0 0 4rpx rgba(29, 95, 209, 0.16);
+}
+
+.hk-stage-step.is-now .hk-stage-label {
+  color: #1d5fd1;
+  font-weight: 700;
+}
+
+/* 集思录风格一键对比排序胶囊条 */
+.sort-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-bottom: 14rpx;
+}
+
+.sort-pill {
+  padding: 8rpx 18rpx;
+  border: 1rpx solid #e4e8f0;
+  border-radius: 999rpx;
+  background: #f6f8fb;
+  color: #475569;
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.sort-pill.is-active {
+  border-color: #1d5fd1;
+  background: #eaf2ff;
+  color: #1d5fd1;
+  font-weight: 700;
+}
+
+/* 集思录风格筛选芯片条 */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-bottom: 10rpx;
+}
+
+.filter-pill {
+  padding: 6rpx 16rpx;
+  border-radius: 10rpx;
+  background: #f1f4f9;
+  color: #475569;
+  font-size: 21rpx;
+  font-weight: 600;
+}
+
+.filter-pill.is-active {
+  background: #0f172a;
+  color: #ffffff;
+  font-weight: 680;
+}
+
+/* Quartr 风格全池 SEC 公告速递流 */
+.sec-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  margin-top: 12rpx;
+}
+
+.sec-feed-row {
+  padding: 18rpx 20rpx;
+  border: 1rpx solid #edf0f6;
+  border-radius: 18rpx;
+  background: #fafbfd;
+}
+
+.sec-feed-top {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.sec-form-badge {
+  flex: none;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  background: #1d5fd1;
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.sec-stock-name {
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.sec-stock-code {
+  color: #94a3b8;
+  font-size: 21rpx;
+}
+
+.sec-date {
+  margin-left: auto;
+  color: #64748b;
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.sec-summary {
+  display: block;
+  margin-top: 10rpx;
+  color: #334155;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.sec-feed-actions {
+  display: flex;
+  margin-top: 14rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid #edf0f6;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sec-action-btn {
+  color: #1d5fd1;
+  font-size: 23rpx;
+  font-weight: 660;
+}
+
+.sec-action-btn.is-copy {
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: #eaf2ff;
+}
+
+/* Stock Events 风格近 5 年分红红绿灯点阵 */
+.div-dots-row {
+  display: flex;
+  margin-top: 8rpx;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.div-dots-label {
+  color: #94a3b8;
+  font-size: 19rpx;
+  font-weight: 600;
+}
+
+.div-dot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.div-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.div-dot.is-ok { background: #16a34a; }
+.div-dot.is-cut { background: #f59e0b; }
+.div-dot.is-miss { background: #d5dce6; }
+
+.div-dot-yr {
+  color: #94a3b8;
+  font-size: 18rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 黄金追踪：区间温度条 */
+.gold-pos-box {
+  margin-top: 16rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 14rpx;
+  background: #f6f8fc;
+}
+
+.gold-pos-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+}
+
+.gold-pos-title {
+  color: #64748b;
+  font-size: 21rpx;
+  font-weight: 600;
+}
+
+.gold-pos-badge {
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: #e9eef6;
+  color: #334155;
+  font-size: 20rpx;
+  font-weight: 680;
+}
+
+.gold-pos-badge.tone-cool { background: #e8f1ff; color: #1d5fd1; }
+.gold-pos-badge.tone-warn { background: #fef3c7; color: #b45309; }
+
+.gold-pos-track {
+  position: relative;
+  height: 10rpx;
+  margin-top: 12rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #38bdf8 0%, #34d399 45%, #fbbf24 75%, #f87171 100%);
+}
+
+.gold-pos-dot {
+  position: absolute;
+  top: 50%;
+  width: 20rpx;
+  height: 20rpx;
+  margin-top: -10rpx;
+  margin-left: -10rpx;
+  border: 3rpx solid #ffffff;
+  border-radius: 50%;
+  background: #0f172a;
+  box-shadow: 0 2rpx 6rpx rgba(15, 23, 42, 0.3);
+}
+
+/* Finviz 风格板块热力色块矩阵 */
+.heat-head-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  margin-bottom: 14rpx;
+}
+
+.heat-mode-pills {
+  display: flex;
+  gap: 10rpx;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10rpx;
+}
+
+.heat-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4rpx;
+  padding: 14rpx 14rpx 12rpx;
+  border-radius: 16rpx;
+  background: #f1f4f9;
+  color: #0f172a;
+}
+
+.heat-tile-name {
+  overflow: hidden;
+  font-size: 24rpx;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.heat-tile-val {
+  font-size: 28rpx;
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.heat-tile-sub {
+  overflow: hidden;
+  opacity: 0.78;
+  font-size: 18rpx;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.heat-tile.tone-up-strong { background: #b93829; color: #ffffff; }
+.heat-tile.tone-up-soft { background: #fdf0ed; color: #b93829; }
+.heat-tile.tone-down-strong { background: #0d7a54; color: #ffffff; }
+.heat-tile.tone-down-soft { background: #ebf8f2; color: #0b7a53; }
+.heat-tile.tone-yield-high { background: linear-gradient(135deg, #163363 0%, #1d5fd1 100%); color: #ffffff; }
+.heat-tile.tone-yield-mid { background: #eaf2ff; color: #1648a8; }
+.heat-tile.tone-yield-low { background: #f3f5f9; color: #334155; }

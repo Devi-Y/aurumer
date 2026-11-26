@@ -4296,7 +4296,7 @@
       }
     ],
     "filingCoverage": {
-      "MSFT": {
+      "GOOGL": {
         "status": "complete",
         "since": "2026-10-27",
         "fetchedAt": "2026-11-26T02:25:30.971Z",
@@ -4314,7 +4314,7 @@
         "returnedCount": 3,
         "truncated": false
       },
-      "GOOGL": {
+      "MSFT": {
         "status": "complete",
         "since": "2026-10-27",
         "fetchedAt": "2026-11-26T02:25:30.971Z",
@@ -4382,11 +4382,20 @@
         "since": "2026-10-27",
         "fetchedAt": "2026-11-26T02:25:30.971Z",
         "error": null,
-        "matchedCount": 3,
+        "matchedCount": 5,
         "returnedCount": 3,
+        "truncated": true
+      },
+      "TSLA": {
+        "status": "complete",
+        "since": "2026-10-20",
+        "fetchedAt": "2026-11-19T04:11:01.995Z",
+        "error": null,
+        "matchedCount": 2,
+        "returnedCount": 2,
         "truncated": false
       },
-      "ARM": {
+      "AMD": {
         "status": "complete",
         "since": "2026-10-27",
         "fetchedAt": "2026-11-26T02:25:30.971Z",
@@ -5145,9 +5154,9 @@
       "reason": null
     },
     "temperature": {
-      "value": 67,
-      "label": "中性",
-      "hint": "港交所当前抓取到 5 只尚未公布配发结果的新股——温度只反映新股供给活跃度，不代表收益"
+      "value": 77,
+      "label": "偏热",
+      "hint": "港交所当前抓取到 7 只尚未公布配发结果的新股——温度只反映新股供给活跃度，不代表收益"
     },
     "backtest": {
       "source": {
@@ -20773,7 +20782,7 @@
           "day60": -18.2,
           "day180": -29.6
         },
-        "percentile180": 2
+        "percentile180": 1
       },
       "domestic": {
         "symbol": "Au99.99",

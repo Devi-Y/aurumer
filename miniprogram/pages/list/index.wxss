@@ -40,13 +40,10 @@
 .freshness-banner.tone-warn { background: #fff7ec; border-color: #f0e0c8; }
 .freshness-banner.tone-bad { background: #fdf0ee; border-color: #f0d5cf; }
 
-/* 页头。和新闻资讯页共用一套写法：绿带里放标题、数据截至、一句说明、范围标签。
-   负的左右外边距是为了让绿带顶满屏宽——.list-shell 自己留了 20rpx 的边，
-   下面的卡片还要靠它，所以只有这一块把边退回去。 */
+/* 轻盈浅色页头：和全站长桥/苹果股市呼吸感统一 */
 .list-hero {
-  margin: -20rpx -20rpx 0;
-  padding: 20rpx 24rpx 38rpx;
-  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
+  padding: 12rpx 4rpx 20rpx;
+  background: transparent;
 }
 
 .list-hero-top {
@@ -58,16 +55,17 @@
 
 .list-hero-title {
   flex: none;
-  color: #ffffff;
-  font-size: 40rpx;
-  font-weight: 720;
+  color: #0f172a;
+  font-size: 42rpx;
+  font-weight: 780;
+  letter-spacing: -0.6rpx;
 }
 
 .list-hero-meta {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.82);
+  color: #8a94a6;
   font-size: 22rpx;
   text-align: right;
   text-overflow: ellipsis;
@@ -76,35 +74,35 @@
 
 .list-hero-help {
   display: block;
-  margin-top: 10rpx;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 23rpx;
-  line-height: 1.45;
+  margin-top: 8rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 
 .list-hero-stats {
   display: flex;
-  margin-top: 14rpx;
+  margin-top: 12rpx;
   flex-wrap: wrap;
   align-items: center;
   gap: 10rpx;
 }
 
 .list-stat {
-  padding: 5rpx 14rpx;
+  padding: 6rpx 16rpx;
   border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.9);
+  background: #eaeff7;
+  color: #334155;
   font-size: 21rpx;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.35;
 }
 
-/* 筛选条压在绿带下沿上，和新闻资讯页一个位置关系。 */
 .list-filters {
   position: relative;
   z-index: 1;
-  margin: -24rpx -20rpx 0;
+  margin: 0 -20rpx 8rpx;
   padding: 4rpx 0;
   white-space: nowrap;
 }

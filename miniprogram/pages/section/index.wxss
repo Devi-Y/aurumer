@@ -42,12 +42,10 @@
 .freshness-banner.tone-warn { background: #fff7ec; border-color: #f0e0c8; }
 .freshness-banner.tone-bad { background: #fdf0ee; border-color: #f0d5cf; }
 
-/* 页头绿带。和新闻资讯页同一套：负的左右外边距把带子顶到屏宽，
-   .section-shell 自己那 20rpx 的边留给下面的卡片继续用。 */
+/* 轻盈留白页头（对标长桥 Longbridge × Apple Stocks）：告别压抑深色横幅，与微信浅色顶栏自然融为一体 */
 .section-hero {
-  margin: -20rpx -20rpx 0;
-  padding: 20rpx 24rpx 42rpx;
-  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
+  padding: 12rpx 4rpx 14rpx;
+  background: transparent;
 }
 
 .hero-top {
@@ -59,27 +57,29 @@
 
 .hero-title {
   flex: none;
-  color: #ffffff;
-  font-size: 40rpx;
-  font-weight: 720;
+  color: #0f172a;
+  font-size: 44rpx;
+  font-weight: 780;
+  letter-spacing: -0.8rpx;
 }
 
 .hero-meta {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.82);
+  color: #8a94a6;
   font-size: 22rpx;
+  font-variant-numeric: tabular-nums;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 结论与关键数值那张卡向上压住绿带下沿。 */
+/* 主内容卡自然呼吸留白 */
 .hero-body {
   position: relative;
   z-index: 1;
-  margin-top: -22rpx;
+  margin-top: 8rpx;
 }
 
 .hero-metrics {
@@ -694,8 +694,9 @@
 
 @media (max-width: 340px) {
   .section-shell { padding-right: 14rpx; padding-left: 14rpx; }
-  .section-hero { margin-right: -14rpx; margin-left: -14rpx; }
-  .hero-title { font-size: 36rpx; }
+  .hero-title { font-size: 38rpx; }
+  .us-spark { display: none; }
+  .us-change { min-width: 112rpx; font-size: 22rpx; }
   .hero-metric { padding-right: 6rpx; padding-left: 6rpx; }
   .hero-metric text:last-child { font-size: 28rpx; }
 }
@@ -1509,13 +1510,13 @@
 .a-row .plan-line { margin-top: 14rpx; }
 
 .us-row-name-col {
-  flex: 0 0 210rpx;
+  flex: 0 0 184rpx;
   min-width: 0;
 }
 
 .us-row-tags {
   display: flex;
-  margin-top: 8rpx;
+  margin-top: 6rpx;
   flex-wrap: wrap;
   align-items: center;
   gap: 10rpx;
@@ -1526,18 +1527,19 @@
 .us-stock-name {
   display: block;
   overflow: hidden;
-  color: #1a1d22;
-  font-size: 29rpx;
-  font-weight: 650;
+  color: #0f172a;
+  font-size: 30rpx;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .us-code {
   flex: none;
-  color: #999ca2;
-  font-size: 20rpx;
-  letter-spacing: 0.5rpx;
+  color: #8a94a6;
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3rpx;
 }
 
 .us-badge {
@@ -1559,15 +1561,20 @@
 .us-badge.tone-caution { background: #f7e9c9; color: #8b5b20; }
 .us-badge.tone-avoid { background: #f6dad4; color: #a33b2b; }
 
-/* 60 日收盘走势，占掉名字和价格之间剩下的宽度。 */
+/* 60 日收盘走势：居留中间呼吸留白区 */
 .us-spark {
   flex: 1;
-  min-width: 0;
-  height: 64rpx;
+  min-width: 64rpx;
+  height: 56rpx;
 }
 
+/* 对标 Apple 股市 + 腾讯自选股小程序：价格右对齐 + 等宽柔和实心涨跌胶囊 */
 .us-right {
-  flex: 0 0 180rpx;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14rpx;
   text-align: right;
 }
 
@@ -1575,25 +1582,34 @@
 
 .us-price {
   display: block;
-  color: #1a1d22;
-  font-size: 29rpx;
-  font-weight: 680;
+  color: #0f172a;
+  font-size: 30rpx;
+  font-weight: 720;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 
 .us-change {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  font-weight: 620;
+  display: inline-flex;
+  min-width: 128rpx;
+  height: 52rpx;
+  padding: 0 12rpx;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12rpx;
+  background: #94a3b8;
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 720;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
-/* 涨跌色按 A 股/港股习惯：涨红跌绿 */
-.us-change.is-up { color: #c2412d; }
-.us-change.is-down { color: #0b7a53; }
-.us-change.is-flat { color: #999ca2; }
+/* 柔和护眼红绿实心块：一眼扫清涨跌，久看不刺眼 */
+.us-change.is-up { background: #dc4c3e; color: #ffffff; }
+.us-change.is-down { background: #159960; color: #ffffff; }
+.us-change.is-flat { background: #94a3b8; color: #ffffff; }
 
 .us-mix {
   margin-top: 20rpx;
@@ -2387,23 +2403,25 @@
   box-sizing: border-box;
   flex: 1;
   min-width: 0;
-  padding: 18rpx 16rpx;
-  border-radius: 16rpx;
-  background: #f4f5f8;
+  padding: 22rpx 18rpx;
+  border: 2rpx solid #eef1f6;
+  border-radius: 20rpx;
+  background: #f8fafc;
   text-align: center;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .gold-quote-button.is-active {
-  background: #edf2fb;
-  box-shadow: 0 2rpx 8rpx rgba(29, 95, 209, 0.14);
+  border-color: #1d5fd1;
+  background: #f2f7ff;
+  box-shadow: 0 6rpx 18rpx rgba(29, 95, 209, 0.1);
 }
 
 .gold-quote-label {
   display: block;
-  color: #696d75;
-  font-size: 22rpx;
-  font-weight: 600;
+  color: #64748b;
+  font-size: 23rpx;
+  font-weight: 640;
 }
 
 .gold-quote-button.is-active .gold-quote-label {
@@ -2412,10 +2430,11 @@
 
 .gold-quote-price {
   display: block;
-  margin-top: 6rpx;
-  color: #1a1d22;
-  font-size: 34rpx;
-  font-weight: 720;
+  margin-top: 8rpx;
+  color: #0f172a;
+  font-size: 42rpx;
+  font-weight: 780;
+  letter-spacing: -0.8rpx;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2728,7 +2747,7 @@
   line-height: 1.5;
 }
 
-/* 顶部主卡微压蓝色头图，拉近首屏核心信息、减少空白割裂感。 */
+/* 主卡片自然留白排布，不再挤压顶栏 */
 .hk-card,
 .us-card,
 .a-card,
@@ -2736,7 +2755,7 @@
 .guru-card {
   position: relative;
   z-index: 1;
-  margin-top: -22rpx;
+  margin-top: 4rpx;
 }
 
 .freshness-banner + .hk-card,

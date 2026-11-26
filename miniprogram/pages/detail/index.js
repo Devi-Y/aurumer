@@ -2646,6 +2646,56 @@ function detailView(item, snapshot) {
   if (item.market !== "guru") base.rank = "";
   base.primaryJudgment = plainLabel(base.primaryJudgment);
   base.highlights = simpleHighlights(base.highlights);
+
+  // 对标 Robinhood × Apple 股市：提取最核心的超大号主指标 + 涨跌/状态胶囊 + 双列整洁关键数据。
+  const raw = (item && item.raw) || {};
+  let heroFigure = "";
+  let heroDelta = "";
+  let heroTone = "flat";
+  if (item.market === "us") {
+    if (hasNumber(raw.price)) heroFigure = money(raw.price);
+    if (hasNumber(raw.changePercent)) {
+      const ch = Number(raw.changePercent);
+      heroDelta = formatPercent(ch);
+      heroTone = ch > 0.01 ? "up" : (ch < -0.01 ? "down" : "flat");
+    }
+  } else if (item.market === "a") {
+    if (hasNumber(raw.currentPrice)) {
+      heroFigure = raw.assetType === "fund" ? `¥${Number(raw.currentPrice).toFixed(3)}` : money(raw.currentPrice, "¥");
+    }
+    if (raw.historicalDividendYield && hasNumber(raw.historicalDividendYield.yieldPercent)) {
+      heroDelta = `股息率 ${Number(raw.historicalDividendYield.yieldPercent).toFixed(2)}%`;
+      heroTone = "brand";
+    } else if (hasNumber(raw.changePercent)) {
+      const ch = Number(raw.changePercent);
+      heroDelta = formatPercent(ch);
+      heroTone = ch > 0.01 ? "up" : (ch < -0.01 ? "down" : "flat");
+    }
+  } else if (item.market === "hk") {
+    if (raw.offerPrice) heroFigure = `HK$${String(raw.offerPrice).replace(/^HK\$/i, "").trim()}`;
+    else if (base.highlights[0]) heroFigure = String(base.highlights[0].value || "");
+    heroDelta = base.primaryJudgment || "";
+    heroTone = item.group === "worth" ? "brand" : "flat";
+  } else if (item.market === "gold") {
+    const intlP = raw.quotes && raw.quotes.international && raw.quotes.international.price;
+    const domP = raw.quotes && raw.quotes.domestic && raw.quotes.domestic.price;
+    if (hasNumber(intlP)) heroFigure = `$${Number(intlP).toFixed(0)}`;
+    if (hasNumber(domP)) {
+      heroDelta = `国内 ¥${Number(domP).toFixed(1)}/克`;
+      heroTone = "brand";
+    }
+  } else if (item.market === "guru") {
+    if (base.highlights[0]) heroFigure = String(base.highlights[0].value || "");
+    if (hasNumber(raw.trackingScore)) {
+      heroDelta = `可靠度 ${Math.round(Number(raw.trackingScore))}分`;
+      heroTone = "brand";
+    }
+  }
+  base.heroFigure = heroFigure;
+  base.heroDelta = heroDelta;
+  base.heroTone = heroTone;
+  base.keyStats = (base.metrics || []).slice(0, 6);
+
   return base;
 }
 

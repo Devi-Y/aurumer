@@ -90,30 +90,26 @@
 
 <view class="page-shell detail-shell">
   <view wx:if="{{ready}}" class="detail-content">
-    <view class="detail-hero">
+    <!-- 对标 Robinhood × Apple 股市：浅色通透大字价格头，1 秒抓核心数 -->
+    <view class="detail-hero-card page-card">
       <view class="hero-top">
-        <text class="hero-label">{{view.marketLabel}}</text>
-        <view class="hero-top-right">
-          <text class="hero-meta">{{dataAsOf || '读取历史资料'}}</text>
-          <text class="hero-poster-btn {{starred ? 'is-starred' : ''}}" bindtap="toggleStar" aria-role="button" aria-label="{{starred ? '取消星标' : '加入星标'}}">{{starred ? '★ 已收藏' : '☆ 收藏'}}</text>
+        <view class="hero-tag-row">
+          <text class="hero-label">{{view.marketLabel}}</text>
+          <text wx:if="{{view.primaryJudgment}}" class="hero-judgment">结论 · {{view.primaryJudgment}}</text>
         </view>
+        <text class="hero-star-btn {{starred ? 'is-starred' : ''}}" bindtap="toggleStar" aria-role="button" aria-label="{{starred ? '取消收藏' : '加入收藏'}}">{{starred ? '★ 已收藏' : '☆ 收藏'}}</text>
       </view>
       <view class="hero-name-row">
         <text class="hero-title">{{view.title}}</text>
         <text wx:if="{{view.code && !view.hideCode}}" class="hero-code">{{view.code}}</text>
       </view>
-      <view wx:if="{{view.market == 'guru' && view.researchScore != null}}" class="hero-stats">
-        <text class="hero-stat">{{view.researchScoreLabel || '评分'}} {{view.researchScore}}</text>
+      <view wx:if="{{view.heroFigure}}" class="hero-price-row">
+        <text class="hero-big-figure">{{view.heroFigure}}</text>
+        <text wx:if="{{view.heroDelta}}" class="hero-delta-pill tone-{{view.heroTone}}">{{view.heroDelta}}</text>
       </view>
-    </view>
+      <text class="hero-asof">{{dataAsOf || '读取历史资料'}}</text>
 
-    <view class="page-card detail-hero-body">
-      <view class="conclusion-card">
-        <text class="conclusion-label">结论</text>
-        <text class="conclusion-grade">{{view.primaryJudgment}}</text>
-      </view>
-
-      <view wx:if="{{view.highlights.length}}" class="highlight-panel">
+      <view wx:if="{{!view.heroFigure && view.highlights.length}}" class="highlight-panel">
         <view wx:for="{{view.highlights}}" wx:key="label" class="highlight-cell">
           <text class="highlight-label">{{item.label}}</text>
           <text class="highlight-value">{{item.value}}</text>
@@ -271,35 +267,27 @@
         </view>
       </view>
 
-      <!-- 美股/A股/港股新股/机构持仓/黄金：极简直观三段式（一句话结论 + 一张走势图 + 三条依据与风险）。 -->
+      <!-- 对标 Robinhood × Apple 股市 × Fey：干净曲线 + 双列整洁关键指标 + 三句核心要点 -->
       <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
-        <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
-
         <template wx:if="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
 
-        <view wx:if="{{view.overview.orderPlan}}" class="reading-more" bindtap="togglePricePlan" aria-role="button">{{pricePlanOpen ? '收起买卖参考' : '看买卖参考'}} {{pricePlanOpen ? '−' : '›'}}</view>
-        <view wx:if="{{view.overview.orderPlan && pricePlanOpen}}" class="exit-plan order-plan">
-          <text class="exit-plan-title">{{view.overview.orderPlan.title}}</text>
-          <view wx:for="{{view.overview.orderPlan.rows}}" wx:key="key" class="order-row is-{{item.key}}">
-            <text class="order-label">{{item.label}}</text>
-            <view class="order-value">
-              <text class="order-price">{{item.value}}</text>
-              <text wx:if="{{item.note}}" class="order-note">{{item.note}}</text>
-            </view>
+        <view wx:if="{{view.keyStats && view.keyStats.length}}" class="apple-stats-grid">
+          <view wx:for="{{view.keyStats}}" wx:key="*this" class="apple-stat-cell">
+            <text class="apple-stat-k">{{item[0]}}</text>
+            <text class="apple-stat-v">{{item[1]}}</text>
           </view>
         </view>
 
-        <view wx:if="{{view.overview.keyFacts && view.overview.keyFacts.length}}" class="section-card overview-facts-card">
-          <text class="block-title">关键依据</text>
-          <view class="evidence-list">
-            <view wx:for="{{view.overview.keyFacts}}" wx:key="*this" class="evidence-item">
-              <text>{{item}}</text>
-            </view>
+        <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
+
+        <view wx:if="{{view.overview.keyFacts && view.overview.keyFacts.length}}" class="fey-takeaways">
+          <view wx:for="{{view.overview.keyFacts}}" wx:key="*this" class="evidence-item">
+            <text>{{item}}</text>
           </view>
         </view>
 
         <view wx:if="{{view.overview.keyRisk}}" class="risk-card">
-          <text class="risk-label">主要风险</text>
+          <text class="risk-label">风险留意</text>
           <text class="risk-body">{{view.overview.keyRisk}}</text>
         </view>
       </view>

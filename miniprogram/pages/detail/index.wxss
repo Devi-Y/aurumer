@@ -26,102 +26,175 @@
   background: #ffffff;
 }
 
-/* 页头通栏。和新闻资讯页、栏目页、明细页是同一条绿带：同一份快照在四个页面
-   上的第一眼必须长得一样，读的人才不会以为自己换了个产品。
-   负边距是因为 .detail-shell 自己留了 20rpx 的左右内边距，通栏要压过它铺满。
-   底部留 40rpx，给下面那张白卡压上来的位置。 */
-.detail-hero {
-  margin: -20rpx -20rpx 0;
-  padding: 20rpx 24rpx 44rpx;
-  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
+/* 对标 Robinhood × Apple 股市：通透纯白大字头部卡片，告别沉闷深黑横幅 */
+.detail-hero-card {
+  padding: 26rpx 26rpx 24rpx;
+  background: #ffffff;
 }
 
 .hero-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
-}
-
-.hero-top-right {
-  display: flex;
-  align-items: center;
   gap: 12rpx;
 }
 
-.hero-poster-btn {
-  padding: 4rpx 14rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.28);
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-  font-size: 20rpx;
-  font-weight: 640;
-}
-
-.hero-poster-btn.is-starred {
-  border-color: rgba(251, 191, 36, 0.65);
-  background: rgba(251, 191, 36, 0.24);
-  color: #fef08a;
+.hero-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  min-width: 0;
 }
 
 .hero-label {
-  flex: none;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 24rpx;
-  font-weight: 650;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  background: #f1f4f9;
+  color: #475569;
+  font-size: 21rpx;
+  font-weight: 660;
 }
 
-.hero-meta {
+.hero-judgment {
+  overflow: hidden;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  background: #edf3ff;
+  color: #1d5fd1;
+  font-size: 21rpx;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-star-btn {
   flex: none;
-  color: rgba(255, 255, 255, 0.72);
+  padding: 6rpx 18rpx;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 999rpx;
+  background: #f8fafc;
+  color: #475569;
   font-size: 22rpx;
+  font-weight: 640;
+}
+
+.hero-star-btn.is-starred {
+  border-color: #fcd34d;
+  background: #fffbeb;
+  color: #b45309;
 }
 
 .hero-name-row {
   display: flex;
-  margin-top: 6rpx;
+  margin-top: 16rpx;
   align-items: baseline;
   gap: 12rpx;
 }
 
 .hero-title {
   min-width: 0;
-  color: #ffffff;
-  font-size: 40rpx;
-  font-weight: 720;
-  line-height: 1.28;
+  color: #0f172a;
+  font-size: 42rpx;
+  font-weight: 780;
+  letter-spacing: -0.6rpx;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
 .hero-code {
   flex: none;
-  color: rgba(255, 255, 255, 0.66);
+  color: #94a3b8;
   font-size: 24rpx;
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
 }
 
-.hero-stats {
+.hero-price-row {
   display: flex;
-  margin-top: 12rpx;
+  margin-top: 14rpx;
+  align-items: center;
+  gap: 16rpx;
   flex-wrap: wrap;
-  gap: 10rpx;
 }
 
-.hero-stat {
-  padding: 5rpx 14rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.16);
-  color: rgba(255, 255, 255, 0.94);
+.hero-big-figure {
+  color: #0f172a;
+  font-size: 60rpx;
+  font-weight: 800;
+  letter-spacing: -1.6rpx;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.08;
+}
+
+.hero-delta-pill {
+  padding: 8rpx 18rpx;
+  border-radius: 12rpx;
+  background: #94a3b8;
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.hero-delta-pill.tone-up { background: #dc4c3e; color: #ffffff; }
+.hero-delta-pill.tone-down { background: #159960; color: #ffffff; }
+.hero-delta-pill.tone-brand { background: #eaf2ff; color: #1d5fd1; }
+.hero-delta-pill.tone-flat { background: #f1f4f9; color: #475569; }
+
+.hero-asof {
+  display: block;
+  margin-top: 12rpx;
+  color: #94a3b8;
   font-size: 21rpx;
-  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
-/* 结论条和核心数据合成一张白卡，压在通栏下沿上——和栏目页的指标卡同一个做法。 */
-.detail-hero-body {
-  position: relative;
-  z-index: 1;
-  margin-top: -22rpx;
-  padding-bottom: 4rpx;
+/* Apple 股市风格双列整洁关键指标格：无外框嵌套，细线分隔，一眼扫完全部硬数字 */
+.apple-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 28rpx;
+  margin-top: 18rpx;
+  padding: 6rpx 4rpx;
+  border-top: 1rpx solid #edf0f5;
+  border-bottom: 1rpx solid #edf0f5;
+}
+
+.apple-stat-cell {
+  display: flex;
+  padding: 16rpx 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10rpx;
+  border-bottom: 1rpx solid #f3f5f9;
+}
+
+.apple-stat-cell:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.apple-stat-k {
+  flex: none;
+  color: #64748b;
+  font-size: 23rpx;
+}
+
+.apple-stat-v {
+  min-width: 0;
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 25rpx;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fey-takeaways {
+  margin-top: 14rpx;
+  padding: 0 4rpx;
 }
 
 .score-basis {

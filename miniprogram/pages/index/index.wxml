@@ -1,5 +1,11 @@
 <view class="page-shell home-shell">
-  <!-- 顶部 DeepSeek 极简极速秒搜：零网络等待，直达全市场任意标的详情。 -->
+  <!-- 极简抬头：左侧轻量定位，右侧唯一数据批次时间。 -->
+  <view class="home-brand-bar">
+    <text class="home-brand-sub">公开资料 · 极简研究</text>
+    <text class="home-brand-meta">{{dataAsOf || '读取历史资料'}}</text>
+  </view>
+
+  <!-- 对标 DeepSeek × Fey：饱满通透大搜索栏，0延迟直达全市场任意标的。 -->
   <view class="home-search-wrap">
     <view class="home-search-box {{searchFocused ? 'is-focused' : ''}}">
       <text class="home-search-icon" aria-hidden="true">⌕</text>
@@ -8,7 +14,7 @@
         type="text"
         confirm-type="search"
         value="{{searchQuery}}"
-        placeholder="搜股票、代码、新股或机构（如 英伟达、长江电力）"
+        placeholder="搜股票、新股、代码或机构（如 英伟达、长江电力）"
         placeholder-class="home-search-placeholder"
         bindfocus="onSearchFocus"
         bindinput="onSearchInput"
@@ -39,73 +45,35 @@
     <view wx:elif="{{searchQuery && !searchResults.length}}" class="search-dropdown search-empty">
       <text>当前样本库未匹配到“{{searchQuery}}”，可试试代码或中文简称</text>
     </view>
-    <view wx:elif="{{searchFocused && (starPicks.length || quickPicks.length)}}" class="search-picks-panel">
-      <view wx:if="{{starPicks.length}}" class="search-picks">
-        <text class="search-picks-label">★ 星标直达</text>
-        <view
-          wx:for="{{starPicks}}"
-          wx:key="key"
-          class="search-pick-chip is-star"
-          data-market="{{item.market}}"
-          data-id="{{item.id}}"
-          bindtap="openSearchResult"
-          hover-class="tap-active"
-          aria-role="button"
-        >{{item.label}}</view>
-      </view>
-      <view wx:if="{{quickPicks.length}}" class="search-picks">
-        <text class="search-picks-label">热门直达</text>
-        <view
-          wx:for="{{quickPicks}}"
-          wx:key="key"
-          class="search-pick-chip"
-          data-market="{{item.market}}"
-          data-id="{{item.id}}"
-          bindtap="openSearchResult"
-          hover-class="tap-active"
-          aria-role="button"
-        >{{item.label}}</view>
-      </view>
+    <view wx:elif="{{starPicks.length}}" class="search-picks-inline">
+      <text class="search-picks-label">★ 收藏</text>
+      <view
+        wx:for="{{starPicks}}"
+        wx:key="key"
+        class="search-pick-chip is-star"
+        data-market="{{item.market}}"
+        data-id="{{item.id}}"
+        bindtap="openSearchResult"
+        hover-class="tap-active"
+        aria-role="button"
+      >{{item.label}}</view>
+    </view>
+    <view wx:elif="{{quickPicks.length}}" class="search-picks-inline">
+      <text class="search-picks-label">直达</text>
+      <view
+        wx:for="{{quickPicks}}"
+        wx:key="key"
+        class="search-pick-chip"
+        data-market="{{item.market}}"
+        data-id="{{item.id}}"
+        bindtap="openSearchResult"
+        hover-class="tap-active"
+        aria-role="button"
+      >{{item.label}}</view>
     </view>
   </view>
 
-  <!-- 四大市场走势卡：一卡只说一件事（板块 + 大号核心结果 + 走势图），零多余标签。 -->
-  <view class="group-head home-head">
-    <text class="group-label">历史走势参考</text>
-    <text class="group-meta">{{dataAsOf || '读取历史资料'}}</text>
-  </view>
-  <view wx:if="{{trends.length}}" class="trend-grid">
-    <view
-      wx:for="{{trends}}"
-      wx:key="id"
-      class="trend-card"
-      data-market="{{item.market}}"
-      data-detail-id="{{item.detailId}}"
-      bindtap="openTrend"
-      hover-class="tap-active"
-      hover-stay-time="80"
-      aria-role="button"
-      aria-label="打开{{item.title}}，{{item.asOf}}，{{item.value}} {{item.sub}}"
-    >
-      <view class="trend-heading">
-        <text class="trend-title">{{item.title}}</text>
-        <text class="trend-arrow" aria-hidden="true">›</text>
-      </view>
-      <view class="trend-figure">
-        <text class="trend-value">{{item.value}}</text>
-        <text class="trend-sub {{item.tone}}">{{item.sub}}</text>
-      </view>
-      <view wx:if="{{item.kind === 'bars'}}" class="trend-bars" aria-hidden="true">
-        <view class="trend-zero" style="{{item.zeroStyle}}"></view>
-        <view wx:for="{{item.bars}}" wx:for-item="bar" wx:key="key" class="trend-slot">
-          <view class="trend-bar {{bar.tone}}" style="{{bar.style}}"></view>
-        </view>
-      </view>
-      <image wx:else class="trend-line" src="{{item.src}}" mode="scaleToFill" aria-hidden="true"></image>
-    </view>
-  </view>
-
-  <!-- 九格：五个免费研究栏目 + 会员群、港美股开户、A股开户、VPN开通。 -->
+  <!-- 九宫格核心主视觉：五个免费研究模块 + 四项服务入口，宽松通透，一触即达。 -->
   <view class="page-card home-panel">
     <view class="panel-head">
       <text class="group-label">免费决策参考</text>

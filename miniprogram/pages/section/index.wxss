@@ -975,17 +975,23 @@
 }
 
 .hk-stock-list {
-  margin-top: 6rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin-top: 20rpx;
 }
 
+/* 模仿捷利交易宝打新认购卡：每只新股独立成白底立体卡片，边界分明 */
 .hk-stock-row {
-  padding: 26rpx 0;
-  border-bottom: 1rpx solid #edeef0;
+  padding: 24rpx 22rpx 20rpx;
+  border: 1rpx solid #e8ecf3;
+  border-radius: 20rpx;
+  background: #fafbfd;
 }
 
 .hk-stock-row:last-child {
-  padding-bottom: 4rpx;
-  border-bottom: none;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #e8ecf3;
 }
 
 .hk-row-between {
@@ -2404,28 +2410,28 @@
   flex: 1;
   min-width: 0;
   padding: 22rpx 18rpx;
-  border: 2rpx solid #eef1f6;
+  border: 2rpx solid #efe9dc;
   border-radius: 20rpx;
-  background: #f8fafc;
+  background: #fcfaf6;
   text-align: center;
   transition: all 0.15s ease;
 }
 
 .gold-quote-button.is-active {
-  border-color: #1d5fd1;
-  background: #f2f7ff;
-  box-shadow: 0 6rpx 18rpx rgba(29, 95, 209, 0.1);
+  border-color: #d97706;
+  background: #fff9eb;
+  box-shadow: 0 6rpx 18rpx rgba(217, 119, 6, 0.12);
 }
 
 .gold-quote-label {
   display: block;
-  color: #64748b;
+  color: #78716c;
   font-size: 23rpx;
   font-weight: 640;
 }
 
 .gold-quote-button.is-active .gold-quote-label {
-  color: #1d5fd1;
+  color: #b45309;
 }
 
 .gold-quote-price {
@@ -2439,7 +2445,22 @@
 }
 
 .gold-quote-button.is-active .gold-quote-price {
-  color: #1d5fd1;
+  color: #b45309;
+}
+
+.gold-parity-strip {
+  margin-top: 14rpx;
+  padding: 12rpx 18rpx;
+  border-radius: 14rpx;
+  background: #fdf8ee;
+  text-align: center;
+}
+
+.gold-parity-text {
+  color: #92400e;
+  font-size: 22rpx;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
 }
 
 .gold-quote-unit {

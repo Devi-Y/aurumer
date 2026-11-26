@@ -28,7 +28,13 @@
 }
 
 .community-card {
-  margin: 0 20rpx 18rpx;
+  margin: 0 24rpx 20rpx;
+  border-radius: 28rpx;
+}
+
+.community-pay-card {
+  border: 1rpx solid rgba(29, 95, 209, 0.14);
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 42%);
 }
 
 .sec {

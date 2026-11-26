@@ -2,7 +2,16 @@
 module.exports = {
   accounts: {
     title: "港美股开户",
-    sections: [],
+    lead: "按你要看的市场选择，全程在持牌券商官方渠道独立办理。",
+    sections: [
+      {
+        title: "怎么选",
+        rows: [
+          ["港股开户", "适合参与港股打新与配置港股龙头"],
+          ["美股开户", "适合配置美股科技巨头与全球指数 ETF"],
+        ],
+      },
+    ],
     choices: [
       { topic: "hk-open", title: "港股开户" },
       { topic: "us-start", title: "美股开户" },
@@ -39,7 +48,15 @@ module.exports = {
 
   "us-start": {
     title: "美股开户",
-    sections: [],
+    sections: [
+      {
+        title: "办理前准备",
+        rows: [
+          ["身份材料", "有效身份证件及常用邮箱、手机号"],
+          ["同名账户", "用于本人同名出入金结算"],
+        ],
+      },
+    ],
     offer: {
       id: "open-account",
       head: "盈透证券（IBKR）",
@@ -49,7 +66,15 @@ module.exports = {
 
   "hk-open": {
     title: "港股开户",
-    sections: [],
+    sections: [
+      {
+        title: "办理前准备",
+        rows: [
+          ["身份材料", "本人有效身份证件及实名联系方式"],
+          ["香港银行卡", "用于后续本人同名港币出入金"],
+        ],
+      },
+    ],
     offer: {
       id: "hk-open-account",
       head: "盈立证券（uSMART）",
@@ -59,7 +84,15 @@ module.exports = {
 
   vpn: {
     title: "VPN开通",
-    sections: [],
+    sections: [
+      {
+        title: "使用提示",
+        points: [
+          "仅用于合法查阅海外公开学术、商业及金融披露资讯",
+          "服务由独立第三方提供，请核对服务条款后按需选用",
+        ],
+      },
+    ],
     offer: {
       id: "global-access",
       head: "查看VPN服务",
@@ -69,7 +102,15 @@ module.exports = {
 
   "a-open": {
     title: "A股开户",
-    sections: [],
+    sections: [
+      {
+        title: "办理前准备",
+        rows: [
+          ["本人身份证", "处于有效期内的二代居民身份证"],
+          ["一类银行卡", "本人名下常见商业银行一类储蓄卡"],
+        ],
+      },
+    ],
     offer: {
       id: "a-open-account",
       head: "开户咨询",

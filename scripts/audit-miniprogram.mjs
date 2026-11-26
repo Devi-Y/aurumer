@@ -373,20 +373,22 @@ assert(
 // 「今日重点」列表卡已按产品要求从首页整块撤掉（2026-09-29），年费条随后也撤掉；
 // 2026-10-07 产品负责人纠偏：首页回到「市场走势 + 核心研究入口」，不要路径卡、不要入门卡。
 // 首屏走势卡在上、九宫格在下，这里认这两块的先后，并要求今日重点卡、路径卡不再出现。
+// 2026-11-26 产品负责人明确决定：首页删除四张历史走势卡（trend-grid），只保留搜索栏与九宫格。
 assert(
-  indexTemplate.includes("trend-grid")
+  indexTemplate.includes("home-search-wrap")
     && indexTemplate.includes("entry-grid")
-    && indexTemplate.indexOf("trend-grid") < indexTemplate.indexOf("entry-grid")
+    && indexTemplate.indexOf("home-search-wrap") < indexTemplate.indexOf("entry-grid")
+    && !indexTemplate.includes("trend-grid")
     && !indexTemplate.includes("today-card")
     && !indexTemplate.includes("path-grid")
     && !indexTemplate.includes("is-intro"),
-  "小程序首页应走势卡在上、九宫格在下，不放路径卡和入门卡",
+  "小程序首页应只保留顶部搜索栏与九宫格，不放历史走势卡、路径卡和入门卡",
 );
 assert(
   indexStyles.includes("min-height: 100vh")
     && (indexStyles.includes("min-height: 108rpx") || indexStyles.includes("min-height: 176rpx") || indexStyles.includes("min-height: 188rpx") || indexStyles.includes("min-height: 210rpx"))
-    && indexTemplate.includes("trend-grid"),
-  "小程序首页没有以走势卡和核心入口铺满移动视口",
+    && indexTemplate.includes("entry-grid"),
+  "小程序首页没有以搜索栏和核心九宫格铺满移动视口",
 );
 {
   const gridCardRule = (indexStyles.match(/\.grid-card\s*\{[^}]*\}/) || [""])[0];
@@ -451,14 +453,10 @@ assert(indexStyles.includes("width: 33.333%") && indexStyles.includes("font-size
 // 「今日重点」列表卡（today-row）撤掉后，首页的品类信息改由走势卡承担：
 // 每张卡一个数 + 一张图（零轴柱或 SVG 折线），序列来自快照、不够就整张不出。
 assert(
-  indexTemplate.includes("trend-card")
-    && indexTemplate.includes("trend-value")
-    && indexTemplate.includes("trend-line")
-    && indexTemplate.includes("trend-bars")
-    && indexSource.includes("sparklineSvg")
-    && indexSource.includes("zeroAxisBars")
-    && !indexTemplate.includes("today-row"),
-  "首页走势卡应展示一个数加一张走势图，且不应恢复今日重点列表",
+  !indexTemplate.includes("trend-card")
+    && !indexTemplate.includes("today-row")
+    && indexSource.includes("buildSearchIndex"),
+  "首页已按负责人要求移除四张走势卡，仅保留极简搜索与九宫格",
 );
 // 这四个品类点位（homePoint）是群卡片和公开摘要的数据源（pages/today 页已于 2026-09-29 删除），
 // 这里继续在 daily-answers.js 里核对四个品类都还在。
@@ -551,11 +549,10 @@ for (const removedId of ['id: "today"', 'id: "watch"', 'id: "decision"']) {
 // 今日重点列表连同 openTodayRow 一起撤掉后，首页的第二个跳转口是走势卡：
 // 整张卡可点，按 data-market 进对应栏目页。
 assert(
-  indexSource.includes("openTrend")
-    && indexTemplate.includes('bindtap="openTrend"')
-    && indexTemplate.includes('data-market="{{item.market}}"')
+  indexSource.includes("openGridEntry")
+    && indexTemplate.includes('bindtap="openGridEntry"')
     && indexSource.includes("pages/section/index?market="),
-  "首页走势卡应支持点击进入对应栏目",
+  "首页九宫格应支持点击进入对应栏目或服务页",
 );
 assert(!indexSource.includes("pages/workspace/index"), "首页不应再挂研究记录入口");
 for (const label of ["值得打", "暂缓观察", "暂不建议", "已结束", "高杠杆观察", "七姐妹", "低估七姐妹", "风险七姐妹", "长期观察", "热度前三", "热度前十", "性价比观察", "行业观察", "交叉重叠", "优等收息", "稳健收息", "高息待核", "底仓长期", "周期短持", "加大观察", "兑现观察", "现在怎么做", "观察区参考", "分红稳定性 前五", "分红收益性 前五", "收息样本", "港股 · 3 个", "美股 · 9 个", "A股 · 3 个", "公开长期年化排序"]) {
@@ -1015,10 +1012,8 @@ assert(!`${memberPageSource}\n${memberTemplate}`.includes("暗盘/首周出价")
 // 读屏用；today-sub 随今日重点一起撤掉，走势卡同样靠 aria-label 读出数值与涨跌。
 assert(
   indexTemplate.includes("item.help")
-    && (indexTemplate.includes('aria-label="{{item.title}} {{item.value}} {{item.sub}}"')
-      || indexTemplate.includes('aria-label="打开{{item.title}}，{{item.asOf}}，{{item.value}} {{item.sub}}"'))
     && !indexTemplate.includes("today-sub"),
-  "首页应通过读屏标签保留入口与走势卡的帮助信息",
+  "首页应通过读屏标签保留九宫格入口的帮助信息",
 );
 // group-help 在 711b420 里改名为 hero-help；2026-09-29 按产品要求（字太多）
 // 标题下那行说明整行撤掉，栏目用途 meta.one 只留在标题的读屏标签里。

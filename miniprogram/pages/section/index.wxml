@@ -43,7 +43,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{hkSubTab === 'exit'}}"
-      >申购结束</view>
+      >配发与首日复盘</view>
     </view>
 
     <block wx:if="{{hkSubTab === 'apply'}}">
@@ -218,7 +218,7 @@
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
             <view class="us-row-tags">
-              <text class="us-code">{{item.code}}</text>
+              <text class="us-code">{{item.code}}{{item.peBrief ? ' · ' + item.peBrief : ''}}</text>
             </view>
           </view>
           <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
@@ -247,7 +247,7 @@
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
             <view class="us-row-tags">
-              <text class="us-code">{{item.code}}</text>
+              <text class="us-code">{{item.code}}{{item.peBrief ? ' · ' + item.peBrief : ''}}</text>
             </view>
           </view>
           <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
@@ -309,7 +309,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'stable'}}"
-      >分红更稳</view>
+      >连续稳分红</view>
       <view
         class="a-tab {{aSubTab === 'yield' ? 'is-active' : ''}}"
         data-id="yield"
@@ -317,7 +317,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'yield'}}"
-      >分红更高</view>
+      >高股息率榜</view>
       <view
         class="a-tab {{aSubTab === 'all' ? 'is-active' : ''}}"
         data-id="all"
@@ -325,7 +325,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'all'}}"
-      >全部与ETF</view>
+      >红利全池</view>
     </view>
 
     <block wx:if="{{aSubTab === 'all'}}">
@@ -467,6 +467,9 @@
         <text class="gold-quote-unit">{{item.unit}}</text>
         <text class="gold-quote-unit">{{item.asOfText}}</text>
       </view>
+    </view>
+    <view wx:if="{{goldParityLine}}" class="gold-parity-strip">
+      <text class="gold-parity-text">{{goldParityLine}}</text>
     </view>
 
     <view class="gold-panel">
@@ -645,21 +648,21 @@
   <view wx:if="{{market === 'guru'}}" class="page-card guru-card">
     <view class="a-tabs">
       <view
-        class="a-tab {{guruSubTab === 'trend' ? 'is-active' : ''}}"
-        data-id="trend"
-        bindtap="switchGuruSubTab"
-        hover-class="tap-active"
-        aria-role="button"
-        aria-selected="{{guruSubTab === 'trend'}}"
-      >持仓变化</view>
-      <view
         class="a-tab {{guruSubTab === 'holdings' ? 'is-active' : ''}}"
         data-id="holdings"
         bindtap="switchGuruSubTab"
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{guruSubTab === 'holdings'}}"
-      >看各家机构</view>
+      >大佬重仓</view>
+      <view
+        class="a-tab {{guruSubTab === 'trend' ? 'is-active' : ''}}"
+        data-id="trend"
+        bindtap="switchGuruSubTab"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-selected="{{guruSubTab === 'trend'}}"
+      >共同加减仓</view>
       <view
         class="a-tab {{guruSubTab === 'history' ? 'is-active' : ''}}"
         data-id="history"
@@ -667,7 +670,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{guruSubTab === 'history'}}"
-      >历季持仓</view>
+      >历季规模</view>
     </view>
 
     <block wx:if="{{guruSubTab === 'trend'}}">
@@ -684,19 +687,24 @@
 
     <block wx:if="{{guruSubTab === 'holdings'}}">
       <block wx:if="{{guruInstitutionList.length}}">
-        <picker
-          class="hk-picker"
-          mode="selector"
-          range="{{guruInstitutionList}}"
-          range-key="name"
-          value="{{guruInstitutionIndex}}"
-          bindchange="selectGuruInstitution"
-        >
-          <view class="hk-picker-value">
-            <text>{{guruInstitutionName}}</text>
-            <text class="hk-picker-caret">▾</text>
+        <!-- 模仿富途「明星机构持仓」：横向铭牌一点秒切巴菲特/段永平/张坤等，零弹窗阻断 -->
+        <scroll-view class="guru-pills" scroll-x="true" enable-flex="true" show-scrollbar="false" enhanced="true">
+          <view class="guru-pills-inner">
+            <view
+              wx:for="{{guruInstitutionList}}"
+              wx:key="id"
+              class="guru-pill {{guruInstitutionId === item.id ? 'is-active' : ''}}"
+              data-id="{{item.id}}"
+              bindtap="tapGuruPill"
+              hover-class="tap-active"
+              aria-role="button"
+              aria-selected="{{guruInstitutionId === item.id}}"
+            >
+              <text wx:if="{{item.tag}}" class="guru-pill-tag">{{item.tag}}</text>
+              <text class="guru-pill-name">{{item.name}}</text>
+            </view>
           </view>
-        </picker>
+        </scroll-view>
 
         <!-- 报告期 / 披露日 / 来源 / 可靠度 四格一排，代替三行说明文字。 -->
         <view class="guru-stats" wx:if="{{guruHoldingStats.length}}">
@@ -748,19 +756,23 @@
 
     <block wx:if="{{guruSubTab === 'history'}}">
       <block wx:if="{{guruInstitutionList.length}}">
-        <picker
-          class="hk-picker"
-          mode="selector"
-          range="{{guruInstitutionList}}"
-          range-key="name"
-          value="{{guruInstitutionIndex}}"
-          bindchange="selectGuruInstitution"
-        >
-          <view class="hk-picker-value">
-            <text>{{guruInstitutionName}}</text>
-            <text class="hk-picker-caret">▾</text>
+        <scroll-view class="guru-pills" scroll-x="true" enable-flex="true" show-scrollbar="false" enhanced="true">
+          <view class="guru-pills-inner">
+            <view
+              wx:for="{{guruInstitutionList}}"
+              wx:key="id"
+              class="guru-pill {{guruInstitutionId === item.id ? 'is-active' : ''}}"
+              data-id="{{item.id}}"
+              bindtap="tapGuruPill"
+              hover-class="tap-active"
+              aria-role="button"
+              aria-selected="{{guruInstitutionId === item.id}}"
+            >
+              <text wx:if="{{item.tag}}" class="guru-pill-tag">{{item.tag}}</text>
+              <text class="guru-pill-name">{{item.name}}</text>
+            </view>
           </view>
-        </picker>
+        </scroll-view>
 
         <view class="a-hint" wx:if="{{guruHistoryHint}}"><text>{{guruHistoryHint}}</text></view>
 

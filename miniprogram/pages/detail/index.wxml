@@ -278,6 +278,30 @@
           </view>
         </view>
 
+        <!-- A股收息首屏直接展示 Stock Events 标志性按股数分红试算器，1秒算出拿多少现金 -->
+        <view wx:if="{{view.market == 'a' && dividendCalcView}}" class="section-card div-calc-card">
+          <view class="div-calc-head">
+            <text class="block-title">持股分红试算</text>
+            <text class="div-calc-year">{{dividendCalcView.year}}年度已实施</text>
+          </view>
+          <view class="div-calc-pills">
+            <text class="div-calc-pill {{dividendShares === 100 ? 'is-active' : ''}}" data-shares="100" bindtap="selectDividendShares" aria-role="button">100股</text>
+            <text class="div-calc-pill {{dividendShares === 1000 ? 'is-active' : ''}}" data-shares="1000" bindtap="selectDividendShares" aria-role="button">1000股</text>
+            <text class="div-calc-pill {{dividendShares === 5000 ? 'is-active' : ''}}" data-shares="5000" bindtap="selectDividendShares" aria-role="button">5000股</text>
+            <text class="div-calc-pill {{dividendShares === 10000 ? 'is-active' : ''}}" data-shares="10000" bindtap="selectDividendShares" aria-role="button">1万股</text>
+          </view>
+          <view class="div-calc-result">
+            <view class="div-calc-metric">
+              <text class="div-calc-k">年度税前分红</text>
+              <text class="div-calc-v">{{dividendCalcView.cashText}}</text>
+            </view>
+            <view class="div-calc-metric">
+              <text class="div-calc-k">{{dividendCalcView.priceAsOf}} 对应市值</text>
+              <text class="div-calc-v is-sub">{{dividendCalcView.costText}}</text>
+            </view>
+          </view>
+        </view>
+
         <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
 
         <view wx:if="{{view.overview.keyFacts && view.overview.keyFacts.length}}" class="fey-takeaways">

@@ -5,6 +5,7 @@
     <text class="community-sub">公开资料与工具使用交流</text>
   </view>
 
+  <!-- 模仿知识星球 × Apple 订阅页：将「社群介绍」与「年费直付」清晰拆成上下两张透气白卡 -->
   <view class="page-card community-card">
     <view class="sec">
       <text class="sec-title">群里聊什么</text>
@@ -22,8 +23,11 @@
       </view>
       <text class="sec-muted">{{unfit}}</text>
     </view>
+  </view>
+
+  <view class="page-card community-card community-pay-card">
     <view class="sec">
-      <text class="sec-title">怎么加入</text>
+      <text class="sec-title">加入方式</text>
       <text class="community-price">{{priceLabel}}</text>
       <text class="join-disclosure">{{promotionNote}}</text>
       <text wx:if="{{!checkoutReady && !order.paid}}" class="join-disclosure">{{purchaseNote}}</text>

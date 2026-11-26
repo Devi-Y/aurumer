@@ -3,53 +3,74 @@
 .home-shell {
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 12rpx 0 calc(28rpx + env(safe-area-inset-bottom));
+  padding: 16rpx 0 calc(36rpx + env(safe-area-inset-bottom));
   overflow-x: hidden;
   background: #f5f7fa;
 }
 
-/* ---------- DeepSeek 风格顶部极速秒搜 ---------- */
+.home-brand-bar {
+  display: flex;
+  margin: 4rpx 28rpx 16rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.home-brand-sub {
+  color: #64748b;
+  font-size: 23rpx;
+  font-weight: 600;
+  letter-spacing: 0.4rpx;
+}
+
+.home-brand-meta {
+  color: #94a3b8;
+  font-size: 21rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- DeepSeek × Fey 风格饱满通透大搜索框 ---------- */
 
 .home-search-wrap {
-  margin: 0 20rpx 10rpx;
+  margin: 0 24rpx 24rpx;
 }
 
 .home-search-box {
   display: flex;
-  height: 78rpx;
-  padding: 0 22rpx;
+  height: 92rpx;
+  padding: 0 28rpx;
   align-items: center;
-  gap: 12rpx;
-  border: 1rpx solid rgba(15, 23, 42, 0.08);
+  gap: 14rpx;
+  border: 2rpx solid rgba(15, 23, 42, 0.06);
   border-radius: 999rpx;
   background: #ffffff;
-  box-shadow: 0 4rpx 16rpx rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8rpx 26rpx rgba(15, 23, 42, 0.05);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .home-search-box.is-focused {
   border-color: #1d5fd1;
-  box-shadow: 0 6rpx 20rpx rgba(29, 95, 209, 0.12);
+  box-shadow: 0 10rpx 28rpx rgba(29, 95, 209, 0.12);
 }
 
 .home-search-icon {
   flex: none;
   color: #64748b;
-  font-size: 32rpx;
+  font-size: 36rpx;
   line-height: 1;
 }
 
 .home-search-input {
   flex: 1;
   min-width: 0;
-  height: 72rpx;
+  height: 84rpx;
   color: #0f172a;
-  font-size: 26rpx;
+  font-size: 28rpx;
 }
 
 .home-search-placeholder {
   color: #94a3b8;
-  font-size: 25rpx;
+  font-size: 26rpx;
 }
 
 .home-search-clear {
@@ -139,38 +160,34 @@
   text-align: center;
 }
 
-.search-picks-panel {
+.search-picks-inline {
   display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-  margin-top: 12rpx;
-}
-
-.search-picks {
-  display: flex;
+  margin-top: 16rpx;
+  padding: 0 6rpx;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10rpx;
+  gap: 12rpx;
 }
 
 .search-picks-label {
-  color: #64748b;
-  font-size: 21rpx;
-  font-weight: 640;
+  color: #94a3b8;
+  font-size: 22rpx;
+  font-weight: 620;
 }
 
 .search-pick-chip {
-  padding: 6rpx 18rpx;
-  border: 1rpx solid rgba(29, 95, 209, 0.14);
+  padding: 8rpx 20rpx;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
   border-radius: 999rpx;
   background: #ffffff;
-  color: #1e293b;
-  font-size: 22rpx;
+  color: #334155;
+  font-size: 23rpx;
   font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(15, 23, 42, 0.025);
 }
 
 .search-pick-chip.is-star {
-  border-color: rgba(245, 158, 11, 0.35);
+  border-color: rgba(245, 158, 11, 0.3);
   background: #fffbeb;
   color: #92400e;
 }
@@ -373,13 +390,15 @@
 /* ---------- 分组标题 ---------- */
 
 .home-panel {
-  margin: 22rpx 20rpx 0;
-  padding: 6rpx 0 8rpx;
+  margin: 8rpx 24rpx 0;
+  padding: 12rpx 6rpx 18rpx;
+  border-radius: 32rpx;
+  box-shadow: 0 10rpx 32rpx rgba(15, 23, 42, 0.045);
 }
 
 .panel-head {
   display: flex;
-  padding: 18rpx 24rpx 6rpx;
+  padding: 20rpx 26rpx 8rpx;
   align-items: baseline;
   justify-content: space-between;
   gap: 12rpx;
@@ -387,6 +406,9 @@
 
 .panel-head .group-label {
   padding: 0;
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 660;
 }
 
 .panel-sub {
@@ -439,53 +461,53 @@
   display: flex;
   width: 100%;
   flex-wrap: wrap;
-  padding: 8rpx 0 18rpx;
+  padding: 12rpx 0 18rpx;
 }
 
 .grid-card {
   box-sizing: border-box;
   display: flex;
   width: 33.333%;
-  min-height: 176rpx;
+  min-height: 210rpx;
   min-width: 0;
   flex: 0 0 33.333%;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 12rpx;
-  padding: 20rpx 8rpx;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 24rpx 10rpx;
   border-radius: 16rpx;
   text-align: center;
 }
 
 .entry-icon-chip {
   display: flex;
-  width: 100rpx;
-  height: 100rpx;
+  width: 112rpx;
+  height: 112rpx;
   align-items: center;
   justify-content: center;
   border: 1rpx solid rgba(29, 95, 209, 0.1);
-  border-radius: 30rpx;
-  background: linear-gradient(145deg, #f3f7ff 0%, #e4edfd 100%);
-  box-shadow: 0 6rpx 16rpx rgba(29, 95, 209, 0.08);
+  border-radius: 34rpx;
+  background: linear-gradient(145deg, #f4f8ff 0%, #e6eeff 100%);
+  box-shadow: 0 8rpx 20rpx rgba(29, 95, 209, 0.08);
   transition: transform 0.12s ease;
 }
 
 .entry-icon-chip.gold {
-  border-color: rgba(180, 130, 30, 0.14);
-  background: linear-gradient(145deg, #faf8f2 0%, #f1e9d4 100%);
-  box-shadow: 0 6rpx 16rpx rgba(180, 130, 30, 0.08);
+  border-color: rgba(180, 130, 30, 0.16);
+  background: linear-gradient(145deg, #fcfaf3 0%, #f5ebd2 100%);
+  box-shadow: 0 8rpx 20rpx rgba(180, 130, 30, 0.09);
 }
 
 .entry-icon-chip.svc {
   border-color: rgba(15, 23, 42, 0.06);
-  background: linear-gradient(145deg, #f7f8fb 0%, #eef1f6 100%);
-  box-shadow: none;
+  background: linear-gradient(145deg, #f8f9fc 0%, #eff2f7 100%);
+  box-shadow: 0 4rpx 12rpx rgba(15, 23, 42, 0.03);
 }
 
 .entry-icon {
-  width: 50rpx;
-  height: 50rpx;
+  width: 54rpx;
+  height: 54rpx;
 }
 
 .card-title {

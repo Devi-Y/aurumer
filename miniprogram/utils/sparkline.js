@@ -5,6 +5,8 @@
 // 黄金栏目那张带坐标标签的大图另有 paintGoldLineChart，不走这里。
 
 const LINE_COLOR = "#1d5fd1";
+const UP_COLOR = "#dc4c3e";
+const DOWN_COLOR = "#159960";
 const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 function toneOf(value) {
@@ -31,10 +33,13 @@ function asciiBase64(text) {
 
 const fmt = (value) => String(Math.round(value * 10) / 10);
 
-// width/height 用 rpx 数值，和 WXML 里图片的 CSS 尺寸同比例，线宽 3 ≈ 1.5px 不会被拉变形。
-function sparklineSvg(values, { width = 300, height = 100, color = LINE_COLOR, grid = false } = {}) {
+// width/height 用 rpx 数值，和 WXML 里图片的 CSS 尺寸同比例；默认按期末相对期初涨跌自动切换护眼红/绿（Robinhood / Apple 股市同款）。
+function sparklineSvg(values, { width = 300, height = 100, color = "auto", grid = false } = {}) {
   const series = (values || []).filter((value) => Number.isFinite(value));
   if (series.length < 2) return "";
+  const strokeColor = color === "auto"
+    ? (series[series.length - 1] > series[0] ? UP_COLOR : (series[series.length - 1] < series[0] ? DOWN_COLOR : LINE_COLOR))
+    : (color || LINE_COLOR);
   const low = Math.min(...series);
   const high = Math.max(...series);
   const span = Math.max(high - low, 1e-6);
@@ -60,11 +65,11 @@ function sparklineSvg(values, { width = 300, height = 100, color = LINE_COLOR, g
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">`
     + gridLines
     + baseLine
-    + `<defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.18"/><stop offset="0.7" stop-color="${color}" stop-opacity="0.03"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>`
+    + `<defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${strokeColor}" stop-opacity="0.18"/><stop offset="0.7" stop-color="${strokeColor}" stop-opacity="0.03"/><stop offset="1" stop-color="${strokeColor}" stop-opacity="0"/></linearGradient></defs>`
     + `<path d="${area}" fill="url(#f)"/>`
-    + `<path d="${line}" fill="none" stroke="${color}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`
-    + `<circle cx="${fmt(end[0])}" cy="${fmt(end[1])}" r="8" fill="${color}" fill-opacity="0.16"/>`
-    + `<circle cx="${fmt(end[0])}" cy="${fmt(end[1])}" r="4.2" fill="${color}"/>`
+    + `<path d="${line}" fill="none" stroke="${strokeColor}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`
+    + `<circle cx="${fmt(end[0])}" cy="${fmt(end[1])}" r="8" fill="${strokeColor}" fill-opacity="0.16"/>`
+    + `<circle cx="${fmt(end[0])}" cy="${fmt(end[1])}" r="4.2" fill="${strokeColor}"/>`
     + "</svg>";
   return `data:image/svg+xml;base64,${asciiBase64(svg)}`;
 }

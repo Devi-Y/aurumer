@@ -35,6 +35,7 @@ const { holdingLabel, instrumentSuffix } = require("../../utils/guru-changes");
 const { asOfText } = require("../../utils/dates");
 const { marketReferenceAsOf, referenceDateText } = require("../../utils/historical-reference");
 const { historicalGoldSeries, domesticGoldClose } = require("../../utils/gold-series");
+const { goldParity } = require("../../utils/gold-parity");
 
 // 美股每行、红利 ETF 卡的小走势图，和首页走势卡同一套画法。
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
@@ -448,10 +449,12 @@ function usStockRow(item, sparkCache = null) {
   const sortPos60 = (lo60 != null && hi60 != null && hi60 > lo60 && curPrice != null)
     ? Math.max(0, Math.min(100, Math.round(((curPrice - lo60) / (hi60 - lo60)) * 100)))
     : null;
+  const pe = finiteOrNull(fund.pe);
   return {
     id: item.id,
     name: item.name,
     code: item.code,
+    peBrief: pe != null && pe > 0 ? `PE ${pe.toFixed(1)}x` : "",
     badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
     reason: signal.action,
@@ -891,8 +894,8 @@ function paintGoldLineChart(ctx, width, height, values) {
   ctx.beginPath();
   tracePath();
   const gradient = ctx.createLinearGradient(0, padTop, 0, height - padBottom);
-  gradient.addColorStop(0, "rgba(29, 95, 209,0.22)");
-  gradient.addColorStop(1, "rgba(29, 95, 209,0)");
+  gradient.addColorStop(0, "rgba(217, 119, 6, 0.22)");
+  gradient.addColorStop(1, "rgba(217, 119, 6, 0)");
   ctx.lineTo(pts[pts.length - 1][0], height - padBottom);
   ctx.lineTo(pts[0][0], height - padBottom);
   ctx.closePath();
@@ -901,8 +904,8 @@ function paintGoldLineChart(ctx, width, height, values) {
 
   ctx.beginPath();
   tracePath();
-  ctx.strokeStyle = "#1d5fd1";
-  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = "#d97706";
+  ctx.lineWidth = 2;
   ctx.lineJoin = "round";
   ctx.stroke();
 
@@ -912,12 +915,12 @@ function paintGoldLineChart(ctx, width, height, values) {
     ctx.fillStyle = color;
     ctx.fill();
   }
-  dot(values.indexOf(high), "#d99a12", 2.5);
-  dot(values.indexOf(low), "#8fb2ee", 2.5);
+  dot(values.indexOf(high), "#b45309", 2.6);
+  dot(values.indexOf(low), "#94a3b8", 2.6);
 
   const lastIdx = pts.length - 1;
   ctx.setLineDash([2, 2]);
-  ctx.strokeStyle = "#1d5fd1";
+  ctx.strokeStyle = "rgba(217, 119, 6, 0.55)";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(pts[lastIdx][0], pts[lastIdx][1]);
@@ -925,10 +928,10 @@ function paintGoldLineChart(ctx, width, height, values) {
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.beginPath();
-  ctx.arc(pts[lastIdx][0], pts[lastIdx][1], 4, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(29, 95, 209,0.18)";
+  ctx.arc(pts[lastIdx][0], pts[lastIdx][1], 4.5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(217, 119, 6, 0.2)";
   ctx.fill();
-  dot(lastIdx, "#1d5fd1", 2.8);
+  dot(lastIdx, "#d97706", 3);
 }
 
 function buildGoldModule(snapshot) {
@@ -983,7 +986,10 @@ function buildGoldModule(snapshot) {
     },
   };
 
-  return { quotes, perCurrency };
+  const parityInfo = goldParity(gold);
+  const parityLine = parityInfo ? parityInfo.headline : "";
+
+  return { quotes, perCurrency, parityLine };
 }
 
 // 币种/周期切换只在这两个预计算好的结构里挑数据，不重新访问快照或重算——
@@ -1510,8 +1516,9 @@ Page({
     goldChart: null,
     goldChartNote: "",
     goldLadder: null,
-    // 机构持仓专属：原型的「共同方向/机构持仓」两个视图，只有 market==='guru' 时渲染。
-    guruSubTab: "trend",
+    goldParityLine: "",
+    // 机构持仓专属：模仿富途「明星机构持仓」，一进来直接看各家机构重仓，点铭牌秒切。
+    guruSubTab: "holdings",
     guruTrendRows: [],
     guruTrendTitle: "持仓变化",
     guruTrendHint: "",
@@ -1736,6 +1743,7 @@ Page({
         const goldView = resolveGoldView(goldModule, this.data.goldCurrency, this.data.goldPeriod);
         Object.assign(patch, {
           goldQuotes: goldModule.quotes,
+          goldParityLine: goldModule.parityLine || "",
           goldPeriod: goldView.period,
           goldZoneTone: goldView.zoneTone,
           goldCurrencyLabel: goldView.currencyLabel,

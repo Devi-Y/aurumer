@@ -29,7 +29,8 @@
 
 .section-list,
 .offer-card {
-  margin: 0 20rpx 18rpx;
+  margin: 0 24rpx 20rpx;
+  border-radius: 28rpx;
 }
 
 .sec {
@@ -139,34 +140,44 @@
 
 .offer-card {
   display: flex;
-  padding: 26rpx 24rpx 24rpx;
+  padding: 28rpx 26rpx 26rpx;
   flex-direction: column;
-  gap: 10rpx;
+  gap: 14rpx;
+  border: 1rpx solid rgba(29, 95, 209, 0.12);
+  background: linear-gradient(180deg, #f9fbff 0%, #ffffff 45%);
 }
 
 .offer-head {
-  color: #1a1f27;
-  font-size: 30rpx;
-  font-weight: 650;
+  color: #0f172a;
+  font-size: 32rpx;
+  font-weight: 740;
 }
 
 .offer-body {
-  color: #2b313b;
-  font-size: 27rpx;
+  color: #475569;
+  font-size: 26rpx;
   line-height: 1.6;
 }
 
 .offer-note {
-  color: #5c6470;
-  font-size: 25rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 600;
   line-height: 1.6;
+  text-align: center;
 }
 
 .offer-qr {
   display: block;
   width: 440rpx;
   max-width: 100%;
-  margin: 12rpx auto 0;
+  margin: 12rpx auto 4rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 24rpx;
+  background: #ffffff;
+  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.05);
 }
 
 .offer-action {

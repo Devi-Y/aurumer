@@ -35,7 +35,7 @@ test("home has exactly nine working entries and keeps services after free resear
   assert.equal(entries.length, 9);
   assert.equal(new Set(entries.map((entry) => entry.id)).size, 9);
   assert.equal(entries.some((entry) => entry.reserved), false);
-  assert.equal(JSON.stringify(entries.slice(5).map((entry) => entry.title)), JSON.stringify(["会员群", "港美股开户", "A股开户", "VPN开通"]));
+  assert.equal(JSON.stringify(entries.slice(5).map((entry) => entry.title)), JSON.stringify(["会员群", "港美股指引", "A股开户", "海外访问"]));
   for (const entry of entries.slice(5)) page.openGridEntry({ currentTarget: { dataset: { id: entry.id } } });
   assert.equal(calls.routes.length, 4);
   assert.equal(calls.copies.length, 0, "home opens service pages instead of copying promotional material");
@@ -44,7 +44,7 @@ test("home has exactly nine working entries and keeps services after free resear
 test("the shared overseas-account tile retains separate Hong Kong and US destinations", () => {
   const { page, calls } = pageFixture("../miniprogram/pages/guide/index.js");
   page.onLoad({ topic: "accounts" });
-  assert.equal(JSON.stringify(page.data.choices.map((entry) => entry.title)), JSON.stringify(["港股开户", "美股开户"]));
+  assert.equal(JSON.stringify(page.data.choices.map((entry) => entry.title)), JSON.stringify(["港股渠道", "美股渠道"]));
   for (const choice of page.data.choices) page.openChoice({ currentTarget: { dataset: { topic: choice.topic } } });
   assert.equal(new Set(calls.routes).size, 2);
 });

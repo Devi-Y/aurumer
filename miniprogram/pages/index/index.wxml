@@ -67,9 +67,29 @@
             <view wx:else class="pick-spark-placeholder">
               <text class="pick-ipo-tag">新股招股</text>
             </view>
-            <text wx:if="{{item.figure}}" class="pick-figure tone-{{item.figTone}}">{{item.figure}}</text>
+            <view class="pick-fig-row">
+              <text wx:if="{{item.figure}}" class="pick-figure tone-{{item.figTone}}">{{item.figure}}</text>
+              <text wx:if="{{item.deltaText}}" class="pick-delta tone-{{item.deltaTone}}">{{item.deltaText}}</text>
+            </view>
           </view>
         </view>
+      </view>
+
+      <view wx:if="{{starPicks.length}}" class="star-picks-bar">
+        <text class="star-picks-label">★ 收藏</text>
+        <scroll-view class="star-picks-scroll" scroll-x="true" enable-flex="true" show-scrollbar="false" enhanced="true">
+          <view class="star-picks-inner">
+            <text
+              wx:for="{{starPicks}}"
+              wx:key="key"
+              class="star-pick-pill"
+              data-market="{{item.market}}"
+              data-id="{{item.id}}"
+              bindtap="openSearchResult"
+              aria-role="button"
+            >{{item.label}}</text>
+          </view>
+        </scroll-view>
       </view>
     </view>
 

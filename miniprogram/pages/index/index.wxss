@@ -279,9 +279,16 @@
   font-weight: 680;
 }
 
+.pick-fig-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4rpx;
+}
+
 .pick-figure {
   color: #0f172a;
-  font-size: 27rpx;
+  font-size: 26rpx;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
@@ -289,6 +296,56 @@
 
 .pick-figure.tone-up { color: #c2412d; }
 .pick-figure.tone-down { color: #0d8a52; }
+
+.pick-delta {
+  flex: none;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+  background: #edf1f7;
+  color: #475569;
+  font-size: 19rpx;
+  font-weight: 740;
+  font-variant-numeric: tabular-nums;
+}
+
+.pick-delta.tone-up { background: #fdf1ef; color: #c2412d; }
+.pick-delta.tone-down { background: #ebfaf2; color: #0d8a52; }
+
+.star-picks-bar {
+  display: flex;
+  margin-top: 14rpx;
+  padding-top: 12rpx;
+  align-items: center;
+  gap: 12rpx;
+  border-top: 1rpx solid #eef2f8;
+}
+
+.star-picks-label {
+  flex: none;
+  color: #b45309;
+  font-size: 22rpx;
+  font-weight: 760;
+}
+
+.star-picks-scroll {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.star-picks-inner {
+  display: inline-flex;
+  gap: 10rpx;
+}
+
+.star-pick-pill {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #fef7ea;
+  color: #92400e;
+  font-size: 23rpx;
+  font-weight: 680;
+}
 
 /* ---------- 撑满主屏黄金比例的 3×3 适老化九宫格 ---------- */
 

@@ -378,6 +378,24 @@ function buildHotPicks(snapshot) {
     return "";
   };
 
+  const formatHotDelta = (market, item) => {
+    const raw = item.raw || {};
+    if (market === "us") {
+      const ch = Number(raw.changePercent);
+      return Number.isFinite(ch) ? { deltaText: signedPct(ch, 1), deltaTone: toneOf(ch) } : { deltaText: "", deltaTone: "flat" };
+    }
+    if (market === "a") {
+      const ch = Number(raw.changePercent);
+      return Number.isFinite(ch) ? { deltaText: signedPct(ch, 1), deltaTone: toneOf(ch) } : { deltaText: "", deltaTone: "flat" };
+    }
+    if (market === "hk") {
+      const rev = raw.historicalReview || {};
+      const fd = Number(rev.firstDayChange);
+      return Number.isFinite(fd) ? { deltaText: signedPct(fd, 0), deltaTone: toneOf(fd) } : { deltaText: "", deltaTone: "flat" };
+    }
+    return { deltaText: "", deltaTone: "flat" };
+  };
+
   const picks = [];
   const used = new Set();
   for (const key of interleaved) {
@@ -389,6 +407,7 @@ function buildHotPicks(snapshot) {
     if (!label) continue;
     used.add(key);
     const { sparkSrc, figTone } = hotSparkFor(item);
+    const { deltaText, deltaTone } = formatHotDelta(market, item);
     picks.push({
       key,
       market,
@@ -397,6 +416,8 @@ function buildHotPicks(snapshot) {
       label,
       code: formatHotCode(market, item.code, item.id),
       figure: formatHotFigure(market, item),
+      deltaText,
+      deltaTone,
       sparkSrc,
       figTone,
     });

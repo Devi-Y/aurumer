@@ -1,52 +1,57 @@
-// 极简渠道页：只给渠道名称与开通方式，零多余铺垫。
+// 合规指引与渠道页：只保留简明指引与外部渠道索引，明确非招揽与合法使用边界。
 module.exports = {
   accounts: {
-    title: "港美股开户",
+    title: "港美股指引",
     sections: [],
     choices: [
-      { topic: "hk-open", title: "港股开户" },
-      { topic: "us-start", title: "美股开户" },
+      { topic: "hk-open", title: "港股渠道" },
+      { topic: "us-start", title: "美股渠道" },
     ],
   },
   info: {
-    title: "全球信息入口",
+    title: "海外访问指引",
     sections: [
       {
-        title: "常用官方网址",
+        title: "常用官方数据源",
         links: ["sec", "hkexnews", "gold-fred"],
       },
     ],
     offer: {
       id: "global-access",
-      head: "VPN 开通渠道",
-      body: "复制链接 → 手机浏览器打开注册",
+      head: "外部网络加速通道",
+      body: "指引：复制外部网址 → 手机浏览器自行了解（仅限合法查阅公开资料）",
     },
   },
   "us-start": {
-    title: "美股开户",
+    title: "美股渠道指引",
     sections: [],
     offer: {
       id: "open-account",
       head: "盈透证券（IBKR）",
-      body: "复制链接 → 手机浏览器打开申请",
+      body: "指引：复制机构网址 → 手机浏览器自主核验资格与规则",
     },
   },
   "hk-open": {
-    title: "港股开户",
+    title: "港股渠道指引",
     sections: [],
     offer: {
       id: "hk-open-account",
       head: "盈立证券（uSMART）",
-      body: "复制链接 → 手机浏览器打开申请",
+      body: "指引：复制机构网址 → 手机浏览器自主核验资格与规则",
     },
   },
   vpn: {
-    title: "VPN开通",
-    sections: [],
+    title: "海外访问指引",
+    sections: [
+      {
+        title: "常用官方数据源",
+        links: ["sec", "hkexnews", "gold-fred"],
+      },
+    ],
     offer: {
       id: "global-access",
-      head: "在线注册通道",
-      body: "复制链接 → 手机浏览器打开注册",
+      head: "外部网络加速通道",
+      body: "指引：复制外部网址 → 手机浏览器自行了解（仅限合法查阅公开资料）",
     },
   },
   "a-open": {

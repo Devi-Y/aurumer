@@ -1,5 +1,10 @@
 <view class="page-shell guide-shell">
-  <!-- 港美股双渠道直达：只给渠道与方式 -->
+  <!-- 极简三步指引条 -->
+  <view wx:if="{{guidePills.length}}" class="guide-pill-strip" aria-hidden="true">
+    <text wx:for="{{guidePills}}" wx:key="*this" class="guide-step-pill">{{item}}</text>
+  </view>
+
+  <!-- 港美股双渠道直达：只留指引与渠道 -->
   <block wx:if="{{choices.length}}">
     <view wx:for="{{choices}}" wx:key="topic" class="page-card offer-card">
       <view class="channel-top">
@@ -15,12 +20,12 @@
         hover-class="offer-action-active"
         aria-role="button"
         aria-label="{{item.actionLabel}}"
-      >{{copiedChoiceId === item.offerId ? '✓ 已复制，去手机浏览器粘贴打开' : item.actionLabel}}</view>
+      >{{copiedChoiceId === item.offerId ? '✓ 已复制，去手机浏览器粘贴查看' : item.actionLabel}}</view>
       <text wx:if="{{item.disclosure}}" class="offer-disclosure">{{item.disclosure}}</text>
     </view>
   </block>
 
-  <!-- 单项渠道卡：港股 / 美股 / A股二维码 / VPN -->
+  <!-- 单项渠道卡：港股 / 美股 / A股二维码 / 海外访问 -->
   <view wx:if="{{offer}}" class="page-card offer-card">
     <view class="channel-top">
       <text wx:if="{{offer.badge}}" class="channel-badge">{{offer.badge}}</text>
@@ -29,7 +34,7 @@
 
     <block wx:if="{{offer.mode === 'copy'}}">
       <text class="offer-way">{{offer.body}}</text>
-      <view class="offer-action {{copiedSuccess ? 'is-done' : ''}}" bindtap="copyOffer" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{copiedSuccess ? '✓ 已复制，去手机浏览器粘贴打开' : offer.label}}</view>
+      <view class="offer-action {{copiedSuccess ? 'is-done' : ''}}" bindtap="copyOffer" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{copiedSuccess ? '✓ 已复制，去手机浏览器粘贴查看' : offer.label}}</view>
       <text class="offer-disclosure">{{offer.disclosure}}</text>
     </block>
 

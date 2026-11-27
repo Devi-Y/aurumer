@@ -5,6 +5,14 @@ const { track } = require("../../utils/analytics");
 const { goHome, openPage } = require("../../utils/nav");
 const { FOOTER_DISCLAIMER } = require("../../utils/disclaimer");
 
+const GUIDE_PILLS = {
+  accounts: ["① 备齐证件与境外卡", "② 复制机构网址", "③ 浏览器自主核验"],
+  "hk-open": ["① 备齐证件与香港卡", "② 复制机构网址", "③ 浏览器自主核验"],
+  "us-start": ["① 备齐证件与境外卡", "② 复制机构网址", "③ 浏览器自主核验"],
+  vpn: ["① 复制下方网址", "② 手机浏览器打开", "③ 合规查阅公开财报"],
+  info: ["① 复制下方网址", "② 手机浏览器打开", "③ 合规查阅公开财报"],
+};
+
 function buildSections(guide) {
   return (guide.sections || []).map((section, index) => ({
     key: `s${index}`,
@@ -33,9 +41,9 @@ function buildChoices(guide) {
         topic: item.topic,
         title: item.title,
         broker: target && target.offer ? target.offer.head : item.title,
-        way: target && target.offer ? target.offer.body : "复制链接 → 手机浏览器打开",
+        way: target && target.offer ? target.offer.body : "指引：复制机构网址 → 手机浏览器自主核验",
         offerId: offerCfg && offerCfg.copy ? offerCfg.id : "",
-        actionLabel: offerCfg && offerCfg.copy ? `复制${item.title}链接` : `进入${item.title}`,
+        actionLabel: (offerCfg && offerCfg.label) || `复制${item.title}网址`,
         disclosure: (offerCfg && offerCfg.disclosure) || "",
       };
     });
@@ -47,7 +55,7 @@ function buildOffer(guide) {
   if (!offer) return null;
   const base = { id: offer.id, badge: guide.title || "", head: guide.offer.head, body: guide.offer.body };
   if (offer.copy) {
-    return { ...base, mode: "copy", label: offer.label || "复制链接", disclosure: offer.disclosure || "" };
+    return { ...base, mode: "copy", label: offer.label || "复制渠道网址", disclosure: offer.disclosure || "" };
   }
   if (offer.image) {
     return { ...base, mode: "image", image: offer.image, disclosure: offer.disclosure || "" };
@@ -57,7 +65,7 @@ function buildOffer(guide) {
     return {
       ...base,
       mode: "pending",
-      note: offer.pendingNote || "准备中。",
+      note: offer.pendingNote || "整理中。",
       canCopy: Boolean(contact),
       label: offer.pendingLabel || "复制微信号",
       disclosure: contact ? offer.pendingDisclosure || "" : "",
@@ -71,6 +79,7 @@ Page({
     topic: "",
     title: "",
     lead: "",
+    guidePills: [],
     sections: [],
     choices: [],
     offer: null,
@@ -89,6 +98,7 @@ Page({
       topic,
       title: guide.title,
       lead: guide.lead || "",
+      guidePills: GUIDE_PILLS[topic] || [],
       sections: buildSections(guide),
       choices: buildChoices(guide),
       offer,
@@ -124,7 +134,7 @@ Page({
       success: () => {
         this.setData({ copiedChoiceId: source.id, copiedSuccess: true });
         track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
-        wx.showToast({ title: source.toast || "已复制，去浏览器打开", icon: "none" });
+        wx.showToast({ title: source.toast || "已复制，去浏览器查看", icon: "none" });
       },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
@@ -138,7 +148,7 @@ Page({
       success: () => {
         this.setData({ copiedSuccess: true });
         track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
-        wx.showToast({ title: source.toast || "已复制，去浏览器打开", icon: "none" });
+        wx.showToast({ title: source.toast || "已复制，去浏览器查看", icon: "none" });
       },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });

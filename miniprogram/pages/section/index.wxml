@@ -149,7 +149,14 @@
           </view>
         </view>
       </block>
-      <view class="hk-empty is-compact" wx:else><text>暂无可展示的配发资料</text></view>
+
+      <view wx:if="{{hkHistorySummary.length}}" class="hk-hist-summary">
+        <view wx:for="{{hkHistorySummary}}" wx:key="label" class="hk-hist-stat">
+          <text class="hk-hist-v">{{item.value}}</text>
+          <text class="hk-hist-k">{{item.label}}</text>
+        </view>
+      </view>
+
       <view class="hk-tier-chart" wx:if="{{hkExitChart && (!hkExitView || hkExitView.showTierChart)}}">
         <text class="hk-tier-title">同类新股打中后涨跌</text>
         <view class="hk-tier-legend">
@@ -174,7 +181,35 @@
         </view>
         <text class="hk-tier-foot">{{hkExitChart.sampleText}}</text>
       </view>
-      <text wx:if="{{!hkExitChart && !hkExitOptions.length}}" class="hk-empty-text">历史样本不足</text>
+
+      <!-- 捷利交易宝同款：新股暗盘 · 首日涨跌 · 一手盈亏战绩账本 -->
+      <view wx:if="{{hkHistoryRows.length}}" class="hk-scoreboard">
+        <view class="hk-sb-head">
+          <text class="hk-sb-col-name">已上市新股</text>
+          <text class="hk-sb-col-num">暗盘</text>
+          <text class="hk-sb-col-num">首日</text>
+          <text class="hk-sb-col-pnl">打中一手</text>
+        </view>
+        <view
+          wx:for="{{hkHistoryRows}}"
+          wx:key="id"
+          class="hk-sb-row"
+          data-id="{{item.id}}"
+          bindtap="openHkDetail"
+          hover-class="tap-active"
+          aria-role="button"
+          aria-label="{{item.name}}，暗盘{{item.greyText}}，首日{{item.firstDayText}}，一手{{item.pnlText}}"
+        >
+          <view class="hk-sb-col-name">
+            <text class="hk-sb-name">{{item.name}}</text>
+            <text class="hk-sb-sub">{{item.code}}{{item.date ? ' · ' + item.date : ''}}</text>
+          </view>
+          <text class="hk-sb-col-num is-{{item.greyTone}}">{{item.greyText}}</text>
+          <text class="hk-sb-col-num is-{{item.firstDayTone}}">{{item.firstDayText}}</text>
+          <text class="hk-sb-col-pnl is-{{item.pnlTone}}">{{item.pnlText}}</text>
+        </view>
+      </view>
+      <text wx:if="{{!hkExitChart && !hkExitOptions.length && !hkHistoryRows.length}}" class="hk-empty-text">历史样本不足</text>
     </block>
   </view>
 
@@ -192,7 +227,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{usSubTab === 'seven'}}"
-      >七家大公司</view>
+      >七大巨头</view>
       <view
         class="us-tab {{usSubTab === 'hot' ? 'is-active' : ''}}"
         data-id="hot"
@@ -208,8 +243,38 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{usSubTab === 'all'}}"
-      >全部美股</view>
+      >全部30只</view>
+      <view
+        class="us-tab {{usSubTab === 'heatmap' ? 'is-active' : ''}}"
+        data-id="heatmap"
+        bindtap="switchUsSubTab"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-selected="{{usSubTab === 'heatmap'}}"
+      >热力图</view>
     </view>
+
+    <block wx:if="{{usSubTab === 'heatmap'}}">
+      <view class="sort-bar">
+        <text class="sort-pill {{usHeatMode === 'day' ? 'is-active' : ''}}" data-mode="day" bindtap="switchUsHeatMode" aria-role="button">单日涨跌</text>
+        <text class="sort-pill {{usHeatMode === 'perf60' ? 'is-active' : ''}}" data-mode="perf60" bindtap="switchUsHeatMode" aria-role="button">近60日涨跌</text>
+      </view>
+      <view class="heatmap-grid" wx:if="{{usHeatmap.length}}">
+        <view
+          wx:for="{{usHeatmap}}"
+          wx:key="id"
+          class="heat-tile tone-{{item.tileTone}}"
+          data-id="{{item.id}}"
+          bindtap="openUsDetail"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text class="heat-tile-name">{{item.shortName}}</text>
+          <text class="heat-tile-val">{{item.valText}}</text>
+          <text class="heat-tile-sub">{{item.code}} · {{item.subText}}</text>
+        </view>
+      </view>
+    </block>
 
     <block wx:if="{{usSubTab === 'all'}}">
       <view class="sort-bar">
@@ -250,6 +315,7 @@
             <text class="us-range-num">{{item.hi60Text}}</text>
             <text wx:if="{{item.posChip}}" class="data-chip is-{{item.posTone}}">{{item.posChip}}</text>
             <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
+            <text wx:if="{{item.capChip}}" class="data-chip">{{item.capChip}}</text>
           </view>
         </view>
       </view>
@@ -257,6 +323,21 @@
     </block>
 
     <block wx:if="{{usSubTab === 'seven'}}">
+      <!-- 富途/东方财富同款：七巨头首屏涨跌热力色块矩阵 -->
+      <view wx:if="{{usSevenHeatmap.length}}" class="seven-heat-strip">
+        <view
+          wx:for="{{usSevenHeatmap}}"
+          wx:key="id"
+          class="heat-tile is-compact tone-{{item.tileTone}}"
+          data-id="{{item.id}}"
+          bindtap="openUsDetail"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text class="heat-tile-name">{{item.shortName}}</text>
+          <text class="heat-tile-val">{{item.valText}}</text>
+        </view>
+      </view>
       <view class="us-stock-list" wx:if="{{usSevenList.length}}">
         <view
           wx:for="{{usSevenList}}"
@@ -290,6 +371,7 @@
             <text class="us-range-num">{{item.hi60Text}}</text>
             <text wx:if="{{item.posChip}}" class="data-chip is-{{item.posTone}}">{{item.posChip}}</text>
             <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
+            <text wx:if="{{item.capChip}}" class="data-chip">{{item.capChip}}</text>
           </view>
           <text wx:if="{{item.event}}" class="us-event-line">{{item.eventDate}} {{item.event}}</text>
         </view>
@@ -298,7 +380,7 @@
     </block>
 
     <block wx:if="{{usSubTab === 'hot'}}">
-      <text class="reading-hint">样本内按成交和价格波动计算热度；热度不代表涨跌方向或投资价值。</text>
+      <text class="reading-hint">按成交与波动计算，热度不代表涨跌方向或投资价值。</text>
       <view class="us-stock-list" wx:if="{{usHotList.length}}">
         <view
           wx:for="{{usHotList}}"
@@ -308,21 +390,28 @@
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，热度 {{item.heatText}}，{{item.asOfText}}，{{item.why || '活跃依据暂缺'}}，{{item.eventDate}} {{item.event}}"
+          aria-label="{{item.name}}，热度 {{item.heatText}}，{{item.priceText}}，{{item.changeText}}"
         >
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
             <view class="us-row-tags">
-              <text class="us-code">{{item.code}}</text>
-              <text wx:if="{{item.priceText && item.priceText !== '—'}}" class="us-code">{{item.priceText}}</text>
-              <text wx:if="{{item.changeText && item.changeText !== '—'}}" class="us-inline-change is-{{item.changeTone}}">{{item.changeText}}</text>
+              <text class="code-pill">{{item.code}}</text>
+              <text wx:if="{{item.volChip}}" class="mini-tag">{{item.volChip}}</text>
             </view>
           </view>
           <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
           <view wx:else class="us-spark"></view>
           <view class="us-right">
-            <text class="us-heat-value">{{item.heatText}}</text>
-            <text class="us-heat-label">热度</text>
+            <text class="us-price">{{item.priceText}}</text>
+            <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
+          </view>
+          <view class="us-range-bar-row" aria-hidden="true">
+            <text class="us-range-num">热度 {{item.heatText}}分</text>
+            <view class="us-range-track">
+              <view class="us-range-fill is-heat" style="width: {{item.heatBar}}%;"></view>
+            </view>
+            <text wx:if="{{item.posChip}}" class="data-chip is-{{item.posTone}}">{{item.posChip}}</text>
+            <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
           </view>
           <text class="us-event-line">{{item.asOfText}} · {{item.why || '活跃依据暂缺'}}</text>
           <text wx:if="{{item.event}}" class="us-event-line">{{item.eventDate}} {{item.event}}</text>
@@ -344,7 +433,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'stable'}}"
-      >连续稳分红</view>
+      >稳分红榜</view>
       <view
         class="a-tab {{aSubTab === 'yield' ? 'is-active' : ''}}"
         data-id="yield"
@@ -352,7 +441,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'yield'}}"
-      >高股息率榜</view>
+      >高股息榜</view>
       <view
         class="a-tab {{aSubTab === 'all' ? 'is-active' : ''}}"
         data-id="all"
@@ -360,8 +449,49 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'all'}}"
-      >全部高息股</view>
+      >全部20只</view>
+      <view
+        class="a-tab {{aSubTab === 'heatmap' ? 'is-active' : ''}}"
+        data-id="heatmap"
+        bindtap="switchASubTab"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-selected="{{aSubTab === 'heatmap'}}"
+      >热力图</view>
     </view>
+
+    <!-- 对标「息记」：投入本金收息档位器，点金额实时换算全榜每年/每月现金分红 -->
+    <view wx:if="{{aSubTab !== 'heatmap'}}" class="a-calc-strip">
+      <text class="a-calc-label">收息试算</text>
+      <view class="a-calc-pills">
+        <text class="a-calc-pill {{aPrincipalWan === 1 ? 'is-active' : ''}}" data-wan="1" bindtap="selectAPrincipal" aria-role="button">投1万</text>
+        <text class="a-calc-pill {{aPrincipalWan === 5 ? 'is-active' : ''}}" data-wan="5" bindtap="selectAPrincipal" aria-role="button">投5万</text>
+        <text class="a-calc-pill {{aPrincipalWan === 10 ? 'is-active' : ''}}" data-wan="10" bindtap="selectAPrincipal" aria-role="button">投10万</text>
+        <text class="a-calc-pill {{aPrincipalWan === 50 ? 'is-active' : ''}}" data-wan="50" bindtap="selectAPrincipal" aria-role="button">投50万</text>
+      </view>
+    </view>
+
+    <block wx:if="{{aSubTab === 'heatmap'}}">
+      <view class="sort-bar">
+        <text class="sort-pill {{aHeatMode === 'yield' ? 'is-active' : ''}}" data-mode="yield" bindtap="switchAHeatMode" aria-role="button">按股息率</text>
+        <text class="sort-pill {{aHeatMode === 'change' ? 'is-active' : ''}}" data-mode="change" bindtap="switchAHeatMode" aria-role="button">按单日涨跌</text>
+      </view>
+      <view class="heatmap-grid" wx:if="{{aHeatmap.length}}">
+        <view
+          wx:for="{{aHeatmap}}"
+          wx:key="id"
+          class="heat-tile tone-{{item.tileTone}}"
+          data-id="{{item.id}}"
+          bindtap="openADetail"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text class="heat-tile-name">{{item.shortName}}</text>
+          <text class="heat-tile-val">{{item.valText}}</text>
+          <text class="heat-tile-sub">{{item.code}} · {{item.subText}}</text>
+        </view>
+      </view>
+    </block>
 
     <block wx:if="{{aSubTab === 'all'}}">
       <view class="a-fund-card" wx:if="{{aFund}}" data-id="{{aFund.id}}" bindtap="openADetail" hover-class="tap-active" aria-role="button" aria-label="查看{{aFund.name}}">
@@ -536,6 +666,15 @@
         <text class="gold-compare-k">{{item.label}}</text>
         <text class="gold-compare-v">{{item.value}}</text>
         <text wx:if="{{item.sub}}" class="gold-compare-sub">{{item.sub}}</text>
+      </view>
+    </view>
+    <view wx:if="{{goldSpreadBadge || goldReturnPills.length}}" class="gold-extra-strip">
+      <text wx:if="{{goldSpreadBadge}}" class="gold-spread-pill">{{goldSpreadBadge}}</text>
+      <view wx:if="{{goldReturnPills.length}}" class="gold-ret-row">
+        <view wx:for="{{goldReturnPills}}" wx:key="label" class="gold-ret-cell is-{{item.tone}}">
+          <text class="gold-ret-k">{{item.label}}</text>
+          <text class="gold-ret-v">{{item.valueText}}</text>
+        </view>
       </view>
     </view>
 
@@ -745,6 +884,26 @@
     </view>
 
     <block wx:if="{{guruSubTab === 'trend'}}">
+      <view wx:if="{{guruOverlapRows.length}}" class="guru-overlap-box">
+        <view class="guru-conc-head">
+          <text class="guru-conc-title">多机构共同重仓</text>
+          <text class="guru-conc-sum">2家以上大佬同时持有</text>
+        </view>
+        <view wx:for="{{guruOverlapRows}}" wx:key="key" class="guru-overlap-row">
+          <view class="guru-hold-top">
+            <view class="code-name-line guru-name-wrap">
+              <text class="guru-hold-name">{{item.name}}</text>
+              <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
+            </view>
+            <text class="guru-overlap-count">{{item.count}}家持有</text>
+          </view>
+          <view class="guru-hold-track">
+            <view class="guru-hold-fill" style="width: {{item.barWidth}}%;"></view>
+          </view>
+          <text class="guru-overlap-holders">{{item.holdersText}}</text>
+        </view>
+      </view>
+
       <text class="hk-picker-label">{{guruTrendTitle}}</text>
       <view wx:if="{{guruTrendRows.length}}">
         <view wx:for="{{guruTrendRows}}" wx:key="key" class="guru-direction">

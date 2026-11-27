@@ -644,16 +644,19 @@ const offers = offersModule.exports;
   const communityTemplate = pageTemplatesByPath.get("pages/community/index") || "";
   const sectionTemplate = pageTemplatesByPath.get("pages/section/index") || "";
 
-  // 九格 = 五个研究 + 会员群、港美开户、A股开户、VPN开通。
+  // 九格 = 五个研究 + 会员群、港美股指引、A股开户、海外访问（合规去敏名称）。
   const serviceSource = await readFile(path.join(miniRoot, "config", "services.js"), "utf8");
   const services = requireCjs("../miniprogram/config/services.js");
-  assert(JSON.stringify(services.map((entry) => entry.title)) === JSON.stringify(["会员群", "港美股开户", "A股开户", "VPN开通"]), "首页后四格应保留用户指定的服务及顺序");
+  assert(JSON.stringify(services.map((entry) => entry.title)) === JSON.stringify(["会员群", "港美股指引", "A股开户", "海外访问"]), "首页后四格应保留合规去敏后的服务标题及顺序");
   assert(new Set(services.map((entry) => entry.url)).size === 4, "四格服务应进入对应二级页");
   for (const service of services) {
     assert(service.offerIds.length && service.offerIds.every((id) => offers.some((offer) => offer.id === id)), `服务入口 ${service.title} 缺少物料配置`);
     assert(/^\/pages\/(guide|community)\/index/.test(service.url), `服务入口 ${service.title} 未进入有效二级页`);
   }
-  assert(JSON.stringify(GUIDES.accounts.choices.map((choice) => choice.title)) === JSON.stringify(["港股开户", "美股开户"]), "港美开户应保留两个独立选择");
+  assert(JSON.stringify(GUIDES.accounts.choices.map((choice) => choice.title)) === JSON.stringify(["港股渠道", "美股渠道"]), "港美指引应保留两个独立渠道选择");
+  for (const sensitive of ["VPN开通", "推荐佣金", "邀请开户链接", "好友推荐链接"]) {
+    assert(!serviceSource.includes(sensitive) && !JSON.stringify(offers).includes(sensitive) && !JSON.stringify(GUIDES).includes(sensitive), `合规门禁未通过，仍含高敏导流词：${sensitive}`);
+  }
   assert(indexSource.includes('action: "page"') && indexSource.includes("openPage(entry.url)"), "服务格应点一下进入对应二级页");
   assert(!indexSource.includes("setClipboardData"), "首页不应直接复制推广链接或社群微信号，物料要挂在二级页末尾");
   for (const banned of ["看全球", "开全球", "买全球", "找同路人", "path-grid", "新手入门"]) {

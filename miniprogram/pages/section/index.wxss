@@ -3277,9 +3277,12 @@
 .hk-tab,
 .us-tab,
 .a-tab {
-  min-height: 80rpx;
-  font-size: 29rpx;
+  min-height: 78rpx;
+  padding-left: 6rpx;
+  padding-right: 6rpx;
+  font-size: 27rpx;
   font-weight: 680;
+  white-space: nowrap;
 }
 
 .code-name-line {
@@ -3649,4 +3652,257 @@
   font-size: 21rpx;
   font-weight: 720;
   font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 0.4.0 对标进阶：新股盈亏战绩表 · 七巨头热力条 · 息记本金试算 · 金价多周期 · 大佬共识榜 ---------- */
+
+.hk-hist-summary {
+  display: flex;
+  margin-top: 18rpx;
+  padding: 16rpx 12rpx;
+  border-radius: 18rpx;
+  background: #f5f8fc;
+}
+
+.hk-hist-stat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  border-right: 1rpx solid #e2e8f0;
+}
+
+.hk-hist-stat:last-child {
+  border-right: none;
+}
+
+.hk-hist-v {
+  color: #0f172a;
+  font-size: 30rpx;
+  font-weight: 820;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-hist-k {
+  color: #64748b;
+  font-size: 21rpx;
+  font-weight: 620;
+}
+
+.hk-scoreboard {
+  margin-top: 18rpx;
+  overflow: hidden;
+  border: 1rpx solid #e8ecf3;
+  border-radius: 20rpx;
+  background: #ffffff;
+}
+
+.hk-sb-head {
+  display: flex;
+  padding: 16rpx 18rpx;
+  align-items: center;
+  gap: 10rpx;
+  background: #f6f8fc;
+  color: #64748b;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.hk-sb-row {
+  display: flex;
+  padding: 18rpx 18rpx;
+  align-items: center;
+  gap: 10rpx;
+  border-top: 1rpx solid #eef2f7;
+}
+
+.hk-sb-col-name {
+  display: flex;
+  flex: 1.5;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3rpx;
+}
+
+.hk-sb-name {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hk-sb-sub {
+  color: #94a3b8;
+  font-size: 20rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-sb-col-num {
+  flex: 0.85;
+  color: #334155;
+  font-size: 25rpx;
+  font-weight: 740;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.hk-sb-col-pnl {
+  flex: 1.15;
+  color: #334155;
+  font-size: 25rpx;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.hk-sb-col-num.is-up, .hk-sb-col-pnl.is-up { color: #c2412d; }
+.hk-sb-col-num.is-down, .hk-sb-col-pnl.is-down { color: #0d8a52; }
+
+.seven-heat-strip {
+  display: flex;
+  margin: 18rpx 0 6rpx;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.heat-tile.is-compact {
+  box-sizing: border-box;
+  width: calc(25% - 6rpx);
+  padding: 12rpx 10rpx;
+  align-items: center;
+  text-align: center;
+}
+
+.us-range-fill.is-heat {
+  background: linear-gradient(90deg, #f59e0b 0%, #dc2626 100%);
+}
+
+.a-calc-strip {
+  display: flex;
+  margin-top: 16rpx;
+  padding: 12rpx 16rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+  border-radius: 18rpx;
+  background: #f5f8fe;
+}
+
+.a-calc-label {
+  flex: none;
+  color: #1e3a8a;
+  font-size: 24rpx;
+  font-weight: 760;
+}
+
+.a-calc-pills {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  gap: 8rpx;
+}
+
+.a-calc-pill {
+  padding: 8rpx 16rpx;
+  border-radius: 12rpx;
+  background: #ffffff;
+  border: 1rpx solid #dbe6f7;
+  color: #475569;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.a-calc-pill.is-active {
+  background: #1d5fd1;
+  border-color: #1d5fd1;
+  color: #ffffff;
+}
+
+.gold-extra-strip {
+  display: flex;
+  margin-top: 12rpx;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.gold-spread-pill {
+  display: block;
+  padding: 10rpx 16rpx;
+  border-radius: 14rpx;
+  background: #fef8ec;
+  color: #92400e;
+  font-size: 23rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.gold-ret-row {
+  display: flex;
+  gap: 10rpx;
+}
+
+.gold-ret-cell {
+  display: flex;
+  flex: 1;
+  padding: 10rpx 8rpx;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  border-radius: 14rpx;
+  background: #f4f6fa;
+}
+
+.gold-ret-cell.is-up { background: #fdf1ef; }
+.gold-ret-cell.is-down { background: #ebfaf2; }
+
+.gold-ret-k {
+  color: #64748b;
+  font-size: 22rpx;
+  font-weight: 640;
+}
+
+.gold-ret-v {
+  color: #0f172a;
+  font-size: 24rpx;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+}
+
+.gold-ret-cell.is-up .gold-ret-v { color: #c2412d; }
+.gold-ret-cell.is-down .gold-ret-v { color: #0d8a52; }
+
+.guru-overlap-box {
+  margin: 16rpx 0 20rpx;
+  padding: 18rpx 18rpx 14rpx;
+  border-radius: 18rpx;
+  background: #f6f8fc;
+}
+
+.guru-overlap-row {
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #e8ecf3;
+}
+
+.guru-overlap-row:last-child {
+  border-bottom: none;
+}
+
+.guru-overlap-count {
+  flex: none;
+  padding: 3rpx 12rpx;
+  border-radius: 999rpx;
+  background: #eaf2ff;
+  color: #1d5fd1;
+  font-size: 22rpx;
+  font-weight: 740;
+}
+
+.guru-overlap-holders {
+  display: block;
+  margin-top: 6rpx;
+  color: #64748b;
+  font-size: 21rpx;
 }

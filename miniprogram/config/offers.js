@@ -1,13 +1,13 @@
-// 负责人提供的真实商业物料集中放在这里，页面只给渠道与开通方式，不做冗长解释。
+// 渠道物料与合规免责声明集中管理：严禁出现跨境开户招揽、返佣诱导或违规网络宣传字眼。
 module.exports = [
   {
     id: "global-access",
     icon: "/assets/home/globe.svg",
-    title: "VPN开通",
-    label: "复制注册链接",
+    title: "海外访问",
+    label: "复制外部通道网址",
     copy: "https://my.yunti2.net/auth/register?code=KBjZ",
-    toast: "已复制，去浏览器打开",
-    disclosure: "第三方网络服务推荐链接。",
+    toast: "已复制，去浏览器自行查看",
+    disclosure: "独立第三方外部站点，与本小程序无隶属关系；仅限合法查阅公开科研与财经资料，请遵守国家网络法规。",
   },
   {
     id: "paid-group",
@@ -21,25 +21,25 @@ module.exports = [
   {
     id: "open-account",
     icon: "/assets/home/account.svg",
-    title: "美股开户",
-    label: "复制开户链接",
+    title: "美股渠道",
+    label: "复制美股渠道网址",
     copy: "https://www.interactivebrokers.com/referral/wenlong409",
-    toast: "已复制，去浏览器打开",
-    disclosure: "好友推荐链接（大陆居民不含推荐奖励，以盈透规则为准）。",
+    toast: "已复制，去浏览器自行核验",
+    disclosure: "仅作公开持牌机构信息索引，不构成跨境证券开户招揽；中国大陆居民不适用任何推荐计划，以机构合规准入为准。",
   },
   {
     id: "hk-open-account",
-    title: "港股开户",
-    label: "复制开户链接",
+    title: "港股渠道",
+    label: "复制港股渠道网址",
     copy: "https://m.usmart66.com/marketing/mgm-poster/mgm-lottery17.html?langType=1&ICode=vxgn8&inviteName=18*******24&id=20240612002&bizId=20240612002&shareId=promotion&register-ct=m&register-cid=hk-2022-aug&avatar=",
-    toast: "已复制，去浏览器打开",
-    disclosure: "邀请开户链接（活动及资格以盈立证券规则为准）。",
+    toast: "已复制，去浏览器自行核验",
+    disclosure: "仅作公开持牌机构信息索引，不构成跨境证券开户招揽；仅限符合当地监管资格人士自主核验。",
   },
   {
     id: "a-open-account",
     title: "A股开户",
     label: "打开企业微信联系二维码",
     image: "/assets/offers/a-open-account.png",
-    disclosure: "合作开户渠道二维码。",
+    disclosure: "境内合作开户咨询二维码，具体业务以持牌券商规则为准。",
   },
 ];

@@ -330,14 +330,22 @@ function buildHotPicks(snapshot, index) {
     usCandidates[0] && usCandidates[0].key,
     hkCandidates[0] && hkCandidates[0].key,
     aCandidates[0] && aCandidates[0].key,
-    usCandidates[1] && usCandidates[1].key,
-    aCandidates[1] && aCandidates[1].key,
-    hkCandidates[1] && hkCandidates[1].key,
     "us:NVDA",
     "a:600900",
     "us:TSLA",
     "a:600036",
   ].filter(Boolean);
+
+  const formatHotCode = (row) => {
+    const rawCode = String(row.code || row.id || "").trim();
+    if (!rawCode) return "";
+    if (row.market === "hk") return /\.HK$/i.test(rawCode) ? rawCode.toUpperCase() : `${rawCode}.HK`;
+    if (row.market === "a") {
+      if (/\.(SH|SZ)$/i.test(rawCode)) return rawCode.toUpperCase();
+      return /^6|^5/.test(rawCode) ? `${rawCode}.SH` : `${rawCode}.SZ`;
+    }
+    return rawCode.toUpperCase();
+  };
 
   const picks = [];
   const used = new Set();
@@ -353,8 +361,9 @@ function buildHotPicks(snapshot, index) {
       market: row.market,
       id: row.id,
       label,
+      code: formatHotCode(row),
     });
-    if (picks.length >= 6) break;
+    if (picks.length >= 3) break;
   }
   return picks;
 }

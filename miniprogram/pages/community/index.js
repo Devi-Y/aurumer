@@ -26,6 +26,9 @@ Page({
     fit: FIT,
     unfit: UNFIT,
     join: null,
+    priceCny: COMMUNITY.priceCny,
+    termLabel: COMMUNITY.termLabel,
+    canPayConfig: Boolean(COMMUNITY.checkoutEnabled && COMMUNITY.wechatQrImage),
     priceLabel: `${COMMUNITY.priceCny} 元 / ${COMMUNITY.termLabel}`,
     purchaseNote: COMMUNITY.checkoutEnabled ? "正在核对支付状态，请稍候；也可先复制微信号咨询。" : "暂未开放付款，可先了解服务与退款约定。",
     promotionNote: COMMUNITY.promotionNote,
@@ -45,7 +48,12 @@ Page({
     const offer = OFFERS.find((item) => item && item.id === OFFER_ID);
     const join = offer && offer.copy ? { label: offer.label || "复制微信号", disclosure: offer.disclosure || "" } : null;
     const expired = Date.now() > Date.parse(COMMUNITY.promotionEndsAt);
-    this.setData({ join, ...(expired ? { priceLabel: "本期价格已结束", purchaseNote: "后续安排确认后公布，可先咨询。", checkoutReady: false } : {}) });
+    this.setData({
+      join,
+      ...(expired
+        ? { priceLabel: "本期价格已结束", purchaseNote: "后续安排确认后公布，可先咨询。", checkoutReady: false, canPayConfig: false }
+        : {}),
+    });
     track("community_open", { from: String(options.from || "direct") });
     if (wx.cloud) this.refreshStatus(false);
     if (wx.cloud && typeof wx.cloud.callFunction === "function") this.checkAdminAccess();
@@ -57,7 +65,7 @@ Page({
   onUnload() { if (this.refreshTimer) clearTimeout(this.refreshTimer); },
   refreshStatus(openAfterPaid = false, attempt = 0) {
     this.setData({ checking: true });
-    return communityService.status().then((state) => {
+    const req = communityService.status().then((state) => {
       const expired = Date.now() > Date.parse(COMMUNITY.promotionEndsAt);
       const rawOrder = state.order || null;
       const order = rawOrder && rawOrder.paid && !state.verificationPending && rawOrder.fulfillment
@@ -81,13 +89,40 @@ Page({
       this.setData({ checkoutReady: false, checking: false, verificationPending: !notDeployed, showQr: false });
       if (openAfterPaid) wx.showToast({ title: "暂无法核对，请刷新订单", icon: "none" });
     });
+    this._statusPromise = req;
+    return req;
   },
-  buy() {
-    if (!this.data.checkoutReady || this.data.paying || this.data.checking) return;
+  async buy() {
+    if (this.data.paying || this.data.verificationPending) return;
+    if (!this.data.checkoutReady) {
+      if (this.data.checking && this._statusPromise) {
+        if (typeof wx.showLoading === "function") wx.showLoading({ title: "正在打开微信支付", mask: true });
+        try {
+          await this._statusPromise;
+        } finally {
+          if (typeof wx.hideLoading === "function") {
+            try { wx.hideLoading(); } catch (e) {}
+          }
+        }
+      }
+      if (!this.data.checkoutReady || (this.data.order && this.data.order.paid) || this.data.verificationPending) return;
+    }
     this.setData({ paying: true });
     communityService.purchase(COMMUNITY.termsVersion).then(() => this.refreshStatus(true)).catch((error) => {
-      const cancelled = /cancel/i.test(String(error && error.errMsg || ""));
-      wx.showModal({ title: cancelled ? "已取消支付" : "支付结果待核对", content: cancelled ? "可稍后继续付款。" : "请刷新订单状态，避免重复付款；仍有疑问请联系客服。", showCancel: false });
+      const msg = String((error && (error.errMsg || error.message)) || "");
+      const cancelled = /cancel/i.test(msg);
+      if (cancelled) {
+        if (typeof wx.showToast === "function") wx.showToast({ title: "已取消支付", icon: "none" });
+      } else if (typeof wx.showModal === "function") {
+        const iosBlocked = /banned|virtual|iOS|不可用/i.test(msg);
+        wx.showModal({
+          title: iosBlocked ? "苹果端暂不支持直付" : "微信支付未完成",
+          content: iosBlocked
+            ? "受微信苹果端规范限制，钱未扣除，可点下方复制微信号由群主协助开通。"
+            : "钱未扣除，请稍后重试；如已付款请点刷新订单状态或联系客服。",
+          showCancel: false,
+        });
+      }
       this.refreshStatus(false);
     }).finally(() => this.setData({ paying: false }));
   },

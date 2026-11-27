@@ -1,68 +1,79 @@
 <view class="page-shell community-shell">
-  <view class="community-head">
-    <text class="community-title">会员群</text>
-    <text class="community-sub">公开资料阅读 · 望潮使用答疑 · 长期配置交流</text>
-  </view>
+  <!-- 对标问岳会员收银台：一进页即亮价格、核心权益标签、一键直拉微信支付 -->
+  <view class="page-card community-pay-hero">
+    <view class="cp-kicker-row">
+      <text class="cp-kicker">年度会员群</text>
+      <text class="cp-refund-pill">入群7天内无理由全额退</text>
+    </view>
+    <text class="community-title">公开资料共读 · 工具答疑交流</text>
 
-  <view class="page-card community-card">
-    <view class="sec">
-      <text class="sec-title">群里聊什么</text>
-      <view class="sec-rows">
-        <view wx:for="{{topics}}" wx:key="key" class="sec-row">
-          <text class="row-label">{{item.label}}</text>
-          <text class="row-value">{{item.value}}</text>
+    <view class="cp-price-row">
+      <text class="cp-currency">¥</text>
+      <text class="cp-price-num">{{priceCny}}</text>
+      <text class="cp-price-term">/ {{termLabel}}</text>
+      <text class="cp-no-auto">不自动续费</text>
+    </view>
+
+    <view class="cp-tags-row">
+      <text class="cp-tag">一手财报与公告交流</text>
+      <text class="cp-tag">望潮使用一对一答疑</text>
+      <text class="cp-tag">纯净交流 · 不荐股喊单</text>
+    </view>
+
+    <!-- 已开通 / 核对异常 / 待支付 主操作区 -->
+    <block wx:if="{{order && order.paid && !verificationPending}}">
+      <view class="cp-paid-box">
+        <text class="cp-paid-badge">✓ 已开通会员群</text>
+        <text wx:if="{{order.paid && !verificationPending && order.endsText}}" class="cp-paid-meta">有效期至 {{order.endsText}}</text>
+        <text wx:else class="cp-paid-meta">已付款成功，请打开二维码添加群主进群（服务期从入群日算起）</text>
+        <button wx:if="{{qrReady}}" class="wxpay-btn" bindtap="openPaidQr">打开群主微信二维码</button>
+        <view class="cp-order-foot">
+          <text wx:if="{{order.orderId}}" class="sec-muted">订单 {{order.orderId}}</text>
+          <text wx:if="{{order.orderId}}" class="inline-link" bindtap="copyOrderId" aria-role="button">复制单号</text>
+          <button class="inline-btn-link" bindtap="refreshOrder" loading="{{checking}}" disabled="{{checking}}">刷新状态</button>
         </view>
       </view>
-    </view>
-    <view class="sec">
-      <text class="sec-title">适合谁加入</text>
-      <view wx:for="{{fit}}" wx:key="*this" class="sec-point">
-        <text>{{item}}</text>
+    </block>
+
+    <block wx:elif="{{(checkoutReady || (checking && canPayConfig)) && (!order || !order.paid)}}">
+      <button class="wxpay-btn" bindtap="buy" loading="{{paying}}" disabled="{{paying || verificationPending}}">立即微信支付 ¥{{priceCny}}</button>
+      <text class="cp-pay-sub">支付成功自动弹出群主二维码 · 24小时内拉你进群</text>
+      <view class="cp-legal-row">
+        <text class="join-disclosure">点击即确认满18周岁并同意</text>
+        <text class="inline-link" bindtap="openTerms" aria-role="button">《服务与退款约定》</text>
       </view>
-      <text class="sec-muted">{{unfit}}</text>
-    </view>
+    </block>
+
+    <block wx:else>
+      <text wx:if="{{purchaseNote}}" class="join-disclosure">{{purchaseNote}}</text>
+      <view class="inline-link" bindtap="openTerms" aria-role="button">查看《服务与退款约定》 ›</view>
+    </block>
+
+    <block wx:if="{{verificationPending || (order && !order.paid)}}">
+      <view class="cp-pending-bar">
+        <text class="sec-muted">{{verificationPending ? '订单状态待核对，已付款请刷新：' : '订单处理中，请刷新状态避免重复付款：'}}</text>
+        <view class="cp-pending-actions">
+          <button class="inline-btn-link" bindtap="refreshOrder" loading="{{checking}}" disabled="{{checking}}">刷新订单状态</button>
+          <button open-type="contact" class="inline-btn-link">联系客服</button>
+        </view>
+      </view>
+    </block>
   </view>
 
-  <view class="page-card community-card community-pay-card">
-    <view class="sec">
-      <text class="sec-title">加入方式（任选其一）</text>
-      <text class="community-price">{{priceLabel}}</text>
-      <text class="join-disclosure">{{promotionNote}}</text>
-      <text wx:if="{{!checkoutReady && !order.paid}}" class="join-disclosure">{{purchaseNote}}</text>
-      <view class="terms-link" bindtap="openTerms" hover-class="tap-active" aria-role="button">查看服务内容与随时退款保障 ›</view>
-      <block wx:if="{{verificationPending && !order}}">
-        <text class="sec-muted">订单状态暂时无法核对，已付款用户请点下方刷新或联系客服。</text>
-        <button class="terms-link" bindtap="refreshOrder" loading="{{checking}}" disabled="{{checking}}">刷新订单状态</button>
-        <button open-type="contact" class="terms-link">订单问题联系客服</button>
-      </block>
-      <block wx:if="{{order}}">
-        <text wx:if="{{order.orderId}}" class="sec-muted">订单号：{{order.orderId}}</text>
-        <view wx:if="{{order.orderId}}" class="terms-link" bindtap="copyOrderId" hover-class="tap-active" aria-role="button">复制订单号</view>
-        <text class="sec-text" wx:if="{{order.paid && !verificationPending && order.endsText}}">已入群，有效期至 {{order.endsText}}</text>
-        <text class="sec-text" wx:elif="{{order.paid && !verificationPending}}">已付款成功！请点下方按钮打开群主微信二维码，添加好友安排进群（服务期从实际入群日算起）。</text>
-        <text class="sec-muted" wx:elif="{{verificationPending}}">订单状态暂时无法核对，请刷新或联系客服。</text>
-        <text class="sec-muted" wx:else>订单处理中，请刷新状态；如有疑问请联系客服，避免重复付款。</text>
-        <button wx:if="{{order.paid && !verificationPending && qrReady}}" class="join-action" bindtap="openPaidQr">打开群主微信二维码</button>
-        <button class="terms-link" bindtap="refreshOrder" loading="{{checking}}" disabled="{{checking}}">刷新订单状态</button>
-        <button wx:if="{{verificationPending || !order.paid}}" open-type="contact" class="terms-link">订单问题联系客服</button>
-      </block>
-      <block wx:if="{{checkoutReady && !order.paid}}">
-        <button class="join-action" bindtap="buy" loading="{{paying}}" disabled="{{paying || checking || verificationPending}}">方式一：微信支付 298 元 / 年（付完弹进群二维码）</button>
-        <text class="join-disclosure">点击支付即确认已满 18 周岁，并同意会员群服务与退款约定（入群前及入群7天内均可全额退）。</text>
-      </block>
-      <block wx:if="{{join}}">
-        <view class="wechat-alt-divider"></view>
-        <text class="sec-text">想先问清楚再决定？可先加群主微信咨询：</text>
-        <view class="join-action is-secondary" bindtap="copyWechat" hover-class="join-action-active" aria-role="button" aria-label="{{join.label}}">方式二：{{copiedWechatSuccess ? '✓ 微信号已复制，点此重复制' : join.label}}</view>
-        <view wx:if="{{copiedWechatSuccess}}" class="copy-step-box">
-          <text class="copy-step-title">✓ 群主微信号已复制！怎么添加：</text>
-          <text class="copy-step-body">1. 返回微信聊天首页，点右上角加号「⊕」→ 选「添加朋友」</text>
-          <text class="copy-step-body">2. 在搜索框长按点「粘贴」，搜索并添加好友即可</text>
-        </view>
+  <!-- 辅助咨询入口：安静放在下方，不与微信支付主按钮打架 -->
+  <view wx:if="{{join}}" class="page-card community-consult-card">
+    <view class="consult-row" bindtap="copyWechat" hover-class="tap-active" aria-role="button" aria-label="{{join.label}}">
+      <view class="consult-left">
+        <text class="consult-title">付款前想先问清楚？</text>
         <text class="join-disclosure">{{join.disclosure}}</text>
-      </block>
-      <text wx:else class="sec-muted">加入方式整理中。</text>
-      <view wx:if="{{adminAllowed}}" class="terms-link" bindtap="openAdmin" hover-class="tap-active" aria-role="button">群务管理 ›</view>
+      </view>
+      <text class="consult-action">{{copiedWechatSuccess ? '✓ 已复制微信号' : '复制微信咨询 ›'}}</text>
+    </view>
+    <view wx:if="{{copiedWechatSuccess}}" class="copy-step-box">
+      <text class="copy-step-title">✓ 微信号已复制：回微信点右上角「⊕ → 添加朋友」粘贴即可</text>
+    </view>
+    <view wx:if="{{adminAllowed}}" class="admin-row">
+      <text class="inline-link" bindtap="openAdmin" aria-role="button">群务管理 ›</text>
     </view>
   </view>
 
@@ -74,12 +85,13 @@
     <view class="page-nav-button" bindtap="goBack" hover-class="tap-active" aria-role="button" aria-label="返回上一页">‹ 上一页</view>
     <view class="page-nav-button" bindtap="goHome" hover-class="tap-active" aria-role="button" aria-label="回到首页">回到首页</view>
   </view>
+
   <view wx:if="{{showQr && order.paid && !verificationPending}}" class="qr-overlay" bindtap="closePaidQr">
     <view class="qr-dialog" catchtap="keepPaidQrOpen">
-      <text class="qr-title">手指按住二维码 2 秒，添加群主微信</text>
+      <text class="qr-title">长按二维码 2 秒，添加群主进群</text>
       <image class="qr-image" src="{{qrImage}}" mode="widthFix" show-menu-by-longpress="{{true}}" />
-      <text class="qr-hint">添加通过后第一时间拉你进会员群</text>
-      <view class="qr-close" bindtap="closePaidQr" aria-role="button">关闭窗口</view>
+      <text class="qr-hint">通过后第一时间拉你进年度会员群</text>
+      <view class="qr-close" bindtap="closePaidQr" aria-role="button">关闭</view>
     </view>
   </view>
 </view>

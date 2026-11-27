@@ -90,7 +90,7 @@
 
 <view class="page-shell detail-shell">
   <view wx:if="{{ready}}" class="detail-content">
-    <!-- 对标 Robinhood × Apple 股市：浅色通透大字价格头，1 秒抓核心数 -->
+    <!-- 对标 Robinhood × 富途 × 息记：大字名称代码 + 短标签胶囊 + 大号价格 + 可视化高低区间条 -->
     <view class="detail-hero-card page-card">
       <view class="hero-top">
         <view class="hero-tag-row">
@@ -101,7 +101,10 @@
       </view>
       <view class="hero-name-row">
         <text class="hero-title">{{view.title}}</text>
-        <text wx:if="{{view.code && !view.hideCode}}" class="hero-code">{{view.code}}</text>
+        <text wx:if="{{view.displayCode || (view.code && !view.hideCode)}}" class="hero-code-pill">{{view.displayCode || view.code}}</text>
+      </view>
+      <view wx:if="{{view.heroTags && view.heroTags.length}}" class="hero-pills-row">
+        <text wx:for="{{view.heroTags}}" wx:key="*this" class="hero-meta-pill">{{item}}</text>
       </view>
       <view wx:if="{{view.heroFigure}}" class="hero-price-row">
         <text class="hero-big-figure">{{view.heroFigure}}</text>
@@ -109,11 +112,23 @@
       </view>
       <text class="hero-asof">{{dataAsOf || '读取历史资料'}}</text>
 
-      <!-- 核心三问明白卡：一进页面先用大白话答清「什么标的、怎么判断、参考什么价位」 -->
-      <view wx:if="{{view.threeQuestions && view.threeQuestions.length}}" class="threeq-box">
-        <view wx:for="{{view.threeQuestions}}" wx:key="step" class="threeq-row">
-          <text class="threeq-ask">{{item.ask}}</text>
-          <text class="threeq-ans">{{item.answer}}</text>
+      <!-- 可视化高低区间尺（美股/A股/黄金）或 4 步进度条（港股新股），代替大段说明文字 -->
+      <view wx:if="{{view.heroRange}}" class="hero-range-box" aria-hidden="true">
+        <view class="meter-track">
+          <view class="meter-fill" style="width: {{view.heroRange.percent}}%;"></view>
+          <view class="meter-dot" style="left: {{view.heroRange.percent}}%;"></view>
+        </view>
+        <view class="meter-labels">
+          <text>{{view.heroRange.lowLabel}}</text>
+          <text>{{view.heroRange.midLabel}}</text>
+          <text>{{view.heroRange.highLabel}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{view.heroStages && view.heroStages.length}}" class="hero-stage-track" aria-hidden="true">
+        <view wx:for="{{view.heroStages}}" wx:key="label" class="hero-stage-step is-{{item.state}}">
+          <view class="hero-stage-dot"></view>
+          <text class="hero-stage-label">{{item.label}}</text>
         </view>
       </view>
 
@@ -123,10 +138,6 @@
           <text class="highlight-value">{{item.value}}</text>
         </view>
       </view>
-    </view>
-
-    <view class="aux-section-head">
-      <text class="aux-section-title">辅助判断参考（数据 · 图表 · 近况）</text>
     </view>
 
     <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
@@ -279,9 +290,17 @@
         </view>
       </view>
 
-      <!-- 对标 Robinhood × Apple 股市 × Fey：干净曲线 + 双列整洁关键指标 + 三句核心要点 -->
+      <!-- 对标 Robinhood × 富途 × 息记：走势曲线 + 多周期涨跌格 + 双列核心数据 + 进度条指标 -->
       <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
-        <template wx:if="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
+        <template wx:if="{{view.overview.sparkCard && (!view.overview.priceCard || view.overview.priceCard.kind !== 'line')}}" is="chart-visual" data="{{item: view.overview.sparkCard}}" />
+        <template wx:elif="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
+
+        <view wx:if="{{view.overview.periodReturns && view.overview.periodReturns.length}}" class="period-strip">
+          <view wx:for="{{view.overview.periodReturns}}" wx:key="label" class="period-cell tone-{{item.tone}}">
+            <text class="period-label">{{item.label}}</text>
+            <text class="period-val">{{item.valueText}}</text>
+          </view>
+        </view>
 
         <view wx:if="{{view.keyStats && view.keyStats.length}}" class="apple-stats-grid">
           <view wx:for="{{view.keyStats}}" wx:key="*this" class="apple-stat-cell">
@@ -290,7 +309,19 @@
           </view>
         </view>
 
-        <!-- A股收息首屏直接展示 Stock Events 标志性按股数分红试算器，1秒算出拿多少现金 -->
+        <view wx:if="{{view.overview.healthChecks && view.overview.healthChecks.length}}" class="health-bars-box">
+          <view wx:for="{{view.overview.healthChecks}}" wx:key="label" class="health-bar-row">
+            <view class="health-bar-head">
+              <text class="health-bar-k">{{item.label}}</text>
+              <text class="health-bar-v tone-{{item.tone}}">{{item.valueText}}</text>
+            </view>
+            <view class="health-bar-track">
+              <view class="health-bar-fill tone-{{item.tone}}" style="width: {{item.percent}}%;"></view>
+            </view>
+          </view>
+        </view>
+
+        <!-- A股收息首屏分红试算器：点股数直接看年度现金分红 -->
         <view wx:if="{{view.market == 'a' && dividendCalcView}}" class="section-card div-calc-card">
           <view class="div-calc-head">
             <text class="block-title">持股分红试算</text>
@@ -314,13 +345,7 @@
           </view>
         </view>
 
-        <text class="module-answer">{{view.overview.reason || view.primaryJudgment || '结论待核验'}}</text>
-
-        <view wx:if="{{view.overview.keyFacts && view.overview.keyFacts.length}}" class="fey-takeaways">
-          <view wx:for="{{view.overview.keyFacts}}" wx:key="*this" class="evidence-item">
-            <text>{{item}}</text>
-          </view>
-        </view>
+        <text wx:if="{{view.overview.reason}}" class="module-answer">{{view.overview.reason}}</text>
 
         <view wx:if="{{view.overview.keyRisk}}" class="risk-card">
           <text class="risk-label">风险留意</text>

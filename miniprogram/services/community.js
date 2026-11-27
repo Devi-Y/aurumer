@@ -14,7 +14,16 @@ function call(action, data = {}) {
 }
 function status() { return call("communityStatus"); }
 async function purchase(termsVersion) {
-  const prepared = await call("prepareCommunityPurchase", { legalConsent: { accepted: true, adultConfirmed: true, termsVersion } });
+  const canLoad = typeof wx !== "undefined" && typeof wx.showLoading === "function";
+  if (canLoad) wx.showLoading({ title: "正在打开微信支付", mask: true });
+  let prepared;
+  try {
+    prepared = await call("prepareCommunityPurchase", { legalConsent: { accepted: true, adultConfirmed: true, termsVersion } });
+  } finally {
+    if (canLoad && typeof wx.hideLoading === "function") {
+      try { wx.hideLoading(); } catch (e) {}
+    }
+  }
   if (prepared.alreadyPaid) return prepared.orderId;
   const payment = prepared.payment || {};
   if (payment.kind !== "wechat-jsapi" || typeof wx.requestPayment !== "function") throw new Error("微信支付暂不可用");

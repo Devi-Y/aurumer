@@ -37,62 +37,72 @@ const { marketReferenceAsOf, referenceDateText } = require("../../utils/historic
 const { historicalGoldSeries, domesticGoldClose } = require("../../utils/gold-series");
 const { goldParity } = require("../../utils/gold-parity");
 
-const PLAIN_BIZ_DESC = {
-  NVDA: "AI人工智能芯片龙头",
-  MSFT: "电脑系统与云计算巨头",
-  AAPL: "iPhone手机与软件生态",
-  GOOGL: "全球搜索与安卓系统巨头",
-  GOOG: "全球搜索与安卓系统巨头",
-  AMZN: "全球电商购物与云计算",
-  META: "全球社交平台（脸书母公司）",
-  TSLA: "智能电动车与自动驾驶",
-  AMD: "电脑与AI服务器芯片大厂",
-  AVGO: "AI网络与通信芯片巨头",
-  TSM: "全球最大芯片代工厂",
-  ORCL: "企业数据库与云软件巨头",
-  PLTR: "大数据与AI辅助决策软件",
-  MSTR: "企业分析软件与数字资产",
-  CRWD: "全球云网络安全龙头",
-  ARM: "全球手机与芯片底层架构",
-  NFLX: "全球流媒体影视订阅龙头",
-  COST: "全球会员制仓储连锁超市",
-  LLY: "全球创新药与代谢药巨头",
-  ASML: "全球高端光刻机绝对龙头",
-  V: "全球刷卡支付清算网络",
-  MA: "全球刷卡支付清算网络",
-  JPM: "美国最大综合性商业银行",
-  WMT: "全球最大连锁零售超市",
-  UNH: "美国商业医疗保险龙头",
-  "600900": "三峡水电龙头 · 现金流稳",
-  "600036": "全国零售商业银行龙头",
-  "600941": "国内最大通信运营商",
-  "601088": "煤电一体化高分红龙头",
-  "000333": "全球白色家电制造龙头",
-  "000651": "国内空调家电高息龙头",
-  "601398": "国有大型商业银行",
-  "601939": "国有大型商业银行",
-  "601288": "国有大型商业银行",
-  "601988": "国有大型商业银行",
-  "600938": "国内海上油气开采龙头",
-  "600377": "长三角核心高速公路收息",
-  "600585": "全国水泥建材行业龙头",
-  "600011": "全国大型火电与绿电运营",
-  "601166": "全国性股份制商业银行",
-  "600019": "全国钢铁制造龙头",
-  "601006": "西煤东运重载铁路龙头",
-  "601225": "西北优质煤炭高息龙头",
-  "600028": "国内炼油化工与加油站巨头",
-  "601857": "国内油气勘探开采巨头",
-  "515180": "一篮子A股高分红股票ETF",
+const SHORT_TAG_MAP = {
+  NVDA: "AI芯片",
+  MSFT: "云计算",
+  AAPL: "手机生态",
+  GOOGL: "搜索AI",
+  GOOG: "搜索AI",
+  AMZN: "电商云",
+  META: "社交广告",
+  TSLA: "智能电车",
+  AMD: "服务器芯片",
+  AVGO: "通信芯片",
+  TSM: "晶圆代工",
+  ORCL: "企业云",
+  PLTR: "AI软件",
+  MSTR: "数字资产",
+  CRWD: "网络安全",
+  ARM: "芯片架构",
+  NFLX: "流媒体",
+  COST: "仓储超市",
+  LLY: "创新药",
+  ASML: "光刻机",
+  V: "支付清算",
+  MA: "支付清算",
+  JPM: "综合银行",
+  WMT: "连锁零售",
+  UNH: "医疗保险",
+  "600900": "水电龙头",
+  "600036": "零售银行",
+  "600941": "通信龙头",
+  "601088": "煤电一体",
+  "000333": "白电龙头",
+  "000651": "空调家电",
+  "601398": "国有大行",
+  "601939": "国有大行",
+  "601288": "国有大行",
+  "601988": "国有大行",
+  "600938": "海上油气",
+  "600377": "高速公路",
+  "600585": "水泥龙头",
+  "600011": "火电绿电",
+  "601166": "股份银行",
+  "600019": "钢铁龙头",
+  "601006": "重载铁路",
+  "601225": "优质煤炭",
+  "600028": "石油化工",
+  "601857": "油气龙头",
+  "515180": "红利ETF",
 };
 
-function plainBizFor(market, id, code, industry) {
+function shortTagFor(market, id, code, industry) {
   const cleanId = String(id || "").replace(/\.(SH|SZ|HK)$/i, "").toUpperCase();
   const cleanCode = String(code || "").replace(/\.(SH|SZ|HK)$/i, "").toUpperCase();
-  if (PLAIN_BIZ_DESC[cleanId]) return PLAIN_BIZ_DESC[cleanId];
-  if (PLAIN_BIZ_DESC[cleanCode]) return PLAIN_BIZ_DESC[cleanCode];
-  if (industry) return `${industry}行业公司`;
-  return market === "us" ? "全球知名美股公司" : (market === "a" ? "A股现金分红公司" : "港股拟上市公司");
+  if (SHORT_TAG_MAP[cleanId]) return SHORT_TAG_MAP[cleanId];
+  if (SHORT_TAG_MAP[cleanCode]) return SHORT_TAG_MAP[cleanCode];
+  if (industry) {
+    const first = String(industry).split(/[\/、·,，]/)[0].trim();
+    return first.length > 5 ? first.slice(0, 5) : first;
+  }
+  return market === "us" ? "美股" : (market === "a" ? "红利" : "新股");
+}
+
+function formatACode(code, id) {
+  const raw = String(code || id || "").trim();
+  if (!raw) return "";
+  if (/\.(SH|SZ)$/i.test(raw)) return raw.toUpperCase();
+  return /^6|^5/.test(raw) ? `${raw}.SH` : `${raw}.SZ`;
 }
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 
@@ -206,30 +216,22 @@ function buildHkModule(snapshot) {
     const deadlineOffset = hkDeadlineOffset(deadline);
     const closed = deadlineOffset != null && deadlineOffset < 0;
     const sponsorText = Array.isArray(raw.sponsorNames) && raw.sponsorNames.length
-      ? shortOrgList(raw.sponsorNames, "", 2)
-      : (raw.sponsor ? shortOrgList(String(raw.sponsor).split(/[、,，/]/).map((s) => s.trim()).filter(Boolean), "", 2) : "");
-    const metaTags = [raw.industry, sponsorText ? `保荐 ${sponsorText}` : ""].filter(Boolean).join(" · ");
-    // 借鉴捷利交易宝/长桥：4步生命周期进度条，新手零门槛看清处于打新哪一关。
+      ? shortOrgList(raw.sponsorNames, "", 1)
+      : (raw.sponsor ? shortOrgList(String(raw.sponsor).split(/[、,，/]/).map((s) => s.trim()).filter(Boolean), "", 1) : "");
+    const indTag = raw.industry ? String(raw.industry).split(/[\/、·,，]/)[0].trim().slice(0, 6) : "";
+    const tagPills = [indTag, sponsorText ? `保荐 ${sponsorText}` : ""].filter(Boolean);
     const stageStep = item.group === "settled" ? 2 : (closed ? 1 : 0);
     const stageSteps = ["招股", "截止", "配发", "上市"].map((label, idx) => ({
       label,
       state: idx < stageStep ? "done" : (idx === stageStep ? "now" : "todo"),
     }));
-    const hasCornerstone = finiteOrNull(raw.cornerstonePercent) != null || Boolean(raw.cornerstoneAmount);
-    const plainGuide = closed
-      ? "申购已截止，当前等待公布中签配发与上市结果"
-      : (deadlineOffset == null
-        ? "招股资料已披露，具体申购截止日以港交所最新公告为准"
-        : (hasCornerstone
-          ? "已有基石大机构认购锁仓，申购前请核对截止日与破发风险"
-          : "暂未披露基石机构锁仓，冷门新股需留意上市首日破发风险"));
+    const rawCode = String(item.code || item.id || "").replace(/\.HK$/i, "");
     return {
       id: item.id,
       name: shortCompanyName(item.name, item.code || "新股", 10),
-      code: String(item.code || "").replace(/\.HK$/i, ""),
-      metaTags: metaTags || "港股新股",
+      code: rawCode ? `${rawCode}.HK` : "",
+      tagPills,
       stageSteps,
-      plainGuide,
       badgeText: closed ? "已截止" : (deadlineOffset == null ? "日期待核" : "日期参考"),
       tone: closed ? "settled" : "caution",
       reason: "招股资料仅供参考，请核对最新公告",
@@ -238,7 +240,7 @@ function buildHkModule(snapshot) {
       closed,
       stats: [
         { label: "招股价", value: offer != null ? `HK$${offer}` : "待更新" },
-        { label: "买一手本金", value: entryFee != null ? `HK$${Math.round(entryFee).toLocaleString("en-US")}` : "待更新" },
+        { label: "一手本金", value: entryFee != null ? `HK$${Math.round(entryFee).toLocaleString("en-US")}` : "待更新" },
         hkCornerstoneStat(raw),
       ],
     };
@@ -515,22 +517,19 @@ function usStockRow(item, sparkCache = null) {
     ? Math.max(0, Math.min(100, Math.round(((curPrice - lo60) / (hi60 - lo60)) * 100)))
     : null;
   const pe = finiteOrNull(fund.pe);
-  const bizBrief = plainBizFor("us", item.id, item.code);
-  const posWord = sortPos60 == null
-    ? ""
-    : (sortPos60 <= 30 ? "处在近60日偏低区" : (sortPos60 >= 75 ? "处在近60日偏高区" : "处在近60日中间区"));
-  const rangeParts = [];
-  if (lo60 != null && hi60 != null) {
-    rangeParts.push(`近60日 $${lo60.toFixed(0)}～$${hi60.toFixed(0)}${posWord ? `（${posWord}）` : ""}`);
-  }
-  if (pe != null && pe > 0) rangeParts.push(`市盈率 ${pe.toFixed(1)}倍`);
+  const shortTag = shortTagFor("us", item.id, item.code);
+  const hasRangeBar = lo60 != null && hi60 != null && sortPos60 != null;
   return {
     id: item.id,
     name: item.name,
     code: item.code,
-    bizBrief,
-    rangeGuide: rangeParts.join(" · "),
-    peBrief: pe != null && pe > 0 ? `市盈率 ${pe.toFixed(1)}倍` : "",
+    shortTag,
+    hasRangeBar,
+    lo60Text: lo60 != null ? `$${lo60.toFixed(0)}` : "",
+    hi60Text: hi60 != null ? `$${hi60.toFixed(0)}` : "",
+    pos60Pct: sortPos60 != null ? sortPos60 : 50,
+    posChip: sortPos60 != null ? `${sortPos60}%位` : "",
+    peChip: pe != null && pe > 0 ? `PE ${pe.toFixed(1)}x` : "",
     badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
     reason: signal.action,
@@ -691,26 +690,23 @@ function aRankedList(items, lens) {
       }
       const raw = item.raw || {};
       const curPrice = finiteOrNull(raw.currentPrice);
-      const lotCostText = curPrice != null ? `买1手约 ¥${Math.round(curPrice * 100).toLocaleString("en-US")}` : "";
-      const per10kText = historicalYield ? `投1万一年约分红 ¥${Math.round(historicalYield.yieldPercent * 100)}` : "";
-      const xijiPriceLine = [
-        curPrice != null ? `股价 ¥${curPrice.toFixed(2)}` : "",
-        lotCostText,
-        per10kText,
-      ].filter(Boolean).join(" · ");
-      const xijiStableLine = stabilityDetail.decreaseCount === 0 && recordedYears >= 5
-        ? "近5年连续分红未降息"
-        : (stabilityDetail.decreaseCount != null
-          ? `收录${recordedYears}年分红 · 近5年${stabilityDetail.decreaseCount}次降息`
-          : "分红记录整理中");
+      const dataChips = [];
+      if (lens === "stable5" && historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
+      if (lens !== "stable5" && stability != null) dataChips.push(`稳度 ${stability}分`);
+      if (curPrice != null) {
+        dataChips.push(`现价 ¥${curPrice.toFixed(2)}`);
+        dataChips.push(`一手 ¥${Math.round(curPrice * 100).toLocaleString("en-US")}`);
+      }
+      if (historicalYield) dataChips.push(`万分红 ¥${Math.round(historicalYield.yieldPercent * 100)}`);
+      const spark = historySpark(item, US_SPARK_SIZE);
       return {
         id: item.id,
         rank: item.lensRank[lens],
         name: item.name,
-        code: item.code,
-        bizBrief: plainBizFor("a", item.id, item.code, raw.industry),
-        xijiPriceLine,
-        xijiStableLine,
+        code: formatACode(item.code, item.id),
+        shortTag: shortTagFor("a", item.id, item.code, raw.industry),
+        dataChips,
+        ...spark,
         badgeText: item.badge,
         tone: aTone(item.group),
         metricText,
@@ -770,17 +766,22 @@ function aAllModule(items, fresh) {
       const factParts = [];
       if (historicalYield) factParts.push(`股息率 ${historicalYield.yieldPercent.toFixed(2)}%`);
       if (stability != null) factParts.push(`稳度 ${stability}分`);
-      const lotCostText = price != null ? `买1手约 ¥${Math.round(price * 100).toLocaleString("en-US")}` : "";
-      const per10kText = historicalYield ? `投1万约分红 ¥${Math.round(historicalYield.yieldPercent * 100)}/年` : "";
+      const dataChips = [];
+      if (historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
+      if (stability != null) dataChips.push(`稳度 ${stability}分`);
+      if (price != null) dataChips.push(`一手 ¥${Math.round(price * 100).toLocaleString("en-US")}`);
+      if (historicalYield) dataChips.push(`万分红 ¥${Math.round(historicalYield.yieldPercent * 100)}`);
+      const spark = historySpark(item, US_SPARK_SIZE);
       return {
         order,
         id: item.id,
         name: item.name,
-        code: item.code,
-        bizBrief: plainBizFor("a", item.id, item.code, raw.industry),
-        xijiPriceLine: [lotCostText, per10kText].filter(Boolean).join(" · "),
+        code: formatACode(item.code, item.id),
+        shortTag: shortTagFor("a", item.id, item.code, raw.industry),
+        dataChips,
         factSummary: factParts.join(" · "),
         yearDots: buildDividendDots(raw),
+        ...spark,
         sortYield: historicalYield ? historicalYield.yieldPercent : null,
         sortStability: stability != null ? Number(stability) : null,
         sortCuts: stabilityDetail.decreaseCount,
@@ -1047,6 +1048,7 @@ function buildGoldModule(snapshot) {
     {
       id: "usd",
       label: "国际金",
+      code: "XAU",
       priceText: hasNumber(international.price) ? Number(international.price).toFixed(0) : "待更新",
       unit: "美元 / 盎司",
       asOfText: referenceDateText([international.asOf]),
@@ -1056,6 +1058,7 @@ function buildGoldModule(snapshot) {
     {
       id: "cny",
       label: "人民币金",
+      code: "Au99.99",
       priceText: hasNumber(domestic.price) ? Number(domestic.price).toFixed(2) : "待更新",
       unit: "元 / 克",
       asOfText: referenceDateText([domestic.asOf], "收盘"),
@@ -1143,7 +1146,9 @@ function guruTrendRow(row) {
     .join(" · ");
   const tone = row.adders.length && row.cutters.length ? "caution" : (row.adders.length ? "worth" : "avoid");
   const label = tickerZhLabel(row.name || row.symbol, row.issuer) || "待更新";
-  return { key: row.symbol || row.name, label, tone, badge };
+  const rawSym = String(row.symbol || "").trim().toUpperCase();
+  const code = /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawSym) && !label.includes(rawSym) ? rawSym : "";
+  return { key: row.symbol || row.name, label, code, tone, badge };
 }
 
 function guruTrendRowsFrom(trend) {
@@ -1267,12 +1272,15 @@ function buildGuruModule(snapshot) {
     const rows = holdings.slice(0, 10).map((holding) => {
       const weight = Number(holding.weight);
       const move = String(holding.changeLabel || "");
+      const displayName = guruHoldingName(holding);
+      const rawTicker = String(holding.ticker || holding.code || "").trim().toUpperCase();
+      const code = /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawTicker) && !displayName.includes(rawTicker) ? rawTicker : "";
       return {
-        name: guruHoldingName(holding),
+        name: displayName,
+        code,
         weightText: Number.isFinite(weight) ? `${weight.toFixed(1)}%` : "—",
         weightBar: Number.isFinite(weight) ? Math.max(3, Math.round((weight / topWeight) * 100)) : 0,
         moveText: move || "—",
-        // 和「共同方向」条形图同一套色：加仓绿、减仓红，持有类中性。
         moveTone: /新进|新建|增持/.test(move) ? "worth" : (/减持|清仓|退出/.test(move) ? "avoid" : ""),
       };
     });

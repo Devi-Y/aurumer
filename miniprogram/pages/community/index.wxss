@@ -1,205 +1,280 @@
-/* 付费会员群页：适老化大字号、主次分明的微信直付 + 复制微信号双通道 */
+/* 对标问岳收银台：价格清晰、标签利落、一键直拉微信支付 */
 
 .community-shell {
-  background: #f6f7fa;
+  padding-top: 24rpx;
+  background: #f3f5f9;
 }
 
-.community-head {
+.community-pay-hero {
   display: flex;
-  margin-bottom: 10rpx;
-  padding: 24rpx 28rpx 16rpx;
+  margin: 0 24rpx 22rpx;
+  padding: 32rpx 28rpx 30rpx;
   flex-direction: column;
-  gap: 10rpx;
-  background: transparent;
+  gap: 20rpx;
+  border-radius: 32rpx;
+  background: #ffffff;
+  box-shadow: 0 10rpx 32rpx rgba(15, 23, 42, 0.05);
+}
+
+.cp-kicker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.cp-kicker {
+  padding: 6rpx 16rpx;
+  border-radius: 10rpx;
+  background: #eaf2ff;
+  color: #1d5fd1;
+  font-size: 24rpx;
+  font-weight: 740;
+}
+
+.cp-refund-pill {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #ebfaf2;
+  color: #0d8a52;
+  font-size: 24rpx;
+  font-weight: 720;
 }
 
 .community-title {
   color: #0f172a;
-  font-size: 46rpx;
+  font-size: 40rpx;
   font-weight: 800;
-  letter-spacing: -0.6rpx;
-  line-height: 1.28;
+  letter-spacing: -0.5rpx;
+  line-height: 1.3;
 }
 
-.community-sub {
-  color: #334155;
-  font-size: 29rpx;
-  line-height: 1.58;
-}
-
-.community-card {
-  margin: 0 24rpx 24rpx;
-  border-radius: 28rpx;
-}
-
-.community-pay-card {
-  border: 2rpx solid rgba(29, 95, 209, 0.16);
-  background: linear-gradient(180deg, #f7faff 0%, #ffffff 45%);
-}
-
-.sec {
+.cp-price-row {
   display: flex;
-  padding: 28rpx 26rpx 30rpx;
-  flex-direction: column;
-  gap: 16rpx;
+  padding: 16rpx 22rpx;
+  align-items: baseline;
+  gap: 8rpx;
+  border-radius: 22rpx;
+  background: #f6f9fe;
 }
 
-.sec + .sec {
-  border-top: 1rpx solid #edf0f4;
-}
-
-.sec-title {
+.cp-currency {
   color: #0f172a;
-  font-size: 34rpx;
-  font-weight: 740;
+  font-size: 36rpx;
+  font-weight: 800;
 }
 
-.sec-rows {
-  overflow: hidden;
-  border-radius: 18rpx;
-  background: #f5f8fc;
-}
-
-.sec-row {
-  display: flex;
-  padding: 20rpx 22rpx;
-  gap: 20rpx;
-}
-
-.sec-row + .sec-row {
-  border-top: 1rpx solid #e6ebf2;
-}
-
-.row-label {
-  width: 170rpx;
-  flex: none;
-  color: #1e293b;
-  font-size: 29rpx;
-  font-weight: 700;
-  line-height: 1.55;
-}
-
-.row-value {
-  min-width: 0;
-  flex: 1;
-  color: #334155;
-  font-size: 29rpx;
-  line-height: 1.55;
-}
-
-.sec-point {
-  position: relative;
-  padding-left: 28rpx;
-  color: #1e293b;
-  font-size: 30rpx;
-  line-height: 1.62;
-}
-
-.sec-point::before {
-  position: absolute;
-  top: 20rpx;
-  left: 4rpx;
-  width: 10rpx;
-  height: 10rpx;
-  border-radius: 50%;
-  background: #1d5fd1;
-  content: "";
-}
-
-.sec-text {
+.cp-price-num {
   color: #0f172a;
-  font-size: 30rpx;
-  font-weight: 600;
-  line-height: 1.62;
+  font-size: 68rpx;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
-.sec-muted {
+.cp-price-term {
+  color: #475569;
+  font-size: 30rpx;
+  font-weight: 660;
+}
+
+.cp-no-auto {
+  margin-left: auto;
   color: #64748b;
-  font-size: 27rpx;
-  line-height: 1.6;
+  font-size: 24rpx;
+  font-weight: 600;
 }
 
-.wechat-alt-divider {
-  height: 2rpx;
-  margin: 12rpx 0 4rpx;
-  background: #e8edf5;
-}
-
-.join-action {
+.cp-tags-row {
   display: flex;
-  width: 100%;
-  min-height: 106rpx;
-  margin: 6rpx 0 0;
-  padding: 0 22rpx;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.cp-tag {
+  display: flex;
+  align-items: center;
+  color: #1e293b;
+  font-size: 29rpx;
+  font-weight: 620;
+  line-height: 1.45;
+}
+
+.cp-tag::before {
+  margin-right: 14rpx;
+  color: #07c160;
+  font-size: 30rpx;
+  font-weight: 800;
+  content: "✓";
+}
+
+.wxpay-btn {
+  display: flex;
+  width: 100% !important;
+  min-height: 108rpx;
+  margin: 6rpx 0 0 !important;
+  padding: 0 28rpx !important;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  border-radius: 22rpx;
-  background: linear-gradient(135deg, #2568dc 0%, #1d5fd1 100%);
+  border: none;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #09c765 0%, #06ad56 100%);
   color: #ffffff;
-  font-size: 32rpx;
-  font-weight: 720;
-  line-height: 1.35;
-  text-align: center;
-  box-shadow: 0 8rpx 22rpx rgba(29, 95, 209, 0.24);
-  transition: transform 0.12s ease;
+  font-size: 35rpx;
+  font-weight: 780;
+  line-height: 1.3;
+  box-shadow: 0 10rpx 26rpx rgba(7, 193, 96, 0.28);
 }
 
-.join-action.is-secondary {
-  border: 2rpx solid #1d5fd1;
+.wxpay-btn::after {
+  border: none;
+}
+
+.cp-pay-sub {
+  color: #334155;
+  font-size: 26rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.cp-legal-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4rpx;
+  text-align: center;
+}
+
+.cp-paid-box {
+  display: flex;
+  padding: 22rpx;
+  flex-direction: column;
+  gap: 14rpx;
+  border-radius: 22rpx;
+  background: #effaf4;
+}
+
+.cp-paid-badge {
+  color: #0d8a52;
+  font-size: 32rpx;
+  font-weight: 780;
+}
+
+.cp-paid-meta {
+  color: #1e3a2f;
+  font-size: 28rpx;
+  line-height: 1.55;
+}
+
+.cp-order-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.cp-pending-bar {
+  display: flex;
+  padding: 18rpx 20rpx;
+  flex-direction: column;
+  gap: 10rpx;
+  border-radius: 18rpx;
+  background: #f8fafc;
+}
+
+.cp-pending-actions {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.inline-link {
+  color: #1d5fd1;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.inline-btn-link {
+  margin: 0 !important;
+  padding: 6rpx 0 !important;
+  background: transparent !important;
+  color: #1d5fd1 !important;
+  font-size: 27rpx !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+}
+
+.inline-btn-link::after {
+  border: none;
+}
+
+.community-consult-card {
+  display: flex;
+  margin: 0 24rpx 22rpx;
+  padding: 24rpx 26rpx;
+  flex-direction: column;
+  gap: 14rpx;
+  border-radius: 26rpx;
+  background: #ffffff;
+}
+
+.consult-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.consult-left {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.consult-title {
+  color: #0f172a;
+  font-size: 30rpx;
+  font-weight: 720;
+}
+
+.consult-action {
+  flex: none;
+  padding: 12rpx 20rpx;
+  border-radius: 999rpx;
   background: #eef4ff;
   color: #1d5fd1;
-  box-shadow: none;
-}
-
-.join-action-active {
-  transform: scale(0.985);
-  opacity: 0.9;
+  font-size: 26rpx;
+  font-weight: 720;
 }
 
 .copy-step-box {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-  padding: 22rpx 24rpx;
-  border: 2rpx solid rgba(21, 153, 96, 0.28);
-  border-radius: 20rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 16rpx;
   background: #effaf4;
 }
 
 .copy-step-title {
   color: #0f6e43;
-  font-size: 30rpx;
-  font-weight: 760;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
-.copy-step-body {
-  color: #1e3a2f;
-  font-size: 28rpx;
-  line-height: 1.6;
+.admin-row {
+  padding-top: 8rpx;
+  border-top: 1rpx solid #edf1f7;
 }
 
+.sec-muted,
 .join-disclosure {
   color: #64748b;
-  font-size: 25rpx;
-  line-height: 1.58;
-}
-
-.community-price {
-  color: #1d5fd1;
-  font-size: 46rpx;
-  font-weight: 800;
-  line-height: 1.3;
-}
-
-.terms-link {
-  padding: 12rpx 0;
-  color: #1d5fd1;
-  font-size: 29rpx;
-  font-weight: 650;
-  line-height: 1.6;
-  background: transparent;
-  text-align: left;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 
 .tap-active {
@@ -258,7 +333,7 @@
 
 .page-footer {
   display: flex;
-  padding: 12rpx 28rpx 0;
+  padding: 8rpx 28rpx 0;
   justify-content: center;
   text-align: center;
 }
@@ -267,18 +342,15 @@
   max-width: 600rpx;
   color: #64748b;
   font-size: 25rpx;
-  line-height: 1.58;
+  line-height: 1.55;
 }
 
 @media (max-width: 340px) {
-  .community-card { margin-left: 14rpx; margin-right: 14rpx; }
-  .community-title { font-size: 40rpx; }
-  .row-label { width: 148rpx; font-size: 26rpx; }
-  .row-value, .sec-point { font-size: 27rpx; }
+  .community-pay-hero, .community-consult-card { margin-left: 14rpx; margin-right: 14rpx; }
+  .community-title { font-size: 34rpx; }
+  .cp-price-num { font-size: 56rpx; }
 }
 
 @media (min-width: 700px) {
-  .community-head { padding-left: 32px; padding-right: 32px; }
-  .community-card { margin-left: 32px; margin-right: 32px; }
-  .row-label { width: 130px; }
+  .community-pay-hero, .community-consult-card { margin-left: 32px; margin-right: 32px; }
 }

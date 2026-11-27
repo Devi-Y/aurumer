@@ -1,0 +1,422 @@
+{
+  "checkedAt": "2026-10-23T00:44:52.989Z",
+  "durationMs": 16970,
+  "native": {
+    "source": "自动更新 · 2026-10-22 14:09",
+    "dataAsOf": "数据截至 10-22 14:09",
+    "answers": [
+      {
+        "id": "guru-holdings",
+        "question": "业绩靠前持仓",
+        "answer": "斯坦利·德鲁肯米勒 约 30% 年化",
+        "names": "NTRA（Natera） 16.6% · TSM（台积电） 5.4% · STM（意法半导体） 4.5%",
+        "namesLine": "NTRA（Natera） 16.6% · TSM（台积电） 5.4% · STM（意法半导体） 4.5%",
+        "tone": "good",
+        "action": "detail",
+        "group": "",
+        "targetId": "druckenmiller",
+        "enabled": true,
+        "hint": "",
+        "modal": "",
+        "rows": null,
+        "state": "",
+        "chart": {
+          "kind": "bars",
+          "items": [
+            {
+              "key": "h0",
+              "label": "Natera",
+              "valueText": "16.6%",
+              "width": 100
+            },
+            {
+              "key": "h1",
+              "label": "台积电",
+              "valueText": "5.4%",
+              "width": 33
+            },
+            {
+              "key": "h2",
+              "label": "意法半导体",
+              "valueText": "4.5%",
+              "width": 27
+            }
+          ]
+        }
+      },
+      {
+        "id": "guru-trend",
+        "question": "未来持仓趋势",
+        "answer": "2026年二季度 7家有增减资料的机构，公开持仓样本：增持/新建 23 项、减持 17 项，另有 21 项确认股票清仓",
+        "names": "分歧：AMZN（亚马逊）（2家加·1家减） · GOOGL（谷歌-A）（1家加·1家减） · CRWV（CoreWeave）（1家加·1家减） · 公开持仓样本，非全组合 · 不照抄仓位 · 滞后披露非实时",
+        "namesLine": "分歧：AMZN（亚马逊）（2家加·1家减） · GOOGL（谷歌-A）（1家加·1家减） · CRWV（CoreWeave）（1家加·1家减） · 公开持仓样本，非全组合 · 不照抄仓位 · 滞后披露非实时",
+        "tone": "warn",
+        "action": "none",
+        "group": "",
+        "targetId": "",
+        "enabled": true,
+        "hint": "",
+        "modal": "他们怎么想\n斯坦利·德鲁肯米勒：三十年跨越利率、科技与危机周期，收益和回撤控制同时突出。\n惠理价值基金：三十多年公开净值跨越多轮港股周期，长期年化与持仓透明度同时满足筛选门槛。\n华夏大盘精选：基金长期累计回报位于公开老牌产品前列，最新季报能看到策略换挡。\n\n我们如何借鉴\n斯坦利·德鲁肯米勒：先判断宏观主线，再用少数高确信个股表达；趋势失效时快速降仓。\n惠理价值基金：先找价格显著低于内在价值的公司，再等待估值修复；不要只因便宜忽略基本面恶化。\n华夏大盘精选：把历史业绩与现任经理分开看，只学习当前 AI、半导体与制造组合结构。\n\n要避免什么\n不照抄仓位；滞后披露的持仓不等于今天的操作；不学机构加杠杆。\n持仓申报和季报都有滞后，且通常只含多头。\n表观年化不可跨市场、跨币种横比。\n李嘉诚：不要把历史地产暴利时段当成当下可复制模板。\n潘石屹：个案退出路径不可直接映射到当下个股买卖。\n沈南鹏：私募早期仓位不可公开复制，也不构成二级市场买卖指令。\n\n「他们怎么想」「我们如何借鉴」是望潮研究归纳，不是投资人原话。",
+        "rows": null,
+        "state": "",
+        "chart": {
+          "kind": "mix",
+          "headline": "7家有增减资料 · 2026年二季度样本",
+          "items": [
+            {
+              "key": "add",
+              "label": "增持/新建",
+              "count": 23,
+              "tone": "add",
+              "countText": "23项",
+              "width": 37.7
+            },
+            {
+              "key": "cut",
+              "label": "减持",
+              "count": 17,
+              "tone": "cut",
+              "countText": "17项",
+              "width": 27.9
+            },
+            {
+              "key": "exit",
+              "label": "清仓",
+              "count": 21,
+              "tone": "exit",
+              "countText": "21项",
+              "width": 34.4
+            }
+          ]
+        }
+      }
+    ],
+    "trendRows": [
+      {
+        "key": "TSM",
+        "label": "TSM（台积电）",
+        "tone": "worth",
+        "badge": "2家增持",
+        "widthPct": 29
+      },
+      {
+        "key": "STM",
+        "label": "STM（意法半导体）",
+        "tone": "worth",
+        "badge": "2家增持",
+        "widthPct": 29
+      },
+      {
+        "key": "AMZN",
+        "label": "AMZN（亚马逊）",
+        "tone": "caution",
+        "badge": "2家加·1家减",
+        "widthPct": 43
+      },
+      {
+        "key": "BAC",
+        "label": "BAC（美国银行）",
+        "tone": "avoid",
+        "badge": "2家减持",
+        "widthPct": 29
+      },
+      {
+        "key": "AMD",
+        "label": "AMD（超威半导体）",
+        "tone": "avoid",
+        "badge": "2家减持",
+        "widthPct": 29
+      }
+    ],
+    "institutions": 15
+  },
+  "detail": {
+    "id": "value-partners-classic",
+    "ready": true,
+    "error": "",
+    "title": "惠理价值基金",
+    "source": "自动更新 · 2026-10-22 14:09",
+    "highlights": [
+      {
+        "label": "年化排名",
+        "value": "3家中第1"
+      },
+      {
+        "label": "持仓",
+        "value": "10只"
+      },
+      {
+        "label": "清仓",
+        "value": "未披露"
+      },
+      {
+        "label": "报告截至",
+        "value": "23天前"
+      }
+    ],
+    "analysis": [
+      {
+        "title": "为什么看它",
+        "body": "【望潮研究归纳】三十多年公开净值跨越多轮港股周期，长期年化与持仓透明度同时满足筛选门槛。",
+        "indexLabel": "01"
+      },
+      {
+        "title": "怎么学",
+        "body": "【望潮研究归纳】先找价格显著低于内在价值的公司，再等待估值修复；不要只因便宜忽略基本面恶化。",
+        "indexLabel": "02"
+      },
+      {
+        "title": "应该避免",
+        "body": "不照抄旧仓位；几个月前公布的持仓不等于今天的操作；不学它加杠杆、重仓一两只。",
+        "indexLabel": "03"
+      },
+      {
+        "title": "跟随边界",
+        "body": "公开持仓有滞后且不完整；只能学习框架与风险，不能当实时跟仓或买卖指令。",
+        "indexLabel": "04"
+      }
+    ]
+  },
+  "backRoute": "pages/section/index",
+  "errors": [],
+  "bundle": {
+    "updatedAt": "2026-10-22T00:51:16.045Z",
+    "reportPeriod": "2026-06-30",
+    "denominator": 7,
+    "excluded": 8,
+    "unverifiedExitCount": 26,
+    "totals": {
+      "new": 3,
+      "up": 20,
+      "down": 17,
+      "exit": 0,
+      "same": 19
+    },
+    "unknownExits": [
+      {
+        "id": "buffett",
+        "name": "Berkshire Hathaway",
+        "summary": "增持/新建 2只 · 减持 1只 · 1项退出类型待核",
+        "exits": [
+          {
+            "ticker": "STZ",
+            "name": "CONSTELLATION BRANDS INC",
+            "changeLabel": "退出类型待核"
+          }
+        ]
+      },
+      {
+        "id": "ackman",
+        "name": "Pershing Square",
+        "summary": "增持/新建 2只 · 减持 2只 · 1项退出类型待核",
+        "exits": [
+          {
+            "ticker": "HLT",
+            "name": "HILTON WORLDWIDE HLDGS INC",
+            "changeLabel": "退出类型待核"
+          }
+        ]
+      },
+      {
+        "id": "burry",
+        "name": "Scion Asset Management",
+        "summary": "增持/新建 4只 · 5项退出类型待核",
+        "exits": [
+          {
+            "ticker": "UNH",
+            "name": "UNITEDHEALTH GROUP INC",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "REGN",
+            "name": "REGENERON PHARMACEUTICALS",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "LULU",
+            "name": "LULULEMON ATHLETICA INC",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "META",
+            "name": "META PLATFORMS INC",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "EL",
+            "name": "LAUDER ESTEE COS INC",
+            "changeLabel": "退出类型待核"
+          }
+        ]
+      },
+      {
+        "id": "wood",
+        "name": "ARK Investment Management",
+        "summary": "增持/新建 3只 · 减持 6只 · 5项退出类型待核",
+        "exits": [
+          {
+            "ticker": "Honeywell International Inc",
+            "name": "Honeywell International Inc",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "Brera Holdings PLC",
+            "name": "Brera Holdings PLC",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "ICE",
+            "name": "Intercontinental Exchange Inc",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "PANW",
+            "name": "Palo Alto Networks Inc",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "CRM",
+            "name": "Salesforce Inc",
+            "changeLabel": "退出类型待核"
+          }
+        ]
+      },
+      {
+        "id": "lilu",
+        "name": "Himalaya Capital Management",
+        "summary": "增持/新建 2只 · 5项退出类型待核",
+        "exits": [
+          {
+            "ticker": "BAC",
+            "name": "BK OF AMERICA CORP",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "OXY",
+            "name": "OCCIDENTAL PETE CORP",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "SPGI",
+            "name": "S&P GLOBAL INC",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "HRB",
+            "name": "BLOCK H & R INC",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "MCO",
+            "name": "MOODYS CORP",
+            "changeLabel": "退出类型待核"
+          }
+        ]
+      },
+      {
+        "id": "druckenmiller",
+        "name": "Duquesne Family Office",
+        "summary": "增持/新建 5只 · 减持 2只 · 5项退出类型待核",
+        "exits": [
+          {
+            "ticker": "AVGO",
+            "name": "Broadcom Inc",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "OPCH",
+            "name": "Option Care Health Inc",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "FIGR",
+            "name": "Figure Technology Solutio",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "QSR",
+            "name": "Restaurant Brands Intl Inc",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "LSCC",
+            "name": "Lattice Semiconductor Corp",
+            "changeLabel": "退出类型待核"
+          }
+        ]
+      },
+      {
+        "id": "dalio",
+        "name": "Bridgewater Associates",
+        "summary": "增持/新建 3只 · 减持 7只 · 5项退出类型待核",
+        "exits": [
+          {
+            "ticker": "CSCO",
+            "name": "CISCO SYS INC",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "ASX",
+            "name": "ASE TECHNOLOGY HLDG CO LTD",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "CRWV",
+            "name": "COREWEAVE INC",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "PRIM",
+            "name": "PRIMORIS SVCS CORP",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "BN",
+            "name": "BROOKFIELD CORP",
+            "changeLabel": "退出类型待核"
+          }
+        ]
+      },
+      {
+        "id": "leopold",
+        "name": "Situational Awareness LP",
+        "summary": "增持/新建 8只 · 减持 1只 · 5项退出类型待核",
+        "exits": [
+          {
+            "ticker": "SMH",
+            "name": "VANECK ETF TRUST",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "NVDA",
+            "name": "NVIDIA CORPORATION",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "ORCL",
+            "name": "ORACLE CORP",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "AVGO",
+            "name": "BROADCOM INC",
+            "changeLabel": "退出类型待核"
+          },
+          {
+            "ticker": "AMD",
+            "name": "ADVANCED MICRO DEVICES INC",
+            "changeLabel": "退出类型待核"
+          }
+        ]
+      }
+    ]
+  },
+  "nativeRuntimeChangeSummary": {
+    "updatedAt": "2026-10-22T21:35:24.646Z",
+    "denominator": 7,
+    "reportPeriod": "2026-06-30",
+    "confirmedStockExits": 21,
+    "unknownExitCount": 0,
+    "exitLabels": []
+  }
+}

@@ -24,16 +24,41 @@ function pendingContact(offer) {
   return contact && contact.copy ? contact : null;
 }
 
+const TOPIC_TAGS = {
+  "hk-open": ["港股打新 / 买港股", "需身份证", "需香港银行卡"],
+  "us-start": ["买美股七姐妹", "需身份证", "需境外银行卡"],
+  "a-open": ["买A股高息股", "需身份证", "需一类储蓄卡"],
+  vpn: ["看海外财报官网", "券商网页访问", "独立第三方服务"],
+};
+
+function buildChoices(guide) {
+  return (guide.choices || [])
+    .filter((item) => GUIDES[item.topic])
+    .map((item) => {
+      const target = GUIDES[item.topic];
+      const offerCfg = target && target.offer ? OFFERS.find((entry) => entry && entry.id === target.offer.id) : null;
+      return {
+        topic: item.topic,
+        title: item.title,
+        broker: target && target.offer ? target.offer.head : item.title,
+        tags: TOPIC_TAGS[item.topic] || [],
+        offerId: offerCfg && offerCfg.copy ? offerCfg.id : "",
+        actionLabel: offerCfg && offerCfg.copy ? `一键复制${item.title}网址` : `进入${item.title}`,
+        disclosure: (offerCfg && offerCfg.disclosure) || "",
+      };
+    });
+}
+
 // 末尾那张卡：有真实物料就给复制按钮（或二维码按钮）并写明推广关系；还在等物料（pending）就写一句
 // 现状，再给一个复制真实微信号的按钮承接用户意向（微信号只从 config/offers.js 取），不让这一步走到死胡同；
 // 物料被下架了整张卡不出。
-function buildOffer(guide) {
+function buildOffer(guide, topic) {
   if (!guide.offer) return null;
   const offer = OFFERS.find((item) => item && item.id === guide.offer.id);
   if (!offer) return null;
-  const base = { id: offer.id, head: guide.offer.head, body: guide.offer.body };
+  const base = { id: offer.id, head: guide.offer.head, body: guide.offer.body, tags: TOPIC_TAGS[topic] || [] };
   if (offer.copy) {
-    return { ...base, mode: "copy", label: offer.label || "复制", disclosure: offer.disclosure || "" };
+    return { ...base, mode: "copy", label: offer.label || "复制网址", disclosure: offer.disclosure || "" };
   }
   if (offer.image) {
     return { ...base, mode: "image", image: offer.image, disclosure: offer.disclosure || "" };
@@ -52,6 +77,17 @@ function buildOffer(guide) {
   return null;
 }
 
+function showBrowserStepModal() {
+  if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
+    wx.showModal({
+      title: "✓ 网址已复制成功",
+      content: "微信小程序内不支持直接打开外部券商网页。\n\n请打开手机自带「浏览器 / Safari」，在顶部地址栏长按「粘贴」前往即可。",
+      confirmText: "知道了",
+      showCancel: false,
+    });
+  }
+}
+
 Page({
   data: {
     topic: "",
@@ -62,22 +98,24 @@ Page({
     offer: null,
     offerImageError: false,
     copiedSuccess: false,
+    copiedChoiceId: "",
     sharePath: "",
     footerDisclaimer: FOOTER_DISCLAIMER,
   },
   onLoad(options = {}) {
     const topic = GUIDES[options.topic] ? options.topic : "info";
     const guide = GUIDES[topic];
-    const offer = buildOffer(guide);
+    const offer = buildOffer(guide, topic);
     wx.setNavigationBarTitle({ title: guide.title });
     this.setData({
       topic,
       title: guide.title,
       lead: guide.lead || "",
       sections: buildSections(guide),
-      choices: (guide.choices || []).filter((item) => GUIDES[item.topic]),
+      choices: buildChoices(guide),
       offer,
       copiedSuccess: false,
+      copiedChoiceId: "",
       sharePath: `/pages/guide/index?topic=${topic}`,
     });
     track("guide_open", { topic, from: String(options.from || "direct") });
@@ -96,6 +134,24 @@ Page({
     const choice = this.data.choices.find((item) => item.topic === event.currentTarget.dataset.topic);
     if (choice) openPage(`/pages/guide/index?topic=${choice.topic}`);
   },
+  copyChoiceOffer(event) {
+    const offerId = String(event.currentTarget.dataset.offerId || "");
+    const source = offerId && OFFERS.find((item) => item && item.id === offerId);
+    if (!source || !source.copy) {
+      this.openChoice(event);
+      return;
+    }
+    wx.setClipboardData({
+      data: source.copy,
+      success: () => {
+        this.setData({ copiedChoiceId: source.id, copiedSuccess: true });
+        track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
+        wx.showToast({ title: source.toast || "已复制", icon: "none" });
+        showBrowserStepModal();
+      },
+      fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
+    });
+  },
   copyOffer() {
     const offer = this.data.offer;
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
@@ -106,6 +162,7 @@ Page({
         this.setData({ copiedSuccess: true });
         track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
         wx.showToast({ title: source.toast || "已复制", icon: "none" });
+        showBrowserStepModal();
       },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });

@@ -1,41 +1,120 @@
-/* 服务引导页（港美股开户 / A股开户 / VPN开通）：适老化大字体、高对比、操作指引一目了然 */
+/* 极简开户与开通页：一屏一卡、图示两步流、超大按钮一键完成 */
 
 .guide-shell {
-  background: #f6f7fa;
+  padding-top: 24rpx;
+  background: #f3f5f9;
 }
 
 .guide-head {
   display: flex;
-  margin-bottom: 10rpx;
-  padding: 24rpx 28rpx 16rpx;
+  margin-bottom: 12rpx;
+  padding: 8rpx 28rpx 12rpx;
   flex-direction: column;
-  gap: 10rpx;
-  background: transparent;
+  gap: 8rpx;
 }
 
 .guide-title {
   color: #0f172a;
-  font-size: 46rpx;
+  font-size: 42rpx;
   font-weight: 800;
-  letter-spacing: -0.6rpx;
   line-height: 1.28;
 }
 
 .guide-lead {
-  color: #334155;
-  font-size: 29rpx;
-  line-height: 1.62;
+  color: #475569;
+  font-size: 28rpx;
+  line-height: 1.55;
 }
 
 .section-list,
 .offer-card {
-  margin: 0 24rpx 24rpx;
-  border-radius: 28rpx;
+  margin: 0 24rpx 22rpx;
+  border-radius: 30rpx;
+}
+
+.step-flow-strip {
+  display: flex;
+  margin: 0 24rpx 20rpx;
+  padding: 20rpx 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  border-radius: 24rpx;
+  background: #ffffff;
+  box-shadow: 0 6rpx 20rpx rgba(15, 23, 42, 0.04);
+}
+
+.step-flow-strip.is-inner {
+  margin: 4rpx 0;
+  padding: 18rpx 20rpx;
+  background: #f4f8ff;
+  box-shadow: none;
+}
+
+.step-flow-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.step-flow-num {
+  display: flex;
+  width: 44rpx;
+  height: 44rpx;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #1d5fd1;
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.step-flow-txt {
+  color: #0f172a;
+  font-size: 28rpx;
+  font-weight: 720;
+}
+
+.step-flow-arrow {
+  color: #94a3b8;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.choice-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.choice-detail-link {
+  flex: none;
+  color: #64748b;
+  font-size: 25rpx;
+  font-weight: 640;
+}
+
+.guide-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.guide-tag {
+  padding: 8rpx 18rpx;
+  border-radius: 12rpx;
+  background: #eef4ff;
+  color: #1d5fd1;
+  font-size: 25rpx;
+  font-weight: 700;
 }
 
 .sec {
   display: flex;
-  padding: 28rpx 26rpx 30rpx;
+  padding: 26rpx;
   flex-direction: column;
   gap: 16rpx;
 }
@@ -46,7 +125,7 @@
 
 .sec-title {
   color: #0f172a;
-  font-size: 34rpx;
+  font-size: 32rpx;
   font-weight: 740;
 }
 
@@ -58,8 +137,8 @@
 
 .sec-row {
   display: flex;
-  padding: 20rpx 22rpx;
-  gap: 20rpx;
+  padding: 18rpx 20rpx;
+  gap: 18rpx;
 }
 
 .sec-row + .sec-row {
@@ -67,33 +146,31 @@
 }
 
 .row-label {
-  width: 190rpx;
+  width: 170rpx;
   flex: none;
   color: #1e293b;
-  font-size: 29rpx;
+  font-size: 28rpx;
   font-weight: 700;
-  line-height: 1.55;
 }
 
 .row-value {
   min-width: 0;
   flex: 1;
   color: #334155;
-  font-size: 29rpx;
-  line-height: 1.55;
+  font-size: 28rpx;
 }
 
 .sec-point {
   position: relative;
-  padding-left: 28rpx;
+  padding-left: 26rpx;
   color: #1e293b;
-  font-size: 30rpx;
-  line-height: 1.65;
+  font-size: 28rpx;
+  line-height: 1.6;
 }
 
 .sec-point::before {
   position: absolute;
-  top: 20rpx;
+  top: 18rpx;
   left: 4rpx;
   width: 10rpx;
   height: 10rpx;
@@ -110,7 +187,7 @@
 
 .link-row {
   display: flex;
-  min-height: 92rpx;
+  min-height: 88rpx;
   padding: 0 22rpx;
   align-items: center;
   gap: 16rpx;
@@ -123,7 +200,7 @@
   flex: 1;
   overflow: hidden;
   color: #0f172a;
-  font-size: 29rpx;
+  font-size: 28rpx;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -132,107 +209,100 @@
 .link-action {
   flex: none;
   color: #1d5fd1;
-  font-size: 28rpx;
+  font-size: 27rpx;
   font-weight: 700;
 }
-
-/* ---------- 末尾操作行动卡：大按钮 + 复制后清晰下一步引导 ---------- */
 
 .offer-card {
   display: flex;
   padding: 32rpx 28rpx 30rpx;
   flex-direction: column;
-  gap: 18rpx;
-  border: 2rpx solid rgba(29, 95, 209, 0.16);
-  background: linear-gradient(180deg, #f7faff 0%, #ffffff 48%);
+  gap: 20rpx;
+  background: #ffffff;
+  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.05);
 }
 
 .offer-head {
   color: #0f172a;
-  font-size: 36rpx;
-  font-weight: 780;
+  font-size: 38rpx;
+  font-weight: 800;
+  line-height: 1.3;
 }
 
 .offer-body {
   color: #334155;
-  font-size: 30rpx;
-  line-height: 1.62;
+  font-size: 29rpx;
+  font-weight: 600;
+  line-height: 1.55;
 }
 
 .offer-note {
-  padding: 12rpx 18rpx;
-  border-radius: 14rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 16rpx;
   background: #eef4ff;
   color: #1d5fd1;
-  font-size: 28rpx;
-  font-weight: 700;
-  line-height: 1.55;
+  font-size: 29rpx;
+  font-weight: 740;
+  line-height: 1.5;
   text-align: center;
 }
 
 .offer-qr {
   display: block;
-  width: 480rpx;
+  width: 500rpx;
   max-width: 100%;
-  margin: 8rpx auto 4rpx;
+  margin: 4rpx auto;
   padding: 20rpx;
   box-sizing: border-box;
   border: 2rpx solid #dbe4f0;
   border-radius: 26rpx;
   background: #ffffff;
-  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.06);
 }
 
 .offer-action {
   display: flex;
   width: 100%;
-  min-height: 104rpx;
-  margin: 6rpx 0 0;
-  padding: 0 20rpx;
+  min-height: 108rpx;
+  padding: 0 24rpx;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  border-radius: 22rpx;
+  border-radius: 24rpx;
   background: linear-gradient(135deg, #2568dc 0%, #1d5fd1 100%);
   color: #ffffff;
   font-size: 34rpx;
-  font-weight: 720;
+  font-weight: 760;
   line-height: 1.3;
   box-shadow: 0 8rpx 22rpx rgba(29, 95, 209, 0.24);
   transition: transform 0.12s ease;
 }
 
+.offer-action.is-done {
+  background: linear-gradient(135deg, #09c765 0%, #06ad56 100%);
+  box-shadow: 0 8rpx 22rpx rgba(7, 193, 96, 0.24);
+}
+
 .offer-action-active {
   transform: scale(0.985);
-  background: #174ea9;
 }
 
 .copy-step-box {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-  padding: 22rpx 24rpx;
-  border: 2rpx solid rgba(21, 153, 96, 0.28);
-  border-radius: 20rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 16rpx;
   background: #effaf4;
 }
 
 .copy-step-title {
   color: #0f6e43;
-  font-size: 30rpx;
-  font-weight: 760;
-}
-
-.copy-step-body {
-  color: #1e3a2f;
-  font-size: 28rpx;
-  line-height: 1.6;
+  font-size: 27rpx;
+  font-weight: 720;
+  line-height: 1.5;
 }
 
 .offer-disclosure {
   color: #64748b;
-  font-size: 25rpx;
-  line-height: 1.58;
+  font-size: 24rpx;
+  line-height: 1.5;
 }
 
 .tap-active {
@@ -241,7 +311,7 @@
 
 .page-footer {
   display: flex;
-  padding: 12rpx 28rpx 0;
+  padding: 8rpx 28rpx 0;
   justify-content: center;
   text-align: center;
 }
@@ -250,18 +320,16 @@
   max-width: 600rpx;
   color: #64748b;
   font-size: 25rpx;
-  line-height: 1.58;
+  line-height: 1.55;
 }
 
 @media (max-width: 340px) {
-  .section-list, .offer-card { margin-left: 14rpx; margin-right: 14rpx; }
-  .guide-title { font-size: 40rpx; }
-  .row-label { width: 164rpx; font-size: 26rpx; }
-  .row-value, .sec-point { font-size: 27rpx; }
+  .section-list, .offer-card, .step-flow-strip { margin-left: 14rpx; margin-right: 14rpx; }
+  .offer-head { font-size: 33rpx; }
+  .step-flow-txt { font-size: 24rpx; }
 }
 
 @media (min-width: 700px) {
   .guide-head { padding-left: 32px; padding-right: 32px; }
-  .section-list, .offer-card { margin-left: 32px; margin-right: 32px; }
-  .row-label { width: 130px; }
+  .section-list, .offer-card, .step-flow-strip { margin-left: 32px; margin-right: 32px; }
 }

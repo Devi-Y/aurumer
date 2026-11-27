@@ -1,80 +1,89 @@
 <view class="page-shell home-shell">
-  <!-- 适老化大搜索框 + 港美A高热度代表股票一键直达 -->
-  <view class="home-search-wrap">
-    <view class="home-search-box {{searchFocused ? 'is-focused' : ''}}">
-      <text class="home-search-icon" aria-hidden="true">⌕</text>
-      <input
-        class="home-search-input"
-        type="text"
-        confirm-type="search"
-        value="{{searchQuery}}"
-        placeholder="输入股票名称或代码搜索"
-        placeholder-class="home-search-placeholder"
-        bindfocus="onSearchFocus"
-        bindinput="onSearchInput"
-      />
-      <text wx:if="{{searchQuery || searchFocused}}" class="home-search-clear" bindtap="clearSearch" aria-role="button" aria-label="清空搜索">清空</text>
-      <text wx:else class="home-search-hint-btn" aria-hidden="true">搜索</text>
-    </view>
+  <view class="home-main">
+    <!-- 顶部一体化搜索与港美A热度代表股（带股票代码，左右边缘与九宫格严丝合缝） -->
+    <view class="page-card home-search-wrap">
+      <view class="home-search-box {{searchFocused ? 'is-focused' : ''}}">
+        <text class="home-search-icon" aria-hidden="true">⌕</text>
+        <input
+          class="home-search-input"
+          type="text"
+          confirm-type="search"
+          value="{{searchQuery}}"
+          placeholder="搜索股票名称或代码"
+          placeholder-class="home-search-placeholder"
+          bindfocus="onSearchFocus"
+          bindinput="onSearchInput"
+        />
+        <text wx:if="{{searchQuery || searchFocused}}" class="home-search-clear" bindtap="clearSearch" aria-role="button" aria-label="清空搜索">清空</text>
+      </view>
 
-    <view wx:if="{{searchQuery && searchResults.length}}" class="search-dropdown">
-      <view
-        wx:for="{{searchResults}}"
-        wx:key="key"
-        class="search-result-row"
-        data-market="{{item.market}}"
-        data-id="{{item.id}}"
-        bindtap="openSearchResult"
-        hover-class="tap-active"
-        aria-role="button"
-      >
-        <text class="search-tag tag-{{item.market}}">{{item.marketTag}}</text>
-        <view class="search-result-main">
-          <text class="search-result-name">{{item.name}}</text>
-          <text wx:if="{{item.code}}" class="search-result-code">{{item.code}}</text>
+      <view wx:if="{{searchQuery && searchResults.length}}" class="search-dropdown">
+        <view
+          wx:for="{{searchResults}}"
+          wx:key="key"
+          class="search-result-row"
+          data-market="{{item.market}}"
+          data-id="{{item.id}}"
+          bindtap="openSearchResult"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text class="search-tag tag-{{item.market}}">{{item.marketTag}}</text>
+          <view class="search-result-main">
+            <text class="search-result-name">{{item.name}}</text>
+            <text wx:if="{{item.code}}" class="search-result-code">{{item.code}}</text>
+          </view>
+          <text wx:if="{{item.figure}}" class="search-result-fig">{{item.figure}}</text>
+          <text class="search-result-go" aria-hidden="true">›</text>
         </view>
-        <text wx:if="{{item.figure}}" class="search-result-fig">{{item.figure}}</text>
-        <text class="search-result-go" aria-hidden="true">›</text>
+      </view>
+      <view wx:elif="{{searchQuery && !searchResults.length}}" class="search-dropdown search-empty">
+        <text>未找到“{{searchQuery}}”，可换简称或代码试试</text>
+      </view>
+
+      <view wx:if="{{hotPicks.length}}" class="search-picks-row">
+        <view class="search-picks-label" aria-hidden="true">
+          <text>热度</text>
+        </view>
+        <view class="search-picks-grid">
+          <view
+            wx:for="{{hotPicks}}"
+            wx:key="key"
+            class="search-pick-card"
+            data-market="{{item.market}}"
+            data-id="{{item.id}}"
+            bindtap="openSearchResult"
+            hover-class="tap-active"
+            aria-role="button"
+            aria-label="热门股票 {{item.label}} {{item.code}}"
+          >
+            <text class="search-pick-name">{{item.label}}</text>
+            <text class="search-pick-code">{{item.code}}</text>
+          </view>
+        </view>
       </view>
     </view>
-    <view wx:elif="{{searchQuery && !searchResults.length}}" class="search-dropdown search-empty">
-      <text>没有找到“{{searchQuery}}”，可换个中文简称或股票代码试试</text>
-    </view>
 
-    <view wx:if="{{hotPicks.length}}" class="search-picks-inline">
-      <text class="search-picks-label">热度</text>
-      <view
-        wx:for="{{hotPicks}}"
-        wx:key="key"
-        class="search-pick-chip"
-        data-market="{{item.market}}"
-        data-id="{{item.id}}"
-        bindtap="openSearchResult"
-        hover-class="tap-active"
-        aria-role="button"
-      >{{item.label}}</view>
-    </view>
-  </view>
-
-  <!-- 铺满全屏主体的适老化大图标九宫格：字大清晰，一触即达 -->
-  <view class="page-card home-panel">
-    <view class="entry-grid">
-      <block wx:for="{{entries}}" wx:key="id">
-      <view
-        class="grid-card"
-        data-id="{{item.id}}"
-        bindtap="openGridEntry"
-        hover-class="tap-active"
-        hover-stay-time="80"
-        aria-role="button"
-        aria-label="{{item.help ? item.title + '，' + item.help : item.title}}"
-      >
-        <view class="entry-icon-chip {{item.id === 'gold' ? 'gold' : ''}} {{item.action === 'page' ? 'svc' : ''}}">
-          <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
+    <!-- 方正协调的 3×3 九宫格：统一色系大图标 + 适老化大标题 -->
+    <view class="page-card home-panel">
+      <view class="entry-grid">
+        <block wx:for="{{entries}}" wx:key="id">
+        <view
+          class="grid-card"
+          data-id="{{item.id}}"
+          bindtap="openGridEntry"
+          hover-class="tap-active"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="{{item.help ? item.title + '，' + item.help : item.title}}"
+        >
+          <view class="entry-icon-chip">
+            <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" aria-hidden="true"></image>
+          </view>
+          <text class="card-title">{{item.title}}</text>
         </view>
-        <text class="card-title">{{item.title}}</text>
+        </block>
       </view>
-      </block>
     </view>
   </view>
 

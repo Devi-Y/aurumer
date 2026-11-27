@@ -3250,52 +3250,87 @@
 .heat-tile.tone-yield-low { background: #f3f5f9; color: #334155; }
 
 
-/* ---------- 适老化大字号增强 & 三问直白辅助条 ---------- */
+/* ---------- 适老化大字号 × 股票代码徽章 × 短标签 × 可视化区间条 ---------- */
 
 .hero-title {
-  font-size: 48rpx;
+  font-size: 46rpx;
 }
 
 .hero-meta {
-  font-size: 25rpx;
+  font-size: 24rpx;
   color: #64748b;
 }
 
 .hk-tab,
 .us-tab,
 .a-tab {
-  min-height: 82rpx;
+  min-height: 80rpx;
   font-size: 29rpx;
   font-weight: 680;
 }
 
-.module-guide-banner {
-  display: block;
-  margin: 18rpx 0 12rpx;
-  padding: 16rpx 20rpx;
-  border-left: 6rpx solid #1d5fd1;
-  border-radius: 8rpx 16rpx 16rpx 8rpx;
-  background: #f2f6fe;
+.code-name-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  min-width: 0;
+}
+
+.guru-name-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.code-pill {
+  flex: none;
+  padding: 3rpx 12rpx;
+  border-radius: 8rpx;
+  background: #edf3fc;
+  color: #1d5fd1;
+  font-size: 22rpx;
+  font-weight: 740;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+}
+
+.mini-tag-row,
+.a-chip-row {
+  display: flex;
+  margin-top: 8rpx;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.mini-tag {
+  flex: none;
+  padding: 3rpx 12rpx;
+  border-radius: 8rpx;
+  background: #f1f4f9;
+  color: #475569;
+  font-size: 22rpx;
+  font-weight: 640;
+  line-height: 1.35;
+}
+
+.data-chip {
+  flex: none;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  background: #f3f6fb;
   color: #1e293b;
-  font-size: 27rpx;
-  font-weight: 600;
-  line-height: 1.55;
+  font-size: 22rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
 }
 
 .hk-stock-name,
 .us-stock-name,
 .a-stock-name {
-  font-size: 34rpx;
+  font-size: 33rpx;
   font-weight: 760;
   color: #0f172a;
-}
-
-.hk-code,
-.us-code,
-.a-code {
-  font-size: 25rpx;
-  color: #475569;
-  line-height: 1.45;
 }
 
 .us-row-name-col {
@@ -3303,10 +3338,24 @@
   min-width: 0;
 }
 
+.us-row-tags {
+  display: flex;
+  margin-top: 6rpx;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
 .us-spark {
-  flex: 0 0 132rpx;
-  width: 132rpx;
+  flex: 0 0 136rpx;
+  width: 136rpx;
   height: 56rpx;
+}
+
+.a-mini-spark {
+  flex: 0 0 112rpx;
+  width: 112rpx;
+  height: 48rpx;
 }
 
 .us-price {
@@ -3315,67 +3364,81 @@
 }
 
 .us-change {
-  min-width: 134rpx;
-  height: 56rpx;
+  min-width: 132rpx;
+  height: 54rpx;
   font-size: 26rpx;
 }
 
-.threeq-range-line {
+.us-range-bar-row {
+  display: flex;
   flex: 0 0 100%;
-  padding: 10rpx 16rpx;
+  margin-top: 6rpx;
+  padding: 8rpx 12rpx;
+  align-items: center;
+  gap: 10rpx;
   border-radius: 12rpx;
-  background: #f5f8fc;
-  color: #1e293b;
-  font-size: 26rpx;
-  font-weight: 620;
-  line-height: 1.48;
+  background: #f7f9fc;
+}
+
+.us-range-num {
+  flex: none;
+  color: #64748b;
+  font-size: 21rpx;
+  font-weight: 640;
   font-variant-numeric: tabular-nums;
 }
 
-.threeq-sub-note {
-  display: block;
-  margin-top: 14rpx;
-  padding: 12rpx 16rpx;
-  border-radius: 12rpx;
-  background: #f4f7fc;
-  color: #334155;
-  font-size: 26rpx;
-  line-height: 1.5;
+.us-range-track {
+  position: relative;
+  flex: 1;
+  min-width: 80rpx;
+  height: 10rpx;
+  border-radius: 999rpx;
+  background: #e2e8f0;
 }
 
-.xiji-cash-line {
-  display: block;
-  margin-top: 8rpx;
-  color: #15803d;
-  font-size: 26rpx;
-  font-weight: 700;
-  line-height: 1.45;
-  font-variant-numeric: tabular-nums;
+.us-range-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #93b4f0 0%, #1d5fd1 100%);
+}
+
+.us-range-dot {
+  position: absolute;
+  top: 50%;
+  width: 16rpx;
+  height: 16rpx;
+  margin-top: -8rpx;
+  margin-left: -8rpx;
+  border: 2rpx solid #ffffff;
+  border-radius: 50%;
+  background: #1d5fd1;
+  box-shadow: 0 2rpx 6rpx rgba(29, 95, 209, 0.35);
 }
 
 .hk-stat-label {
-  font-size: 24rpx;
+  font-size: 23rpx;
   color: #64748b;
 }
 
 .hk-stat-value {
-  font-size: 29rpx;
+  font-size: 28rpx;
   font-weight: 760;
 }
 
 .hk-row-meta {
-  font-size: 26rpx;
+  font-size: 25rpx;
   color: #475569;
 }
 
 .hk-row-caret {
-  font-size: 26rpx;
+  font-size: 25rpx;
   font-weight: 700;
   color: #1d5fd1;
 }
 
 .us-event-line {
-  font-size: 26rpx;
+  font-size: 25rpx;
   color: #475569;
 }
 

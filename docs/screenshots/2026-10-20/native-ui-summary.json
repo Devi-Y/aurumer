@@ -1,0 +1,65 @@
+{
+  "generatedAt": "2026-10-21T03:22:39.191Z",
+  "scope": "Native WeChat developer-tool UI acceptance; no upload or publication",
+  "widths": [
+    {
+      "width": 375,
+      "model": "iPhone 12/13 mini",
+      "startedAt": "2026-10-20T13:08:47.931Z",
+      "finishedAt": "2026-10-20T13:10:03.520Z",
+      "durationMs": 75589,
+      "researchFlows": 5,
+      "serviceFlows": 3,
+      "detailTabs": 19,
+      "runtimeExceptions": 0,
+      "consoleErrors": 0,
+      "dataAsOf": [
+        "数据截至 10-20 03:20"
+      ],
+      "allWidthsValid": true,
+      "report": "native-375/report.json"
+    },
+    {
+      "width": 430,
+      "model": "iPhone 14 Pro Max",
+      "startedAt": "2026-10-21T03:20:54.000Z",
+      "finishedAt": "2026-10-21T03:22:11.481Z",
+      "durationMs": 77481,
+      "researchFlows": 5,
+      "serviceFlows": 3,
+      "detailTabs": 19,
+      "runtimeExceptions": 0,
+      "consoleErrors": 0,
+      "dataAsOf": [
+        "数据截至 10-21 05:36"
+      ],
+      "allWidthsValid": true,
+      "report": "native-430/report.json"
+    }
+  ],
+  "totalAcceptanceDurationMs": 153070,
+  "restoredSimulator": {
+    "model": "iPhone 12/13 (Pro)",
+    "windowWidth": 390,
+    "windowHeight": 753
+  },
+  "sourceHashes": {
+    "miniprogram/pages/detail/index.js": "3175c9e54813d38af26118e322f7c865f936495e3583ae3800863a5ad2fa6d16",
+    "miniprogram/pages/detail/index.wxml": "43fbdc1da859f65d9987184a344820dfd7952bf2f7e1933492c7c4a1cab3a9f8",
+    "miniprogram/pages/section/index.js": "2949553ec9faa4428ce7ff512625d796a8e8c739172186b38457b352c79e141e",
+    "miniprogram/pages/section/index.wxss": "5d1a4de5cf2a0e2ff8c338a751789b9b103e983151657f0ebfdc9d333b5b1816"
+  },
+  "openDataIssues": [
+    {
+      "market": "hk",
+      "id": "02384",
+      "description": "430 runtime snapshot 10-21 05:36 shows original listing 10-20 but subscription deadline still 2 days away; actual listing/offer dates require source verification.",
+      "evidence": "native-430/detail-hk.png"
+    }
+  ],
+  "notes": [
+    "375 screenshots use the 10-20 03:20 runtime snapshot; 430 accepted a newer cloud snapshot at 10-21 05:36.",
+    "The 375 six date/quote fixtures and five dividend/filing fixture categories passed separately.",
+    "Simulator device dimensions were changed natively and verified with wx systemInfo; 390 was restored."
+  ]
+}

@@ -47,7 +47,6 @@
     </view>
 
     <block wx:if="{{hkSubTab === 'apply'}}">
-      <text class="module-guide-banner">先看每只新股「是什么 · 当前进度 · 买一手多少钱」，底部看近期新股涨跌统计。</text>
       <view class="hk-stock-list" wx:if="{{hkApplyList.length}}">
         <view
           wx:for="{{hkApplyList}}"
@@ -57,12 +56,17 @@
           bindtap="openHkDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，{{item.badgeText}}，{{item.reason}}，{{item.event}}"
+          aria-label="{{item.name}}，{{item.code}}，{{item.badgeText}}，{{item.deadlineLabel}}"
         >
           <view class="hk-row-between">
             <view class="hk-row-name-wrap">
-              <text class="hk-stock-name">{{item.name}}</text>
-              <text class="hk-code">{{item.code}}{{item.metaTags ? ' · ' + item.metaTags : ''}}</text>
+              <view class="code-name-line">
+                <text class="hk-stock-name">{{item.name}}</text>
+                <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
+              </view>
+              <view wx:if="{{item.tagPills && item.tagPills.length}}" class="mini-tag-row">
+                <text wx:for="{{item.tagPills}}" wx:for-item="tg" wx:key="*this" class="mini-tag">{{tg}}</text>
+              </view>
             </view>
             <text class="hk-badge tone-{{item.tone}}">{{item.badgeText}}</text>
           </view>
@@ -78,36 +82,34 @@
               <text class="hk-stat-value">{{stat.value}}</text>
             </view>
           </view>
-          <text wx:if="{{item.plainGuide}}" class="threeq-sub-note">{{item.plainGuide}}</text>
           <view class="hk-row-meta">
             <text>{{item.deadlineLabel}}</text>
-            <text class="hk-row-caret">看详情 ›</text>
+            <text class="hk-row-caret">详情 ›</text>
           </view>
         </view>
       </view>
       <view class="hk-empty" wx:else><text>暂无可展示的招股资料，请以最新公告为准。</text></view>
 
-      <!-- 辅助判断：近期上市新股首日涨跌统计（捷利交易宝打新冷热晴雨表） -->
+      <!-- 辅助判断：近期上市新股首日涨跌柱状图 -->
       <view
         wx:if="{{hkFirstDayChart}}"
         class="hk-fd"
         aria-label="{{hkFirstDayChart.count}}只历史新股上市首日，样本上市日期至 {{hkFirstDayChart.lastDate}}，{{hkFirstDayChart.upText}}，{{hkFirstDayChart.flatDownText}}"
       >
         <view class="hk-fd-head">
-          <text class="hk-fd-title">辅助参考 · 近{{hkFirstDayChart.count}}只新股首日</text>
+          <text class="hk-fd-title">近{{hkFirstDayChart.count}}只新股首日 · 至 {{hkFirstDayChart.lastDate}}</text>
           <view class="hk-fd-figs">
             <text class="hk-fd-value is-up">{{hkFirstDayChart.upText}}</text>
             <text class="hk-fd-value is-down">{{hkFirstDayChart.flatDownText}}</text>
           </view>
         </view>
-        <text class="reading-hint">样本上市日期至 {{hkFirstDayChart.lastDate}}{{hkFirstDayChart.rangeText ? ' · ' + hkFirstDayChart.rangeText : ''}}，不代表当前行情。</text>
         <view class="hk-fd-bars" aria-hidden="true">
           <view class="hk-fd-zero" style="{{hkFirstDayChart.zeroStyle}}"></view>
           <view wx:for="{{hkFirstDayChart.bars}}" wx:for-item="bar" wx:key="key" class="hk-fd-slot">
             <view class="hk-fd-bar {{bar.tone}}" style="{{bar.style}}"></view>
           </view>
         </view>
-        <view class="hk-fd-link" data-group="ended" bindtap="openGroup" hover-class="tap-active" aria-role="button">查看每只新股首日表现 ›</view>
+        <view class="hk-fd-link" data-group="ended" bindtap="openGroup" hover-class="tap-active" aria-role="button">新股首日明细 ›</view>
       </view>
     </block>
 
@@ -208,9 +210,9 @@
 
     <block wx:if="{{usSubTab === 'all'}}">
       <view class="sort-bar">
-        <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">默认排序</text>
+        <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">默认</text>
         <text class="sort-pill {{usAllSort === 'perf60' ? 'is-active' : ''}}" data-sort="perf60" bindtap="sortUsAll" aria-role="button">60日涨幅</text>
-        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">市盈率从低到高</text>
+        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">PE低到高</text>
       </view>
       <view class="us-stock-list" wx:if="{{usAllList.length}}">
         <view
@@ -221,12 +223,13 @@
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，{{item.badgeText}}，{{item.orderLabel}} {{item.orderValue}} {{item.orderNote}}"
+          aria-label="{{item.name}}，{{item.code}}，{{item.priceText}}，{{item.changeText}}"
         >
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
             <view class="us-row-tags">
-              <text class="us-code">{{item.code}} · {{item.bizBrief}}</text>
+              <text class="code-pill">{{item.code}}</text>
+              <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
             </view>
           </view>
           <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
@@ -235,14 +238,22 @@
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
-          <text wx:if="{{item.rangeGuide}}" class="threeq-range-line">{{item.rangeGuide}}</text>
+          <view wx:if="{{item.hasRangeBar}}" class="us-range-bar-row" aria-hidden="true">
+            <text class="us-range-num">{{item.lo60Text}}</text>
+            <view class="us-range-track">
+              <view class="us-range-fill" style="width: {{item.pos60Pct}}%;"></view>
+              <view class="us-range-dot" style="left: {{item.pos60Pct}}%;"></view>
+            </view>
+            <text class="us-range-num">{{item.hi60Text}}</text>
+            <text wx:if="{{item.posChip}}" class="data-chip">{{item.posChip}}</text>
+            <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
+          </view>
         </view>
       </view>
       <view class="us-empty" wx:else><text>美股数据暂不足以显示，请稍后刷新。</text></view>
     </block>
 
     <block wx:if="{{usSubTab === 'seven'}}">
-      <text class="module-guide-banner">美国市值与影响力最大的 7 家科技巨头。点任意一家看完整财报与图表。</text>
       <view class="us-stock-list" wx:if="{{usSevenList.length}}">
         <view
           wx:for="{{usSevenList}}"
@@ -252,12 +263,13 @@
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，{{item.asOfText}}，历史价格 {{item.priceText}}，报价日涨跌 {{item.changeText}}，{{item.eventDate}} {{item.event}}"
+          aria-label="{{item.name}}，{{item.code}}，{{item.asOfText}}，历史价格 {{item.priceText}}，报价日涨跌 {{item.changeText}}，{{item.eventDate}} {{item.event}}"
         >
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
             <view class="us-row-tags">
-              <text class="us-code">{{item.code}} · {{item.bizBrief}}</text>
+              <text class="code-pill">{{item.code}}</text>
+              <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
             </view>
           </view>
           <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
@@ -266,7 +278,16 @@
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
-          <text wx:if="{{item.rangeGuide}}" class="threeq-range-line">{{item.rangeGuide}}</text>
+          <view wx:if="{{item.hasRangeBar}}" class="us-range-bar-row" aria-hidden="true">
+            <text class="us-range-num">{{item.lo60Text}}</text>
+            <view class="us-range-track">
+              <view class="us-range-fill" style="width: {{item.pos60Pct}}%;"></view>
+              <view class="us-range-dot" style="left: {{item.pos60Pct}}%;"></view>
+            </view>
+            <text class="us-range-num">{{item.hi60Text}}</text>
+            <text wx:if="{{item.posChip}}" class="data-chip">{{item.posChip}}</text>
+            <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
+          </view>
           <text wx:if="{{item.event}}" class="us-event-line">{{item.eventDate}} {{item.event}}</text>
         </view>
       </view>
@@ -369,16 +390,20 @@
           bindtap="openADetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，历史报价{{item.priceText}}，{{item.orderLabel}} {{item.orderValue}} {{item.orderNote}}"
+          aria-label="{{item.name}}，{{item.code}}，历史报价{{item.priceText}}"
         >
           <view class="a-row-top">
             <view class="a-row-main">
-              <view class="a-name-row">
+              <view class="code-name-line">
                 <text class="a-stock-name">{{item.name}}</text>
+                <text class="code-pill">{{item.code}}</text>
+                <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
               </view>
-              <text class="a-code">{{item.bizBrief}}{{item.factSummary ? ' · ' + item.factSummary : ''}}</text>
-              <text wx:if="{{item.xijiPriceLine}}" class="xiji-cash-line">{{item.xijiPriceLine}}</text>
+              <view wx:if="{{item.dataChips && item.dataChips.length}}" class="a-chip-row">
+                <text wx:for="{{item.dataChips}}" wx:for-item="chip" wx:key="*this" class="data-chip">{{chip}}</text>
+              </view>
             </view>
+            <image wx:if="{{item.hasSpark}}" class="a-mini-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
             <view class="us-right">
               <text class="us-price">{{item.priceText}}</text>
               <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
@@ -390,7 +415,6 @@
     </block>
 
     <block wx:if="{{aSubTab === 'stable'}}">
-      <text class="module-guide-banner">参考息记：看哪家公司近5年分红最稳、买1手多少钱、投1万元一年能分红多少。</text>
       <view class="a-rows" wx:if="{{aStableList.length}}">
         <view
           wx:for="{{aStableList}}"
@@ -400,23 +424,26 @@
           bindtap="openADetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，第{{item.rank}}名，稳定性{{item.metricText}}分{{item.stableBasis ? '，' + item.stableBasis : ''}}"
+          aria-label="{{item.name}}，{{item.code}}，第{{item.rank}}名，稳定性{{item.metricText}}分"
         >
           <view class="a-row-top">
             <text class="a-rank {{item.rank <= 3 ? 'is-top' : ''}}">{{item.rank}}</text>
             <view class="a-row-main">
-              <view class="a-name-row">
+              <view class="code-name-line">
                 <text class="a-stock-name">{{item.name}}</text>
+                <text class="code-pill">{{item.code}}</text>
+                <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
               </view>
-              <text class="a-code">{{item.bizBrief}} · {{item.xijiStableLine}}</text>
               <view wx:if="{{item.yearDots && item.yearDots.length}}" class="div-dots-row" aria-hidden="true">
-                <text class="div-dots-label">近5年派息</text>
+                <text class="div-dots-label">近5年</text>
                 <view wx:for="{{item.yearDots}}" wx:for-item="dot" wx:key="year" class="div-dot-item">
                   <view class="div-dot is-{{dot.state}}"></view>
-                  <text class="div-dot-yr">{{dot.year}}年</text>
+                  <text class="div-dot-yr">{{dot.year}}</text>
                 </view>
               </view>
-              <text wx:if="{{item.xijiPriceLine}}" class="xiji-cash-line">{{item.xijiPriceLine}}</text>
+              <view wx:if="{{item.dataChips && item.dataChips.length}}" class="a-chip-row">
+                <text wx:for="{{item.dataChips}}" wx:for-item="chip" wx:key="*this" class="data-chip">{{chip}}</text>
+              </view>
             </view>
             <view class="a-metric">
               <view class="a-metric-num">
@@ -432,7 +459,6 @@
     </block>
 
     <block wx:if="{{aSubTab === 'yield'}}">
-      <text class="module-guide-banner">历史股息率＝年度分红÷股价（税前）。注意：分红高的同时也要看公司每年稳不稳。</text>
       <view class="a-rows" wx:if="{{aYieldList.length}}">
         <view
           wx:for="{{aYieldList}}"
@@ -442,16 +468,26 @@
           bindtap="openADetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，第{{item.rank}}名，{{item.metricLabel}}{{item.metricText}}{{item.metricUnit}}"
+          aria-label="{{item.name}}，{{item.code}}，第{{item.rank}}名，{{item.metricLabel}}{{item.metricText}}{{item.metricUnit}}"
         >
           <view class="a-row-top">
             <text class="a-rank {{item.rank <= 3 ? 'is-top' : ''}}">{{item.rank}}</text>
             <view class="a-row-main">
-              <view class="a-name-row">
+              <view class="code-name-line">
                 <text class="a-stock-name">{{item.name}}</text>
+                <text class="code-pill">{{item.code}}</text>
+                <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
               </view>
-              <text class="a-code">{{item.bizBrief}} · {{item.xijiStableLine}}</text>
-              <text wx:if="{{item.xijiPriceLine}}" class="xiji-cash-line">{{item.xijiPriceLine}}</text>
+              <view wx:if="{{item.yearDots && item.yearDots.length}}" class="div-dots-row" aria-hidden="true">
+                <text class="div-dots-label">近5年</text>
+                <view wx:for="{{item.yearDots}}" wx:for-item="dot" wx:key="year" class="div-dot-item">
+                  <view class="div-dot is-{{dot.state}}"></view>
+                  <text class="div-dot-yr">{{dot.year}}</text>
+                </view>
+              </view>
+              <view wx:if="{{item.dataChips && item.dataChips.length}}" class="a-chip-row">
+                <text wx:for="{{item.dataChips}}" wx:for-item="chip" wx:key="*this" class="data-chip">{{chip}}</text>
+              </view>
             </view>
             <view class="a-metric">
               <view class="a-metric-num">
@@ -469,7 +505,6 @@
 
   <!-- 国际金和人民币金各自显示有日期的收盘历史。 -->
   <view wx:if="{{market === 'gold'}}" class="page-card gold-card">
-    <text class="module-guide-banner">上面看国内外最新金价与折算价差，下面看近期高低位与走势图。</text>
     <view class="gold-quotes">
       <view
         wx:for="{{goldQuotes}}"
@@ -482,7 +517,10 @@
         aria-selected="{{goldCurrency === item.id}}"
       >
         <view class="gold-quote-head">
-          <text class="gold-quote-label">{{item.label}}</text>
+          <view class="code-name-line">
+            <text class="gold-quote-label">{{item.label}}</text>
+            <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
+          </view>
           <text wx:if="{{item.changeText}}" class="gold-quote-delta is-{{item.changeTone}}">{{item.changeText}}</text>
         </view>
         <text class="gold-quote-price">{{item.priceText}}</text>
@@ -668,7 +706,6 @@
        changeLabel 字段是披露口径（月报/季度/半年报持有），语义不同，这里如实
        显示成普通文字，不套颜色徽章暗示涨跌方向。 -->
   <view wx:if="{{market === 'guru'}}" class="page-card guru-card">
-    <text class="module-guide-banner">看巴菲特、张坤等知名投资人最新买了谁（季报公开有延迟，看选股思路，别高价硬抄）。</text>
     <view class="a-tabs">
       <view
         class="a-tab {{guruSubTab === 'holdings' ? 'is-active' : ''}}"
@@ -698,10 +735,12 @@
 
     <block wx:if="{{guruSubTab === 'trend'}}">
       <text class="hk-picker-label">{{guruTrendTitle}}</text>
-      <text wx:if="{{guruTrendHint}}" class="reading-hint">{{guruTrendHint}}</text>
       <view wx:if="{{guruTrendRows.length}}">
         <view wx:for="{{guruTrendRows}}" wx:key="key" class="guru-direction">
-          <text>{{item.label}}</text>
+          <view class="code-name-line">
+            <text class="guru-hold-name">{{item.label}}</text>
+            <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
+          </view>
           <text class="a-badge tone-{{item.tone}}">{{item.badge}}</text>
         </view>
       </view>
@@ -745,7 +784,10 @@
           </view>
           <view wx:for="{{guruHoldingsRowsShown}}" wx:key="name" class="guru-hold">
             <view class="guru-hold-top">
-              <text class="guru-hold-name">{{item.name}}</text>
+              <view class="code-name-line guru-name-wrap">
+                <text class="guru-hold-name">{{item.name}}</text>
+                <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
+              </view>
               <text class="guru-hold-move {{item.moveTone ? 'tone-' + item.moveTone : ''}}">{{item.moveText}}</text>
               <text class="guru-hold-weight">{{item.weightText}}</text>
             </view>

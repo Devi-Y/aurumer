@@ -1,0 +1,1054 @@
+{
+  "startedAt": "2026-10-20T13:08:47.931Z",
+  "system": {
+    "brand": "devtools",
+    "model": "iPhone 12/13 mini",
+    "system": "iOS 10.0.1",
+    "platform": "devtools",
+    "benchmarkLevel": -1,
+    "pixelRatio": 3,
+    "screenWidth": 375,
+    "screenHeight": 812,
+    "windowWidth": 375,
+    "windowHeight": 721,
+    "statusBarHeight": 47,
+    "safeArea": {
+      "top": 47,
+      "left": 0,
+      "right": 375,
+      "bottom": 778,
+      "width": 375,
+      "height": 731
+    },
+    "language": "zh_CN",
+    "version": "8.0.5",
+    "fontSizeSetting": 16,
+    "SDKVersion": "3.17.2",
+    "host": {
+      "env": "WeChat"
+    },
+    "enableDebug": false,
+    "mode": "default",
+    "deviceOrientation": "portrait",
+    "bluetoothEnabled": true,
+    "locationEnabled": true,
+    "wifiEnabled": true,
+    "albumAuthorized": true,
+    "cameraAuthorized": true,
+    "locationAuthorized": true,
+    "microphoneAuthorized": true,
+    "notificationAuthorized": true,
+    "notificationAlertAuthorized": true,
+    "notificationBadgeAuthorized": true,
+    "notificationSoundAuthorized": true,
+    "phoneCalendarAuthorized": true,
+    "bluetoothAuthorized": true,
+    "locationReducedAccuracy": true,
+    "devicePixelRatio": 3
+  },
+  "errors": [],
+  "flows": [
+    {
+      "market": "hk",
+      "section": {
+        "path": "pages/section/index",
+        "dataAsOf": "数据截至 10-20 03:20",
+        "source": "部分数据暂缺 · 2026-10-20 03:20",
+        "overview": {
+          "metrics": [],
+          "target": "江苏瘦西湖文化旅游",
+          "targetId": "06157",
+          "grade": "暂缓观察",
+          "gradeGroup": "caution",
+          "canOpenTarget": true,
+          "canOpenGrade": true
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        }
+      },
+      "subtabs": [
+        {
+          "label": "近期申购",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        },
+        {
+          "label": "申购结束",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        }
+      ],
+      "detail": {
+        "path": "pages/detail/index",
+        "query": {
+          "market": "hk",
+          "id": "06157"
+        },
+        "title": "江苏瘦西湖文化旅游",
+        "ready": true,
+        "primaryJudgment": "继续观察",
+        "highlights": [
+          {
+            "label": "预计上市",
+            "value": "待公布"
+          },
+          {
+            "label": "一手金额",
+            "value": "5121港元"
+          },
+          {
+            "label": "招股价",
+            "value": "5.07港元"
+          },
+          {
+            "label": "认购截止",
+            "value": "今天"
+          }
+        ],
+        "keyRisk": "破发/中签风险：可能破发或中签极低，盈亏自负。",
+        "nextWatch": "结论转为值得打且资料完整，才进入研究申购；否则不追。",
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        },
+        "priceCard": {
+          "title": "阶段与关键节点",
+          "items": [
+            {
+              "id": "0-当前阶段",
+              "label": "当前阶段",
+              "valueText": "认购中"
+            },
+            {
+              "id": "1-认购截止",
+              "label": "认购截止",
+              "valueText": "2026-10-20"
+            }
+          ]
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshnessVisible": true,
+        "tabs": [
+          {
+            "id": "overview",
+            "label": "概览",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "subscribe",
+            "label": "申购",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "sell",
+            "label": "卖出",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "evidence",
+            "label": "依据",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          }
+        ]
+      }
+    },
+    {
+      "market": "us",
+      "section": {
+        "path": "pages/section/index",
+        "dataAsOf": "数据截至 10-20 03:20",
+        "source": "部分数据暂缺 · 2026-10-20 03:20",
+        "overview": {
+          "metrics": [],
+          "target": "谷歌-A",
+          "targetId": "GOOGL",
+          "grade": "可分批观察",
+          "gradeGroup": "seven",
+          "canOpenTarget": true,
+          "canOpenGrade": true
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        }
+      },
+      "subtabs": [
+        {
+          "label": "全部30只",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        },
+        {
+          "label": "七姐妹",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        },
+        {
+          "label": "热门三只",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        }
+      ],
+      "detail": {
+        "path": "pages/detail/index",
+        "query": {
+          "market": "us",
+          "id": "GOOGL"
+        },
+        "title": "谷歌-A",
+        "ready": true,
+        "primaryJudgment": "可分批观察",
+        "highlights": [
+          {
+            "label": "现价",
+            "value": "$345.70"
+          },
+          {
+            "label": "今日",
+            "value": "+1.50%"
+          },
+          {
+            "label": "市盈率",
+            "value": "32.0倍"
+          },
+          {
+            "label": "研究观察分",
+            "value": "47"
+          }
+        ],
+        "keyRisk": "如果买错：按参考买入价 $341.00 买、跌破 $332.20 就卖，每股约亏 $8.80（2.6%）；财报前后大跌可能亏更多。",
+        "nextWatch": "市盈率快速上升、股价冲到近60日最高附近，或营收/利润/现金流同时转弱时降级。",
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        },
+        "priceCard": {
+          "title": "近 60 日走势"
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshnessVisible": true,
+        "tabs": [
+          {
+            "id": "overview",
+            "label": "概览",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "trend",
+            "label": "价格",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "dynamics",
+            "label": "动态",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "evidence",
+            "label": "依据",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          }
+        ]
+      }
+    },
+    {
+      "market": "a",
+      "section": {
+        "path": "pages/section/index",
+        "dataAsOf": "数据截至 10-20 03:20",
+        "source": "部分数据暂缺 · 2026-10-20 03:20",
+        "overview": {
+          "metrics": [],
+          "target": "华能国际",
+          "grade": "优等收息",
+          "targetId": "600011",
+          "gradeGroup": "prime",
+          "canOpenTarget": true,
+          "canOpenGrade": true
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        }
+      },
+      "subtabs": [
+        {
+          "label": "全部12只",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        },
+        {
+          "label": "分红稳定性",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        },
+        {
+          "label": "分红收益性",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        }
+      ],
+      "detail": {
+        "path": "pages/detail/index",
+        "query": {
+          "market": "a",
+          "id": "601088"
+        },
+        "title": "中国神华",
+        "ready": true,
+        "primaryJudgment": "高息待核",
+        "highlights": [
+          {
+            "label": "现价",
+            "value": "¥51.50"
+          },
+          {
+            "label": "今日",
+            "value": "+1.02%"
+          },
+          {
+            "label": "股息率",
+            "value": "6.3%"
+          },
+          {
+            "label": "可持续股息率",
+            "value": "4.9%"
+          }
+        ],
+        "keyRisk": "经营风险：营收同比 -13.2%、净利润同比 -5.3%；下期财报先核是否继续恶化。",
+        "nextWatch": "当前股息比可持续股息高 1.4 个百分点、净利润增长 -5.3%；下一期现金流/利润未修复前维持谨慎。",
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        },
+        "priceCard": {
+          "title": "参考买卖区间"
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshnessVisible": true,
+        "tabs": [
+          {
+            "id": "overview",
+            "label": "概览",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "trend",
+            "label": "价格",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "dividend",
+            "label": "分红",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "evidence",
+            "label": "依据",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          }
+        ]
+      }
+    },
+    {
+      "market": "gold",
+      "section": {
+        "path": "pages/section/index",
+        "dataAsOf": "数据截至 10-20 03:20",
+        "source": "部分数据暂缺 · 2026-10-20 03:20",
+        "overview": {
+          "metrics": [],
+          "target": "黄金",
+          "targetId": "track",
+          "grade": "资料待补齐",
+          "gradeGroup": "track",
+          "canOpenTarget": true,
+          "canOpenGrade": true
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        }
+      },
+      "subtabs": [
+        {
+          "label": "国际金4163美元 / 盎司",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        },
+        {
+          "label": "人民币金900.9元 / 克",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        }
+      ],
+      "detail": {
+        "path": "pages/detail/index",
+        "query": {
+          "market": "gold",
+          "id": "track"
+        },
+        "title": "黄金",
+        "ready": true,
+        "primaryJudgment": "部分黄金数据暂缺，暂不提供当前判断",
+        "highlights": [
+          {
+            "label": "国际金/盎司",
+            "value": "$4163"
+          },
+          {
+            "label": "人民币金/克",
+            "value": "¥900.9"
+          },
+          {
+            "label": "近180日",
+            "value": "—"
+          }
+        ],
+        "keyRisk": "国际金风险：评分 42 分；主要看美国利率、美元和投机资金持仓，风险下沿 待核。",
+        "nextWatch": "更新行情与来源后重新核验。",
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        },
+        "priceCard": {
+          "title": "近179日国际金价"
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshnessVisible": true,
+        "tabs": [
+          {
+            "id": "overview",
+            "label": "概览",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "trend",
+            "label": "价格",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "dynamics",
+            "label": "驱动",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "evidence",
+            "label": "依据",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          }
+        ]
+      }
+    },
+    {
+      "market": "guru",
+      "section": {
+        "path": "pages/section/index",
+        "dataAsOf": "数据截至 10-20 03:20",
+        "source": "部分数据暂缺 · 2026-10-20 03:20",
+        "overview": {
+          "metrics": [
+            {
+              "label": "港股",
+              "value": "3家",
+              "action": "group",
+              "group": "hk",
+              "enabled": true
+            },
+            {
+              "label": "美股",
+              "value": "9家",
+              "action": "group",
+              "group": "us",
+              "enabled": true
+            },
+            {
+              "label": "A股",
+              "value": "3家",
+              "action": "group",
+              "group": "a",
+              "enabled": true
+            }
+          ],
+          "label": "业绩靠前",
+          "target": "斯坦利·德鲁肯米勒",
+          "targetId": "druckenmiller",
+          "grade": "约 30% 年化",
+          "gradeGroup": "us",
+          "canOpenTarget": true,
+          "canOpenGrade": true
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        }
+      },
+      "subtabs": [
+        {
+          "label": "共同方向",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        },
+        {
+          "label": "机构持仓",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        },
+        {
+          "label": "持仓走势",
+          "size": {
+            "width": 375,
+            "height": 721
+          }
+        }
+      ],
+      "detail": {
+        "path": "pages/detail/index",
+        "query": {
+          "market": "guru",
+          "id": "druckenmiller"
+        },
+        "title": "斯坦利·德鲁肯米勒",
+        "ready": true,
+        "primaryJudgment": "约 30% 年化",
+        "highlights": [
+          {
+            "label": "年化排名",
+            "value": "5家中第1"
+          },
+          {
+            "label": "持仓",
+            "value": "10只"
+          },
+          {
+            "label": "清仓",
+            "value": "5只"
+          },
+          {
+            "label": "持仓公布",
+            "value": "68天前"
+          }
+        ],
+        "keyRisk": "持仓是旧的：这份持仓 68 天前公布，之后可能已经大幅调仓。",
+        "nextWatch": "下一期披露若方向反转，或公司基本面无法印证机构逻辑，取消跟踪。",
+        "freshness": {
+          "kind": "partial",
+          "tone": "warn",
+          "label": "部分数据暂缺 · 2026-10-20 03:20",
+          "tip": "部分来源暂缺，受影响的判断已暂停",
+          "showRetry": true,
+          "show": true
+        },
+        "priceCard": {
+          "title": "持仓权重",
+          "items": [
+            {
+              "id": "0-Natera",
+              "label": "Natera",
+              "valueText": "16.6%",
+              "width": 100,
+              "tone": "up"
+            },
+            {
+              "id": "1-台积电",
+              "label": "台积电",
+              "valueText": "5.4%",
+              "width": 33,
+              "tone": "up"
+            },
+            {
+              "id": "2-意法半导体",
+              "label": "意法半导体",
+              "valueText": "4.5%",
+              "width": 27,
+              "tone": "up"
+            },
+            {
+              "id": "3-标普500等权ETF看涨",
+              "label": "标普500等权ETF看涨",
+              "valueText": "3.4%",
+              "width": 20,
+              "tone": "up"
+            },
+            {
+              "id": "4-Insmed",
+              "label": "Insmed",
+              "valueText": "2.9%",
+              "width": 18,
+              "tone": "up"
+            },
+            {
+              "id": "5-巴西ETF看涨",
+              "label": "巴西ETF看涨",
+              "valueText": "2.8%",
+              "width": 17,
+              "tone": "up"
+            },
+            {
+              "id": "6-Insmed看涨",
+              "label": "Insmed看涨",
+              "valueText": "2.8%",
+              "width": 17,
+              "tone": "up"
+            },
+            {
+              "id": "7-阿根廷YPF",
+              "label": "阿根廷YPF",
+              "valueText": "2.7%",
+              "width": 17,
+              "tone": "up"
+            }
+          ]
+        },
+        "size": {
+          "width": 375,
+          "height": 721
+        },
+        "freshnessVisible": true,
+        "tabs": [
+          {
+            "id": "overview",
+            "label": "概览",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "holdings",
+            "label": "持仓",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          },
+          {
+            "id": "evidence",
+            "label": "依据",
+            "size": {
+              "width": 375,
+              "height": 721
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "services": [
+    {
+      "id": "global-access",
+      "path": "pages/guide/index",
+      "query": {
+        "topic": "info"
+      },
+      "size": {
+        "width": 375,
+        "height": 721
+      },
+      "data": {
+        "topic": "info",
+        "title": "全球信息获取",
+        "lead": "看全球市场，先要读到一手信息：公司公告、官方数据、海外媒体。",
+        "sections": [
+          {
+            "key": "s0",
+            "title": "去哪看",
+            "rows": [
+              {
+                "key": "r0",
+                "label": "公司公告和财报",
+                "value": "美股看美国证监会，港股看港交所披露易"
+              },
+              {
+                "key": "r1",
+                "label": "宏观数据",
+                "value": "利率、通胀、就业，看美联储数据库"
+              }
+            ],
+            "points": [
+              {
+                "key": "p0",
+                "text": "一手来源最准，媒体解读放在后面看"
+              }
+            ],
+            "links": [
+              {
+                "id": "sec",
+                "name": "美国证监会公开备案",
+                "url": "https://www.sec.gov/edgar/search/"
+              },
+              {
+                "id": "hkexnews",
+                "name": "港交所披露易",
+                "url": "https://www.hkexnews.hk/"
+              },
+              {
+                "id": "gold-fred",
+                "name": "美联储宏观数据",
+                "url": "https://fred.stlouisfed.org/"
+              }
+            ]
+          },
+          {
+            "key": "s1",
+            "title": "怎么读",
+            "rows": [],
+            "points": [
+              {
+                "key": "p0",
+                "text": "浏览器自带整页翻译，先看懂大意"
+              },
+              {
+                "key": "p1",
+                "text": "长财报、专业术语交给 AI 总结，并让它标出原文出处"
+              },
+              {
+                "key": "p2",
+                "text": "数字和日期以原文为准，AI 可能算错或编造"
+              }
+            ],
+            "links": []
+          }
+        ],
+        "offer": {
+          "id": "global-access",
+          "head": "海外网站打不开？",
+          "body": "部分海外网站在国内访问不稳定，可以按需选用下面的访问服务。",
+          "mode": "copy",
+          "label": "复制注册链接",
+          "disclosure": "推荐链接：你通过它注册，望潮可能获得推荐佣金。"
+        },
+        "sharePath": "/pages/guide/index?topic=info",
+        "footerDisclaimer": "公开资料仅供研究参考，不构成投资建议。",
+        "__webviewId__": 73
+      }
+    },
+    {
+      "id": "paid-group",
+      "path": "pages/community/index",
+      "query": {},
+      "size": {
+        "width": 375,
+        "height": 721
+      },
+      "data": {
+        "topics": [
+          {
+            "key": "info",
+            "label": "全球信息",
+            "value": "一起看值得看的一手信息"
+          },
+          {
+            "key": "asset",
+            "label": "资产与标的",
+            "value": "讨论全球资产和具体标的"
+          },
+          {
+            "key": "account",
+            "label": "账户实操",
+            "value": "开户、入金、换汇的经验"
+          },
+          {
+            "key": "story",
+            "label": "真实经验",
+            "value": "交流各自真实的投资经历"
+          },
+          {
+            "key": "meet",
+            "label": "线下见面会",
+            "value": "时间地点以群内通知为准"
+          }
+        ],
+        "fit": [
+          "想长期配置全球资产",
+          "愿意分享真实经验",
+          "自己做决定、自己负责"
+        ],
+        "unfit": "不适合：想找人荐股喊单、想要保证收益的人。",
+        "join": {
+          "label": "复制微信号",
+          "disclosure": "付费社群：费用和群规加好友后说明，了解后再决定。"
+        },
+        "footerDisclaimer": "公开资料仅供研究参考，不构成投资建议。",
+        "__webviewId__": 75
+      }
+    },
+    {
+      "id": "open-account",
+      "path": "pages/guide/index",
+      "query": {
+        "topic": "us-start"
+      },
+      "size": {
+        "width": 375,
+        "height": 721
+      },
+      "data": {
+        "topic": "us-start",
+        "title": "海外开户",
+        "lead": "",
+        "sections": [
+          {
+            "key": "s0",
+            "title": "从0开始买美股",
+            "rows": [
+              {
+                "key": "r0",
+                "label": "在哪交易",
+                "value": "纽约证券交易所、纳斯达克，用美元"
+              },
+              {
+                "key": "r1",
+                "label": "交易时间",
+                "value": "北京时间 21:30 到次日 4:00；美国冬令时 22:30 到次日 5:00"
+              }
+            ],
+            "points": [
+              {
+                "key": "p0",
+                "text": "个人不能直接在交易所下单，要通过持牌券商；国内 A股账户买不了美股"
+              },
+              {
+                "key": "p1",
+                "text": "第一次用限价单、金额小一点，分几次买"
+              }
+            ],
+            "links": []
+          },
+          {
+            "key": "s1",
+            "title": "怎么开户",
+            "rows": [
+              {
+                "key": "r0",
+                "label": "身份证明",
+                "value": "身份证或护照"
+              },
+              {
+                "key": "r1",
+                "label": "地址证明",
+                "value": "近期的账单或银行流水"
+              },
+              {
+                "key": "r2",
+                "label": "银行卡",
+                "value": "本人名下"
+              },
+              {
+                "key": "r3",
+                "label": "税务表",
+                "value": "W-8BEN：声明你不是美国税务居民，美股分红一般按 10% 预扣税"
+              }
+            ],
+            "points": [
+              {
+                "key": "p0",
+                "text": "先查券商牌照：美国券商查 FINRA，香港券商查证监会，下方可复制查询页"
+              },
+              {
+                "key": "p1",
+                "text": "一般在券商 App 里线上办理，备好下面四样"
+              }
+            ],
+            "links": [
+              {
+                "id": "finra-brokercheck",
+                "name": "美国 FINRA 券商查询",
+                "url": "https://brokercheck.finra.org/"
+              },
+              {
+                "id": "sfc-register",
+                "name": "香港证监会持牌人查询",
+                "url": "https://apps.sfc.hk/publicregWeb/"
+              }
+            ]
+          },
+          {
+            "key": "s2",
+            "title": "怎么入金",
+            "rows": [
+              {
+                "key": "r0",
+                "label": "到账会少一点",
+                "value": "银行电汇费、中间行扣费、换汇差价"
+              }
+            ],
+            "points": [
+              {
+                "key": "p0",
+                "text": "只用本人名下的银行账户汇款，不借用别人的账户，不拆分汇款"
+              },
+              {
+                "key": "p1",
+                "text": "资金出境要遵守外汇管理规定，以银行和券商的说明为准"
+              },
+              {
+                "key": "p2",
+                "text": "先汇一小笔试通，到账后再汇大额"
+              }
+            ],
+            "links": []
+          }
+        ],
+        "offer": {
+          "id": "open-account",
+          "head": "准备开户了？",
+          "body": "先核对牌照和费用，再决定在哪家开户。",
+          "mode": "pending",
+          "note": "开户链接还在准备中。",
+          "canCopy": true,
+          "label": "复制微信号，说「我想开户」",
+          "disclosure": "加好友后发「我想开户」留下需求。这个微信号也是「付费交流群」的联系人。"
+        },
+        "sharePath": "/pages/guide/index?topic=us-start",
+        "footerDisclaimer": "公开资料仅供研究参考，不构成投资建议。",
+        "__webviewId__": 77
+      }
+    }
+  ],
+  "finishedAt": "2026-10-20T13:10:03.520Z",
+  "durationMs": 75589,
+  "goldShortLabelVerifiedAt": "2026-10-20T13:11:38.575Z"
+}

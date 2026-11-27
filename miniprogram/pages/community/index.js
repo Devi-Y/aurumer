@@ -7,26 +7,24 @@ const communityService = require("../../services/community");
 const communityAdmin = require("../../services/community-admin");
 const { displayBeijing } = require("../../utils/community-admin");
 
-// 交流群页只写三件事：群里聊什么、适合谁、怎么加入；不写没有发生过的活动、名额、价格或权益。
-// 微信号从 config/offers.js 的 paid-group 读，下架那一项这里只显示「加入方式整理中」。
 const OFFER_ID = "paid-group";
 
-const TOPICS = [
-  { key: "info", label: "公开资料", value: "交流一手信息和阅读方法" },
-  { key: "tool", label: "工具使用", value: "交流望潮使用方法和反馈" },
-  { key: "story", label: "自主经验", value: "分享各自的研究和使用经验" },
+const HIGHLIGHTS = [
+  "港美A股 · 黄金 · 大佬持仓五大板块全年跟踪",
+  "解锁 6 大年度专属权益 + 主理人 1 对 1 答疑",
+  "入群 7 天无理由全额退 · 满 8 天按剩余天数可退",
 ];
-
-const FIT = ["想长期配置全球资产", "愿意分享真实经验", "自己做决定、自己负责"];
-const UNFIT = "不适合：想找人荐股喊单、想要保证收益的人。";
 
 Page({
   data: {
-    topics: TOPICS,
-    fit: FIT,
-    unfit: UNFIT,
+    highlights: HIGHLIGHTS,
+    perks: COMMUNITY.perks || [],
     join: null,
+    originalPriceCny: COMMUNITY.originalPriceCny || 29800,
+    originalPriceText: COMMUNITY.originalPriceText || "¥29,800",
     priceCny: COMMUNITY.priceCny,
+    dailyCostText: COMMUNITY.dailyCostText || "每天仅 ¥0.82",
+    saveAmountText: COMMUNITY.saveAmountText || "立省 ¥29,502",
     termLabel: COMMUNITY.termLabel,
     canPayConfig: Boolean(COMMUNITY.checkoutEnabled && COMMUNITY.wechatQrImage),
     priceLabel: `${COMMUNITY.priceCny} 元 / ${COMMUNITY.termLabel}`,
@@ -84,7 +82,6 @@ Page({
         wx.showToast({ title: "支付结果待核对，请刷新订单", icon: "none" });
       }
     }).catch((error) => {
-      // 开发版可能先于群支付云函数部署；旧函数没有群订单，关闭收款时不应提示订单异常。
       const notDeployed = !COMMUNITY.checkoutEnabled && error && error.code === "UNKNOWN_ACTION";
       this.setData({ checkoutReady: false, checking: false, verificationPending: !notDeployed, showQr: false });
       if (openAfterPaid) wx.showToast({ title: "暂无法核对，请刷新订单", icon: "none" });
@@ -172,12 +169,12 @@ Page({
   },
   onShareAppMessage() {
     track("share_tap", { page: "community" });
-    return { title: "会员群｜望潮", path: "/pages/community/index" };
+    return { title: "年度会员群｜望潮", path: "/pages/community/index" };
   },
   onShareTimeline() {
-    return { title: "会员群｜望潮" };
+    return { title: "年度会员群｜望潮" };
   },
   onAddToFavorites() {
-    return { title: "会员群｜望潮" };
+    return { title: "年度会员群｜望潮" };
   },
 });

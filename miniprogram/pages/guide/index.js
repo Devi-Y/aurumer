@@ -17,19 +17,11 @@ function buildSections(guide) {
   }));
 }
 
-// pending 的物料借用另一项里真实存在的微信号；那一项下架（没有 copy）就返回 null。
 function pendingContact(offer) {
   if (!offer || !offer.pendingContact) return null;
   const contact = OFFERS.find((item) => item && item.id === offer.pendingContact);
   return contact && contact.copy ? contact : null;
 }
-
-const TOPIC_TAGS = {
-  "hk-open": ["港股打新 / 买港股", "需身份证", "需香港银行卡"],
-  "us-start": ["买美股七姐妹", "需身份证", "需境外银行卡"],
-  "a-open": ["买A股高息股", "需身份证", "需一类储蓄卡"],
-  vpn: ["看海外财报官网", "券商网页访问", "独立第三方服务"],
-};
 
 function buildChoices(guide) {
   return (guide.choices || [])
@@ -41,24 +33,21 @@ function buildChoices(guide) {
         topic: item.topic,
         title: item.title,
         broker: target && target.offer ? target.offer.head : item.title,
-        tags: TOPIC_TAGS[item.topic] || [],
+        way: target && target.offer ? target.offer.body : "复制链接 → 手机浏览器打开",
         offerId: offerCfg && offerCfg.copy ? offerCfg.id : "",
-        actionLabel: offerCfg && offerCfg.copy ? `一键复制${item.title}网址` : `进入${item.title}`,
+        actionLabel: offerCfg && offerCfg.copy ? `复制${item.title}链接` : `进入${item.title}`,
         disclosure: (offerCfg && offerCfg.disclosure) || "",
       };
     });
 }
 
-// 末尾那张卡：有真实物料就给复制按钮（或二维码按钮）并写明推广关系；还在等物料（pending）就写一句
-// 现状，再给一个复制真实微信号的按钮承接用户意向（微信号只从 config/offers.js 取），不让这一步走到死胡同；
-// 物料被下架了整张卡不出。
-function buildOffer(guide, topic) {
+function buildOffer(guide) {
   if (!guide.offer) return null;
   const offer = OFFERS.find((item) => item && item.id === guide.offer.id);
   if (!offer) return null;
-  const base = { id: offer.id, head: guide.offer.head, body: guide.offer.body, tags: TOPIC_TAGS[topic] || [] };
+  const base = { id: offer.id, badge: guide.title || "", head: guide.offer.head, body: guide.offer.body };
   if (offer.copy) {
-    return { ...base, mode: "copy", label: offer.label || "复制网址", disclosure: offer.disclosure || "" };
+    return { ...base, mode: "copy", label: offer.label || "复制链接", disclosure: offer.disclosure || "" };
   }
   if (offer.image) {
     return { ...base, mode: "image", image: offer.image, disclosure: offer.disclosure || "" };
@@ -68,24 +57,13 @@ function buildOffer(guide, topic) {
     return {
       ...base,
       mode: "pending",
-      note: offer.pendingNote || "还在准备中。",
+      note: offer.pendingNote || "准备中。",
       canCopy: Boolean(contact),
       label: offer.pendingLabel || "复制微信号",
       disclosure: contact ? offer.pendingDisclosure || "" : "",
     };
   }
   return null;
-}
-
-function showBrowserStepModal() {
-  if (typeof wx !== "undefined" && typeof wx.showModal === "function") {
-    wx.showModal({
-      title: "✓ 网址已复制成功",
-      content: "微信小程序内不支持直接打开外部券商网页。\n\n请打开手机自带「浏览器 / Safari」，在顶部地址栏长按「粘贴」前往即可。",
-      confirmText: "知道了",
-      showCancel: false,
-    });
-  }
 }
 
 Page({
@@ -105,7 +83,7 @@ Page({
   onLoad(options = {}) {
     const topic = GUIDES[options.topic] ? options.topic : "info";
     const guide = GUIDES[topic];
-    const offer = buildOffer(guide, topic);
+    const offer = buildOffer(guide);
     wx.setNavigationBarTitle({ title: guide.title });
     this.setData({
       topic,
@@ -146,8 +124,7 @@ Page({
       success: () => {
         this.setData({ copiedChoiceId: source.id, copiedSuccess: true });
         track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
-        wx.showToast({ title: source.toast || "已复制", icon: "none" });
-        showBrowserStepModal();
+        wx.showToast({ title: source.toast || "已复制，去浏览器打开", icon: "none" });
       },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
@@ -161,13 +138,11 @@ Page({
       success: () => {
         this.setData({ copiedSuccess: true });
         track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
-        wx.showToast({ title: source.toast || "已复制", icon: "none" });
-        showBrowserStepModal();
+        wx.showToast({ title: source.toast || "已复制，去浏览器打开", icon: "none" });
       },
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
   },
-  // 开户链接还没到：复制 pendingContact 指向的真实微信号，用户加好友后发「我想开户」。
   copyPendingContact() {
     const offer = this.data.offer;
     const source = offer && OFFERS.find((item) => item && item.id === offer.id);
@@ -182,7 +157,6 @@ Page({
       fail: () => wx.showToast({ title: "复制失败", icon: "none" }),
     });
   },
-  // 直接展示包内二维码，微信长按图片识别；不依赖 wx.previewImage。
   onOfferImageLoad() {
     if (!this.data.offer || this.data.offer.mode !== "image") return;
     this.setData({ offerImageError: false });

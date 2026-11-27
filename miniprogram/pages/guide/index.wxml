@@ -1,21 +1,57 @@
 <view class="page-shell guide-shell">
-  <view wx:if="{{lead}}" class="guide-head">
-    <text class="guide-title">{{title}}</text>
-    <text class="guide-lead">{{lead}}</text>
+  <!-- 港美股双渠道直达：只给渠道与方式 -->
+  <block wx:if="{{choices.length}}">
+    <view wx:for="{{choices}}" wx:key="topic" class="page-card offer-card">
+      <view class="channel-top">
+        <text class="channel-badge">{{item.title}}</text>
+        <text class="offer-head">{{item.broker}}</text>
+      </view>
+      <text class="offer-way">{{item.way}}</text>
+      <view
+        class="offer-action {{copiedChoiceId === item.offerId ? 'is-done' : ''}}"
+        data-topic="{{item.topic}}"
+        data-offer-id="{{item.offerId}}"
+        bindtap="copyChoiceOffer"
+        hover-class="offer-action-active"
+        aria-role="button"
+        aria-label="{{item.actionLabel}}"
+      >{{copiedChoiceId === item.offerId ? '✓ 已复制，去手机浏览器粘贴打开' : item.actionLabel}}</view>
+      <text wx:if="{{item.disclosure}}" class="offer-disclosure">{{item.disclosure}}</text>
+    </view>
+  </block>
+
+  <!-- 单项渠道卡：港股 / 美股 / A股二维码 / VPN -->
+  <view wx:if="{{offer}}" class="page-card offer-card">
+    <view class="channel-top">
+      <text wx:if="{{offer.badge}}" class="channel-badge">{{offer.badge}}</text>
+      <text class="offer-head">{{offer.head}}</text>
+    </view>
+
+    <block wx:if="{{offer.mode === 'copy'}}">
+      <text class="offer-way">{{offer.body}}</text>
+      <view class="offer-action {{copiedSuccess ? 'is-done' : ''}}" bindtap="copyOffer" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{copiedSuccess ? '✓ 已复制，去手机浏览器粘贴打开' : offer.label}}</view>
+      <text class="offer-disclosure">{{offer.disclosure}}</text>
+    </block>
+
+    <block wx:elif="{{offer.mode === 'image'}}">
+      <text class="offer-way">{{offer.body}}</text>
+      <image class="offer-qr" src="{{offer.image}}" mode="widthFix" show-menu-by-longpress="{{true}}" bindload="onOfferImageLoad" binderror="onOfferImageError" aria-label="开户联系二维码" />
+      <text wx:if="{{offerImageError}}" class="offer-note">二维码加载失败，请返回重试。</text>
+      <text class="offer-disclosure">{{offer.disclosure}}</text>
+    </block>
+
+    <block wx:else>
+      <text class="offer-note">{{offer.note}}</text>
+      <block wx:if="{{offer.canCopy}}">
+        <view class="offer-action" bindtap="copyPendingContact" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{offer.label}}</view>
+        <text class="offer-disclosure">{{offer.disclosure}}</text>
+      </block>
+    </block>
   </view>
 
   <view wx:if="{{sections.length}}" class="page-card section-list">
     <view wx:for="{{sections}}" wx:key="key" class="sec">
       <text class="sec-title">{{item.title}}</text>
-      <view wx:for="{{item.points}}" wx:for-item="point" wx:key="key" class="sec-point">
-        <text>{{point.text}}</text>
-      </view>
-      <view wx:if="{{item.rows.length}}" class="sec-rows">
-        <view wx:for="{{item.rows}}" wx:for-item="row" wx:key="key" class="sec-row">
-          <text class="row-label">{{row.label}}</text>
-          <text class="row-value">{{row.value}}</text>
-        </view>
-      </view>
       <view wx:if="{{item.links.length}}" class="sec-links">
         <view
           wx:for="{{item.links}}"
@@ -34,84 +70,6 @@
         </view>
       </view>
     </view>
-  </view>
-
-  <!-- 港美股开户一屏直达双卡：不用跳二级页，本屏一键直接复制网址 -->
-  <block wx:if="{{choices.length}}">
-    <view class="step-flow-strip">
-      <view class="step-flow-item">
-        <text class="step-flow-num">1</text>
-        <text class="step-flow-txt">点按钮复制网址</text>
-      </view>
-      <text class="step-flow-arrow">➔</text>
-      <view class="step-flow-item">
-        <text class="step-flow-num">2</text>
-        <text class="step-flow-txt">浏览器粘贴打开</text>
-      </view>
-    </view>
-
-    <view wx:for="{{choices}}" wx:key="topic" class="page-card offer-card">
-      <view class="choice-head-row">
-        <text class="offer-head">{{item.broker}}</text>
-        <text class="choice-detail-link" data-topic="{{item.topic}}" bindtap="openChoice" aria-role="button">独立页 ›</text>
-      </view>
-      <view wx:if="{{item.tags.length}}" class="guide-tag-row">
-        <text wx:for="{{item.tags}}" wx:for-item="tg" wx:key="*this" class="guide-tag">{{tg}}</text>
-      </view>
-      <view
-        class="offer-action {{copiedChoiceId === item.offerId ? 'is-done' : ''}}"
-        data-topic="{{item.topic}}"
-        data-offer-id="{{item.offerId}}"
-        bindtap="copyChoiceOffer"
-        hover-class="offer-action-active"
-        aria-role="button"
-        aria-label="{{item.actionLabel}}"
-      >{{copiedChoiceId === item.offerId ? '✓ 已复制！去手机浏览器粘贴' : item.actionLabel}}</view>
-      <text wx:if="{{item.disclosure}}" class="offer-disclosure">{{item.disclosure}}</text>
-    </view>
-  </block>
-
-  <!-- 单项开户 / VPN开通 / A股扫码：一屏一卡，零多余表格 -->
-  <view wx:if="{{offer}}" class="page-card offer-card">
-    <text class="offer-head">{{offer.head}}</text>
-    <view wx:if="{{offer.tags && offer.tags.length}}" class="guide-tag-row">
-      <text wx:for="{{offer.tags}}" wx:key="*this" class="guide-tag">{{item}}</text>
-    </view>
-
-    <block wx:if="{{offer.mode === 'copy'}}">
-      <view class="step-flow-strip is-inner">
-        <view class="step-flow-item">
-          <text class="step-flow-num">1</text>
-          <text class="step-flow-txt">复制下方网址</text>
-        </view>
-        <text class="step-flow-arrow">➔</text>
-        <view class="step-flow-item">
-          <text class="step-flow-num">2</text>
-          <text class="step-flow-txt">去手机浏览器粘贴</text>
-        </view>
-      </view>
-      <view class="offer-action {{copiedSuccess ? 'is-done' : ''}}" bindtap="copyOffer" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{copiedSuccess ? '✓ 网址已复制！去浏览器粘贴' : '一键' + offer.label}}</view>
-      <view wx:if="{{copiedSuccess}}" class="copy-step-box">
-        <text class="copy-step-title">✓ 已复制！打开手机「浏览器 / Safari」顶部粘贴即可</text>
-      </view>
-      <text class="offer-disclosure">{{offer.disclosure}}</text>
-    </block>
-
-    <block wx:elif="{{offer.mode === 'image'}}">
-      <text class="offer-body">{{offer.body}}</text>
-      <image class="offer-qr" src="{{offer.image}}" mode="widthFix" show-menu-by-longpress="{{true}}" bindload="onOfferImageLoad" binderror="onOfferImageError" aria-label="开户联系二维码" />
-      <text wx:if="{{offerImageError}}" class="offer-note">二维码加载失败，请返回后重试。</text>
-      <text wx:else class="offer-note">手指按住二维码 2 秒 → 点「识别图中二维码」</text>
-      <text class="offer-disclosure">{{offer.disclosure}}</text>
-    </block>
-
-    <block wx:else>
-      <text class="offer-note">{{offer.note}}</text>
-      <block wx:if="{{offer.canCopy}}">
-        <view class="offer-action" bindtap="copyPendingContact" hover-class="offer-action-active" aria-role="button" aria-label="{{offer.label}}">{{offer.label}}</view>
-        <text class="offer-disclosure">{{offer.disclosure}}</text>
-      </block>
-    </block>
   </view>
 
   <view class="page-footer">

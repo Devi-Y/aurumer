@@ -1,31 +1,41 @@
 <view class="page-shell community-shell">
-  <!-- 对标问岳会员收银台：一进页即亮价格、核心权益标签、一键直拉微信支付 -->
+  <!-- 首屏价值收银台：原价 29,800 vs 现价 298/年 + 核心价值账 + 一键拉起微信支付 -->
   <view class="page-card community-pay-hero">
     <view class="cp-kicker-row">
-      <text class="cp-kicker">年度会员群</text>
-      <text class="cp-refund-pill">入群7天内无理由全额退</text>
+      <text class="cp-kicker">望潮 · 年度会员群</text>
+      <text class="cp-refund-pill">入群7天无理由全额退</text>
     </view>
-    <text class="community-title">公开资料共读 · 工具答疑交流</text>
 
-    <view class="cp-price-row">
-      <text class="cp-currency">¥</text>
-      <text class="cp-price-num">{{priceCny}}</text>
-      <text class="cp-price-term">/ {{termLabel}}</text>
-      <text class="cp-no-auto">不自动续费</text>
+    <text class="community-title">港美A股 · 打新收息 · 全年陪伴会员群</text>
+    <text class="community-sub">省下天天翻公告、啃英文财报、自己踩坑摸索的时间</text>
+
+    <view class="cp-price-box">
+      <view class="cp-price-main-line">
+        <view class="cp-now-wrap">
+          <text class="cp-now-tag">特惠现价</text>
+          <text class="cp-currency">¥</text>
+          <text class="cp-price-num">{{priceCny}}</text>
+          <text class="cp-price-term">/ {{termLabel}}</text>
+        </view>
+        <text class="cp-daily-pill">{{dailyCostText}}</text>
+      </view>
+      <view class="cp-origin-line">
+        <text class="cp-origin-price">原价 {{originalPriceText}}/{{termLabel}}</text>
+        <text class="cp-save-badge">{{saveAmountText}}</text>
+        <text class="cp-no-auto">365天 · 不自动续费</text>
+      </view>
     </view>
 
     <view class="cp-tags-row">
-      <text class="cp-tag">一手财报与公告交流</text>
-      <text class="cp-tag">望潮使用一对一答疑</text>
-      <text class="cp-tag">纯净交流 · 不荐股喊单</text>
+      <text wx:for="{{highlights}}" wx:key="*this" class="cp-tag">{{item}}</text>
     </view>
 
     <!-- 已开通 / 核对异常 / 待支付 主操作区 -->
     <block wx:if="{{order && order.paid && !verificationPending}}">
       <view class="cp-paid-box">
-        <text class="cp-paid-badge">✓ 已开通会员群</text>
+        <text class="cp-paid-badge">✓ 已开通年度会员群</text>
         <text wx:if="{{order.paid && !verificationPending && order.endsText}}" class="cp-paid-meta">有效期至 {{order.endsText}}</text>
-        <text wx:else class="cp-paid-meta">已付款成功，请打开二维码添加群主进群（服务期从入群日算起）</text>
+        <text wx:else class="cp-paid-meta">已付款成功，请打开二维码添加群主进群（满365天从入群日算起）</text>
         <button wx:if="{{qrReady}}" class="wxpay-btn" bindtap="openPaidQr">打开群主微信二维码</button>
         <view class="cp-order-foot">
           <text wx:if="{{order.orderId}}" class="sec-muted">订单 {{order.orderId}}</text>
@@ -36,7 +46,7 @@
     </block>
 
     <block wx:elif="{{(checkoutReady || (checking && canPayConfig)) && (!order || !order.paid)}}">
-      <button class="wxpay-btn" bindtap="buy" loading="{{paying}}" disabled="{{paying || verificationPending}}">立即微信支付 ¥{{priceCny}}</button>
+      <button class="wxpay-btn" bindtap="buy" loading="{{paying}}" disabled="{{paying || verificationPending}}">立即微信支付 ¥{{priceCny}} 加入会员群</button>
       <text class="cp-pay-sub">支付成功自动弹出群主二维码 · 24小时内拉你进群</text>
       <view class="cp-legal-row">
         <text class="join-disclosure">点击即确认满18周岁并同意</text>
@@ -60,14 +70,47 @@
     </block>
   </view>
 
-  <!-- 辅助咨询入口：安静放在下方，不与微信支付主按钮打架 -->
+  <!-- 六大年度核心权益矩阵 -->
+  <view wx:if="{{perks.length}}" class="page-card cp-perks-card">
+    <view class="cp-perks-head">
+      <text class="cp-perks-title">加入即享 6 大年度权益</text>
+      <text class="cp-perks-sub">365天全程有效</text>
+    </view>
+
+    <view class="cp-perk-list">
+      <view wx:for="{{perks}}" wx:key="no" class="cp-perk-item">
+        <text class="cp-perk-no">{{item.no}}</text>
+        <view class="cp-perk-body">
+          <text class="cp-perk-name">{{item.title}}</text>
+          <text class="cp-perk-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="cp-guarantee-strip">
+      <view class="cp-guarantee-cell">
+        <text class="cp-guarantee-v">7天全退</text>
+        <text class="cp-guarantee-k">入群7日无理由</text>
+      </view>
+      <view class="cp-guarantee-cell">
+        <text class="cp-guarantee-v">按天可退</text>
+        <text class="cp-guarantee-k">第8日起随时退</text>
+      </view>
+      <view class="cp-guarantee-cell">
+        <text class="cp-guarantee-v">不绑续费</text>
+        <text class="cp-guarantee-k">到期绝不自动扣</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 辅助咨询入口 -->
   <view wx:if="{{join}}" class="page-card community-consult-card">
     <view class="consult-row" bindtap="copyWechat" hover-class="tap-active" aria-role="button" aria-label="{{join.label}}">
       <view class="consult-left">
-        <text class="consult-title">付款前想先问清楚？</text>
+        <text class="consult-title">付款前想先咨询群主？</text>
         <text class="join-disclosure">{{join.disclosure}}</text>
       </view>
-      <text class="consult-action">{{copiedWechatSuccess ? '✓ 已复制微信号' : '复制微信咨询 ›'}}</text>
+      <text class="consult-action">{{copiedWechatSuccess ? '✓ 已复制微信号' : '复制微信号 ›'}}</text>
     </view>
     <view wx:if="{{copiedWechatSuccess}}" class="copy-step-box">
       <text class="copy-step-title">✓ 微信号已复制：回微信点右上角「⊕ → 添加朋友」粘贴即可</text>

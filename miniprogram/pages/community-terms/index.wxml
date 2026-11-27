@@ -6,10 +6,10 @@
   <view class="page-card terms-card">
     <text class="terms-price">{{priceLabel}}</text>
     <text>{{promotion}}</text>
-    <text class="terms-muted">当前尚未开放付款。</text>
+    <text class="terms-muted">{{checkoutStatus}}</text>
   </view>
   <view class="page-card terms-card">
-    <text class="terms-heading">服务内容</text>
+    <text class="terms-heading">6大年度权益</text>
     <text wx:for="{{services}}" wx:key="*this">{{index + 1}}. {{item}}</text>
     <text class="terms-muted">{{scope}}</text>
     <text class="terms-heading">入群与期限</text>

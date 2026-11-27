@@ -1,11 +1,7 @@
 <view class="page-shell home-shell">
-  <!-- 极简抬头：左侧轻量定位，右侧唯一数据批次时间。 -->
-  <view class="home-brand-bar">
-    <text class="home-brand-sub">公开资料 · 极简研究</text>
-    <text class="home-brand-meta">{{dataAsOf || '读取历史资料'}}</text>
-  </view>
+  <view class="home-top-spacer" aria-hidden="true"></view>
 
-  <!-- 对标 DeepSeek × Fey：饱满通透大搜索栏，0延迟直达全市场任意标的。 -->
+  <!-- 放大版主搜索框 + 港美A高热度标的直达 -->
   <view class="home-search-wrap">
     <view class="home-search-box {{searchFocused ? 'is-focused' : ''}}">
       <text class="home-search-icon" aria-hidden="true">⌕</text>
@@ -14,7 +10,7 @@
         type="text"
         confirm-type="search"
         value="{{searchQuery}}"
-        placeholder="搜股票、新股、代码或机构（如 英伟达、长江电力）"
+        placeholder="搜港美A股、新股、代码或机构"
         placeholder-class="home-search-placeholder"
         bindfocus="onSearchFocus"
         bindinput="onSearchInput"
@@ -45,23 +41,11 @@
     <view wx:elif="{{searchQuery && !searchResults.length}}" class="search-dropdown search-empty">
       <text>当前样本库未匹配到“{{searchQuery}}”，可试试代码或中文简称</text>
     </view>
-    <view wx:elif="{{starPicks.length}}" class="search-picks-inline">
-      <text class="search-picks-label">★ 收藏</text>
+
+    <view wx:if="{{hotPicks.length}}" class="search-picks-inline">
+      <text class="search-picks-label">热度</text>
       <view
-        wx:for="{{starPicks}}"
-        wx:key="key"
-        class="search-pick-chip is-star"
-        data-market="{{item.market}}"
-        data-id="{{item.id}}"
-        bindtap="openSearchResult"
-        hover-class="tap-active"
-        aria-role="button"
-      >{{item.label}}</view>
-    </view>
-    <view wx:elif="{{quickPicks.length}}" class="search-picks-inline">
-      <text class="search-picks-label">直达</text>
-      <view
-        wx:for="{{quickPicks}}"
+        wx:for="{{hotPicks}}"
         wx:key="key"
         class="search-pick-chip"
         data-market="{{item.market}}"
@@ -73,11 +57,10 @@
     </view>
   </view>
 
-  <!-- 九宫格核心主视觉：五个免费研究模块 + 四项服务入口，宽松通透，一触即达。 -->
+  <view class="home-mid-spacer" aria-hidden="true"></view>
+
+  <!-- 九宫格核心主视觉：五个研究模块 + 四项服务入口，无多余标题干扰 -->
   <view class="page-card home-panel">
-    <view class="panel-head">
-      <text class="group-label">免费决策参考</text>
-    </view>
     <view class="entry-grid">
       <block wx:for="{{entries}}" wx:key="id">
       <view
@@ -98,7 +81,7 @@
     </view>
   </view>
 
-  <view class="page-footer">
+  <view class="page-footer" aria-label="{{footerDisclaimer}}{{dataAsOf ? '，' + dataAsOf : ''}}">
     <text class="footer-note">{{footerDisclaimer}}</text>
   </view>
 </view>

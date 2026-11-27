@@ -406,9 +406,13 @@ assert(
   "小程序核心入口缺少按钮朗读标签或装饰图标隐藏语义",
 );
 assert(indexTemplate.includes('role="button"') && !indexTemplate.includes("<button"), "小程序首页整块入口不应受原生 button 默认宽度干扰");
+// 2026-11-27 产品负责人明确决定：首页删掉「公开资料」抬头与「免费决策参考」标题，搜索框放大并展示港美A「热度」股票。
 assert(
-  indexTemplate.includes("免费决策参考"),
-  "小程序首页应标明免费决策参考",
+  !indexTemplate.includes("免费决策参考")
+    && !indexTemplate.includes("home-brand-bar")
+    && indexTemplate.includes("热度")
+    && indexSource.includes("buildHotPicks"),
+  "小程序首页应移除公开资料抬头与免费决策参考标题，并展示港美A热度推荐",
 );
 // 只看会渲染出来的部分：WXML 注释里记一句「今日重点已撤掉」不算回潮。
 assert(
@@ -976,10 +980,10 @@ assert(liveDataSanitizer.includes("publicAnswer") && liveDataSanitizer.includes(
 }
 // 今日重点标题撤掉后，「数据截至」挂在核心研究那一行的右侧，仍是自动更新的。
 assert(
-  indexTemplate.includes("免费决策参考")
+  !indexTemplate.includes("免费决策参考")
   && indexTemplate.includes("dataAsOf")
   && indexSource.includes("asOfText"),
-  "首页缺少固定分组标题或自动更新的数据截至时间",
+  "首页缺少自动更新的数据截至时间读屏标签",
 );
 
 assert(sectionSource.includes('one: "') || (await readFile(path.join(miniRoot, "pages", "section", "index.js"), "utf8")).includes("one:"), "栏目页缺少品类研究摘要文案配置");

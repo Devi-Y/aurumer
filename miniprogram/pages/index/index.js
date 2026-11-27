@@ -277,24 +277,84 @@ function buildSearchIndex(snapshot) {
   return rows;
 }
 
-function buildQuickPicks(index) {
-  const wanted = ["NVDA", "600900.SH", "GOOGL", "berkshire", "gold"];
+function shortHotLabel(rawName) {
+  let text = String(rawName || "").trim();
+  if (!text) return "";
+  text = text
+    .replace(/股份有限公司|有限责任公司|控股有限公司|有限公司/gu, "")
+    .replace(/\s*-\s*(B|W|SW|S)$/iu, "")
+    .replace(/^(赣州|常州|江苏|深圳|北京|上海|广东|浙江|杭州|苏州)/u, "")
+    .replace(/^易方达中证/u, "")
+    .trim();
+  if (text.length > 5 && /科技|资讯|文化旅游/u.test(text)) {
+    text = text.replace(/(科技|资讯|文化旅游)$/u, "").trim();
+  }
+  return text.length > 5 ? text.slice(0, 5) : text;
+}
+
+// 自动从最新快照拉取港、美、A 三地高热度代表股票，并设固定龙头兜底。
+function buildHotPicks(snapshot, index) {
+  const byKey = new Map((index || []).map((row) => [row.key, row]));
+  const usCandidates = usPoolItems(snapshot)
+    .map((item) => {
+      const symbol = String(item.id || item.code || "");
+      const heat = Number(item.raw && item.raw.heatScore) || 0;
+      const bonus = symbol === "NVDA" ? 36 : (symbol === "TSLA" ? 22 : (MAGNIFICENT_SEVEN.includes(symbol) ? 10 : 0));
+      return { key: `us:${item.id}`, score: heat + bonus };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const hkCandidates = allItems(snapshot, "hk")
+    .filter((item) => String(item.badge || "") !== "发行已取消")
+    .map((item, idx) => {
+      const raw = item.raw || {};
+      const liveScore = item.badge === "值得打" ? 120 : (raw.isLive ? 85 : 0);
+      const starScore = /希音|商米|中际旭创|梅卡曼德/u.test(String(item.name || "")) ? 70 : 0;
+      const csScore = Number(raw.cornerstonePercent) || 0;
+      return { key: `hk:${item.id}`, score: liveScore + starScore + csScore - idx * 0.5 };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const aCandidates = allItems(snapshot, "a")
+    .filter((item) => (item.raw && item.raw.assetType) !== "fund")
+    .map((item, idx) => {
+      const raw = item.raw || {};
+      const move = Math.abs(Number(raw.changePercent) || 0) * 6;
+      const div = Number(raw.currentDividendYield || raw.historicalDividendYield) || 0;
+      const flagship = /^(600900|600036|600941|601088|000333)/.test(String(item.id || "")) ? 18 : 0;
+      return { key: `a:${item.id}`, score: flagship + div * 2 + move - idx * 0.3 };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const interleaved = [
+    usCandidates[0] && usCandidates[0].key,
+    hkCandidates[0] && hkCandidates[0].key,
+    aCandidates[0] && aCandidates[0].key,
+    usCandidates[1] && usCandidates[1].key,
+    aCandidates[1] && aCandidates[1].key,
+    hkCandidates[1] && hkCandidates[1].key,
+    "us:NVDA",
+    "a:600900",
+    "us:TSLA",
+    "a:600036",
+  ].filter(Boolean);
+
   const picks = [];
-  for (const target of wanted) {
-    const found = index.find((row) =>
-      row.id === target
-      || row.code === target
-      || (target === "berkshire" && /伯克希尔|巴菲特/u.test(row.name))
-      || (target === "gold" && row.market === "gold"));
-    if (found && !picks.some((p) => p.key === found.key)) {
-      picks.push({
-        key: found.key,
-        market: found.market,
-        id: found.id,
-        label: found.name.length > 6 ? found.name.slice(0, 6) : found.name,
-      });
-    }
-    if (picks.length >= 4) break;
+  const used = new Set();
+  for (const key of interleaved) {
+    if (used.has(key)) continue;
+    const row = byKey.get(key);
+    if (!row) continue;
+    const label = shortHotLabel(row.name);
+    if (!label) continue;
+    used.add(key);
+    picks.push({
+      key: row.key,
+      market: row.market,
+      id: row.id,
+      label,
+    });
+    if (picks.length >= 6) break;
   }
   return picks;
 }
@@ -308,6 +368,7 @@ Page({
     searchQuery: "",
     searchFocused: false,
     searchResults: [],
+    hotPicks: [],
     quickPicks: [],
     starPicks: [],
     dataAsOf: "",
@@ -362,9 +423,11 @@ Page({
           this._trendsDataKey = dataKey;
           const trends = buildHomeTrends(data);
           this._searchIndex = buildSearchIndex(data);
+          const hotPicks = buildHotPicks(data, this._searchIndex);
           patch.trends = trends;
           patch.pulse = buildMarketPulse(trends);
-          patch.quickPicks = buildQuickPicks(this._searchIndex);
+          patch.hotPicks = hotPicks;
+          patch.quickPicks = hotPicks;
         }
         if (Object.keys(patch).length) this.setData(patch);
       },

@@ -1,99 +1,98 @@
-/* 首页视觉体系：深海精装金融头图 × DeepSeek 极简白底卡片 × 品牌蓝 #1d5fd1。 */
+/* 首页极简协调体系：大搜索框（含港美A热度推荐）× 无标题纯白九宫格 × 底部一句话免责声明 */
 
 .home-shell {
+  display: flex;
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 16rpx 0 calc(36rpx + env(safe-area-inset-bottom));
+  padding: 0 0 calc(28rpx + env(safe-area-inset-bottom));
+  flex-direction: column;
   overflow-x: hidden;
-  background: #f5f7fa;
+  background: linear-gradient(180deg, #f1f5fc 0%, #f6f8fb 44%, #f5f7fa 100%);
 }
 
-.home-brand-bar {
-  display: flex;
-  margin: 4rpx 28rpx 16rpx;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12rpx;
+.home-top-spacer {
+  flex: 0.72 0 40rpx;
+  max-height: 104rpx;
 }
 
-.home-brand-sub {
-  color: #64748b;
-  font-size: 23rpx;
-  font-weight: 600;
-  letter-spacing: 0.4rpx;
+.home-mid-spacer {
+  flex: 0.42 0 34rpx;
+  max-height: 64rpx;
 }
 
-.home-brand-meta {
-  color: #94a3b8;
-  font-size: 21rpx;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---------- DeepSeek × Fey 风格饱满通透大搜索框 ---------- */
+/* ---------- 放大版饱满搜索框 + 港美A热度推荐 ---------- */
 
 .home-search-wrap {
-  margin: 0 24rpx 24rpx;
+  position: relative;
+  z-index: 20;
+  margin: 0 28rpx;
 }
 
 .home-search-box {
   display: flex;
-  height: 92rpx;
-  padding: 0 28rpx;
+  height: 112rpx;
+  padding: 0 34rpx;
   align-items: center;
-  gap: 14rpx;
-  border: 2rpx solid rgba(15, 23, 42, 0.06);
-  border-radius: 999rpx;
+  gap: 16rpx;
+  border: 2rpx solid rgba(29, 95, 209, 0.14);
+  border-radius: 34rpx;
   background: #ffffff;
-  box-shadow: 0 8rpx 26rpx rgba(15, 23, 42, 0.05);
+  box-shadow: 0 12rpx 34rpx rgba(29, 95, 209, 0.07), 0 2rpx 8rpx rgba(15, 23, 42, 0.03);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .home-search-box.is-focused {
   border-color: #1d5fd1;
-  box-shadow: 0 10rpx 28rpx rgba(29, 95, 209, 0.12);
+  box-shadow: 0 14rpx 38rpx rgba(29, 95, 209, 0.14);
 }
 
 .home-search-icon {
   flex: none;
-  color: #64748b;
-  font-size: 36rpx;
+  color: #1d5fd1;
+  font-size: 42rpx;
   line-height: 1;
 }
 
 .home-search-input {
   flex: 1;
   min-width: 0;
-  height: 84rpx;
+  height: 104rpx;
   color: #0f172a;
-  font-size: 28rpx;
+  font-size: 31rpx;
+  font-weight: 500;
 }
 
 .home-search-placeholder {
   color: #94a3b8;
-  font-size: 26rpx;
+  font-size: 28rpx;
+  font-weight: 400;
 }
 
 .home-search-clear {
   flex: none;
-  padding: 6rpx 10rpx;
+  padding: 8rpx 12rpx;
   color: #1d5fd1;
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: 600;
 }
 
 .search-dropdown {
-  margin-top: 12rpx;
+  position: absolute;
+  top: 124rpx;
+  right: 0;
+  left: 0;
+  z-index: 30;
   overflow: hidden;
   border: 1rpx solid rgba(15, 23, 42, 0.08);
-  border-radius: 22rpx;
+  border-radius: 26rpx;
   background: #ffffff;
-  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18rpx 44rpx rgba(15, 23, 42, 0.12);
 }
 
 .search-result-row {
   display: flex;
-  min-height: 86rpx;
-  padding: 14rpx 22rpx;
+  min-height: 88rpx;
+  padding: 14rpx 24rpx;
   align-items: center;
   gap: 14rpx;
 }
@@ -154,314 +153,66 @@
 }
 
 .search-empty {
-  padding: 26rpx 24rpx;
+  padding: 28rpx 24rpx;
   color: #64748b;
-  font-size: 24rpx;
+  font-size: 25rpx;
   text-align: center;
 }
 
 .search-picks-inline {
   display: flex;
-  margin-top: 16rpx;
-  padding: 0 6rpx;
-  flex-wrap: wrap;
+  margin-top: 22rpx;
+  padding: 2rpx 4rpx;
   align-items: center;
   gap: 12rpx;
+  overflow-x: auto;
+}
+
+.search-picks-inline::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .search-picks-label {
-  color: #94a3b8;
+  flex: none;
+  padding: 6rpx 14rpx;
+  border-radius: 10rpx;
+  background: rgba(220, 76, 62, 0.1);
+  color: #d9483b;
   font-size: 22rpx;
-  font-weight: 620;
+  font-weight: 700;
+  letter-spacing: 0.4rpx;
 }
 
 .search-pick-chip {
-  padding: 8rpx 20rpx;
+  flex: none;
+  padding: 10rpx 22rpx;
   border: 1rpx solid rgba(15, 23, 42, 0.06);
   border-radius: 999rpx;
   background: #ffffff;
-  color: #334155;
-  font-size: 23rpx;
+  color: #1e293b;
+  font-size: 24rpx;
   font-weight: 600;
-  box-shadow: 0 2rpx 8rpx rgba(15, 23, 42, 0.025);
-}
-
-.search-pick-chip.is-star {
-  border-color: rgba(245, 158, 11, 0.3);
-  background: #fffbeb;
-  color: #92400e;
-}
-
-/* ---------- 有知有行 × 韭圈儿 × 且慢：全市场历史综合温度计深色精装头卡 ---------- */
-
-.pulse-eyebrow-row {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-}
-
-.pulse-rule-btn {
-  padding: 2rpx 12rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.22);
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 19rpx;
-}
-
-.pulse-info-drawer {
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-  margin-top: 14rpx;
-  padding: 14rpx 16rpx;
-  border-radius: 14rpx;
-  background: rgba(255, 255, 255, 0.09);
-}
-
-.pulse-info-line {
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 21rpx;
-  line-height: 1.5;
-}
-
-.pulse-hero {
-  margin: 0 20rpx 18rpx;
-  padding: 26rpx 26rpx 22rpx;
-  border-radius: 28rpx;
-  background: linear-gradient(135deg, #0d1a33 0%, #162b52 55%, #1d3c74 100%);
-  color: #ffffff;
-  box-shadow: 0 14rpx 36rpx rgba(13, 26, 51, 0.18);
-}
-
-.pulse-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12rpx;
-}
-
-.pulse-eyebrow {
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 22rpx;
-  font-weight: 620;
-  letter-spacing: 0.6rpx;
-}
-
-.pulse-date {
-  padding: 4rpx 14rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 20rpx;
-  font-variant-numeric: tabular-nums;
-}
-
-.pulse-main {
-  display: flex;
-  margin-top: 16rpx;
-  align-items: center;
-  gap: 22rpx;
-}
-
-.pulse-score-wrap {
-  display: flex;
-  flex: none;
-  align-items: flex-start;
-  line-height: 1;
-}
-
-.pulse-score {
-  color: #ffffff;
-  font-size: 76rpx;
-  font-weight: 760;
-  letter-spacing: -2rpx;
-  font-variant-numeric: tabular-nums;
-}
-
-.pulse-unit {
-  margin-top: 8rpx;
-  margin-left: 2rpx;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 32rpx;
-  font-weight: 600;
-}
-
-.pulse-copy-wrap {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8rpx;
-}
-
-.pulse-zone {
-  padding: 4rpx 16rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
-  font-size: 22rpx;
-  font-weight: 700;
-}
-
-.pulse-zone.tone-cool { background: rgba(59, 130, 246, 0.34); color: #dbeafe; }
-.pulse-zone.tone-warm { background: rgba(245, 158, 11, 0.34); color: #fef3c7; }
-
-.pulse-desc {
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 23rpx;
-  line-height: 1.48;
-}
-
-.pulse-gauge {
-  margin-top: 20rpx;
-}
-
-.pulse-gauge-track {
-  position: relative;
-  height: 14rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(90deg, #38bdf8 0%, #34d399 35%, #fbbf24 68%, #f87171 100%);
-}
-
-.pulse-gauge-dot {
-  position: absolute;
-  top: 50%;
-  width: 24rpx;
-  height: 24rpx;
-  margin-top: -12rpx;
-  margin-left: -12rpx;
-  border: 4rpx solid #ffffff;
-  border-radius: 50%;
-  background: #0f172a;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.36);
-}
-
-.pulse-gauge-labels {
-  display: flex;
-  margin-top: 8rpx;
-  justify-content: space-between;
-  color: rgba(255, 255, 255, 0.56);
-  font-size: 19rpx;
-}
-
-.pulse-pills {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8rpx;
-  margin-top: 18rpx;
-}
-
-.pulse-pill {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4rpx;
-  padding: 10rpx 6rpx;
-  border-radius: 14rpx;
-  background: rgba(255, 255, 255, 0.09);
-}
-
-.pulse-pill-tap {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.pulse-pill-k {
-  color: rgba(255, 255, 255, 0.66);
-  font-size: 19rpx;
-}
-
-.pulse-pill-v {
-  max-width: 100%;
-  overflow: hidden;
-  color: #ffffff;
-  font-size: 20rpx;
-  font-weight: 660;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  box-shadow: 0 4rpx 12rpx rgba(15, 23, 42, 0.025);
 }
 
-.pulse-pill-v.tone-up { color: #fca5a5; }
-.pulse-pill-v.tone-down { color: #86efac; }
-.pulse-pill-v.tone-cool { color: #93c5fd; }
-.pulse-pill-v.tone-warn { color: #fde68a; }
-
-/* ---------- 分组标题 ---------- */
+/* ---------- 九宫格主面板 ---------- */
 
 .home-panel {
-  margin: 8rpx 24rpx 0;
-  padding: 12rpx 6rpx 18rpx;
-  border-radius: 32rpx;
-  box-shadow: 0 10rpx 32rpx rgba(15, 23, 42, 0.045);
+  margin: 0 28rpx;
+  padding: 24rpx 10rpx;
+  border-radius: 36rpx;
+  background: #ffffff;
+  box-shadow: 0 14rpx 40rpx rgba(15, 23, 42, 0.05);
 }
-
-.panel-head {
-  display: flex;
-  padding: 20rpx 26rpx 8rpx;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12rpx;
-}
-
-.panel-head .group-label {
-  padding: 0;
-  color: #64748b;
-  font-size: 24rpx;
-  font-weight: 660;
-}
-
-.panel-sub {
-  color: #94a3b8;
-  font-size: 21rpx;
-}
-
-.group-head.home-head {
-  margin: 6rpx 20rpx 0;
-  padding-right: 4rpx;
-}
-
-.home-head .group-label {
-  padding-left: 4rpx;
-}
-
-.group-label {
-  display: block;
-  padding: 12rpx 24rpx 4rpx;
-  color: #64748b;
-  font-size: 24rpx;
-  font-weight: 680;
-}
-
-.group-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16rpx;
-  padding-right: 24rpx;
-}
-
-.group-head .group-label {
-  padding-right: 0;
-}
-
-.group-meta {
-  min-width: 0;
-  flex: none;
-  overflow: hidden;
-  color: #94a3b8;
-  font-size: 22rpx;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ---------- 九宫格 ---------- */
 
 .entry-grid {
   display: flex;
   width: 100%;
   flex-wrap: wrap;
-  padding: 12rpx 0 18rpx;
+  padding: 4rpx 0;
 }
 
 .grid-card {
@@ -474,7 +225,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
+  gap: 18rpx;
   padding: 24rpx 10rpx;
   border-radius: 16rpx;
   text-align: center;
@@ -482,8 +233,8 @@
 
 .entry-icon-chip {
   display: flex;
-  width: 112rpx;
-  height: 112rpx;
+  width: 116rpx;
+  height: 116rpx;
   align-items: center;
   justify-content: center;
   border: 1rpx solid rgba(29, 95, 209, 0.1);
@@ -506,8 +257,8 @@
 }
 
 .entry-icon {
-  width: 54rpx;
-  height: 54rpx;
+  width: 56rpx;
+  height: 56rpx;
 }
 
 .card-title {
@@ -516,7 +267,7 @@
   overflow: hidden;
   color: #0f172a;
   font-size: 27rpx;
-  font-weight: 640;
+  font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -526,129 +277,12 @@
   transform: scale(0.985);
 }
 
-/* ---------- 走势：2×2 极简高反差卡片 ---------- */
-
-.trend-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14rpx;
-  margin: 8rpx 20rpx 0;
-}
-
-.trend-card {
-  box-sizing: border-box;
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 6rpx;
-  padding: 20rpx 20rpx 16rpx;
-  border: 1rpx solid rgba(15, 23, 42, 0.05);
-  border-radius: 24rpx;
-  background: #ffffff;
-  box-shadow: 0 4rpx 14rpx rgba(15, 23, 42, 0.035);
-  transition: transform 0.12s ease, background-color 0.12s ease;
-}
-
-.trend-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8rpx;
-}
-
-.trend-title {
-  overflow: hidden;
-  color: #475569;
-  font-size: 24rpx;
-  font-weight: 640;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.trend-arrow {
-  color: #cbd5e1;
-  font-size: 26rpx;
-  line-height: 1;
-}
-
-.trend-figure {
-  display: flex;
-  align-items: baseline;
-  gap: 10rpx;
-  min-width: 0;
-  margin-top: 2rpx;
-}
-
-.trend-value {
-  flex: none;
-  color: #0f172a;
-  font-size: 42rpx;
-  font-weight: 780;
-  letter-spacing: -1rpx;
-  font-variant-numeric: tabular-nums;
-}
-
-.trend-sub {
-  min-width: 0;
-  overflow: hidden;
-  padding: 2rpx 12rpx;
-  border-radius: 999rpx;
-  background: #f1f4f8;
-  color: #64748b;
-  font-size: 21rpx;
-  font-weight: 640;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.45;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.trend-sub.up { background: #fdedeb; color: #c93b2b; font-weight: 700; }
-.trend-sub.down { background: #e8f7ef; color: #0e8352; font-weight: 700; }
-
-.trend-bars,
-.trend-line {
-  display: block;
-  width: 100%;
-  height: 88rpx;
-  margin-top: 6rpx;
-}
-
-.trend-bars {
-  position: relative;
-  display: flex;
-  gap: 6rpx;
-}
-
-.trend-zero {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1rpx;
-  background: #dde2ea;
-}
-
-.trend-slot {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-}
-
-.trend-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  border-radius: 3rpx;
-  background: #c8ced8;
-}
-
-.trend-bar.up { background: #c2412d; }
-.trend-bar.down { background: #0b7a53; }
+/* ---------- 底部一句话免责声明：沉底协调对齐 ---------- */
 
 .page-footer {
   display: flex;
-  padding: 26rpx 28rpx 0;
+  margin-top: auto;
+  padding: 36rpx 32rpx 4rpx;
   flex-direction: column;
   align-items: center;
   text-align: center;
@@ -657,59 +291,49 @@
 .footer-note {
   max-width: 560rpx;
   color: #94a3b8;
-  font-size: 22rpx;
+  font-size: 23rpx;
   line-height: 1.55;
+  letter-spacing: 0.3rpx;
 }
-
-.trend-meta-row {
-  display: flex;
-  margin-top: 2rpx;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6rpx;
-}
-
-.trend-date {
-  min-width: 0;
-  overflow: hidden;
-  color: #64748b;
-  font-size: 19rpx;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.trend-mood {
-  flex: none;
-  padding: 2rpx 10rpx;
-  border-radius: 999rpx;
-  background: #f1f4f9;
-  color: #475569;
-  font-size: 18rpx;
-  font-weight: 660;
-  line-height: 1.4;
-}
-
-.trend-mood.tone-up { background: #fdf1ef; color: #c2412d; }
-.trend-mood.tone-down { background: #ecf8f2; color: #0b7a53; }
-.trend-mood.tone-warn { background: #fef6e7; color: #9a5b13; }
-.trend-mood.tone-cool { background: #edf3ff; color: #1d5fd1; }
 
 @media (max-width: 340px) {
-  .home-search-wrap, .pulse-hero, .home-panel, .trend-grid, .group-head.home-head {
-    margin-left: 12rpx;
-    margin-right: 12rpx;
+  .home-search-wrap, .home-panel {
+    margin-right: 16rpx;
+    margin-left: 16rpx;
   }
-  .grid-card { padding: 16rpx 6rpx; gap: 10rpx; }
-  .entry-icon-chip { width: 84rpx; height: 84rpx; }
-  .entry-icon { width: 44rpx; height: 44rpx; }
-  .card-title { font-size: 24rpx; }
+  .home-search-box {
+    height: 98rpx;
+    padding: 0 26rpx;
+  }
+  .grid-card {
+    min-height: 184rpx;
+    padding: 16rpx 6rpx;
+    gap: 12rpx;
+  }
+  .entry-icon-chip {
+    width: 92rpx;
+    height: 92rpx;
+  }
+  .entry-icon {
+    width: 46rpx;
+    height: 46rpx;
+  }
+  .card-title {
+    font-size: 24rpx;
+  }
 }
 
 @media (min-width: 700px) {
-  .home-search-wrap, .pulse-hero, .home-panel, .trend-grid, .group-head.home-head {
+  .home-search-wrap, .home-panel {
     margin-right: 32px;
     margin-left: 32px;
   }
-  .entry-icon-chip { width: 50px; height: 50px; }
-  .entry-icon { width: 25px; height: 25px; }
+  .entry-icon-chip {
+    width: 52px;
+    height: 52px;
+  }
+  .entry-icon {
+    width: 26px;
+    height: 26px;
+  }
 }

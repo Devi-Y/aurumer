@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-07T16:58:55.170Z",
+  "updatedAt": "2026-11-27T09:41:57.271Z",
   "disclaimer": "公开历史统计仅供研究参考，不构成买卖指令，也不承诺未来收益。各市场可回测年限不同，已在分项注明。",
   "markets": {
     "us": {
@@ -11,9 +11,9 @@
       "sampleYears": 155,
       "points": 156,
       "annualWinRate": 65.8,
-      "averageAnnualReturn": 6.44,
-      "cagr": 4.87,
-      "centuryCagr": 6.31,
+      "averageAnnualReturn": 6.46,
+      "cagr": 4.88,
+      "centuryCagr": 6.34,
       "bestYear": 46.2,
       "worstYear": -45.6,
       "afterDeepDropNextYearAvg": 9.96,
@@ -27,26 +27,26 @@
       "endYear": 2026,
       "sampleYears": 193,
       "points": 194,
-      "annualWinRate": 36.3,
-      "averageAnnualReturn": 3.72,
-      "cagr": 2.84,
-      "centuryCagr": 5.52,
-      "bestYear": 118.9,
+      "annualWinRate": 35.2,
+      "averageAnnualReturn": 3.7,
+      "cagr": 2.83,
+      "centuryCagr": 5.49,
+      "bestYear": 118.8,
       "worstYear": -27.5,
-      "afterDeepDropNextYearAvg": 4.4,
+      "afterDeepDropNextYearAvg": 4.36,
       "deepDropSamples": 6
     },
     "hk": {
       "label": "港股打新事件样本",
       "source": "虾投港股 IPO 历史聚合",
-      "note": "打新是事件研究，不是百年组合回测；用来看「值得打」样本的历史首日/暗盘分布。",
+      "note": "打新是事件研究，不是百年组合回测；用来看「建议申购」样本的历史首日/暗盘分布。",
       "startYear": null,
       "endYear": null,
       "sampleYears": null,
-      "points": 97,
-      "firstDayWinRate": 78.4,
-      "averageFirstDay": 56.3,
-      "averageGreyMarket": 59.03,
+      "points": 90,
+      "firstDayWinRate": 72.2,
+      "averageFirstDay": 46.45,
+      "averageGreyMarket": 51.93,
       "recentCount": 12
     },
     "a": {
@@ -56,9 +56,9 @@
       "marketStartYear": 1990,
       "maxPossibleYears": 36,
       "points": 20,
-      "averageDividendYield": 4.85,
-      "averageSustainableYield": 4.28,
-      "highYieldCount": 9
+      "averageDividendYield": 4.54,
+      "averageSustainableYield": 4.02,
+      "highYieldCount": 12
     }
   }
 }

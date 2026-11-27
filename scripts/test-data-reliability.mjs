@@ -371,6 +371,47 @@ test("client failure keeps bundled facts and retries after the degraded TTL", as
   assert.equal(recovered.at(-1).meta.kind, "fresh");
 });
 
+function cdnStore(bundle, cdnData, onCloud) {
+  return loadCjs("miniprogram/data/store.js", {
+    "./live-snapshot": bundle,
+    "../config/runtime": { snapshotCdnUrl: "https://cdn.example.com/aurum/live-snapshot.json" },
+    "./cdn-transport": {
+      isValidCdnUrl: () => true,
+      fetchSnapshotFromCdn: async () => ({ ok: true, data: cdnData, updatedAt: cdnData.updatedAt, cache: "cdn" }),
+    },
+  }, { wx: { cloud: { callFunction: onCloud } } });
+}
+const loadLatest = (store) => new Promise((resolve) => {
+  const updates = [];
+  store.loadSnapshot((snapshot, source, meta) => updates.push({ snapshot, source, meta }), () => resolve(updates));
+});
+
+test("a stale domestic CDN copy cannot pin clients when the cloud has newer data", async () => {
+  const remote = freshFixture();
+  let cloudCalls = 0;
+  const store = cdnStore(freshFixture(-140 * hour), freshFixture(-120 * hour), async () => {
+    cloudCalls += 1;
+    return { result: { ok: true, data: remote } };
+  });
+  const updates = await loadLatest(store);
+  assert.equal(cloudCalls, 1, "stale CDN must fall through to the cloud function");
+  assert.equal(updates.at(-1).snapshot.updatedAt, remote.updatedAt);
+});
+
+test("a current CDN copy is used directly, and a stale one still serves when the cloud fails", async () => {
+  const current = freshFixture(-hour);
+  let cloudCalls = 0;
+  const fast = cdnStore(freshFixture(-3 * hour), current, async () => { cloudCalls += 1; return { result: { ok: true, data: freshFixture() } }; });
+  const direct = await loadLatest(fast);
+  assert.equal(cloudCalls, 0);
+  assert.equal(direct.at(-1).snapshot.updatedAt, current.updatedAt);
+
+  const stale = freshFixture(-120 * hour);
+  const fallback = cdnStore(freshFixture(-140 * hour), stale, async () => { throw new Error("cloud test failure"); });
+  const served = await loadLatest(fallback);
+  assert.equal(served.at(-1).snapshot.updatedAt, stale.updatedAt, "newer stale CDN beats the older bundle when the cloud is down");
+});
+
 test("two failed cloud sources return a bounded explicit unavailable response", async () => {
   const requested = [];
   const handler = cloudHandler({ pages: { error: "pages test failure" }, raw: { error: "raw test failure" } }, requested);

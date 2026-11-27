@@ -173,6 +173,13 @@ function isRemoteNewerOrEqual(next, current) {
   return Number.isFinite(Date.parse(next && next.updatedAt)) && compareSnapshotVersions(next, current) >= 0;
 }
 
+// 每日自动更新在工作日早上跑一次；超过 30 个工作小时说明直连文件没跟上，改问云函数。
+const CDN_ACCEPT_MAX_AGE_MS = 30 * 60 * 60 * 1000;
+function isCdnCurrent(snapshot) {
+  const updatedAt = snapshot && snapshot.updatedAt;
+  return Number.isFinite(Date.parse(updatedAt)) && weekdayAgeMs(updatedAt) <= CDN_ACCEPT_MAX_AGE_MS;
+}
+
 function fetchLatest(force) {
   hydrateFromStorage();
   const now = Date.now();
@@ -197,23 +204,39 @@ function fetchLatest(force) {
     payload.clientRevisionAt = memorySnapshot.revisionAt || memorySnapshot.updatedAt;
   }
   const requestRemote = async () => {
-    // 方案 A 优先：若配置了已备案国内静态 CDN，优先 20~50ms 直连；失败无缝降级云函数。
+    // 方案 A 优先：国内直连文件只在「不比手上旧、且仍在新鲜窗口内」时直接采用；
+    // 直连文件停更时继续问云函数（云函数每 30 分钟从公开仓库回源），不让全站钉在旧数据上。
+    let cdnFallback = null;
     if (canUseCdn) {
       const cdnResult = await cdnTransport.fetchSnapshotFromCdn(cdnUrl, {
         force: Boolean(force),
         clientUpdatedAt: payload.clientUpdatedAt || "",
         clientRevisionAt: payload.clientRevisionAt || "",
       });
-      if (cdnResult && cdnResult.ok && (cdnResult.unchanged || isUsableSnapshot(cdnResult.data))) {
-        return cdnResult;
+      if (cdnResult && cdnResult.ok) {
+        if (cdnResult.unchanged && isUsableSnapshot(memorySnapshot) && isCdnCurrent(memorySnapshot)) return cdnResult;
+        if (!cdnResult.unchanged && isUsableSnapshot(cdnResult.data)) {
+          if (isCdnCurrent(cdnResult.data) && isRemoteNewerOrEqual(cdnResult.data, memorySnapshot)) return cdnResult;
+          cdnFallback = cdnResult;
+        }
       }
     }
-    if (!canUseCloud) throw new Error("云端快照暂不可用");
-    const response = await wx.cloud.callFunction({
-      name: "aurum-data",
-      data: payload,
-    });
-    return response && response.result;
+    if (!canUseCloud) {
+      if (cdnFallback) return cdnFallback;
+      throw new Error("云端快照暂不可用");
+    }
+    try {
+      const response = await wx.cloud.callFunction({
+        name: "aurum-data",
+        data: payload,
+      });
+      const result = response && response.result;
+      if ((!result || !result.ok) && cdnFallback) return cdnFallback;
+      return result;
+    } catch (error) {
+      if (cdnFallback) return cdnFallback;
+      throw error;
+    }
   };
   refreshPromise = requestRemote().then((result) => {
     fetchedAt = Date.now();

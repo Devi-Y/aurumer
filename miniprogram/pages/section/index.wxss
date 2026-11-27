@@ -25,7 +25,7 @@
 .freshness-banner .freshness-tip {
   margin-top: 4rpx;
   color: #696d75;
-  font-size: 22rpx;
+  font-size: 24rpx;
   line-height: 1.45;
 }
 .freshness-action {
@@ -34,7 +34,7 @@
   border: 1rpx solid #d4c3a6;
   border-radius: 999rpx;
   color: #8b5b20;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 700;
   line-height: 1.35;
 }
@@ -68,7 +68,7 @@
   flex: 1;
   overflow: hidden;
   color: #8a94a6;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-variant-numeric: tabular-nums;
   text-align: right;
   text-overflow: ellipsis;
@@ -200,7 +200,7 @@
 .answer-card-q {
   display: block;
   color: #656971;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 560;
 }
 
@@ -217,7 +217,7 @@
   display: block;
   margin-top: 6rpx;
   color: #656971;
-  font-size: 22rpx;
+  font-size: 24rpx;
   line-height: 1.4;
 }
 
@@ -240,7 +240,7 @@
   flex: 0 0 190rpx;
   overflow: hidden;
   color: #4a505a;
-  font-size: 22rpx;
+  font-size: 24rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -263,7 +263,7 @@
 .answer-bar-value {
   flex: 0 0 76rpx;
   color: #1a1f27;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -315,7 +315,7 @@
 
 .answer-mix-label {
   color: #8a929e;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .answer-mix-count {
@@ -354,7 +354,7 @@
 .answer-th {
   background: #f4f5f7;
   color: #898d94;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -363,7 +363,7 @@
   flex: 1;
   overflow: hidden;
   color: #292d33;
-  font-size: 23rpx;
+  font-size: 24rpx;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -396,7 +396,7 @@
   border-bottom: 1rpx solid #eeeff3;
   background: #ffffff;
   color: #7e8288;
-  font-size: 20rpx;
+  font-size: 24rpx;
   line-height: 1.45;
 }
 
@@ -412,7 +412,7 @@
   padding-left: 14rpx;
   border-left: 3rpx solid #d5d9df;
   color: #898d94;
-  font-size: 21rpx;
+  font-size: 24rpx;
   line-height: 1.45;
 }
 
@@ -422,7 +422,7 @@
   padding-top: 12rpx;
   border-top: 1rpx solid #edeef0;
   color: #7e8288;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 620;
 }
 
@@ -565,7 +565,7 @@
 .tile-count {
   flex: none;
   color: #7e8288;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-variant-numeric: tabular-nums;
 }
 
@@ -577,7 +577,7 @@
   margin-top: 6rpx;
   overflow: hidden;
   color: #696d75;
-  font-size: 21rpx;
+  font-size: 24rpx;
   line-height: 1.4;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -611,7 +611,7 @@
 
 .playbook-meta {
   color: #898c92;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .playbook-row {
@@ -649,7 +649,7 @@
   border-radius: 8rpx;
   background: #eef2fb;
   color: #4256c5;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -657,7 +657,7 @@
   display: block;
   margin-top: 6rpx;
   color: #696d75;
-  font-size: 23rpx;
+  font-size: 24rpx;
   line-height: 1.45;
 }
 
@@ -696,7 +696,7 @@
   .section-shell { padding-right: 14rpx; padding-left: 14rpx; }
   .hero-title { font-size: 38rpx; }
   .us-spark { display: none; }
-  .us-change { min-width: 112rpx; font-size: 22rpx; }
+  .us-change { min-width: 112rpx; font-size: 24rpx; }
   .hero-metric { padding-right: 6rpx; padding-left: 6rpx; }
   .hero-metric text:last-child { font-size: 28rpx; }
 }
@@ -726,7 +726,7 @@
 
 .source-meta {
   color: #999ca2;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .source-link-row {
@@ -913,7 +913,7 @@
 
 .hk-fd-title {
   color: #8a8e94;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -1020,7 +1020,7 @@
   display: block;
   margin-top: 5rpx;
   color: #999ca2;
-  font-size: 21rpx;
+  font-size: 24rpx;
   letter-spacing: 0.5rpx;
 }
 
@@ -1028,7 +1028,7 @@
   flex: none;
   padding: 5rpx 16rpx;
   border-radius: 999rpx;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 620;
   line-height: 1.5;
 }
@@ -1044,7 +1044,7 @@
   justify-content: space-between;
   margin-top: 18rpx;
   color: #999ca2;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .hk-empty {
@@ -1056,7 +1056,7 @@
 
 .hk-empty.is-compact {
   padding: 28rpx 0 4rpx;
-  font-size: 23rpx;
+  font-size: 24rpx;
 }
 
 .hk-picker {
@@ -1091,7 +1091,7 @@
 .hk-picker-caret {
   flex: none;
   color: #999ca2;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .hk-exit-card {
@@ -1135,7 +1135,7 @@
 .hk-exit-row-label {
   flex: none;
   color: #696d75;
-  font-size: 23rpx;
+  font-size: 24rpx;
 }
 
 .hk-exit-row-value {
@@ -1175,7 +1175,7 @@
 
 .hk-score-label {
   color: #999ca2;
-  font-size: 18rpx;
+  font-size: 24rpx;
   letter-spacing: 1rpx;
 }
 
@@ -1198,7 +1198,7 @@
 
 .hk-stat-label {
   color: #999ca2;
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 
 .hk-stat-value {
@@ -1237,7 +1237,7 @@
   align-items: center;
   gap: 8rpx;
   color: #696d75;
-  font-size: 21rpx;
+  font-size: 24rpx;
 }
 
 .hk-tier-legend-item.is-mine {
@@ -1250,7 +1250,7 @@
   border-radius: 999rpx;
   background: #1a1d22;
   color: #ffffff;
-  font-size: 18rpx;
+  font-size: 24rpx;
   line-height: 1.6;
 }
 
@@ -1274,7 +1274,7 @@
   flex: none;
   width: 56rpx;
   color: #494d55;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -1324,7 +1324,7 @@
 .hk-tier-value {
   flex: none;
   width: 108rpx;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 680;
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -1337,7 +1337,7 @@
   flex: none;
   width: 44rpx;
   color: #999ca2;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -1346,7 +1346,7 @@
   display: block;
   margin-top: 16rpx;
   color: #999ca2;
-  font-size: 20rpx;
+  font-size: 24rpx;
   text-align: right;
 }
 
@@ -1417,7 +1417,7 @@
 .us-event-line {
   flex: 0 0 100%;
   color: #696d75;
-  font-size: 23rpx;
+  font-size: 24rpx;
   line-height: 1.55;
 }
 
@@ -1433,7 +1433,7 @@
   align-items: baseline;
   gap: 12rpx;
   color: #696d75;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .plan-value {
@@ -1463,7 +1463,7 @@
 .plan-line.tone-sell .plan-note {
   padding: 2rpx 12rpx;
   border-radius: 999rpx;
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 .plan-line.tone-buy .plan-note { background: #dfe9fa; }
 .plan-line.tone-stop .plan-note { background: #f6dad4; }
@@ -1496,14 +1496,14 @@
 
 .plan-trigger-unit {
   margin-left: 4rpx;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
 .plan-trigger-label {
   display: block;
   margin-top: 6rpx;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -1543,7 +1543,7 @@
 .us-code {
   flex: none;
   color: #8a94a6;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.3rpx;
 }
@@ -1556,7 +1556,7 @@
   overflow: hidden;
   padding: 2rpx 12rpx;
   border-radius: 999rpx;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 620;
   line-height: 1.5;
   text-overflow: ellipsis;
@@ -1649,7 +1649,7 @@
   align-items: center;
   gap: 8rpx;
   color: #494d55;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .us-mix-dot {
@@ -1684,7 +1684,7 @@
   display: block;
   margin-top: 4rpx;
   color: #999ca2;
-  font-size: 20rpx;
+  font-size: 24rpx;
   letter-spacing: 1rpx;
 }
 
@@ -1744,7 +1744,7 @@
   padding: 0 4rpx 14rpx;
   border-bottom: 1rpx solid #edeef0;
   color: #999ca2;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -1788,7 +1788,7 @@
   border-radius: 12rpx;
   background: #eeeff1;
   color: #696d75;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 40rpx;
@@ -1830,7 +1830,7 @@
 
 .a-metric-unit {
   color: #999ca2;
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 
 .a-metric-track {
@@ -1868,12 +1868,12 @@
 
 .a-ladder-k {
   color: #999ca2;
-  font-size: 19rpx;
+  font-size: 24rpx;
   letter-spacing: 0.5rpx;
 }
 
 .a-ladder-v {
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
@@ -1893,7 +1893,7 @@
   position: absolute;
   top: 0;
   color: #1a1d22;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   transform: translateX(-50%);
@@ -1950,14 +1950,14 @@
 .a-col-buy {
   flex: 1;
   color: #1d5fd1;
-  font-size: 23rpx;
+  font-size: 24rpx;
   text-align: right;
 }
 
 .a-col-sell {
   flex: 1;
   color: #a33b2b;
-  font-size: 23rpx;
+  font-size: 24rpx;
   text-align: right;
 }
 
@@ -1965,7 +1965,7 @@
 .a-table-head .a-col-buy,
 .a-table-head .a-col-sell,
 .a-table-head .guru-col-move {
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 600;
   color: #999ca2;
 }
@@ -1973,7 +1973,7 @@
 .guru-col-move {
   flex: 1;
   color: #696d75;
-  font-size: 23rpx;
+  font-size: 24rpx;
   text-align: right;
 }
 
@@ -1999,7 +1999,7 @@
   display: block;
   margin-top: 5rpx;
   color: #999ca2;
-  font-size: 21rpx;
+  font-size: 24rpx;
   letter-spacing: 0.5rpx;
 }
 
@@ -2007,7 +2007,7 @@
   flex: none;
   padding: 4rpx 14rpx;
   border-radius: 999rpx;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 620;
   line-height: 1.5;
 }
@@ -2048,7 +2048,7 @@
 
 .a-details-body text {
   color: #898d94;
-  font-size: 22rpx;
+  font-size: 24rpx;
   line-height: 1.55;
 }
 
@@ -2088,7 +2088,7 @@
 .a-fund-change,
 .a-fund-period {
   color: #8a8e94;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 620;
 }
 
@@ -2112,7 +2112,7 @@
   margin-top: 12rpx;
   gap: 28rpx;
   color: #1a1d22;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -2189,7 +2189,7 @@
   margin-top: 6rpx;
   overflow: hidden;
   color: #999ca2;
-  font-size: 22rpx;
+  font-size: 24rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2202,7 +2202,7 @@
   border-radius: 10rpx;
   background: #edf0f4;
   color: #4a515c;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 700;
   line-height: 40rpx;
   text-align: center;
@@ -2226,7 +2226,7 @@
 .guru-perf-k {
   margin-top: 4rpx;
   color: #999ca2;
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 
 /* 持仓页：四格数据条 + 占比横条。 */
@@ -2247,7 +2247,7 @@
 .guru-stat-k {
   display: block;
   color: #999ca2;
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 
 .guru-stat-v {
@@ -2269,7 +2269,7 @@
   padding-bottom: 6rpx;
   justify-content: space-between;
   color: #999ca2;
-  font-size: 21rpx;
+  font-size: 24rpx;
 }
 
 .guru-hold {
@@ -2300,7 +2300,7 @@
   border-radius: 999rpx;
   background: #eeeff1;
   color: #656971;
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 
 .guru-hold-move.tone-worth { background: #e3ecfb; color: #1d5fd1; }
@@ -2377,7 +2377,7 @@
   min-width: 0;
   flex: 1;
   color: #999ca2;
-  font-size: 18rpx;
+  font-size: 24rpx;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2389,7 +2389,7 @@
   justify-content: space-between;
   gap: 8rpx;
   color: #797d85;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .guru-history-labels text:nth-child(2) { color: #1d5fd1; font-weight: 700; text-align: center; }
@@ -2426,7 +2426,7 @@
 .gold-quote-label {
   display: block;
   color: #78716c;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 640;
 }
 
@@ -2458,7 +2458,7 @@
 
 .gold-parity-text {
   color: #92400e;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 620;
   font-variant-numeric: tabular-nums;
 }
@@ -2467,7 +2467,7 @@
   display: block;
   margin-top: 4rpx;
   color: #999ca2;
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 
 .gold-change {
@@ -2511,7 +2511,7 @@
   flex: none;
   padding: 4rpx 14rpx;
   border-radius: 999rpx;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 620;
   line-height: 1.5;
 }
@@ -2522,7 +2522,7 @@
 
 .gold-currency-label {
   color: #797d85;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .gold-periods {
@@ -2535,7 +2535,7 @@
   border-radius: 999rpx;
   background: #f4f5f8;
   color: #696d75;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -2562,7 +2562,7 @@
   justify-content: space-between;
   gap: 8rpx;
   color: #797d85;
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 .gold-chart-labels text:nth-child(2) { color: #1d5fd1; font-weight: 700; text-align: center; }
@@ -2572,7 +2572,7 @@
   display: block;
   margin-top: 12rpx;
   color: #585e6b;
-  font-size: 22rpx;
+  font-size: 24rpx;
   line-height: 1.5;
 }
 
@@ -2583,7 +2583,7 @@
   border-radius: 16rpx;
   background: #f4f5f8;
   color: #999ca2;
-  font-size: 22rpx;
+  font-size: 24rpx;
   line-height: 1.5;
 }
 
@@ -2600,7 +2600,7 @@
   position: absolute;
   top: 0;
   color: #1a1d22;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   transform: translateX(-50%);
@@ -2689,7 +2689,7 @@
 
 .gold-ladder-key-label {
   color: #999ca2;
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 
 .gold-ladder-key-value {
@@ -2707,7 +2707,7 @@
 /* 现价离这条线多远：「再跌 2.6%」「现价在内」灰字；已到、已触及上色。 */
 .gold-ladder-key-note {
   color: #494d55;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 620;
   font-variant-numeric: tabular-nums;
 }
@@ -2764,7 +2764,7 @@
   border-radius: 12rpx;
   background: #f5f7fb;
   color: #64748b;
-  font-size: 22rpx;
+  font-size: 24rpx;
   line-height: 1.5;
 }
 
@@ -2801,7 +2801,7 @@
   border-radius: 999rpx;
   background: #f3f5f9;
   color: #475569;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.4;
@@ -2818,7 +2818,7 @@
 }
 
 .us-inline-change {
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
@@ -2837,7 +2837,7 @@
   border-radius: 12rpx;
   background: #edf3ff;
   color: #1d5fd1;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 760;
 }
 
@@ -2852,7 +2852,7 @@
 .gold-quote-delta {
   padding: 1rpx 10rpx;
   border-radius: 999rpx;
-  font-size: 19rpx;
+  font-size: 24rpx;
   font-weight: 680;
   font-variant-numeric: tabular-nums;
   line-height: 1.45;
@@ -2886,7 +2886,7 @@
   border-radius: 999rpx;
   background: #f7f9fc;
   color: #334155;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 600;
   transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
@@ -2902,7 +2902,7 @@
   padding: 1rpx 8rpx;
   border-radius: 6rpx;
   background: rgba(15, 23, 42, 0.07);
-  font-size: 18rpx;
+  font-size: 24rpx;
   font-weight: 700;
   line-height: 1.45;
 }
@@ -2945,7 +2945,7 @@
 
 .hk-stage-label {
   color: #94a3b8;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 560;
 }
 
@@ -2983,7 +2983,7 @@
   border-radius: 999rpx;
   background: #f6f8fb;
   color: #475569;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 600;
   line-height: 1.35;
 }
@@ -3008,7 +3008,7 @@
   border-radius: 10rpx;
   background: #f1f4f9;
   color: #475569;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -3045,7 +3045,7 @@
   border-radius: 8rpx;
   background: #1d5fd1;
   color: #ffffff;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 700;
 }
 
@@ -3057,13 +3057,13 @@
 
 .sec-stock-code {
   color: #94a3b8;
-  font-size: 21rpx;
+  font-size: 24rpx;
 }
 
 .sec-date {
   margin-left: auto;
   color: #64748b;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-variant-numeric: tabular-nums;
 }
 
@@ -3086,7 +3086,7 @@
 
 .sec-action-btn {
   color: #1d5fd1;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 660;
 }
 
@@ -3106,7 +3106,7 @@
 
 .div-dots-label {
   color: #94a3b8;
-  font-size: 19rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -3129,7 +3129,7 @@
 
 .div-dot-yr {
   color: #94a3b8;
-  font-size: 18rpx;
+  font-size: 24rpx;
   font-variant-numeric: tabular-nums;
 }
 
@@ -3150,7 +3150,7 @@
 
 .gold-pos-title {
   color: #64748b;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -3159,7 +3159,7 @@
   border-radius: 999rpx;
   background: #e9eef6;
   color: #334155;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 680;
 }
 
@@ -3235,7 +3235,7 @@
 .heat-tile-sub {
   overflow: hidden;
   opacity: 0.78;
-  font-size: 18rpx;
+  font-size: 24rpx;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3266,7 +3266,7 @@
 }
 
 .hero-meta {
-  font-size: 23rpx;
+  font-size: 24rpx;
   color: #64748b;
 }
 
@@ -3304,7 +3304,7 @@
   border-radius: 8rpx;
   background: #edf3fc;
   color: #1d5fd1;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 740;
   font-variant-numeric: tabular-nums;
   line-height: 1.35;
@@ -3324,7 +3324,7 @@
   border-radius: 8rpx;
   background: #f1f4f9;
   color: #475569;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 640;
   line-height: 1.35;
 }
@@ -3335,7 +3335,7 @@
   border-radius: 8rpx;
   background: #f3f6fb;
   color: #1e293b;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 680;
   font-variant-numeric: tabular-nums;
   line-height: 1.35;
@@ -3399,7 +3399,7 @@
 .us-range-num {
   flex: none;
   color: #64748b;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 640;
   font-variant-numeric: tabular-nums;
 }
@@ -3433,7 +3433,7 @@
 }
 
 .hk-stat-label {
-  font-size: 23rpx;
+  font-size: 24rpx;
   color: #64748b;
 }
 
@@ -3512,7 +3512,7 @@
 
 .hk-fd-range {
   color: #64748b;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 640;
   font-variant-numeric: tabular-nums;
 }
@@ -3555,7 +3555,7 @@
 
 .gold-compare-k {
   color: #78716c;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 640;
 }
 
@@ -3569,7 +3569,7 @@
 
 .gold-compare-sub {
   color: #94a3b8;
-  font-size: 19rpx;
+  font-size: 24rpx;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -3590,13 +3590,13 @@
 
 .guru-conc-title {
   color: #334155;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 700;
 }
 
 .guru-conc-sum {
   color: #1d5fd1;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 740;
   font-variant-numeric: tabular-nums;
 }
@@ -3643,13 +3643,13 @@
 
 .guru-conc-name {
   color: #475569;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 640;
 }
 
 .guru-conc-pct {
   color: #0f172a;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 720;
   font-variant-numeric: tabular-nums;
 }
@@ -3686,7 +3686,7 @@
 
 .hk-hist-k {
   color: #64748b;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 620;
 }
 
@@ -3705,7 +3705,7 @@
   gap: 10rpx;
   background: #f6f8fc;
   color: #64748b;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 700;
 }
 
@@ -3736,7 +3736,7 @@
 
 .hk-sb-sub {
   color: #94a3b8;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-variant-numeric: tabular-nums;
 }
 
@@ -3811,7 +3811,7 @@
   background: #ffffff;
   border: 1rpx solid #dbe6f7;
   color: #475569;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 700;
 }
 
@@ -3834,7 +3834,7 @@
   border-radius: 14rpx;
   background: #fef8ec;
   color: #92400e;
-  font-size: 23rpx;
+  font-size: 24rpx;
   font-weight: 700;
   text-align: center;
 }
@@ -3860,7 +3860,7 @@
 
 .gold-ret-k {
   color: #64748b;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 640;
 }
 
@@ -3896,7 +3896,7 @@
   border-radius: 999rpx;
   background: #eaf2ff;
   color: #1d5fd1;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 740;
 }
 
@@ -3904,5 +3904,129 @@
   display: block;
   margin-top: 6rpx;
   color: #64748b;
-  font-size: 21rpx;
+  font-size: 24rpx;
+}
+
+.section-answer-strip {
+  display: flex;
+  margin: 12rpx 28rpx 0;
+  padding: 16rpx 22rpx;
+  align-items: center;
+  gap: 12rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid #dbe6f7;
+  background: linear-gradient(90deg, #eff5ff 0%, #f8fbff 100%);
+}
+
+.section-answer-dot {
+  flex: none;
+  color: #1d5fd1;
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.section-answer-text {
+  flex: 1;
+  color: #0f172a;
+  font-size: 26rpx;
+  font-weight: 720;
+  line-height: 1.45;
+}
+
+.verdict-range-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  width: 100%;
+  margin-top: 10rpx;
+  padding: 10rpx 14rpx;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  border-radius: 14rpx;
+  background: #f5f8fd;
+}
+
+.verdict-range-bar.is-a-bar {
+  margin-top: 12rpx;
+}
+
+.verdict-stamp {
+  flex: none;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 780;
+  line-height: 1.35;
+  background: #eaf2ff;
+  color: #1d5fd1;
+}
+
+.verdict-stamp.tone-worth {
+  background: #e9f9f0;
+  color: #0b7a48;
+}
+
+.verdict-stamp.tone-caution {
+  background: #eaf2ff;
+  color: #1d5fd1;
+}
+
+.verdict-stamp.tone-avoid {
+  background: #fef1ee;
+  color: #c2412d;
+}
+
+.verdict-stamp.tone-settled {
+  background: #edf1f7;
+  color: #64748b;
+}
+
+.verdict-range-text {
+  color: #334155;
+  font-size: 25rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-sb-more {
+  display: flex;
+  padding: 20rpx 18rpx;
+  align-items: center;
+  justify-content: center;
+  border-top: 1rpx solid #eef2f7;
+  background: #f8fafd;
+  color: #1d5fd1;
+  font-size: 26rpx;
+  font-weight: 740;
+}
+
+.gold-quote-verdict {
+  margin-top: 6rpx;
+}
+
+.gold-watch-range {
+  display: block;
+  margin-top: 4rpx;
+  color: #92400e;
+  font-size: 24rpx;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.heat-tile-name {
+  font-size: 26rpx;
+}
+
+.heat-tile-sub {
+  font-size: 24rpx;
+}
+
+.hk-sb-sub {
+  white-space: nowrap;
+}
+
+.us-range-bar-row {
+  flex-wrap: wrap;
 }

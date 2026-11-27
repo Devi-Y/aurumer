@@ -40,20 +40,6 @@ module.exports = {
       body: "指引：复制机构网址 → 手机浏览器自主核验资格与规则",
     },
   },
-  vpn: {
-    title: "海外访问指引",
-    sections: [
-      {
-        title: "常用官方数据源",
-        links: ["sec", "hkexnews", "gold-fred"],
-      },
-    ],
-    offer: {
-      id: "global-access",
-      head: "外部网络加速通道",
-      body: "指引：复制外部网址 → 手机浏览器自行了解（仅限合法查阅公开资料）",
-    },
-  },
   "a-open": {
     title: "A股开户",
     sections: [],

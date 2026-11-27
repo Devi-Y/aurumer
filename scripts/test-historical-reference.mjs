@@ -79,18 +79,46 @@ test("home compares companies over equal numbers of trading sessions", () => {
   assert.equal(card.sub, "共3只 · 10个交易日");
 });
 
-test("historical views do not offer instant order cards even for an otherwise fresh quote", () => {
-  const snapshot = JSON.parse(readFileSync(new URL("../data/live-snapshot.json", import.meta.url), "utf8"));
-  snapshot.actionsFresh = true;
-  snapshot.us.stocks.forEach((stock) => { stock.actionsFresh = true; });
-  const { buildUsModule } = pageFunctions("miniprogram/pages/section/index.js", ["buildUsModule"]);
-  const module = buildUsModule(snapshot);
-  assert.equal(module.triggerTiles.length, 0);
-  assert.equal(module.allList.some((row) => row.hasOrder), false);
+test("fresh snapshots expose plain-language verdict badges and reference ranges while stale snapshots degrade cleanly", () => {
+  const { sanitizeSnapshot } = require("../cloudfunctions/aurum-data/sanitize");
+  const { degradeStaleActions } = require("../miniprogram/utils/action-freshness");
+  const rawSnapshot = JSON.parse(readFileSync(new URL("../data/live-snapshot.json", import.meta.url), "utf8"));
+  const nowIso = new Date().toISOString();
+  rawSnapshot.updatedAt = nowIso;
+  delete rawSnapshot.revisionAt;
+  rawSnapshot.us.stocks.forEach((stock) => {
+    stock.asOf = nowIso;
+    delete stock.actionsFresh;
+  });
+  const snapshot = sanitizeSnapshot(rawSnapshot, Date.parse(nowIso));
+
+  const { buildUsModule, buildAModule } = pageFunctions("miniprogram/pages/section/index.js", ["buildUsModule", "buildAModule"]);
+  const usMod = buildUsModule(snapshot);
+  assert.ok(usMod.answerBar.length > 0);
+  assert.equal(usMod.allList.some((row) => row.hasOrder && row.refRangeText.length > 0), true);
+  assert.equal(usMod.sevenList.every((row) => row.verdictBadge && row.verdictBadge !== "数据待更新"), true);
+
+  const aMod = buildAModule(snapshot);
+  assert.ok(aMod.answerBar.length > 0);
+  assert.equal(aMod.allList.some((row) => row.hasOrder && row.refRangeText.includes("参考区间")), true);
+
   const { detailView } = pageFunctions("miniprogram/pages/detail/index.js", ["detailView"]);
   const detail = detailView(findItem(snapshot, "us", snapshot.us.stocks[0].symbol), snapshot);
-  assert.equal(detail.overview.orderPlan, null);
+  assert.ok(detail.overview.orderPlan);
+  assert.equal(detail.overview.orderPlan.stale, false);
+  assert.equal(detail.overview.orderPlan.rows.length >= 2, true);
   assert.equal(detail.metrics.some((row) => /当前价格|今日涨跌/.test(row[0])), false);
+
+  const staleNow = Date.parse(snapshot.updatedAt) + 7 * 24 * 60 * 60 * 1000;
+  const staleSnap = degradeStaleActions(snapshot, staleNow);
+  const staleUs = buildUsModule(staleSnap);
+  assert.equal(staleUs.allList.some((row) => row.hasOrder || row.refRangeText), false);
+  assert.equal(staleUs.sevenList.every((row) => row.verdictBadge === "数据待更新"), true);
+  const staleA = buildAModule(staleSnap);
+  assert.equal(staleA.allList.some((row) => row.hasOrder || row.refRangeText), false);
+  const staleDetail = detailView(findItem(staleSnap, "us", staleSnap.us.stocks[0].symbol), staleSnap);
+  assert.equal(staleDetail.overview.orderPlan.stale, true);
+  assert.equal(staleDetail.overview.orderPlan.rows.length, 0);
 });
 
 test("historical presentation keeps upstream failure and missing-data warnings visible", () => {

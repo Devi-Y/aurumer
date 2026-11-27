@@ -207,35 +207,6 @@ function buildHomeTrends(snapshot) {
   return cards;
 }
 
-// 借鉴韭圈儿温度计 + 且慢大白话：汇总 4 个真实样本区间的冷暖读数（0~100°），一眼知冷暖。
-function buildMarketPulse(trends) {
-  const scored = (trends || []).filter((card) => Number.isFinite(card && card.tempScore));
-  if (!scored.length) return null;
-  const avg = Math.round(scored.reduce((sum, card) => sum + card.tempScore, 0) / scored.length);
-  const score = Math.max(4, Math.min(96, avg));
-  let zoneLabel = "舒适均衡区";
-  let zoneTone = "flat";
-  let plainCopy = "各市场冷热不一，不急着追涨杀跌，先点具体板块核对依据与风险。";
-  if (score <= 35) {
-    zoneLabel = "偏冷观察区";
-    zoneTone = "cool";
-    plainCopy = "多数样本靠近历史区间偏低位置，适合少焦虑、静心看清基本面。";
-  } else if (score >= 68) {
-    zoneLabel = "偏热审慎区";
-    zoneTone = "warm";
-    plainCopy = "多数样本处于阶段偏高区间，保持克制，重点盯估值与回撤风险。";
-  }
-  const pills = scored.map((card) => ({
-    id: card.id,
-    market: card.market,
-    detailId: card.detailId || "",
-    shortName: card.id === "hk" ? "港股" : (card.id === "us" ? "美股" : (card.id === "a" ? "红利" : "黄金")),
-    mood: card.mood || "—",
-    moodTone: card.moodTone || "flat",
-  }));
-  return { score, zoneLabel, zoneTone, plainCopy, pills };
-}
-
 // 借鉴 DeepSeek / 集思录极速本地索引：涵盖 5 大市场全部标的，零网络延迟秒搜直达详情页。
 function buildSearchIndex(snapshot) {
   const rows = [];
@@ -430,8 +401,6 @@ Page({
   data: {
     entries: GRID_ENTRIES,
     trends: [],
-    pulse: null,
-    pulseInfoOpen: false,
     searchQuery: "",
     searchFocused: false,
     searchResults: [],
@@ -473,9 +442,6 @@ Page({
     if (JSON.stringify(stars) !== JSON.stringify(this.data.starPicks)) {
       this.setData({ starPicks: stars });
     }
-  },
-  togglePulseInfo() {
-    this.setData({ pulseInfoOpen: !this.data.pulseInfoOpen });
   },
   onPullDownRefresh() {
     this.refreshAnswers(() => wx.stopPullDownRefresh(), true);

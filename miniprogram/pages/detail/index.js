@@ -10,7 +10,7 @@ const { scoreForItem } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
 const { isPositionChange, instrumentSuffix } = require("../../utils/guru-changes");
-const { hkLeverageEligible, goldPlanView } = require("../../utils/market-lenses");
+const { hkLeverageEligible, goldPlanView, yieldImpliedPlan } = require("../../utils/market-lenses");
 const { goldTurningViews } = require("../../utils/daily-answers");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
@@ -685,9 +685,9 @@ function bandMeterVisual(low, high, current, title, formatter = money, hint) {
     midLabel: `样本报价 ${formatter(price)}`,
     highLabel: formatter(highValue),
     stats: [
-      { label: "参考买入", value: formatter(lowValue) },
-      { label: "样本报价", value: formatter(price) },
-      { label: "参考卖出", value: formatter(highValue) },
+      { label: "高息低位区", value: formatter(lowValue) },
+      { label: "最新报价", value: formatter(price) },
+      { label: "低息高位区", value: formatter(highValue) },
     ],
   }, hint || "");
 }
@@ -1042,7 +1042,7 @@ function buildHKView(base, item, snapshot) {
 
   base.highlights = ended
     ? [
-        { label: "暗盘", value: formatPercent(review.greyMarketChange) },
+        { label: "前夜", value: formatPercent(review.greyMarketChange) },
         { label: "首日", value: formatPercent(review.firstDayChange) },
         { label: "五日", value: formatPercent(review.fiveDayChange) },
         { label: "中签", value: hasNumber(raw.oneLotRate) ? `${Number(raw.oneLotRate).toFixed(1)}%` : "—" },
@@ -1105,9 +1105,9 @@ function buildHKView(base, item, snapshot) {
     ["公告类型", announceKindLabel(announce.kind, announce.reason) || null],
     ["资料说明", researchNoteShort(raw.researchView) || null],
     ["来源", sourceName(raw.source) || "港交所"],
-  ].filter((row) => row[1]), "资料说明", "解析字段占比等数字见上方雷达图。");
+  ].filter((row) => row[1]), "资料说明", "数据与状态均来自港交所公开公告。");
 
-  const qualityRadar = hkQualityRadarVisual(raw, announce, prospectus);
+  const qualityRadar = null;
   const performanceCurve = hkPerformanceCurveVisual(review);
   const cohortScatter = hkCohortScatterVisual(review, strategyEvidence);
   const ruleSteps = personalRuleStepsVisual(raw.personalRule);
@@ -2185,10 +2185,7 @@ function buildOverview(base, item) {
     if (raw.assetType === "fund") {
       priceCard = base.trendCharts?.find((chart) => chart.kind === "line") || null;
     } else {
-      const implied = null; // 历史参考不展示分红假设回推的买卖价。
-      priceCard = (implied && hasNumber(raw.currentPrice))
-        ? bandMeterVisual(implied.addPrice, implied.trimPrice, raw.currentPrice, "参考买卖区间", (value) => money(value, "¥"), "按当前每股分红回推的参考区间，不是目标价承诺。")
-        : null;
+      priceCard = null;
     }
   } else if (item.market === "hk") {
     const stage = base.stageInfo || {};
@@ -2567,6 +2564,137 @@ function buildSourceLinks(item, snapshot) {
   return dedupeSources(own.filter(Boolean).concat(marketLevel));
 }
 
+function buildDetailReferencePlan(base, item, snapshot) {
+  const raw = (item && item.raw) || {};
+  const snapFresh = !snapshot || snapshot.actionsFresh !== false;
+  const itemFresh = raw.actionsFresh !== false;
+  const fresh = snapFresh && itemFresh;
+
+  if (item.market === "us") {
+    const sig = buildStrategySignal(item);
+    const plan = fresh ? raw.pricePlan : null;
+    const price = Number(raw.price);
+    if (!fresh || !plan || !(price > 0) || !(plan.buy > 0) || !(plan.stop > 0) || !Array.isArray(plan.sell) || !plan.sell.length) {
+      return {
+        stale: true,
+        title: "能不能买 · 参考区间",
+        verdictBadge: "数据待更新",
+        verdictTone: "settled",
+        summary: "当前数据待更新，暂不展示参考价格区间。",
+        rows: [],
+      };
+    }
+    const noBuy = sig && sig.label === "风险升高";
+    let verdictBadge = "价格适中 · 等低位";
+    let verdictTone = "caution";
+    if (price <= plan.stop) { verdictBadge = "跌破警戒 · 先观望"; verdictTone = "avoid"; }
+    else if (price >= plan.sell[0]) { verdictBadge = "偏贵 · 分批止盈区"; verdictTone = "caution"; }
+    else if (!noBuy && price <= plan.buy) { verdictBadge = "偏便宜 · 可关注"; verdictTone = "worth"; }
+    else if (noBuy || (sig && sig.tone === "bad")) { verdictBadge = "风险偏高 · 暂不追"; verdictTone = "avoid"; }
+    else if (sig && sig.tone === "good") { verdictBadge = "偏便宜 · 可分批看"; verdictTone = "worth"; }
+    const gap = (lv) => {
+      const pct = ((lv - price) / price) * 100;
+      return `比现价${pct >= 0 ? "高" : "低"} ${Math.abs(pct).toFixed(1)}%`;
+    };
+    const sells = plan.sell.slice(0, 2);
+    return {
+      stale: false,
+      title: "能不能买 · 参考区间",
+      verdictBadge,
+      verdictTone,
+      summary: sig && sig.action ? sig.action : "",
+      rows: [
+        noBuy
+          ? { key: "buy", label: "参考低位区", value: "暂不设低接位", note: "波动风险偏高" }
+          : { key: "buy", label: "参考低位区", value: money(plan.buy), note: price <= plan.buy ? "已在低位区" : gap(plan.buy) },
+        {
+          key: "sell",
+          label: "参考高位区",
+          value: sells.map((v) => money(v)).join(" / "),
+          note: price >= sells[0] ? "已进高位区" : `比现价高 ${Math.abs(((sells[0] - price) / price) * 100).toFixed(1)}%`,
+        },
+        { key: "stop", label: "风险警戒位", value: money(plan.stop), note: gap(plan.stop) },
+      ],
+    };
+  }
+
+  if (item.market === "a" && raw.assetType !== "fund") {
+    const stab = getDividendStability(raw, { asOf: (snapshot && snapshot.updatedAt) || raw.priceAsOf || raw.asOf });
+    if (!fresh) {
+      return {
+        stale: true,
+        title: "能不能买 · 参考区间",
+        verdictBadge: "数据待更新",
+        verdictTone: "settled",
+        summary: "当前数据待更新，暂不展示分红回推参考区间。",
+        rows: [],
+      };
+    }
+    const plan = yieldImpliedPlan(raw);
+    if (!plan || !(plan.price > 0)) return null;
+    const isStable = stab && stab.score != null && stab.score >= 75;
+    let verdictBadge = isStable ? "分红稳 · 价适中" : "股息适中 · 观察";
+    let verdictTone = "caution";
+    if (plan.zone === "add") { verdictBadge = isStable ? "分红稳 · 偏便宜" : "高股息 · 偏便宜"; verdictTone = "worth"; }
+    else if (plan.zone === "trim") { verdictBadge = "股价偏高 · 等回调"; verdictTone = "avoid"; }
+    return {
+      stale: false,
+      title: "能不能买 · 参考区间",
+      verdictBadge,
+      verdictTone,
+      summary: "按最近完整年度税前每股分红回推高低息价格带，仅供对照。",
+      rows: [
+        {
+          key: "buy",
+          label: "参考低位区（高股息）",
+          value: money(plan.addPrice, "¥"),
+          note: plan.price <= plan.addPrice ? "已在高息低位区" : `距低位 ${(((plan.price - plan.addPrice) / plan.price) * 100).toFixed(1)}%`,
+        },
+        {
+          key: "sell",
+          label: "参考高位区（低股息）",
+          value: money(plan.trimPrice, "¥"),
+          note: plan.price >= plan.trimPrice ? "已进低息高位区" : `距高位 ${(((plan.trimPrice - plan.price) / plan.price) * 100).toFixed(1)}%`,
+        },
+      ],
+    };
+  }
+
+  if (item.market === "gold") {
+    const gPlan = goldPlanView(raw.answer && raw.answer.pricePlan);
+    if (!fresh || (!gPlan.internationalWatch && !gPlan.domesticWatch)) {
+      return {
+        stale: true,
+        title: "能不能买 · 关注区间",
+        verdictBadge: "数据待更新",
+        verdictTone: "settled",
+        summary: "当前数据待更新，暂不展示黄金关注区间。",
+        rows: [],
+      };
+    }
+    const fmt = (rg, prefix, suffix = "") => {
+      if (!rg) return "—";
+      const lo = Number(rg.low);
+      const hi = Number(rg.high);
+      if (Number.isFinite(lo) && Number.isFinite(hi)) return `${prefix}${lo.toFixed(0)} – ${prefix}${hi.toFixed(0)}${suffix}`;
+      return "—";
+    };
+    return {
+      stale: false,
+      title: "能不能买 · 关注区间",
+      verdictBadge: "对照关注区间",
+      verdictTone: "caution",
+      summary: "",
+      rows: [
+        gPlan.internationalWatch ? { key: "intl", label: "国际金偏低关注区", value: fmt(gPlan.internationalWatch, "$", "/盎司"), note: "" } : null,
+        gPlan.domesticWatch ? { key: "dom", label: "上海金偏低关注区", value: fmt(gPlan.domesticWatch, "¥", "/克"), note: "" } : null,
+      ].filter(Boolean),
+    };
+  }
+
+  return null;
+}
+
 function detailView(item, snapshot) {
   const base = baseView(item);
   if (item.market === "hk") buildHKView(base, item, snapshot);
@@ -2578,8 +2706,7 @@ function detailView(item, snapshot) {
   base.sourceLinks = buildSourceLinks(item, snapshot);
   const showStrategy = item.market !== "us" && !(item.market === "a" && item.raw?.assetType !== "fund");
   base.strategy = showStrategy ? buildStrategySignal(item, { snapshot, evidence: strategyEvidence }) : null;
-  // 历史参考不生成下单卡；保留事实、走势与研究依据。
-  base.orderPlan = null;
+  base.orderPlan = buildDetailReferencePlan(base, item, snapshot);
   buildOverview(base, item);
 
   const scored = showStrategy ? scoreForItem(item) : null;
@@ -2641,7 +2768,7 @@ function detailView(item, snapshot) {
     base.metrics = base.metrics.map((row) => [historicalLabels[row[0]] || row[0], row[1]]);
     base.facts = base.facts.map((row) => [historicalLabels[row[0]] || row[0], row[1]]);
     if (base.overview) {
-      base.overview.orderPlan = null;
+      base.overview.orderPlan = base.orderPlan || null;
       base.overview.reason = base.answer || "历史资料仅供研究对照";
     }
     if (base.overview && base.overview.keyRisk) {
@@ -2806,7 +2933,7 @@ function buildHeroVisualMeta(base, item, snapshot) {
     const fund = raw.fund || {};
     if (tag) heroTags.push(tag);
     heroTags.push("1股起买");
-    if (hasNumber(fund.pe) && Number(fund.pe) > 0) heroTags.push(`市盈 ${Number(fund.pe).toFixed(0)}倍`);
+    if (hasNumber(fund.pe) && Number(fund.pe) > 0) heroTags.push(`回本约${Number(fund.pe).toFixed(0)}年`);
     if (hasNumber(fund.grossMargin)) heroTags.push(`毛利 ${Number(fund.grossMargin).toFixed(0)}%`);
     const closes = (Array.isArray(raw.history) ? raw.history : [])
       .map((entry) => Number(entry && entry.close != null ? entry.close : entry))
@@ -2825,9 +2952,8 @@ function buildHeroVisualMeta(base, item, snapshot) {
         };
       }
     }
-    heroVerdict = base.dynamics && base.dynamics.eventVerified
-      ? "有新财报动态"
-      : (heroRange ? `近60日${posWord(heroRange.percent)}区` : "历史走势对照");
+    heroVerdict = (base.orderPlan && base.orderPlan.verdictBadge)
+      || (base.dynamics && base.dynamics.eventVerified ? "有新财报动态" : (heroRange ? `近3月${posWord(heroRange.percent)}区` : "走势对照"));
   } else if (item.market === "a") {
     const rawC = String(base.code || item.code || item.id || "").trim();
     displayCode = /\.(SH|SZ)$/i.test(rawC) ? rawC.toUpperCase() : (/^6|^5/.test(rawC) ? `${rawC}.SH` : `${rawC}.SZ`);
@@ -2840,13 +2966,14 @@ function buildHeroVisualMeta(base, item, snapshot) {
     } else {
       const stab = getDividendStability(raw, { asOf: (snapshot && snapshot.updatedAt) || raw.priceAsOf || raw.asOf });
       if (stab.decreaseCount === 0 && stab.observedYears.length >= 5) heroTags.push("5年0降息");
-      else if (stab.score != null) heroTags.push(`稳度 ${stab.score}分`);
+      else if (stab.score != null) heroTags.push(`稳定度 ${stab.score}分`);
       if (p != null) heroTags.push(`一手 ¥${Math.round(p * 100).toLocaleString("en-US")}`);
       if (raw.historicalDividendYield && hasNumber(raw.historicalDividendYield.yieldPercent)) {
         heroTags.push(`投1万年息 ¥${Math.round(Number(raw.historicalDividendYield.yieldPercent) * 100)}`);
-        heroVerdict = stab.decreaseCount === 0 && stab.observedYears.length >= 5 ? "5年连续派息" : "历年现金分红";
+        heroVerdict = (base.orderPlan && base.orderPlan.verdictBadge)
+          || (stab.decreaseCount === 0 && stab.observedYears.length >= 5 ? "5年连续派息" : "历年现金分红");
       } else {
-        heroVerdict = "分红记录核对";
+        heroVerdict = (base.orderPlan && base.orderPlan.verdictBadge) || "分红记录核对";
       }
     }
     const closes = (Array.isArray(raw.history) ? raw.history : [])
@@ -2879,9 +3006,14 @@ function buildHeroVisualMeta(base, item, snapshot) {
       label,
       state: idx < stepIdx ? "done" : (idx === stepIdx ? "now" : "todo"),
     }));
-    heroVerdict = stage.ended ? "已上市复盘" : (stage.deadlinePassed ? "认购已截止" : "新股招股资料");
+    const hkFresh = !snapshot || snapshot.actionsFresh !== false;
+    heroVerdict = stage.ended
+      ? "已上市复盘"
+      : (stage.deadlinePassed
+        ? "认购已截止"
+        : (!hkFresh ? "数据待更新" : (item.group === "worth" ? "值得申购" : (item.group === "caution" ? "谨慎参与" : "不建议申购"))));
   } else if (item.market === "gold") {
-    displayCode = "XAU · Au99.99";
+    displayCode = "国际金 · 上海金";
     heroTags.push("伦敦金", "上海金", "黄金ETF对照");
     heroVerdict = "国内外金价对照";
     const intlSeries = historicalGoldSeries(raw, "international");

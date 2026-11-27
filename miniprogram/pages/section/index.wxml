@@ -24,6 +24,11 @@
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
+  <view wx:if="{{sectionAnswerBar}}" class="section-answer-strip">
+    <text class="section-answer-dot">●</text>
+    <text class="section-answer-text">{{sectionAnswerBar}}</text>
+  </view>
+
   <!-- 港股打新按原型忠实复刻：只有「近期申购」「中签后」两个视图，不是
        其余四栏共用的「今日答案/分组浏览/策略摘要/数据出处」多 tab 框架。 -->
   <view wx:if="{{market === 'hk'}}" class="page-card hk-card">
@@ -182,11 +187,11 @@
         <text class="hk-tier-foot">{{hkExitChart.sampleText}}</text>
       </view>
 
-      <!-- 捷利交易宝同款：新股暗盘 · 首日涨跌 · 一手盈亏战绩账本 -->
+      <!-- 捷利交易宝同款：新股前夜 · 首日涨跌 · 一手盈亏战绩账本 -->
       <view wx:if="{{hkHistoryRows.length}}" class="hk-scoreboard">
         <view class="hk-sb-head">
           <text class="hk-sb-col-name">已上市新股</text>
-          <text class="hk-sb-col-num">暗盘</text>
+          <text class="hk-sb-col-num">前夜</text>
           <text class="hk-sb-col-num">首日</text>
           <text class="hk-sb-col-pnl">打中一手</text>
         </view>
@@ -198,7 +203,7 @@
           bindtap="openHkDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，暗盘{{item.greyText}}，首日{{item.firstDayText}}，一手{{item.pnlText}}"
+          aria-label="{{item.name}}，上市前夜{{item.greyText}}，首日{{item.firstDayText}}，一手{{item.pnlText}}"
         >
           <view class="hk-sb-col-name">
             <text class="hk-sb-name">{{item.name}}</text>
@@ -207,6 +212,15 @@
           <text class="hk-sb-col-num is-{{item.greyTone}}">{{item.greyText}}</text>
           <text class="hk-sb-col-num is-{{item.firstDayTone}}">{{item.firstDayText}}</text>
           <text class="hk-sb-col-pnl is-{{item.pnlTone}}">{{item.pnlText}}</text>
+        </view>
+        <view
+          wx:if="{{hkHistoryTotal > 12}}"
+          class="hk-sb-more"
+          bindtap="toggleHkHistoryAll"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text>{{hkShowAllHistory ? '收起列表 ▴' : '查看全部 ' + hkHistoryTotal + ' 只新股 ▾'}}</text>
         </view>
       </view>
       <text wx:if="{{!hkExitChart && !hkExitOptions.length && !hkHistoryRows.length}}" class="hk-empty-text">历史样本不足</text>
@@ -278,9 +292,9 @@
 
     <block wx:if="{{usSubTab === 'all'}}">
       <view class="sort-bar">
-        <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">默认</text>
-        <text class="sort-pill {{usAllSort === 'perf60' ? 'is-active' : ''}}" data-sort="perf60" bindtap="sortUsAll" aria-role="button">60日涨幅</text>
-        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">市盈率低</text>
+        <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">按性价比</text>
+        <text class="sort-pill {{usAllSort === 'perf60' ? 'is-active' : ''}}" data-sort="perf60" bindtap="sortUsAll" aria-role="button">近3月涨幅</text>
+        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">回本年数短</text>
       </view>
       <view class="us-stock-list" wx:if="{{usAllList.length}}">
         <view
@@ -291,7 +305,7 @@
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，{{item.code}}，{{item.priceText}}，{{item.changeText}}"
+          aria-label="{{item.name}}，{{item.code}}，{{item.verdictBadge}}，{{item.priceText}}，{{item.changeText}}"
         >
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
@@ -305,6 +319,10 @@
           <view class="us-right">
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
+          </view>
+          <view class="verdict-range-bar">
+            <text class="verdict-stamp tone-{{item.verdictTone}}">{{item.verdictBadge}}</text>
+            <text wx:if="{{item.refRangeText}}" class="verdict-range-text">{{item.refRangeText}}</text>
           </view>
           <view wx:if="{{item.hasRangeBar}}" class="us-range-bar-row" aria-hidden="true">
             <text class="us-range-num">{{item.lo60Text}}</text>
@@ -347,7 +365,7 @@
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，{{item.code}}，{{item.asOfText}}，历史价格 {{item.priceText}}，报价日涨跌 {{item.changeText}}，{{item.eventDate}} {{item.event}}"
+          aria-label="{{item.name}}，{{item.code}}，{{item.verdictBadge}}，{{item.asOfText}}，历史价格 {{item.priceText}}，报价日涨跌 {{item.changeText}}，{{item.eventDate}} {{item.event}}"
         >
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
@@ -361,6 +379,10 @@
           <view class="us-right">
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
+          </view>
+          <view class="verdict-range-bar">
+            <text class="verdict-stamp tone-{{item.verdictTone}}">{{item.verdictBadge}}</text>
+            <text wx:if="{{item.refRangeText}}" class="verdict-range-text">{{item.refRangeText}}</text>
           </view>
           <view wx:if="{{item.hasRangeBar}}" class="us-range-bar-row" aria-hidden="true">
             <text class="us-range-num">{{item.lo60Text}}</text>
@@ -390,7 +412,7 @@
           bindtap="openUsDetail"
           hover-class="tap-active"
           aria-role="button"
-          aria-label="{{item.name}}，热度 {{item.heatText}}，{{item.priceText}}，{{item.changeText}}"
+          aria-label="{{item.name}}，热度 {{item.heatText}}，{{item.verdictBadge}}，{{item.priceText}}，{{item.changeText}}"
         >
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
@@ -404,6 +426,10 @@
           <view class="us-right">
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
+          </view>
+          <view class="verdict-range-bar">
+            <text class="verdict-stamp tone-{{item.verdictTone}}">{{item.verdictBadge}}</text>
+            <text wx:if="{{item.refRangeText}}" class="verdict-range-text">{{item.refRangeText}}</text>
           </view>
           <view class="us-range-bar-row" aria-hidden="true">
             <text class="us-range-num">热度 {{item.heatText}}分</text>
@@ -543,6 +569,10 @@
               <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
             </view>
           </view>
+          <view class="verdict-range-bar is-a-bar">
+            <text class="verdict-stamp tone-{{item.verdictTone}}">{{item.verdictBadge}}</text>
+            <text wx:if="{{item.refRangeText}}" class="verdict-range-text">{{item.refRangeText}}</text>
+          </view>
         </view>
       </view>
       <view class="a-empty" wx:else><text>分红数据暂不足以显示。</text></view>
@@ -583,10 +613,14 @@
             <view class="a-metric">
               <view class="a-metric-num">
                 <text class="a-metric-value dividend-years">{{item.metricText}}</text>
-                <text class="a-metric-unit">稳度分</text>
+                <text class="a-metric-unit">稳定分</text>
               </view>
               <view class="a-metric-track"><view class="a-metric-fill" style="width: {{item.metricBar}}%;"></view></view>
             </view>
+          </view>
+          <view class="verdict-range-bar is-a-bar">
+            <text class="verdict-stamp tone-{{item.verdictTone}}">{{item.verdictBadge}}</text>
+            <text wx:if="{{item.refRangeText}}" class="verdict-range-text">{{item.refRangeText}}</text>
           </view>
         </view>
       </view>
@@ -633,6 +667,10 @@
               <view class="a-metric-track"><view class="a-metric-fill" style="width: {{item.metricBar}}%;"></view></view>
             </view>
           </view>
+          <view class="verdict-range-bar is-a-bar">
+            <text class="verdict-stamp tone-{{item.verdictTone}}">{{item.verdictBadge}}</text>
+            <text wx:if="{{item.refRangeText}}" class="verdict-range-text">{{item.refRangeText}}</text>
+          </view>
         </view>
       </view>
       <view class="a-empty" wx:else><text>分红收益性榜单暂不足以显示。</text></view>
@@ -658,6 +696,10 @@
         </view>
         <text class="gold-quote-price">{{item.priceText}}</text>
         <text class="gold-quote-unit">{{item.code ? item.code + ' · ' : ''}}{{item.unit}}</text>
+        <view wx:if="{{item.verdictBadge}}" class="gold-quote-verdict">
+          <text class="verdict-stamp tone-{{item.verdictTone}}">{{item.verdictBadge}}</text>
+        </view>
+        <text wx:if="{{item.watchRangeText}}" class="gold-watch-range">{{item.watchRangeText}}</text>
         <text class="gold-quote-unit">{{item.asOfText}}</text>
       </view>
     </view>

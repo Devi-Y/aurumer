@@ -22,7 +22,7 @@ function slimForMiniProgram(data) {
   // 一个真实存在过的计算用抽样数据的 bug（NVDA 实测：真实 60 日位置 83%，
   // 抽样后算出 87%）。priceVisual 自己已经会按最多 36 列再抽一遍做柱状展示，
   // 不依赖这里传入的数组长度，所以这里不再抽稀，直接把完整历史交给计算函数；
-  // 30 只股票 × 60 点全量，体积增量以 KB 计，可忽略。
+  // 30 只美股 × 60 点、20 只 A 股 × 近 250 日（约 1 年）及 30–50 只港股历史样本全量保留，不抽稀。
   return next;
 }
 
@@ -74,5 +74,7 @@ try {
 
 const digest = await writeDailyDigest(slimSnapshot);
 const bytes = Buffer.byteLength(JSON.stringify(slimSnapshot), "utf8");
-console.log(`小程序离线快照已同步：${slimSnapshot.updatedAt}（约 ${Math.round(bytes / 1024)} KB，个股走势与黄金历史均为全量、不抽稀）`);
+const aShareHistoryMin = Math.min(...(slimSnapshot.aShare?.quotes || []).map((q) => q.history?.length || 0));
+const hkHistoryCount = slimSnapshot.hk?.history?.length || 0;
+console.log(`小程序离线快照已同步：${slimSnapshot.updatedAt}（约 ${Math.round(bytes / 1024)} KB，A股日线≥${aShareHistoryMin}日、港股历史${hkHistoryCount}只，全量不抽稀）`);
 console.log(`今日答案摘要已同步：港${digest.markets.hk.length} / 美${digest.markets.us.length} / A${digest.markets.a.length} / 金${digest.markets.gold.length} / 机构${digest.markets.guru.length} 问`);

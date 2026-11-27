@@ -213,11 +213,15 @@ function sanitizeAShareQuote(item = {}, financials = {}) {
     summary,
     ...rest
   } = item;
-  // 保留经过校验的真实日线收盘序列，拒绝无效点。
+  // 保留经过校验的近 250 个交易日（约 1 年）真实日线收盘序列，四舍五入至两位小数并拒绝无效点。
   const cleanHistory = Array.isArray(item.history)
     ? item.history
-      .map((row) => ({ date: String(row?.date || ""), close: Number(row?.close) }))
+      .map((row) => ({
+        date: String(row?.date || ""),
+        close: hasNumber(row?.close) ? Math.round(Number(row.close) * 100) / 100 : NaN,
+      }))
       .filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date) && Number.isFinite(row.close) && row.close > 0)
+      .slice(-250)
     : undefined;
   // 买入/推荐/安全边际价来自静态 HTML，不是公告驱动自动化；公开链路一律剥离。
   return {
@@ -361,7 +365,7 @@ function sanitizeSnapshot(snapshot, now = Date.now()) {
     },
     hk: {
       listings: (snapshot.hk && snapshot.hk.listings || []).map(sanitizeHKListing),
-      history: (snapshot.hk && snapshot.hk.history || []).map(sanitizeHKHistory),
+      history: (snapshot.hk && snapshot.hk.history || []).slice(0, 50).map(sanitizeHKHistory),
     },
     aShare: {
       ...(snapshot.aShare || {}),

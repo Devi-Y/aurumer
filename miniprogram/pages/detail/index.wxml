@@ -71,10 +71,6 @@
       </view>
     </view>
 
-    <view wx:if="{{item.kind == 'radar'}}" class="radar-chart-wrap">
-      <canvas type="2d" id="{{item.canvasId}}" class="radar-chart-canvas"></canvas>
-    </view>
-
     <view wx:if="{{item.kind == 'scatter'}}" class="scatter-chart-wrap">
       <canvas type="2d" id="{{item.canvasId}}" class="scatter-chart-canvas"></canvas>
     </view>
@@ -293,8 +289,25 @@
         </view>
       </view>
 
-      <!-- 对标 Robinhood × 富途 × 息记：多周期涨跌色块 + 强弱进度条 + 双列核心数据 -->
+      <!-- 对标 Robinhood × 富途 × 息记：参考区间明白卡 + 多周期涨跌色块 + 强弱进度条 + 双列核心数据 -->
       <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
+        <view wx:if="{{view.overview.orderPlan}}" class="section-card ref-plan-card">
+          <view class="ref-plan-head">
+            <text class="block-title">{{view.overview.orderPlan.title}}</text>
+            <text class="verdict-stamp tone-{{view.overview.orderPlan.verdictTone}}">{{view.overview.orderPlan.verdictBadge}}</text>
+          </view>
+          <view wx:if="{{view.overview.orderPlan.rows && view.overview.orderPlan.rows.length}}" class="ref-plan-rows">
+            <view wx:for="{{view.overview.orderPlan.rows}}" wx:key="key" class="ref-plan-row">
+              <text class="ref-plan-k">{{item.label}}</text>
+              <view class="ref-plan-right">
+                <text class="ref-plan-v">{{item.value}}</text>
+                <text wx:if="{{item.note}}" class="ref-plan-note">{{item.note}}</text>
+              </view>
+            </view>
+          </view>
+          <text wx:if="{{view.overview.orderPlan.summary}}" class="ref-plan-summary">{{view.overview.orderPlan.summary}}</text>
+        </view>
+
         <template wx:if="{{!view.heroSpark && view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
 
         <view wx:if="{{view.overview.periodReturns && view.overview.periodReturns.length}}" class="period-strip">
@@ -373,11 +386,11 @@
         <view class="section-card">
           <text class="block-title">近期公司事件</text>
           <text class="analysis-body">{{view.dynamics.event}}</text>
-          <text wx:if="{{view.dynamics.eventVerified}}" class="collapsed-hint">SEC原文见来源；同期发生不代表涨跌原因。</text>
+          <text wx:if="{{view.dynamics.eventVerified}}" class="collapsed-hint">官方原文见来源；同期发生不代表涨跌原因。</text>
         </view>
         <text wx:if="{{view.dynamics.heat}}" class="module-answer">{{view.dynamics.heat}}</text>
         <view class="section-card" wx:if="{{view.dynamics.filingCards && view.dynamics.filingCards.length}}">
-          <text class="block-title">同期公开备案（SEC原文）</text>
+          <text class="block-title">同期公开公告原文</text>
           <view
             wx:for="{{view.dynamics.filingCards}}"
             wx:key="key"

@@ -33,12 +33,12 @@
 
 .home-search-box {
   display: flex;
-  height: 100rpx;
+  height: 112rpx;
   padding: 0 22rpx 0 26rpx;
   align-items: center;
   gap: 14rpx;
   border: 2rpx solid transparent;
-  border-radius: 22rpx;
+  border-radius: 24rpx;
   background: #f3f6fb;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -51,22 +51,22 @@
 .home-search-icon {
   flex: none;
   color: #1d5fd1;
-  font-size: 42rpx;
+  font-size: 44rpx;
   line-height: 1;
 }
 
 .home-search-input {
   flex: 1;
   min-width: 0;
-  height: 96rpx;
+  height: 104rpx;
   color: #0f172a;
-  font-size: 33rpx;
+  font-size: 34rpx;
   font-weight: 600;
 }
 
 .home-search-placeholder {
   color: #64748b;
-  font-size: 31rpx;
+  font-size: 32rpx;
   font-weight: 500;
 }
 
@@ -76,14 +76,14 @@
   border-radius: 18rpx;
   background: #e8f0fe;
   color: #1d5fd1;
-  font-size: 27rpx;
+  font-size: 28rpx;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .search-dropdown {
   position: absolute;
-  top: 132rpx;
+  top: 144rpx;
   right: 0;
   left: 0;
   z-index: 30;
@@ -184,13 +184,13 @@
   border-radius: 10rpx;
   background: #eaf2ff;
   color: #1d5fd1;
-  font-size: 23rpx;
+  font-size: 25rpx;
   font-weight: 780;
 }
 
 .search-picks-sub {
   color: #64748b;
-  font-size: 23rpx;
+  font-size: 25rpx;
   font-weight: 560;
 }
 
@@ -204,7 +204,7 @@
   display: flex;
   flex: 1;
   min-width: 0;
-  padding: 16rpx 14rpx 14rpx;
+  padding: 14rpx 10rpx 12rpx;
   flex-direction: column;
   align-items: stretch;
   gap: 4rpx;
@@ -217,7 +217,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6rpx;
+  gap: 4rpx;
 }
 
 .search-pick-name {
@@ -225,7 +225,7 @@
   flex: 1;
   overflow: hidden;
   color: #0f172a;
-  font-size: 28rpx;
+  font-size: 27rpx;
   font-weight: 780;
   line-height: 1.25;
   text-overflow: ellipsis;
@@ -234,11 +234,11 @@
 
 .pick-mkt-dot {
   flex: none;
-  padding: 2rpx 8rpx;
+  padding: 2rpx 6rpx;
   border-radius: 6rpx;
   background: #eaf2ff;
   color: #1d5fd1;
-  font-size: 19rpx;
+  font-size: 24rpx;
   font-weight: 720;
 }
 
@@ -248,7 +248,7 @@
 .search-pick-code {
   overflow: hidden;
   color: #64748b;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 640;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
@@ -275,7 +275,7 @@
   border-radius: 8rpx;
   background: #eef4ff;
   color: #1d5fd1;
-  font-size: 20rpx;
+  font-size: 24rpx;
   font-weight: 680;
 }
 
@@ -288,7 +288,7 @@
 
 .pick-figure {
   color: #0f172a;
-  font-size: 26rpx;
+  font-size: 27rpx;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
@@ -303,7 +303,7 @@
   border-radius: 6rpx;
   background: #edf1f7;
   color: #475569;
-  font-size: 19rpx;
+  font-size: 24rpx;
   font-weight: 740;
   font-variant-numeric: tabular-nums;
 }
@@ -323,7 +323,7 @@
 .star-picks-label {
   flex: none;
   color: #b45309;
-  font-size: 22rpx;
+  font-size: 25rpx;
   font-weight: 760;
 }
 
@@ -343,7 +343,7 @@
   border-radius: 999rpx;
   background: #fef7ea;
   color: #92400e;
-  font-size: 23rpx;
+  font-size: 25rpx;
   font-weight: 680;
 }
 
@@ -384,8 +384,8 @@
 
 .entry-icon-chip {
   display: flex;
-  width: 116rpx;
-  height: 116rpx;
+  width: 120rpx;
+  height: 120rpx;
   align-items: center;
   justify-content: center;
   border: 2rpx solid rgba(29, 95, 209, 0.10);

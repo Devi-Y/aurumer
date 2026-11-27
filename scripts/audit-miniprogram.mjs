@@ -706,7 +706,6 @@ const offers = offersModule.exports;
   assert(GUIDES.info?.offer?.id === "global-access", "「全球信息获取」页末尾应挂全球信息访问方案");
   assert(GUIDES["us-start"]?.offer?.id === "open-account", "美股开户页应挂美股咨询方案");
   assert(GUIDES["hk-open"]?.offer?.id === "hk-open-account", "港股开户页应挂港股咨询方案");
-  assert(GUIDES.vpn?.offer?.id === "global-access", "VPN开通页应挂现有推荐链接");
   // A股开户二维码只能挂在 A股开户页：A股账户买不了美股，放到美股页里会把人引错。
   assert(GUIDES["a-open"]?.offer?.id === "a-open-account", "「A股开户」页应挂 A股开户二维码");
   assert(!Object.entries(GUIDES).some(([topic, guide]) => guide.offer?.id === "a-open-account" && topic !== "a-open"), "A股开户二维码不能挂在 A股开户页以外的页面");
@@ -733,7 +732,7 @@ const offers = offersModule.exports;
     const source = await readFile(file, "utf8");
     const relative = path.relative(root, file);
     // 全球信息访问与渠道文案要中性合规：不出现敏感宣传或分成字眼（代码注释也不写）。
-    assert(!/梯子|翻墙|绕过封锁|突破监管|跨境出入金|开户分成|网络服务分成|\bVPN\b/.test(source), `${relative} 出现了高风险机审敏感词`);
+    assert(!/梯子|翻墙|绕过封锁|突破监管|跨境出入金|开户分成|网络服务分成|\bvpn\b/i.test(source), `${relative} 出现了高风险机审敏感词`);
     if (file === offersPath) continue;
     for (const offer of offers) {
       if (offer.copy) assert(!source.includes(offer.copy), `${relative} 写死了商业物料原文（应只在 config/offers.js）：${offer.id}`);

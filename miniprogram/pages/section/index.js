@@ -230,16 +230,38 @@ function buildHkModule(snapshot) {
       state: idx < stageStep ? "done" : (idx === stageStep ? "now" : "todo"),
     }));
     const rawCode = String(item.code || item.id || "").replace(/\.HK$/i, "");
+    const freshHk = snapshot.actionsFresh !== false;
+    let verdictBadge = "日期待核";
+    let verdictTone = "caution";
+    if (closed) {
+      verdictBadge = "已截止";
+      verdictTone = "settled";
+    } else if (deadlineOffset == null) {
+      verdictBadge = "日期待核";
+      verdictTone = "caution";
+    } else if (!freshHk) {
+      verdictBadge = "数据待更新";
+      verdictTone = "settled";
+    } else if (item.group === "worth") {
+      verdictBadge = "值得申购";
+      verdictTone = "worth";
+    } else if (item.group === "caution") {
+      verdictBadge = "谨慎参与";
+      verdictTone = "caution";
+    } else {
+      verdictBadge = "不建议申购";
+      verdictTone = "avoid";
+    }
     return {
       id: item.id,
       name: shortCompanyName(item.name, item.code || "新股", 10),
       code: rawCode ? `${rawCode}.HK` : "",
       tagPills,
       stageSteps,
-      badgeText: closed ? "已截止" : (deadlineOffset == null ? "日期待核" : "日期参考"),
-      statusLabel: closed ? "已截止" : (deadlineOffset == null ? "日期待核" : "已公布日期"),
-      tone: closed ? "settled" : (deadlineOffset == null ? "caution" : "worth"),
-      reason: "招股资料仅供参考，请核对最新公告",
+      badgeText: verdictBadge,
+      statusLabel: verdictBadge,
+      tone: verdictTone,
+      reason: item.one || "招股资料仅供参考，请核对最新公告",
       deadlineLabel: deadlineOffset == null ? "截止日期待核" : `截止 ${String(deadline).slice(0, 10)}`,
       deadlineOffset,
       closed,
@@ -267,24 +289,26 @@ function buildHkModule(snapshot) {
       offerLabel,
       text: `${name} · ${offerLabel}`,
       tier: oversub == null ? "" : (oversub >= HK_HOT_OVERSUBSCRIPTION ? "hot" : "cool"),
-      oversubText: oversub != null ? `超购 ${Math.round(oversub).toLocaleString("en-US")} 倍` : "",
+      oversubText: oversub != null ? `抢购 ${Math.round(oversub).toLocaleString("en-US")} 倍` : "",
       plan,
     };
   });
 
   const endedItems = items.filter((item) => item.group === "ended");
-  const historyRows = endedItems.slice(0, 12).map((item) => {
+  const historyRowsAll = endedItems.map((item) => {
     const raw = item.raw || {};
     const rev = raw.historicalReview || {};
     const grey = finiteOrNull(rev.greyMarketChange);
     const firstDay = finiteOrNull(rev.firstDayChange);
     const fee = finiteOrNull(raw.entryFee);
-    const pnl = (fee != null && fee > 0 && firstDay != null) ? Math.round((fee * firstDay) / 100) : null;
+    const pnl = finiteOrNull(raw.oneLotPnl) != null
+      ? Math.round(Number(raw.oneLotPnl))
+      : ((fee != null && fee > 0 && firstDay != null) ? Math.round((fee * firstDay) / 100) : null);
     const rawCode = String(item.code || raw.stockCode || "").replace(/\.HK$/i, "");
     return {
       id: item.id,
       name: shortCompanyName(item.name, item.code || "新股", 7),
-      code: rawCode ? `${rawCode}.HK` : "",
+      code: rawCode || "",
       date: raw.listingDate ? String(raw.listingDate).slice(5) : "",
       greyText: grey != null ? signedPct(grey, 1) : "—",
       greyTone: grey == null ? "flat" : (grey > 0 ? "up" : (grey < 0 ? "down" : "flat")),
@@ -294,22 +318,34 @@ function buildHkModule(snapshot) {
       pnlTone: pnl == null ? "flat" : (pnl > 0 ? "up" : (pnl < 0 ? "down" : "flat")),
     };
   });
+  const historyRows = historyRowsAll.slice(0, 12);
   const statsSummary = buildHkHistoryStats(snapshot);
   const historySummary = statsSummary.sampleCount > 0 ? [
     { label: "首日上涨率", value: statsSummary.firstDayWinRate || "—" },
-    { label: "暗盘首日同向", value: statsSummary.greyToFirstDirection || "—" },
+    { label: "前夜首日同向", value: statsSummary.greyToFirstDirection || "—" },
     { label: "最高首日涨幅", value: statsSummary.maxFirstDay ? statsSummary.maxFirstDay.label : `${statsSummary.sampleCount}只` },
   ] : [];
+  const openApply = applyList.filter((r) => !r.closed);
+  const worthApply = openApply.filter((r) => r.tone === "worth");
+  const answerBar = snapshot.actionsFresh === false
+    ? "数据待更新 · 招股状态与申购建议请核对港交所最新公告"
+    : (openApply.length
+      ? (worthApply.length
+        ? `当前 ${openApply.length} 只招股中 · 值得申购 ${worthApply.length} 只：${worthApply.slice(0, 3).map((r) => r.name).join("、")}`
+        : `当前 ${openApply.length} 只招股中 · 暂无高性价比标的，建议谨慎参与`)
+      : `当前暂无招股中新股 · 近 ${statsSummary.sampleCount || historyRowsAll.length} 只上市首日上涨率 ${statsSummary.firstDayWinRate || "—"}`);
 
   return {
+    answerBar,
     applyList,
-    // 未核实当前招股状态，历史资料不计算“可申购”数量。
     applyTiles: [],
     firstDayChart: hkFirstDayChart(snapshot),
     exitList,
     exitChart: hkExitTierChart(buildHkExitBands(snapshot)),
     historySummary,
     historyRows,
+    historyRowsAll,
+    historyTotal: historyRowsAll.length,
   };
 }
 
@@ -338,12 +374,12 @@ function hkFirstDayChart(snapshot) {
 function hkExitTierChart(bands) {
   if (!bands || !bands.sampleCount) return null;
   const stages = [
-    { key: "grey", label: "暗盘" },
+    { key: "grey", label: "前夜" },
     { key: "firstDay", label: "首日" },
     { key: "fiveDay", label: "首周" },
   ];
   const tiers = [
-    { key: "hot", label: `超购≥${HK_HOT_OVERSUBSCRIPTION}倍` },
+    { key: "hot", label: `抢购≥${HK_HOT_OVERSUBSCRIPTION}倍` },
     { key: "cool", label: "一般" },
   ];
   const groups = stages.map((stage) => ({
@@ -375,7 +411,7 @@ function hkExitTierChart(bands) {
     zero,
     groups,
     legend: tiers,
-    sampleText: `${bands.sampleCount} 只历史样本 · 中位数 · 收正/样本`,
+    sampleText: `${bands.sampleCount} 只历史样本 · 平均涨跌 · 上涨/总数`,
   };
 }
 
@@ -456,9 +492,57 @@ function usMetrics(item) {
 // 新闻源、没有公告字段，编事件就是凭空造。换成 usSignal 已经用 PE、质量门、
 // 60日价格位置算出的结论句——详情页在用同一份判断，不是另起一套话术。
 // 每行下面那条参考价：跟详情页「下单参考」卡同一个价、同一个「风险升高就暂不买」。
-function usOrderFields() {
-  // 历史视图不提供到价动作，读屏文本也不能残留即时下单价。
-  return { order: null, hasOrder: false, orderTone: "", orderLabel: "", orderValue: "", orderNote: "" };
+function usOrderFields(item, signal) {
+  const raw = (item && item.raw) || {};
+  const noBuy = Boolean(signal && signal.label === "风险升高");
+  const order = usOrderState(raw, noBuy);
+  if (!order) {
+    const stale = signal && signal.label === "数据待更新";
+    return {
+      order: null,
+      hasOrder: false,
+      orderTone: "",
+      orderLabel: "",
+      orderValue: "",
+      orderNote: "",
+      verdictBadge: stale ? "数据待更新" : plainLabel((signal && signal.label) || "观察中"),
+      verdictTone: stale ? "settled" : usTone(signal && signal.tone),
+      refRangeText: "",
+    };
+  }
+  const line = usOrderLine(order);
+  let verdictBadge = "价格适中 · 等低位";
+  let verdictTone = "caution";
+  if (order.state === "buy") {
+    verdictBadge = "偏便宜 · 可关注";
+    verdictTone = "worth";
+  } else if (order.state === "stop") {
+    verdictBadge = "跌破警戒 · 先观望";
+    verdictTone = "avoid";
+  } else if (order.state === "sell") {
+    verdictBadge = "偏贵 · 分批止盈区";
+    verdictTone = "caution";
+  } else if (order.noBuy || (signal && signal.tone === "bad")) {
+    verdictBadge = "风险偏高 · 暂不追";
+    verdictTone = "avoid";
+  } else if (signal && signal.tone === "good") {
+    verdictBadge = "偏便宜 · 可分批看";
+    verdictTone = "worth";
+  }
+  const refRangeText = order.noBuy
+    ? `暂不设低接位 · 警戒位 $${order.stop.toFixed(1)}`
+    : `参考区间 $${order.buy.toFixed(1)} – $${order.sell.toFixed(1)}${order.state === "buy" ? "（已在低位区）" : (order.buyGapPct > 0 ? `（距低位 ${order.buyGapPct.toFixed(1)}%）` : "")}`;
+  return {
+    order,
+    hasOrder: true,
+    orderTone: line ? line.tone : "",
+    orderLabel: line ? line.label : "",
+    orderValue: line ? line.value : "",
+    orderNote: line ? line.note : "",
+    verdictBadge,
+    verdictTone,
+    refRangeText,
+  };
 }
 
 function usFactChips(item, spark) {
@@ -466,7 +550,7 @@ function usFactChips(item, spark) {
   const chips = [];
   const pe = finiteOrNull(fund.pe);
   const revG = finiteOrNull(fund.revenueGrowth);
-  if (pe != null && pe > 0) chips.push({ label: `市盈 ${pe.toFixed(0)}倍`, tone: "plain" });
+  if (pe != null && pe > 0) chips.push({ label: `回本约${pe.toFixed(0)}年`, tone: "plain" });
   if (revG != null) chips.push({ label: `营收 ${signedPct(revG, 1)}`, tone: revG >= 0 ? "up" : "down" });
   if (spark && spark.hasSpark && spark.sparkChangeText) {
     chips.push({ label: `${spark.sparkDays}日 ${spark.sparkChangeText}`, tone: spark.sparkTone || "plain" });
@@ -525,7 +609,7 @@ function buildAHeatmap(allList, mode = "yield") {
       shortName: String(row.name || "").slice(0, 5),
       code: String(row.code || "").replace(/\.(SH|SZ)$/i, ""),
       valText: y != null ? `${y.toFixed(2)}%` : "暂缺",
-      subText: row.sortStability != null ? `稳度${row.sortStability}分` : row.priceText,
+      subText: row.sortStability != null ? `稳定${row.sortStability}分` : row.priceText,
       tileTone: yieldTileTone(y),
     };
   });
@@ -555,7 +639,7 @@ function usStockRow(item, sparkCache = null) {
   const pe = finiteOrNull(fund.pe);
   const mcap = finiteOrNull(fund.marketCap);
   const capChip = mcap != null && mcap >= 1e8
-    ? (mcap >= 1e12 ? `市值 $${(mcap / 1e12).toFixed(2)}万亿` : `市值 $${Math.round(mcap / 1e8)}亿`)
+    ? (mcap >= 1e12 ? `$${(mcap / 1e12).toFixed(2)}万亿` : `$${Math.round(mcap / 1e8)}亿`)
     : "";
   const shortTag = shortTagFor("us", item.id, item.code);
   const hasRangeBar = lo60 != null && hi60 != null && sortPos60 != null;
@@ -568,9 +652,9 @@ function usStockRow(item, sparkCache = null) {
     lo60Text: lo60 != null ? `$${lo60.toFixed(0)}` : "",
     hi60Text: hi60 != null ? `$${hi60.toFixed(0)}` : "",
     pos60Pct: sortPos60 != null ? sortPos60 : 50,
-    posChip: sortPos60 != null ? (sortPos60 <= 25 ? "近60日偏低" : (sortPos60 >= 75 ? "近60日偏高" : "近60日居中")) : "",
+    posChip: sortPos60 != null ? (sortPos60 <= 25 ? "近3月偏便宜" : (sortPos60 >= 75 ? "近3月偏贵" : "近3月适中")) : "",
     posTone: sortPos60 != null ? (sortPos60 <= 25 ? "cool" : (sortPos60 >= 75 ? "warn" : "plain")) : "plain",
-    peChip: pe != null && pe > 0 ? `市盈 ${pe.toFixed(0)}倍` : "",
+    peChip: pe != null && pe > 0 ? `回本约${pe.toFixed(0)}年` : "",
     capChip,
     badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
@@ -595,13 +679,21 @@ function buildUsModule(snapshot) {
   const hotItems = items.filter((item) => item.group === "hot");
   const sparkCache = new Map();
 
-  const triggerTiles = []; // 历史参考不生成即时到价提示。
-
-  const sevenList = sevenItems.map((item) => usStockRow(item, sparkCache)).map(({ order, ...row }) => ({
+  const sevenRaw = sevenItems.map((item) => usStockRow(item, sparkCache));
+  const triggerOrders = sevenRaw.map((r) => r.order).filter(Boolean);
+  const triggerTiles = triggerOrders.length ? countTiles(triggerOrders, US_TRIGGERS) : [];
+  const sevenList = sevenRaw.map(({ order, ...row }) => ({
     ...row,
     event: eventBrief(snapshot, row.code),
     eventDate: eventFactFor(snapshot, row.code).eventDate || "",
   }));
+  const sevenWorth = sevenList.filter((r) => r.verdictTone === "worth");
+  const allSevenStale = sevenList.length > 0 && sevenList.every((r) => r.verdictBadge === "数据待更新");
+  const answerBar = snapshot.actionsFresh === false || allSevenStale
+    ? "美股休市或报价待更新 · 下一交易日收盘后展示参考区间"
+    : (sevenWorth.length
+      ? `七大巨头 ${sevenWorth.length} 只偏便宜可关注：${sevenWorth.map((r) => r.name).join("、")}`
+      : "七大巨头当前均未进低接区，建议等回调至参考区间");
   const sevenHeatmap = buildUsHeatmap(sevenList, "day");
   const labelCounts = new Map();
   sevenList.forEach((item) => {
@@ -651,7 +743,7 @@ function buildUsModule(snapshot) {
         takeTone,
         heatText: heat != null ? String(Math.round(heat)) : "—",
         heatBar: heat != null ? Math.max(12, Math.min(100, Math.round(heat))) : 0,
-        volChip: volRatio != null ? `量比 ${volRatio.toFixed(1)}倍` : "",
+        volChip: volRatio != null ? `热度 ${volRatio.toFixed(1)}倍` : "",
       };
     });
     return _hotList;
@@ -688,6 +780,7 @@ function buildUsModule(snapshot) {
   };
 
   return {
+    answerBar,
     triggerTiles,
     sevenList,
     sevenHeatmap,
@@ -722,15 +815,58 @@ function aTone(group) {
   return "caution";
 }
 
-function aRankedList(items, lens) {
+function aVerdictFields(raw, stability, fresh) {
+  if (!fresh) {
+    return {
+      verdictBadge: "数据待更新",
+      verdictTone: "settled",
+      refRangeText: "",
+      plan: null,
+      order: null,
+    };
+  }
+  const plan = yieldImpliedPlan(raw);
+  const order = aOrderState(raw);
+  if (!plan || !(plan.price > 0)) {
+    return {
+      verdictBadge: stability != null && stability >= 75 ? "分红稳 · 区间待核" : "分红待核",
+      verdictTone: "caution",
+      refRangeText: "",
+      plan: null,
+      order: null,
+    };
+  }
+  let verdictBadge = stability != null && stability >= 75 ? "分红稳 · 价适中" : "股息适中 · 观察";
+  let verdictTone = "caution";
+  if (plan.zone === "add") {
+    verdictBadge = stability != null && stability >= 75 ? "分红稳 · 偏便宜" : "高股息 · 偏便宜";
+    verdictTone = "worth";
+  } else if (plan.zone === "trim") {
+    verdictBadge = "股价偏高 · 等回调";
+    verdictTone = "avoid";
+  }
+  const gapNote = order && order.state === "buy"
+    ? "（已在高息区）"
+    : (order && order.buyGapPct > 0 ? `（距低接 ${order.buyGapPct.toFixed(1)}%）` : "");
+  return {
+    verdictBadge,
+    verdictTone,
+    refRangeText: `参考区间 ¥${plan.addPrice.toFixed(2)} – ¥${plan.trimPrice.toFixed(2)}${gapNote}`,
+    plan,
+    order,
+  };
+}
+
+function aRankedList(items, lens, fresh = true) {
   return items
     .filter((item) => item.lensRank && item.lensRank[lens])
     .sort((left, right) => left.lensRank[lens] - right.lensRank[lens])
     .map((item) => {
-      const plan = null; // 历史榜单不展示模型买卖价。
-      const historicalYield = getHistoricalDividendYield(item.raw);
-      const stabilityDetail = getDividendStability(item.raw);
-      const stability = stabilityDetail.score != null ? stabilityDetail.score : aShareDividendStability(item.raw);
+      const raw = item.raw || {};
+      const historicalYield = getHistoricalDividendYield(raw);
+      const stabilityDetail = getDividendStability(raw);
+      const stability = stabilityDetail.score != null ? stabilityDetail.score : aShareDividendStability(raw);
+      const { verdictBadge, verdictTone, refRangeText, plan } = aVerdictFields(raw, stability, fresh);
       const recordedYears = Array.isArray(stabilityDetail.years) ? stabilityDetail.years.length : 0;
       const metricText = lens === "stable5"
         ? (stability != null ? String(stability) : "—")
@@ -741,7 +877,7 @@ function aRankedList(items, lens) {
       if (historicalYield) stableParts.push(`股息率 ${historicalYield.yieldPercent.toFixed(2)}%`);
       const yieldParts = [];
       if (historicalYield) yieldParts.push(`${historicalYield.year}年分红 · ${historicalYield.priceAsOf.slice(0, 10)}股价`);
-      if (stability != null) yieldParts.push(`稳度 ${stability}分`);
+      if (stability != null) yieldParts.push(`稳定度 ${stability}分`);
       // 现价落在「参考买—参考卖」之间的位置；越过两端就钉在端点，颜色标出越界方向。
       let pricePos = null;
       let priceZone = "";
@@ -750,12 +886,11 @@ function aRankedList(items, lens) {
         pricePos = Math.max(0, Math.min(100, Math.round(pos)));
         priceZone = plan.zone;
       }
-      const raw = item.raw || {};
       const curPrice = finiteOrNull(raw.currentPrice);
       const annualPer10kText = historicalYield ? `投1万年息 ¥${Math.round(historicalYield.yieldPercent * 100)}` : "";
       const dataChips = [];
       if (lens === "stable5" && historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
-      if (lens !== "stable5" && stability != null) dataChips.push(`稳度 ${stability}分`);
+      if (lens !== "stable5" && stability != null) dataChips.push(`稳定度 ${stability}分`);
       if (curPrice != null) dataChips.push(`一手 ¥${Math.round(curPrice * 100).toLocaleString("en-US")}`);
       const spark = historySpark(item, US_SPARK_SIZE);
       return {
@@ -769,6 +904,9 @@ function aRankedList(items, lens) {
         ...spark,
         badgeText: item.badge,
         tone: aTone(item.group),
+        verdictBadge,
+        verdictTone,
+        refRangeText,
         metricText,
         metricUnit: lens === "stable5" ? "分" : "%",
         metricLabel: lens === "stable5" ? "稳定性" : "历史股息率",
@@ -776,10 +914,10 @@ function aRankedList(items, lens) {
         historicalYield: historicalYield ? historicalYield.yieldPercent : null,
         stableBasis: stableParts.join(" · "),
         yieldBasis: yieldParts.join(" · "),
-        yearDots: buildDividendDots(item.raw),
+        yearDots: buildDividendDots(raw),
         buyText: plan ? money(plan.addPrice, "¥") : "待更新",
         sellText: plan ? money(plan.trimPrice, "¥") : "待更新",
-        priceText: plan ? money(plan.price, "¥") : "",
+        priceText: curPrice != null ? money(curPrice, "¥") : "",
         hasPricePos: pricePos != null,
         pricePos,
         priceLabelPos: pricePos != null ? Math.max(14, Math.min(86, pricePos)) : 0,
@@ -819,18 +957,34 @@ function withMetricBars(list, lens) {
 // 前五只展示名字和对应分红指标，其余页签按需懒计算，首屏仅算 5 条。
 function buildAModule(snapshot) {
   const items = allItems(snapshot, "a");
-  const stableList = withMetricBars(aRankedList(items, "stable5"), "stable5");
+  const fresh = snapshot.actionsFresh !== false;
+  const stableList = withMetricBars(aRankedList(items, "stable5", fresh), "stable5");
   let _yieldList = null;
   let _allPack = null;
   let _fund = undefined;
   const ensureAll = () => {
-    if (!_allPack) _allPack = aAllModule(items, snapshot.actionsFresh !== false);
+    if (!_allPack) _allPack = aAllModule(items, fresh);
     return _allPack;
   };
+  const stockItems = items.filter((it) => !(it.raw && it.raw.assetType === "fund"));
+  const cheapNames = fresh
+    ? stockItems
+      .filter((it) => {
+        const p = yieldImpliedPlan(it.raw);
+        return p && p.zone === "add";
+      })
+      .map((it) => it.name)
+    : [];
+  const answerBar = !fresh
+    ? "数据待更新 · 暂不展示参考区间"
+    : (cheapNames.length
+      ? `${stockItems.length} 只收息股中 ${cheapNames.length} 只处于偏便宜高息区：${cheapNames.slice(0, 3).join("、")}`
+      : `${stockItems.length} 只收息股均已算出分红回推区间，优选 5 年连续稳分红标的`);
   return {
+    answerBar,
     stableList,
     get yieldList() {
-      if (!_yieldList) _yieldList = withMetricBars(aRankedList(items, "yield5"), "yield5");
+      if (!_yieldList) _yieldList = withMetricBars(aRankedList(items, "yield5", fresh), "yield5");
       return _yieldList;
     },
     get allList() { return ensureAll().allList; },
@@ -853,16 +1007,16 @@ function aAllModule(items, fresh) {
     .filter((item) => !(item.raw && item.raw.assetType === "fund"))
     .map((item) => {
       const raw = item.raw || {};
-      const order = null; // 历史资料不触发“已到买卖价”。
-      const line = aOrderLine(order);
-      const price = finiteOrNull(raw.currentPrice);
-      const change = finiteOrNull(raw.changePercent);
       const historicalYield = getHistoricalDividendYield(raw);
       const stabilityDetail = getDividendStability(raw);
       const stability = stabilityDetail.score != null ? stabilityDetail.score : aShareDividendStability(raw);
+      const { verdictBadge, verdictTone, refRangeText, order } = aVerdictFields(raw, stability, fresh);
+      const line = aOrderLine(order);
+      const price = finiteOrNull(raw.currentPrice);
+      const change = finiteOrNull(raw.changePercent);
       const factParts = [];
       if (historicalYield) factParts.push(`股息率 ${historicalYield.yieldPercent.toFixed(2)}%`);
-      if (stability != null) factParts.push(`稳度 ${stability}分`);
+      if (stability != null) factParts.push(`稳定度 ${stability}分`);
       const annualPer10kText = historicalYield ? `投1万年息 ¥${Math.round(historicalYield.yieldPercent * 100)}` : "";
       const dataChips = [];
       if (historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
@@ -885,11 +1039,14 @@ function aAllModule(items, fresh) {
         sortChange: change,
         badgeText: item.badge,
         tone: aTone(item.group),
+        verdictBadge,
+        verdictTone,
+        refRangeText,
         priceText: price != null ? money(price, "¥") : "—",
         asOfText: referenceDateText([raw.priceAsOf || raw.asOf]),
         changeText: signedPct(change, 2),
         changeTone: change == null ? "flat" : (change >= 0 ? "up" : "down"),
-        hasOrder: false,
+        hasOrder: Boolean(order),
         orderTone: line ? line.tone : "",
         orderLabel: line ? line.label : "",
         orderValue: line ? line.value : "",
@@ -1131,38 +1288,56 @@ function paintGoldLineChart(ctx, width, height, values) {
   dot(lastIdx, "#d97706", 3);
 }
 
+function plainGoldZone(zoneLabel, fresh) {
+  if (!fresh) return "数据待更新";
+  const z = String(zoneLabel || "");
+  if (z.includes("低位")) return "偏低关注区";
+  if (z.includes("上沿")) return "偏高分批区";
+  if (z.includes("风险下沿")) return "跌破警戒位";
+  return "中间观察区";
+}
+
 function buildGoldModule(snapshot) {
   const gold = snapshot.gold || {};
   const answer = gold.answer || {};
+  const freshGold = snapshot.actionsFresh !== false && gold.actionsFresh !== false;
   const plan = goldPlanView(answer.pricePlan);
   const international = gold.quotes?.international || {};
   const domestic = domesticGoldClose(snapshot) || {};
 
   const intlZone = goldZoneForPrice(international.price, plan.internationalWatch, plan.internationalUpper, plan.internationalRisk);
   const cnyZone = goldZoneForPrice(domestic.price, plan.domesticWatch, plan.domesticUpper, plan.domesticRisk);
+  const intlWatchText = freshGold && plan.internationalWatch ? `关注区间 $${goldRangeText(plan.internationalWatch, 0)}` : "";
+  const domWatchText = freshGold && plan.domesticWatch ? `关注区间 ¥${goldRangeText(plan.domesticWatch, 0)}/克` : "";
 
   const intlChange = finiteOrNull(international.changePercent);
   const domChange = finiteOrNull(domestic.changePercent);
   const quotes = [
     {
       id: "usd",
-      label: "国际金",
-      code: "XAU",
+      label: "国际金价",
+      code: "伦敦现货",
       priceText: hasNumber(international.price) ? Number(international.price).toFixed(0) : "待更新",
       unit: "美元 / 盎司",
       asOfText: referenceDateText([international.asOf]),
       changeText: intlChange != null ? signedPct(intlChange, 2) : "",
       changeTone: intlChange == null ? "flat" : (intlChange >= 0 ? "up" : "down"),
+      verdictBadge: plainGoldZone(intlZone.label, freshGold && Boolean(plan.internationalWatch)),
+      verdictTone: freshGold && plan.internationalWatch ? goldTone(intlZone.tone) : "settled",
+      watchRangeText: intlWatchText,
     },
     {
       id: "cny",
-      label: "人民币金",
-      code: "Au99.99",
+      label: "国内上海金",
+      code: "上金所",
       priceText: hasNumber(domestic.price) ? Number(domestic.price).toFixed(2) : "待更新",
       unit: "元 / 克",
       asOfText: referenceDateText([domestic.asOf], "收盘"),
       changeText: domChange != null ? signedPct(domChange, 2) : "",
       changeTone: domChange == null ? "flat" : (domChange >= 0 ? "up" : "down"),
+      verdictBadge: plainGoldZone(cnyZone.label, freshGold && Boolean(plan.domesticWatch)),
+      verdictTone: freshGold && plan.domesticWatch ? goldTone(cnyZone.tone) : "settled",
+      watchRangeText: domWatchText,
     },
   ];
 
@@ -1207,9 +1382,9 @@ function buildGoldModule(snapshot) {
     } : null,
     etfPrice != null ? {
       key: "gld",
-      label: "美股黄金ETF",
+      label: "美股黄金基金",
       value: `$${etfPrice.toFixed(1)}`,
-      sub: etfChange != null ? `GLD ${signedPct(etfChange, 1)}` : "GLD",
+      sub: etfChange != null ? `单日 ${signedPct(etfChange, 1)}` : "黄金ETF",
     } : null,
   ].filter(Boolean);
 
@@ -1236,7 +1411,11 @@ function buildGoldModule(snapshot) {
     }
   }
 
-  return { quotes, perCurrency, parityLine: "", compareTiles, spreadBadge, returnPills };
+  const answerBar = !freshGold
+    ? "数据待更新 · 暂不展示黄金参考区间"
+    : `国际金当前处于${plainGoldZone(intlZone.label, true)}${intlWatchText ? ` · ${intlWatchText}` : ""}`;
+
+  return { answerBar, quotes, perCurrency, parityLine: "", compareTiles, spreadBadge, returnPills };
 }
 
 // 币种/周期切换只在这两个预计算好的结构里挑数据，不重新访问快照或重算——
@@ -1533,7 +1712,10 @@ function buildGuruModule(snapshot) {
   }));
 
   const defaultId = String((profiles[0] && profiles[0].id) || "");
-  return { profiles, trend, trendRows, overlapRows, trendTitle, trendHint, trendEmptyText, institutionList, holdingsByInstitution, defaultId };
+  const answerBar = overlapRows.length
+    ? `${profiles.length} 家机构共同重仓前 ${ Math.min(3, overlapRows.length) }：${overlapRows.slice(0, 3).map((r) => `${r.name}(${r.count}家)`).join("、")}`
+    : `已收录 ${profiles.length} 家顶级机构最新公开持仓（季度披露有滞后，仅学思路不照抄）`;
+  return { answerBar, profiles, trend, trendRows, overlapRows, trendTitle, trendHint, trendEmptyText, institutionList, holdingsByInstitution, defaultId };
 }
 
 const GURU_EMPTY_HOLDINGS = {
@@ -1798,6 +1980,9 @@ Page({
     hkExitChart: null,
     hkHistorySummary: [],
     hkHistoryRows: [],
+    hkHistoryTotal: 0,
+    hkShowAllHistory: false,
+    sectionAnswerBar: "",
     // 美股专属：原型的「七姐妹/热门三只/SEC公告」视图，只有 market==='us' 时渲染。
     usSubTab: "seven",
     usHeatMode: "day",
@@ -2021,10 +2206,14 @@ Page({
 
       if (market === "hk" && cached.hkModule) {
         const hkModule = cached.hkModule;
+        this._hkModule = hkModule;
         const hkExitList = hkModule.exitList;
         this._hkExitList = hkExitList;
         const hkSelection = resolveHkExitSelection(hkExitList, this.data.hkExitSelectedId);
+        const showAll = Boolean(this.data.hkShowAllHistory);
+        const allHist = hkModule.historyRowsAll || hkModule.historyRows || [];
         Object.assign(patch, {
+          sectionAnswerBar: hkModule.answerBar || "",
           hkApplyList: hkModule.applyList,
           hkApplyTiles: hkModule.applyTiles,
           hkFirstDayChart: hkModule.firstDayChart,
@@ -2034,11 +2223,13 @@ Page({
           hkExitView: hkSelection.view,
           hkExitChart: hkModule.exitChart,
           hkHistorySummary: hkModule.historySummary || [],
-          hkHistoryRows: hkModule.historyRows || [],
+          hkHistoryRows: showAll ? allHist : allHist.slice(0, 12),
+          hkHistoryTotal: hkModule.historyTotal || allHist.length,
         });
       } else if (market === "us" && cached.usModule) {
         const usModule = cached.usModule;
         Object.assign(patch, {
+          sectionAnswerBar: usModule.answerBar || "",
           usTriggerTiles: usModule.triggerTiles,
           usSevenList: usModule.sevenList,
           usSevenHeatmap: usModule.sevenHeatmap || [],
@@ -2057,6 +2248,7 @@ Page({
         this._aModule = aModule;
         const wan = this.data.aPrincipalWan || 1;
         Object.assign(patch, {
+          sectionAnswerBar: aModule.answerBar || "",
           aStableList: withPrincipalWan(aModule.stableList, wan),
         });
         if (this.data.aSubTab === "yield") patch.aYieldList = withPrincipalWan(aModule.yieldList, wan);
@@ -2070,6 +2262,7 @@ Page({
         this._goldModule = goldModule;
         const goldView = resolveGoldView(goldModule, this.data.goldCurrency, this.data.goldPeriod);
         Object.assign(patch, {
+          sectionAnswerBar: goldModule.answerBar || "",
           goldQuotes: goldModule.quotes,
           goldParityLine: goldModule.parityLine || "",
           goldCompareTiles: goldModule.compareTiles || [],
@@ -2088,6 +2281,7 @@ Page({
         this._guruModule = guruModule;
         const guruSelection = resolveGuruInstitution(guruModule, this.data.guruInstitutionId || guruModule.defaultId);
         Object.assign(patch, {
+          sectionAnswerBar: guruModule.answerBar || "",
           sourceLinks: cached.sourceLinks,
           guruTrendRows: guruModule.trendRows,
           guruOverlapRows: guruModule.overlapRows || [],
@@ -2140,6 +2334,14 @@ Page({
     const id = event.currentTarget.dataset.id;
     if (!id) return;
     this.openDetail(id, "section_hk_apply");
+  },
+  toggleHkHistoryAll() {
+    const next = !this.data.hkShowAllHistory;
+    const allHist = (this._hkModule && (this._hkModule.historyRowsAll || this._hkModule.historyRows)) || this.data.hkHistoryRows || [];
+    this.setData({
+      hkShowAllHistory: next,
+      hkHistoryRows: next ? allHist : allHist.slice(0, 12),
+    });
   },
   switchUsSubTab(event) {
     const id = event.currentTarget.dataset.id;

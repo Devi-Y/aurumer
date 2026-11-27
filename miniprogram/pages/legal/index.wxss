@@ -37,9 +37,9 @@
 .summary-label,
 .title,
 .date { display: block; }
-.summary-label { color: #1d5fd1; font-size: 22rpx; font-weight: 720; }
+.summary-label { color: #1d5fd1; font-size: 24rpx; font-weight: 720; }
 .title { margin-top: 6rpx; color: #16181b; font-size: 38rpx; font-weight: 850; line-height: 1.35; }
-.date { margin-top: 4rpx; color: #76797f; font-size: 22rpx; }
+.date { margin-top: 4rpx; color: #76797f; font-size: 24rpx; }
 .block-title { display: block; margin: 27rpx 6rpx 11rpx; color: #26292d; font-size: 29rpx; font-weight: 780; }
 
 .plain-summary { display: flex; flex-wrap: wrap; }
@@ -68,14 +68,14 @@
   border-radius: 50%;
   background: #eaf1fc;
   color: #1d5fd1;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 800;
 }
 
 .draft-card { margin-top: 16rpx; padding: 20rpx 22rpx; background: #fff8f2; color: #67473b; }
 .draft-card text { display: block; }
 .draft-card text:first-child { font-size: 26rpx; font-weight: 750; }
-.draft-card text:last-child { margin-top: 5rpx; font-size: 23rpx; line-height: 1.6; }
+.draft-card text:last-child { margin-top: 5rpx; font-size: 24rpx; line-height: 1.6; }
 
 .identity-card view { display: flex; min-height: 78rpx; padding: 15rpx 21rpx; align-items: flex-start; justify-content: space-between; gap: 20rpx; }
 .identity-card view + view,
@@ -107,7 +107,7 @@
 .policy-card,
 .action-card { display: flex; flex-direction: column; align-items: stretch; }
 .policy-toggle text:first-child { min-width: 0; flex: 1; }
-.policy-toggle text:last-child { flex: none; color: #1d5fd1; font-size: 22rpx; }
+.policy-toggle text:last-child { flex: none; color: #1d5fd1; font-size: 24rpx; }
 .policy-body { padding: 0 21rpx 20rpx; border-top: 1rpx solid #edeef0; background: #fafafb; }
 .paragraph { display: block; margin-top: 15rpx; color: #44474c; font-size: 24rpx; line-height: 1.72; }
 

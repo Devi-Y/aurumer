@@ -31,10 +31,10 @@ const A_SHARE_SAMPLE_COUNT = 10;
 
 const US_NAMES = {
   NVDA: "英伟达", MSFT: "微软", AAPL: "苹果", GOOGL: "谷歌-A", AMZN: "亚马逊",
-  META: "Meta", TSLA: "特斯拉", AMD: "超威半导体", AVGO: "博通", PLTR: "Palantir",
-  SMCI: "超微电脑", ARM: "Arm", TSM: "台积电", ASML: "阿斯麦", COIN: "Coinbase",
-  MSTR: "Strategy", CRWD: "CrowdStrike", NOW: "ServiceNow", V: "Visa", MA: "万事达",
-  NFLX: "奈飞", ORCL: "甲骨文", CRM: "赛富时", SLM: "萨利美", HRB: "H&R Block", SNOW: "Snowflake", SHOP: "Shopify",
+  META: "Meta", TSLA: "特斯拉", AMD: "超威半导体", AVGO: "博通", PLTR: "帕兰提尔",
+  SMCI: "超微电脑", ARM: "安谋科技", TSM: "台积电", ASML: "阿斯麦", COIN: "加密基地",
+  MSTR: "微策投资", CRWD: "众击安全", NOW: "优服软件", V: "维萨支付", MA: "万事达",
+  NFLX: "奈飞", ORCL: "甲骨文", CRM: "赛富时", SLM: "萨利美", HRB: "H&R税务", SNOW: "雪花数据", SHOP: "独立站电商",
   UBER: "优步", JPM: "摩根大通", "BRK.B": "伯克希尔", LLY: "礼来", COST: "好市多",
   // 聪明钱持仓里出现的代码。只收有通行中文名的；没有公认译名的（NTRA、TEM 这类）
   // 保留代码，不自己起名。

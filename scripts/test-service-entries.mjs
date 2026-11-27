@@ -50,7 +50,7 @@ test("the shared overseas-account tile retains separate Hong Kong and US destina
 });
 
 test("provided materials remain accessible without implying channel verification", () => {
-  for (const [topic, id] of [["hk-open", "hk-open-account"], ["us-start", "open-account"], ["a-open", "a-open-account"], ["vpn", "global-access"], ["info", "global-access"]]) {
+  for (const [topic, id] of [["hk-open", "hk-open-account"], ["us-start", "open-account"], ["a-open", "a-open-account"], ["info", "global-access"]]) {
     const { page, calls } = pageFixture("../miniprogram/pages/guide/index.js");
     page.onLoad({ topic });
     const offer = offers.find(item => item.id === id);
@@ -94,7 +94,7 @@ test("complete offline review fixtures preserve the original material without se
   const reviews = Object.fromEntries(Object.keys(originalReviews).map((id) => [id, {
     status: "verified", provider: "offline test fixture", qualification: "offline fixture", authorization: "offline fixture",
   }]));
-  for (const [topic, id] of [["hk-open", "hk-open-account"], ["us-start", "open-account"], ["a-open", "a-open-account"], ["vpn", "global-access"]]) {
+  for (const [topic, id] of [["hk-open", "hk-open-account"], ["us-start", "open-account"], ["a-open", "a-open-account"], ["info", "global-access"]]) {
     const { page, calls } = pageFixture("../miniprogram/pages/guide/index.js", reviews);
     page.onLoad({ topic });
     const offer = offers.find((entry) => entry.id === id);

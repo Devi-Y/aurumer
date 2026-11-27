@@ -1,7 +1,5 @@
 <view class="page-shell home-shell">
-  <view class="home-top-spacer" aria-hidden="true"></view>
-
-  <!-- 放大版主搜索框 + 港美A高热度标的直达 -->
+  <!-- 适老化大搜索框 + 港美A高热度代表股票一键直达 -->
   <view class="home-search-wrap">
     <view class="home-search-box {{searchFocused ? 'is-focused' : ''}}">
       <text class="home-search-icon" aria-hidden="true">⌕</text>
@@ -10,12 +8,13 @@
         type="text"
         confirm-type="search"
         value="{{searchQuery}}"
-        placeholder="搜港美A股、新股、代码或机构"
+        placeholder="输入股票名称或代码搜索"
         placeholder-class="home-search-placeholder"
         bindfocus="onSearchFocus"
         bindinput="onSearchInput"
       />
-      <text wx:if="{{searchQuery || searchFocused}}" class="home-search-clear" bindtap="clearSearch" aria-role="button" aria-label="清除搜索">取消</text>
+      <text wx:if="{{searchQuery || searchFocused}}" class="home-search-clear" bindtap="clearSearch" aria-role="button" aria-label="清空搜索">清空</text>
+      <text wx:else class="home-search-hint-btn" aria-hidden="true">搜索</text>
     </view>
 
     <view wx:if="{{searchQuery && searchResults.length}}" class="search-dropdown">
@@ -39,7 +38,7 @@
       </view>
     </view>
     <view wx:elif="{{searchQuery && !searchResults.length}}" class="search-dropdown search-empty">
-      <text>当前样本库未匹配到“{{searchQuery}}”，可试试代码或中文简称</text>
+      <text>没有找到“{{searchQuery}}”，可换个中文简称或股票代码试试</text>
     </view>
 
     <view wx:if="{{hotPicks.length}}" class="search-picks-inline">
@@ -57,9 +56,7 @@
     </view>
   </view>
 
-  <view class="home-mid-spacer" aria-hidden="true"></view>
-
-  <!-- 九宫格核心主视觉：五个研究模块 + 四项服务入口，无多余标题干扰 -->
+  <!-- 铺满全屏主体的适老化大图标九宫格：字大清晰，一触即达 -->
   <view class="page-card home-panel">
     <view class="entry-grid">
       <block wx:for="{{entries}}" wx:key="id">

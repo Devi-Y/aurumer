@@ -109,12 +109,24 @@
       </view>
       <text class="hero-asof">{{dataAsOf || '读取历史资料'}}</text>
 
+      <!-- 核心三问明白卡：一进页面先用大白话答清「什么标的、怎么判断、参考什么价位」 -->
+      <view wx:if="{{view.threeQuestions && view.threeQuestions.length}}" class="threeq-box">
+        <view wx:for="{{view.threeQuestions}}" wx:key="step" class="threeq-row">
+          <text class="threeq-ask">{{item.ask}}</text>
+          <text class="threeq-ans">{{item.answer}}</text>
+        </view>
+      </view>
+
       <view wx:if="{{!view.heroFigure && view.highlights.length}}" class="highlight-panel">
         <view wx:for="{{view.highlights}}" wx:key="label" class="highlight-cell">
           <text class="highlight-label">{{item.label}}</text>
           <text class="highlight-value">{{item.value}}</text>
         </view>
       </view>
+    </view>
+
+    <view class="aux-section-head">
+      <text class="aux-section-title">辅助判断参考（数据 · 图表 · 近况）</text>
     </view>
 
     <view wx:if="{{freshness.show}}" class="freshness-banner tone-{{freshness.tone}}">
@@ -594,7 +606,7 @@
     <!-- 离屏高清研报海报画布（375×540 逻辑像素 × 设备 DPR）。 -->
     <canvas type="2d" id="share-poster-canvas" class="share-poster-canvas"></canvas>
 
-    <!-- 美股详情看完了还没有账户：接开户教程，不直接给开户链接。 -->
+    <!-- 看完详情还没有对应市场账户：一键进入开户引导闭环 -->
     <view
       wx:if="{{market === 'us'}}"
       class="us-start-link"
@@ -604,7 +616,29 @@
       aria-label="第一次买美股？查看开户教程"
     >
       <text class="us-start-ask">第一次买美股？</text>
-      <text class="us-start-go">查看开户教程 ›</text>
+      <text class="us-start-go">查看美股开户 ›</text>
+    </view>
+    <view
+      wx:elif="{{market === 'hk'}}"
+      class="us-start-link"
+      bindtap="openHkOpen"
+      hover-class="tap-active"
+      aria-role="link"
+      aria-label="还没有港股账户？查看港股开户"
+    >
+      <text class="us-start-ask">还没有港股账户？</text>
+      <text class="us-start-go">查看港股开户 ›</text>
+    </view>
+    <view
+      wx:elif="{{market === 'a'}}"
+      class="us-start-link"
+      bindtap="openAOpen"
+      hover-class="tap-active"
+      aria-role="link"
+      aria-label="还没有A股账户？查看A股开户"
+    >
+      <text class="us-start-ask">还没有A股账户？</text>
+      <text class="us-start-go">查看A股开户 ›</text>
     </view>
 
     <partner-strip market="{{market}}" />

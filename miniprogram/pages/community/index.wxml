@@ -1,11 +1,9 @@
 <view class="page-shell community-shell">
-  <!-- 交流群页：群里聊什么、适合谁、怎么加入。收费写在复制按钮正下方，没有「下一步」。 -->
   <view class="community-head">
     <text class="community-title">会员群</text>
-    <text class="community-sub">公开资料与工具使用交流</text>
+    <text class="community-sub">公开资料阅读 · 望潮使用答疑 · 长期配置交流</text>
   </view>
 
-  <!-- 模仿知识星球 × Apple 订阅页：将「社群介绍」与「年费直付」清晰拆成上下两张透气白卡 -->
   <view class="page-card community-card">
     <view class="sec">
       <text class="sec-title">群里聊什么</text>
@@ -17,7 +15,7 @@
       </view>
     </view>
     <view class="sec">
-      <text class="sec-title">适合谁</text>
+      <text class="sec-title">适合谁加入</text>
       <view wx:for="{{fit}}" wx:key="*this" class="sec-point">
         <text>{{item}}</text>
       </view>
@@ -27,13 +25,13 @@
 
   <view class="page-card community-card community-pay-card">
     <view class="sec">
-      <text class="sec-title">加入方式</text>
+      <text class="sec-title">加入方式（任选其一）</text>
       <text class="community-price">{{priceLabel}}</text>
       <text class="join-disclosure">{{promotionNote}}</text>
       <text wx:if="{{!checkoutReady && !order.paid}}" class="join-disclosure">{{purchaseNote}}</text>
-      <view class="terms-link" bindtap="openTerms" hover-class="tap-active" aria-role="button">查看服务与退款约定 ›</view>
+      <view class="terms-link" bindtap="openTerms" hover-class="tap-active" aria-role="button">查看服务内容与随时退款保障 ›</view>
       <block wx:if="{{verificationPending && !order}}">
-        <text class="sec-muted">订单状态暂时无法核对，已付款用户请刷新或联系客服。</text>
+        <text class="sec-muted">订单状态暂时无法核对，已付款用户请点下方刷新或联系客服。</text>
         <button class="terms-link" bindtap="refreshOrder" loading="{{checking}}" disabled="{{checking}}">刷新订单状态</button>
         <button open-type="contact" class="terms-link">订单问题联系客服</button>
       </block>
@@ -41,20 +39,26 @@
         <text wx:if="{{order.orderId}}" class="sec-muted">订单号：{{order.orderId}}</text>
         <view wx:if="{{order.orderId}}" class="terms-link" bindtap="copyOrderId" hover-class="tap-active" aria-role="button">复制订单号</view>
         <text class="sec-text" wx:if="{{order.paid && !verificationPending && order.endsText}}">已入群，有效期至 {{order.endsText}}</text>
-        <text class="sec-text" wx:elif="{{order.paid && !verificationPending}}">已付款，请添加微信，由工作人员安排入群。服务期从实际入群日起计算。</text>
+        <text class="sec-text" wx:elif="{{order.paid && !verificationPending}}">已付款成功！请点下方按钮打开群主微信二维码，添加好友安排进群（服务期从实际入群日算起）。</text>
         <text class="sec-muted" wx:elif="{{verificationPending}}">订单状态暂时无法核对，请刷新或联系客服。</text>
         <text class="sec-muted" wx:else>订单处理中，请刷新状态；如有疑问请联系客服，避免重复付款。</text>
-        <button wx:if="{{order.paid && !verificationPending && qrReady}}" class="join-action" bindtap="openPaidQr">打开微信二维码</button>
+        <button wx:if="{{order.paid && !verificationPending && qrReady}}" class="join-action" bindtap="openPaidQr">打开群主微信二维码</button>
         <button class="terms-link" bindtap="refreshOrder" loading="{{checking}}" disabled="{{checking}}">刷新订单状态</button>
         <button wx:if="{{verificationPending || !order.paid}}" open-type="contact" class="terms-link">订单问题联系客服</button>
       </block>
       <block wx:if="{{checkoutReady && !order.paid}}">
-        <button class="join-action" bindtap="buy" loading="{{paying}}" disabled="{{paying || checking || verificationPending}}">微信支付 298 元 / 年</button>
-        <text class="join-disclosure">点击支付即确认已满 18 周岁，并同意会员群服务与退款约定。</text>
+        <button class="join-action" bindtap="buy" loading="{{paying}}" disabled="{{paying || checking || verificationPending}}">方式一：微信支付 298 元 / 年（付完弹进群二维码）</button>
+        <text class="join-disclosure">点击支付即确认已满 18 周岁，并同意会员群服务与退款约定（入群前及入群7天内均可全额退）。</text>
       </block>
       <block wx:if="{{join}}">
-        <text class="sec-text">复制微信号，在微信「添加朋友」里粘贴搜索。</text>
-        <view class="join-action" bindtap="copyWechat" hover-class="join-action-active" aria-role="button" aria-label="{{join.label}}">{{join.label}}</view>
+        <view class="wechat-alt-divider"></view>
+        <text class="sec-text">想先问清楚再决定？可先加群主微信咨询：</text>
+        <view class="join-action is-secondary" bindtap="copyWechat" hover-class="join-action-active" aria-role="button" aria-label="{{join.label}}">方式二：{{copiedWechatSuccess ? '✓ 微信号已复制，点此重复制' : join.label}}</view>
+        <view wx:if="{{copiedWechatSuccess}}" class="copy-step-box">
+          <text class="copy-step-title">✓ 群主微信号已复制！怎么添加：</text>
+          <text class="copy-step-body">1. 返回微信聊天首页，点右上角加号「⊕」→ 选「添加朋友」</text>
+          <text class="copy-step-body">2. 在搜索框长按点「粘贴」，搜索并添加好友即可</text>
+        </view>
         <text class="join-disclosure">{{join.disclosure}}</text>
       </block>
       <text wx:else class="sec-muted">加入方式整理中。</text>
@@ -72,10 +76,10 @@
   </view>
   <view wx:if="{{showQr && order.paid && !verificationPending}}" class="qr-overlay" bindtap="closePaidQr">
     <view class="qr-dialog" catchtap="keepPaidQrOpen">
-      <text class="qr-title">长按二维码，添加微信</text>
+      <text class="qr-title">手指按住二维码 2 秒，添加群主微信</text>
       <image class="qr-image" src="{{qrImage}}" mode="widthFix" show-menu-by-longpress="{{true}}" />
-      <text class="qr-hint">添加后联系我安排入群</text>
-      <view class="qr-close" bindtap="closePaidQr" aria-role="button">关闭</view>
+      <text class="qr-hint">添加通过后第一时间拉你进会员群</text>
+      <view class="qr-close" bindtap="closePaidQr" aria-role="button">关闭窗口</view>
     </view>
   </view>
 </view>

@@ -1,4 +1,4 @@
-/* 付费交流群：版式和 pages/guide 一致，蓝白灰。品牌蓝 #1d5fd1，文字三档灰。 */
+/* 付费会员群页：适老化大字号、主次分明的微信直付 + 复制微信号双通道 */
 
 .community-shell {
   background: #f6f7fa;
@@ -6,42 +6,42 @@
 
 .community-head {
   display: flex;
-  margin-bottom: 8rpx;
-  padding: 20rpx 26rpx 16rpx;
+  margin-bottom: 10rpx;
+  padding: 24rpx 28rpx 16rpx;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 10rpx;
   background: transparent;
 }
 
 .community-title {
   color: #0f172a;
-  font-size: 42rpx;
-  font-weight: 780;
+  font-size: 46rpx;
+  font-weight: 800;
   letter-spacing: -0.6rpx;
-  line-height: 1.3;
+  line-height: 1.28;
 }
 
 .community-sub {
-  color: #64748b;
-  font-size: 25rpx;
+  color: #334155;
+  font-size: 29rpx;
   line-height: 1.58;
 }
 
 .community-card {
-  margin: 0 24rpx 20rpx;
+  margin: 0 24rpx 24rpx;
   border-radius: 28rpx;
 }
 
 .community-pay-card {
-  border: 1rpx solid rgba(29, 95, 209, 0.14);
-  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 42%);
+  border: 2rpx solid rgba(29, 95, 209, 0.16);
+  background: linear-gradient(180deg, #f7faff 0%, #ffffff 45%);
 }
 
 .sec {
   display: flex;
-  padding: 24rpx 24rpx 26rpx;
+  padding: 28rpx 26rpx 30rpx;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 16rpx;
 }
 
 .sec + .sec {
@@ -49,116 +49,157 @@
 }
 
 .sec-title {
-  color: #1a1f27;
-  font-size: 30rpx;
-  font-weight: 650;
+  color: #0f172a;
+  font-size: 34rpx;
+  font-weight: 740;
 }
 
 .sec-rows {
   overflow: hidden;
-  border-radius: 14rpx;
-  background: #f6f8fb;
+  border-radius: 18rpx;
+  background: #f5f8fc;
 }
 
 .sec-row {
   display: flex;
-  padding: 16rpx 18rpx;
-  gap: 18rpx;
+  padding: 20rpx 22rpx;
+  gap: 20rpx;
 }
 
 .sec-row + .sec-row {
-  border-top: 1rpx solid #e9edf2;
+  border-top: 1rpx solid #e6ebf2;
 }
 
 .row-label {
-  width: 180rpx;
+  width: 170rpx;
   flex: none;
-  color: #5c6470;
-  font-size: 25rpx;
-  font-weight: 600;
-  line-height: 1.5;
+  color: #1e293b;
+  font-size: 29rpx;
+  font-weight: 700;
+  line-height: 1.55;
 }
 
 .row-value {
   min-width: 0;
   flex: 1;
-  color: #1a1f27;
-  font-size: 26rpx;
-  line-height: 1.5;
+  color: #334155;
+  font-size: 29rpx;
+  line-height: 1.55;
 }
 
 .sec-point {
   position: relative;
-  padding-left: 24rpx;
-  color: #2b313b;
-  font-size: 27rpx;
-  line-height: 1.6;
+  padding-left: 28rpx;
+  color: #1e293b;
+  font-size: 30rpx;
+  line-height: 1.62;
 }
 
 .sec-point::before {
   position: absolute;
-  top: 18rpx;
+  top: 20rpx;
   left: 4rpx;
-  width: 8rpx;
-  height: 8rpx;
+  width: 10rpx;
+  height: 10rpx;
   border-radius: 50%;
-  background: #9fb6dc;
+  background: #1d5fd1;
   content: "";
 }
 
 .sec-text {
-  color: #2b313b;
+  color: #0f172a;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.62;
+}
+
+.sec-muted {
+  color: #64748b;
   font-size: 27rpx;
   line-height: 1.6;
 }
 
-.sec-muted {
-  color: #8a929e;
-  font-size: 24rpx;
-  line-height: 1.6;
+.wechat-alt-divider {
+  height: 2rpx;
+  margin: 12rpx 0 4rpx;
+  background: #e8edf5;
 }
 
 .join-action {
   display: flex;
   width: 100%;
-  min-height: 92rpx;
-  margin: 8rpx 0 0;
-  padding: 0;
+  min-height: 106rpx;
+  margin: 6rpx 0 0;
+  padding: 0 22rpx;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  border-radius: 20rpx;
+  border-radius: 22rpx;
   background: linear-gradient(135deg, #2568dc 0%, #1d5fd1 100%);
   color: #ffffff;
-  font-size: 30rpx;
-  font-weight: 650;
-  line-height: 92rpx;
-  box-shadow: 0 6rpx 16rpx rgba(29, 95, 209, 0.22);
+  font-size: 32rpx;
+  font-weight: 720;
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: 0 8rpx 22rpx rgba(29, 95, 209, 0.24);
   transition: transform 0.12s ease;
+}
+
+.join-action.is-secondary {
+  border: 2rpx solid #1d5fd1;
+  background: #eef4ff;
+  color: #1d5fd1;
+  box-shadow: none;
 }
 
 .join-action-active {
   transform: scale(0.985);
-  background: #174ea9;
+  opacity: 0.9;
+}
+
+.copy-step-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  padding: 22rpx 24rpx;
+  border: 2rpx solid rgba(21, 153, 96, 0.28);
+  border-radius: 20rpx;
+  background: #effaf4;
+}
+
+.copy-step-title {
+  color: #0f6e43;
+  font-size: 30rpx;
+  font-weight: 760;
+}
+
+.copy-step-body {
+  color: #1e3a2f;
+  font-size: 28rpx;
+  line-height: 1.6;
 }
 
 .join-disclosure {
-  color: #8a929e;
-  font-size: 22rpx;
-  line-height: 1.5;
+  color: #64748b;
+  font-size: 25rpx;
+  line-height: 1.58;
 }
 
 .community-price {
-  color: #1a1f27;
-  font-size: 34rpx;
-  font-weight: 650;
-  line-height: 1.5;
+  color: #1d5fd1;
+  font-size: 46rpx;
+  font-weight: 800;
+  line-height: 1.3;
 }
 
 .terms-link {
   padding: 12rpx 0;
   color: #1d5fd1;
-  font-size: 26rpx;
+  font-size: 29rpx;
+  font-weight: 650;
   line-height: 1.6;
+  background: transparent;
+  text-align: left;
 }
 
 .tap-active {
@@ -172,49 +213,72 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .qr-dialog {
   display: flex;
-  width: 560rpx;
-  max-width: 88vw;
-  padding: 32rpx;
+  width: 600rpx;
+  max-width: 90vw;
+  padding: 36rpx 32rpx;
   flex-direction: column;
   align-items: center;
-  gap: 16rpx;
-  border-radius: 20rpx;
-  background: #fff;
+  gap: 20rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
 }
 
-.qr-title { color: #1a1f27; font-size: 30rpx; font-weight: 650; }
-.qr-image { width: 100%; }
-.qr-hint { color: #5c6470; font-size: 25rpx; }
-.qr-close { padding: 12rpx 32rpx; color: #1d5fd1; font-size: 27rpx; }
+.qr-title {
+  color: #0f172a;
+  font-size: 34rpx;
+  font-weight: 760;
+  text-align: center;
+}
+
+.qr-image {
+  width: 100%;
+  border-radius: 16rpx;
+}
+
+.qr-hint {
+  color: #334155;
+  font-size: 28rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.qr-close {
+  padding: 16rpx 44rpx;
+  border-radius: 999rpx;
+  background: #eef4ff;
+  color: #1d5fd1;
+  font-size: 30rpx;
+  font-weight: 700;
+}
 
 .page-footer {
   display: flex;
-  padding: 8rpx 28rpx 0;
+  padding: 12rpx 28rpx 0;
   justify-content: center;
   text-align: center;
 }
 
 .footer-note {
-  max-width: 560rpx;
-  color: #9aa1ab;
-  font-size: 22rpx;
-  line-height: 1.55;
+  max-width: 600rpx;
+  color: #64748b;
+  font-size: 25rpx;
+  line-height: 1.58;
 }
 
 @media (max-width: 340px) {
-  .community-card { margin-left: 12rpx; margin-right: 12rpx; }
-  .community-title { font-size: 36rpx; }
-  .row-label { width: 150rpx; font-size: 23rpx; }
-  .row-value, .sec-point { font-size: 25rpx; }
+  .community-card { margin-left: 14rpx; margin-right: 14rpx; }
+  .community-title { font-size: 40rpx; }
+  .row-label { width: 148rpx; font-size: 26rpx; }
+  .row-value, .sec-point { font-size: 27rpx; }
 }
 
 @media (min-width: 700px) {
   .community-head { padding-left: 32px; padding-right: 32px; }
   .community-card { margin-left: 32px; margin-right: 32px; }
-  .row-label { width: 120px; }
+  .row-label { width: 130px; }
 }

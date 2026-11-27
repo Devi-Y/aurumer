@@ -61,6 +61,7 @@ Page({
     choices: [],
     offer: null,
     offerImageError: false,
+    copiedSuccess: false,
     sharePath: "",
     footerDisclaimer: FOOTER_DISCLAIMER,
   },
@@ -76,6 +77,7 @@ Page({
       sections: buildSections(guide),
       choices: (guide.choices || []).filter((item) => GUIDES[item.topic]),
       offer,
+      copiedSuccess: false,
       sharePath: `/pages/guide/index?topic=${topic}`,
     });
     track("guide_open", { topic, from: String(options.from || "direct") });
@@ -101,6 +103,7 @@ Page({
     wx.setClipboardData({
       data: source.copy,
       success: () => {
+        this.setData({ copiedSuccess: true });
         track("service_copy", { id: source.id, from: `guide_${this.data.topic}` });
         wx.showToast({ title: source.toast || "已复制", icon: "none" });
       },

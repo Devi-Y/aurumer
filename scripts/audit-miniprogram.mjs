@@ -386,7 +386,7 @@ assert(
 );
 assert(
   indexStyles.includes("min-height: 100vh")
-    && (indexStyles.includes("min-height: 108rpx") || indexStyles.includes("min-height: 176rpx") || indexStyles.includes("min-height: 188rpx") || indexStyles.includes("min-height: 210rpx"))
+    && (indexStyles.includes("min-height: 108rpx") || indexStyles.includes("min-height: 176rpx") || indexStyles.includes("min-height: 188rpx") || indexStyles.includes("min-height: 210rpx") || indexStyles.includes("min-height: 244rpx"))
     && indexTemplate.includes("entry-grid"),
   "小程序首页没有以搜索栏和核心九宫格铺满移动视口",
 );
@@ -453,7 +453,7 @@ for (const name of ["李嘉诚", "潘石屹", "沈南鹏", "桥水基金", "文�
 assert(playbookSource.includes("不可照抄") || playbookSource.includes("copyHoldings: false"), "大师策略必须标明不可照抄仓位");
 assert((pageTemplatesByPath.get("pages/section/index") || "").includes("大师策略摘要"), "聪明钱跟踪栏目应露出大师策略摘要");
 assert(!appConfig.tabBar, "首页已去掉记录/会员后不应再保留底部 tabBar");
-assert(indexStyles.includes("width: 33.333%") && indexStyles.includes("font-size: 27rpx"), "小程序首页方向标签或标题没有使用清晰统一尺寸");
+assert(indexStyles.includes("width: 33.333%") && (indexStyles.includes("font-size: 27rpx") || indexStyles.includes("font-size: 32rpx")), "小程序首页方向标签或标题没有使用清晰统一尺寸");
 // 「今日重点」列表卡（today-row）撤掉后，首页的品类信息改由走势卡承担：
 // 每张卡一个数 + 一张图（零轴柱或 SVG 折线），序列来自快照、不够就整张不出。
 assert(

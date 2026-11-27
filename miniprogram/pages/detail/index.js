@@ -2695,8 +2695,175 @@ function detailView(item, snapshot) {
   base.heroDelta = heroDelta;
   base.heroTone = heroTone;
   base.keyStats = (base.metrics || []).slice(0, 6);
+  base.threeQuestions = buildThreeQuestions(base, item, snapshot);
 
   return base;
+}
+
+function detailPlainBiz(item) {
+  const map = {
+    NVDA: "全球AI人工智能芯片龙头公司",
+    MSFT: "Windows电脑系统与云计算巨头",
+    AAPL: "iPhone手机与软硬件生态巨头",
+    GOOGL: "全球搜索引擎与安卓系统巨头",
+    GOOG: "全球搜索引擎与安卓系统巨头",
+    AMZN: "全球最大电商零售与云计算公司",
+    META: "全球最大社交平台（脸书母公司）",
+    TSLA: "全球智能电动车与自动驾驶龙头",
+    AMD: "电脑处理器与AI服务器芯片大厂",
+    AVGO: "AI高速网络与通信芯片巨头",
+    TSM: "全球最大晶圆芯片代工龙头",
+    ORCL: "企业级数据库与云软件服务商",
+    PLTR: "大数据与AI智能决策软件商",
+    MSTR: "企业软件及数字资产持仓公司",
+    CRWD: "全球云端网络安全软件龙头",
+    ARM: "全球手机与芯片底层架构设计商",
+    NFLX: "全球流媒体影视订阅龙头",
+    COST: "全球会员制仓储连锁超市龙头",
+    LLY: "全球创新医药与减肥代谢药龙头",
+    ASML: "全球高端芯片光刻机绝对龙头",
+    "600900": "运营三峡等巨型水电站，靠发电收稳定现金",
+    "600036": "全国零售银行龙头，长期现金分红稳健",
+    "600941": "国内最大通信运营商，用户基数与现金流庞大",
+    "601088": "煤炭与电力一体化龙头，高现金分红代表",
+    "000333": "全球白色家电与暖通制造龙头",
+    "000651": "国内空调家电龙头，历年高比例派息",
+    "601398": "国有大型商业银行，典型低波收息标的",
+    "601939": "国有大型商业银行，典型低波收息标的",
+    "601288": "国有大型商业银行，典型低波收息标的",
+    "600938": "国内海上石油天然气开采龙头",
+    "600377": "长三角核心高速公路运营收息公司",
+    "600585": "全国水泥建材行业龙头公司",
+    "600011": "全国大型火电与新能源发电企业",
+    "601166": "全国性股份制商业银行",
+    "600019": "全国钢铁制造龙头企业",
+    "515180": "打包一篮子A股高分红公司的红利ETF基金",
+  };
+  const cleanId = String((item && item.id) || "").replace(/\.(SH|SZ|HK)$/i, "").toUpperCase();
+  const cleanCode = String((item && item.code) || "").replace(/\.(SH|SZ|HK)$/i, "").toUpperCase();
+  if (map[cleanId]) return map[cleanId];
+  if (map[cleanCode]) return map[cleanCode];
+  const raw = (item && item.raw) || {};
+  if (raw.industry) return `${raw.industry}领域上市公司`;
+  if (item && item.market === "hk") return "香港交易所拟上市/新上市股票";
+  if (item && item.market === "us") return "美股市场公开交易公司";
+  if (item && item.market === "a") return "A股市场现金分红标的";
+  return "";
+}
+
+function buildThreeQuestions(base, item, snapshot) {
+  const raw = (item && item.raw) || {};
+  const titleWithCode = `${base.title || item.name || "该标的"}${base.code && !base.hideCode ? `（${base.code}）` : ""}`;
+  if (item.market === "us") {
+    const fund = raw.fund || {};
+    const closes = (Array.isArray(raw.history) ? raw.history : [])
+      .map((entry) => Number(entry && entry.close != null ? entry.close : entry))
+      .filter((v) => Number.isFinite(v) && v > 0);
+    const quote = hasNumber(raw.price) ? Number(raw.price) : null;
+    const lo = closes.length >= 5 ? Math.min(...closes) : null;
+    const hi = closes.length >= 5 ? Math.max(...closes) : null;
+    const pos = lo != null && hi != null && hi > lo && quote != null
+      ? Math.round(((quote - lo) / (hi - lo)) * 100)
+      : null;
+    const posText = pos == null
+      ? "请结合下方财报趋势综合观察"
+      : (pos <= 30 ? `处在近${closes.length}日偏低区域（${pos}%分位），相对便宜可重点留意`
+        : (pos >= 75 ? `处在近${closes.length}日偏高区域（${pos}%分位），刚涨过一轮莫急追高`
+          : `处在近${closes.length}日中间区域（${pos}%分位），宜结合财报分批观察`));
+    const gmText = hasNumber(fund.grossMargin) ? `毛利率 ${Number(fund.grossMargin).toFixed(1)}%` : "";
+    const peText = hasNumber(fund.pe) && Number(fund.pe) > 0 ? `市盈率 ${Number(fund.pe).toFixed(1)}倍` : "";
+    return [
+      { step: "1", ask: "什么标的", answer: `${titleWithCode} — ${detailPlainBiz(item)}` },
+      { step: "2", ask: "怎么判断", answer: `${[gmText, peText].filter(Boolean).join("、")}${gmText || peText ? "；" : ""}${posText}。` },
+      {
+        step: "3",
+        ask: "参考价位",
+        answer: quote != null
+          ? `最新收录价 ${money(quote)}${lo != null && hi != null ? ` · 近${closes.length}日最低 ${money(lo)} ～ 最高 ${money(hi)}` : ""}（美股可1股起买）。`
+          : "最新报价待同步，请看下方价格走势图。",
+      },
+    ];
+  }
+  if (item.market === "a") {
+    if (raw.assetType === "fund") {
+      const p = hasNumber(raw.currentPrice) ? Number(raw.currentPrice) : null;
+      return [
+        { step: "1", ask: "什么标的", answer: `${titleWithCode} — 打包一篮子高股息A股的指数基金，分散单只股票踩雷风险` },
+        { step: "2", ask: "怎么判断", answer: "适合不想挑个股、希望稳健分散收息的人；基金分红随成分股盈利浮动，不保本。" },
+        { step: "3", ask: "参考价位", answer: p != null ? `最新收录价 ¥${p.toFixed(3)}（场内买1手100份仅需约 ¥${Math.round(p * 100)}）。` : "价格待核验。" },
+      ];
+    }
+    const hy = raw.historicalDividendYield;
+    const stab = getDividendStability(raw, { asOf: (snapshot && snapshot.updatedAt) || raw.priceAsOf || raw.asOf });
+    const p = hasNumber(raw.currentPrice) ? Number(raw.currentPrice) : null;
+    const closes = (Array.isArray(raw.history) ? raw.history : [])
+      .map((entry) => Number(entry && entry.close != null ? entry.close : entry))
+      .filter((v) => Number.isFinite(v) && v > 0);
+    const lo = closes.length >= 5 ? Math.min(...closes) : null;
+    const hi = closes.length >= 5 ? Math.max(...closes) : null;
+    const stabSentence = stab.decreaseCount === 0 && stab.observedYears.length >= 5
+      ? `近5年连续分红未降息（稳度 ${stab.score} 分），分红纪录扎实`
+      : (stab.decreaseCount != null
+        ? `已收录 ${stab.years.length} 年分红，近5年有过 ${stab.decreaseCount} 次降息（稳度 ${stab.score ?? "—"} 分），注意行业周期波动`
+        : "分红连续性资料待补齐，先核对下方现金流");
+    const cashPer10k = hy && hasNumber(hy.yieldPercent)
+      ? `按历史股息率 ${Number(hy.yieldPercent).toFixed(2)}% 算，每投 1 万元一年约分红 ¥${Math.round(Number(hy.yieldPercent) * 100)}（税前）`
+      : "";
+    return [
+      { step: "1", ask: "什么标的", answer: `${titleWithCode} — ${detailPlainBiz(item)}` },
+      { step: "2", ask: "怎么判断", answer: `${stabSentence}。` },
+      {
+        step: "3",
+        ask: "参考价位",
+        answer: [
+          p != null ? `最新收录价 ¥${p.toFixed(2)}（买1手100股约需 ¥${Math.round(p * 100).toLocaleString("en-US")}）` : "",
+          lo != null && hi != null ? `近${closes.length}日区间 ¥${lo.toFixed(2)}～¥${hi.toFixed(2)}` : "",
+          cashPer10k,
+        ].filter(Boolean).join(" · ") || "价格与分红试算见下方卡片。",
+      },
+    ];
+  }
+  if (item.market === "hk") {
+    const stage = base.stageInfo || {};
+    const cs = hasNumber(raw.cornerstonePercent) ? `基石大机构锁仓 ${Number(raw.cornerstonePercent).toFixed(1)}%` : "暂无基石锁仓披露";
+    const judge = stage.ended
+      ? `已上市新股复盘（首日表现 ${formatPercent(stage.firstDayChange)}），仅供对照同类新股规律`
+      : (stage.deadlinePassed
+        ? `申购已截止，正在等待配发结果与正式上市（${cs}）`
+        : `${base.primaryJudgment || "招股观察"}（${cs}；打新可能破发，建议优先用闲钱现金一手参与、少加高倍杠杆）`);
+    return [
+      { step: "1", ask: "什么标的", answer: `${titleWithCode} — ${detailPlainBiz(item)}` },
+      { step: "2", ask: "怎么判断", answer: `${judge}。` },
+      {
+        step: "3",
+        ask: "参考价位",
+        answer: `${raw.offerPrice ? `招股价 HK$${String(raw.offerPrice).replace(/^HK\$/i, "").trim()}` : "招股价待公布"}${hasNumber(raw.entryFee) ? ` · 申购1手本金约 HK$${Math.round(Number(raw.entryFee)).toLocaleString("en-US")}` : ""}${stage.offerDeadline && !stage.ended ? ` · 截止 ${stage.offerDeadline}` : ""}。`,
+      },
+    ];
+  }
+  if (item.market === "gold") {
+    const intlSeries = historicalGoldSeries(raw, "international");
+    const vals = (intlSeries.rows || []).map((r) => Number(r.close)).filter(Number.isFinite);
+    const lo = vals.length >= 5 ? Math.min(...vals) : null;
+    const hi = vals.length >= 5 ? Math.max(...vals) : null;
+    const intlP = raw.quotes && raw.quotes.international && raw.quotes.international.price;
+    const domP = raw.quotes && raw.quotes.domestic && raw.quotes.domestic.price;
+    return [
+      { step: "1", ask: "什么标的", answer: "黄金（同时对照国内上海金人民币克价 与 国际伦敦金美元盎司价）" },
+      { step: "2", ask: "怎么判断", answer: "黄金不生利息，主要用来抗通胀与对冲风险；宜在回调偏低区慢慢配，忌大涨创高时一次性重仓。" },
+      {
+        step: "3",
+        ask: "参考价位",
+        answer: `${hasNumber(domP) ? `国内金 ¥${Number(domP).toFixed(2)}/克` : ""}${hasNumber(intlP) ? ` · 国际金 $${Number(intlP).toFixed(0)}/盎司` : ""}${lo != null && hi != null ? `（近${vals.length}日国际金区间 $${lo.toFixed(0)}～$${hi.toFixed(0)}）` : ""}。`,
+      },
+    ];
+  }
+  const profile = raw.profile || {};
+  return [
+    { step: "1", ask: "看谁持仓", answer: `${base.title}（${profile.org || "知名投资机构"} · ${profile.marketLabel || "公开申报"}）` },
+    { step: "2", ask: "怎么借鉴", answer: "公开持仓比实际买卖晚一两个月公布，只适合学他看好什么行业与好公司，切忌无脑照抄买入。" },
+    { step: "3", ask: "核心持仓", answer: base.answer || "最新重仓股与加减仓明细见下方列表。" },
+  ];
 }
 
 function detailModules(market) {
@@ -3215,6 +3382,14 @@ Page({
   openUsStart() {
     track("path_open", { path: "us-start", from: "detail" });
     openPage("/pages/guide/index?topic=us-start&from=detail");
+  },
+  openHkOpen() {
+    track("path_open", { path: "hk-open", from: "detail" });
+    openPage("/pages/guide/index?topic=hk-open&from=detail");
+  },
+  openAOpen() {
+    track("path_open", { path: "a-open", from: "detail" });
+    openPage("/pages/guide/index?topic=a-open&from=detail");
   },
   goBack() { wx.navigateBack({ fail: () => goHome() }); },
   goHome() { goHome(); },

@@ -37,7 +37,63 @@ const { marketReferenceAsOf, referenceDateText } = require("../../utils/historic
 const { historicalGoldSeries, domesticGoldClose } = require("../../utils/gold-series");
 const { goldParity } = require("../../utils/gold-parity");
 
-// 美股每行、红利 ETF 卡的小走势图，和首页走势卡同一套画法。
+const PLAIN_BIZ_DESC = {
+  NVDA: "AI人工智能芯片龙头",
+  MSFT: "电脑系统与云计算巨头",
+  AAPL: "iPhone手机与软件生态",
+  GOOGL: "全球搜索与安卓系统巨头",
+  GOOG: "全球搜索与安卓系统巨头",
+  AMZN: "全球电商购物与云计算",
+  META: "全球社交平台（脸书母公司）",
+  TSLA: "智能电动车与自动驾驶",
+  AMD: "电脑与AI服务器芯片大厂",
+  AVGO: "AI网络与通信芯片巨头",
+  TSM: "全球最大芯片代工厂",
+  ORCL: "企业数据库与云软件巨头",
+  PLTR: "大数据与AI辅助决策软件",
+  MSTR: "企业分析软件与数字资产",
+  CRWD: "全球云网络安全龙头",
+  ARM: "全球手机与芯片底层架构",
+  NFLX: "全球流媒体影视订阅龙头",
+  COST: "全球会员制仓储连锁超市",
+  LLY: "全球创新药与代谢药巨头",
+  ASML: "全球高端光刻机绝对龙头",
+  V: "全球刷卡支付清算网络",
+  MA: "全球刷卡支付清算网络",
+  JPM: "美国最大综合性商业银行",
+  WMT: "全球最大连锁零售超市",
+  UNH: "美国商业医疗保险龙头",
+  "600900": "三峡水电龙头 · 现金流稳",
+  "600036": "全国零售商业银行龙头",
+  "600941": "国内最大通信运营商",
+  "601088": "煤电一体化高分红龙头",
+  "000333": "全球白色家电制造龙头",
+  "000651": "国内空调家电高息龙头",
+  "601398": "国有大型商业银行",
+  "601939": "国有大型商业银行",
+  "601288": "国有大型商业银行",
+  "601988": "国有大型商业银行",
+  "600938": "国内海上油气开采龙头",
+  "600377": "长三角核心高速公路收息",
+  "600585": "全国水泥建材行业龙头",
+  "600011": "全国大型火电与绿电运营",
+  "601166": "全国性股份制商业银行",
+  "600019": "全国钢铁制造龙头",
+  "601006": "西煤东运重载铁路龙头",
+  "601225": "西北优质煤炭高息龙头",
+  "600028": "国内炼油化工与加油站巨头",
+  "601857": "国内油气勘探开采巨头",
+  "515180": "一篮子A股高分红股票ETF",
+};
+
+function plainBizFor(market, id, code, industry) {
+  const cleanId = String(id || "").replace(/\.(SH|SZ|HK)$/i, "").toUpperCase();
+  const cleanCode = String(code || "").replace(/\.(SH|SZ|HK)$/i, "").toUpperCase();
+  if (PLAIN_BIZ_DESC[cleanId]) return PLAIN_BIZ_DESC[cleanId];
+  if (PLAIN_BIZ_DESC[cleanCode]) return PLAIN_BIZ_DESC[cleanCode];
+  if (industry) return `${industry}行业公司`;
+  return market === "us" ? "全球知名美股公司" : (market === "a" ? "A股现金分红公司" : "港股拟上市公司");
+}
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
 
 const META = {
@@ -159,12 +215,21 @@ function buildHkModule(snapshot) {
       label,
       state: idx < stageStep ? "done" : (idx === stageStep ? "now" : "todo"),
     }));
+    const hasCornerstone = finiteOrNull(raw.cornerstonePercent) != null || Boolean(raw.cornerstoneAmount);
+    const plainGuide = closed
+      ? "申购已截止，当前等待公布中签配发与上市结果"
+      : (deadlineOffset == null
+        ? "招股资料已披露，具体申购截止日以港交所最新公告为准"
+        : (hasCornerstone
+          ? "已有基石大机构认购锁仓，申购前请核对截止日与破发风险"
+          : "暂未披露基石机构锁仓，冷门新股需留意上市首日破发风险"));
     return {
       id: item.id,
       name: shortCompanyName(item.name, item.code || "新股", 10),
       code: String(item.code || "").replace(/\.HK$/i, ""),
-      metaTags,
+      metaTags: metaTags || "港股新股",
       stageSteps,
+      plainGuide,
       badgeText: closed ? "已截止" : (deadlineOffset == null ? "日期待核" : "日期参考"),
       tone: closed ? "settled" : "caution",
       reason: "招股资料仅供参考，请核对最新公告",
@@ -173,7 +238,7 @@ function buildHkModule(snapshot) {
       closed,
       stats: [
         { label: "招股价", value: offer != null ? `HK$${offer}` : "待更新" },
-        { label: "一手金额", value: entryFee != null ? `HK$${Math.round(entryFee).toLocaleString("en-US")}` : "待更新" },
+        { label: "买一手本金", value: entryFee != null ? `HK$${Math.round(entryFee).toLocaleString("en-US")}` : "待更新" },
         hkCornerstoneStat(raw),
       ],
     };
@@ -450,11 +515,22 @@ function usStockRow(item, sparkCache = null) {
     ? Math.max(0, Math.min(100, Math.round(((curPrice - lo60) / (hi60 - lo60)) * 100)))
     : null;
   const pe = finiteOrNull(fund.pe);
+  const bizBrief = plainBizFor("us", item.id, item.code);
+  const posWord = sortPos60 == null
+    ? ""
+    : (sortPos60 <= 30 ? "处在近60日偏低区" : (sortPos60 >= 75 ? "处在近60日偏高区" : "处在近60日中间区"));
+  const rangeParts = [];
+  if (lo60 != null && hi60 != null) {
+    rangeParts.push(`近60日 $${lo60.toFixed(0)}～$${hi60.toFixed(0)}${posWord ? `（${posWord}）` : ""}`);
+  }
+  if (pe != null && pe > 0) rangeParts.push(`市盈率 ${pe.toFixed(1)}倍`);
   return {
     id: item.id,
     name: item.name,
     code: item.code,
-    peBrief: pe != null && pe > 0 ? `PE ${pe.toFixed(1)}x` : "",
+    bizBrief,
+    rangeGuide: rangeParts.join(" · "),
+    peBrief: pe != null && pe > 0 ? `市盈率 ${pe.toFixed(1)}倍` : "",
     badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
     reason: signal.action,
@@ -613,11 +689,28 @@ function aRankedList(items, lens) {
         pricePos = Math.max(0, Math.min(100, Math.round(pos)));
         priceZone = plan.zone;
       }
+      const raw = item.raw || {};
+      const curPrice = finiteOrNull(raw.currentPrice);
+      const lotCostText = curPrice != null ? `买1手约 ¥${Math.round(curPrice * 100).toLocaleString("en-US")}` : "";
+      const per10kText = historicalYield ? `投1万一年约分红 ¥${Math.round(historicalYield.yieldPercent * 100)}` : "";
+      const xijiPriceLine = [
+        curPrice != null ? `股价 ¥${curPrice.toFixed(2)}` : "",
+        lotCostText,
+        per10kText,
+      ].filter(Boolean).join(" · ");
+      const xijiStableLine = stabilityDetail.decreaseCount === 0 && recordedYears >= 5
+        ? "近5年连续分红未降息"
+        : (stabilityDetail.decreaseCount != null
+          ? `收录${recordedYears}年分红 · 近5年${stabilityDetail.decreaseCount}次降息`
+          : "分红记录整理中");
       return {
         id: item.id,
         rank: item.lensRank[lens],
         name: item.name,
         code: item.code,
+        bizBrief: plainBizFor("a", item.id, item.code, raw.industry),
+        xijiPriceLine,
+        xijiStableLine,
         badgeText: item.badge,
         tone: aTone(item.group),
         metricText,
@@ -677,11 +770,15 @@ function aAllModule(items, fresh) {
       const factParts = [];
       if (historicalYield) factParts.push(`股息率 ${historicalYield.yieldPercent.toFixed(2)}%`);
       if (stability != null) factParts.push(`稳度 ${stability}分`);
+      const lotCostText = price != null ? `买1手约 ¥${Math.round(price * 100).toLocaleString("en-US")}` : "";
+      const per10kText = historicalYield ? `投1万约分红 ¥${Math.round(historicalYield.yieldPercent * 100)}/年` : "";
       return {
         order,
         id: item.id,
         name: item.name,
         code: item.code,
+        bizBrief: plainBizFor("a", item.id, item.code, raw.industry),
+        xijiPriceLine: [lotCostText, per10kText].filter(Boolean).join(" · "),
         factSummary: factParts.join(" · "),
         yearDots: buildDividendDots(raw),
         sortYield: historicalYield ? historicalYield.yieldPercent : null,
@@ -1420,11 +1517,11 @@ function sheetLines(text) {
 // 栏目页最底部一行轻量入口，不占正文：看完数据还没有账户 / 想要信息 / 想交流的人，顺手就能点进去。
 // 每个栏目只放一条，进的都是 pages/guide 或 pages/community 的二级页。
 const NEXT_LINKS = {
-  hk: { id: "us-start", ask: "还没有券商账户？", go: "查看开户教程", url: "/pages/guide/index?topic=us-start&from=section" },
-  us: { id: "us-start", ask: "第一次买美股？", go: "查看开户教程", url: "/pages/guide/index?topic=us-start&from=section" },
-  a: { id: "a-open", ask: "还没有A股账户？", go: "查看开户方式", url: "/pages/guide/index?topic=a-open&from=section" },
+  hk: { id: "hk-open", ask: "还没有港股账户？", go: "查看港股开户", url: "/pages/guide/index?topic=hk-open&from=section" },
+  us: { id: "us-start", ask: "第一次买美股？", go: "查看美股开户", url: "/pages/guide/index?topic=us-start&from=section" },
+  a: { id: "a-open", ask: "还没有A股账户？", go: "查看A股开户", url: "/pages/guide/index?topic=a-open&from=section" },
   gold: { id: "info", ask: "获取更多全球信息？", go: "查看全球信息入口", url: "/pages/guide/index?topic=info&from=section" },
-  guru: { id: "community", ask: "想继续交流？", go: "了解交流群", url: "/pages/community/index?from=section" },
+  guru: { id: "community", ask: "想继续交流？", go: "了解会员群", url: "/pages/community/index?from=section" },
 };
 
 // 跨页内存缓存：同一份快照版本内反复进出某栏目时直接命中，零重复计算。

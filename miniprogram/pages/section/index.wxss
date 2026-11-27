@@ -3248,3 +3248,168 @@
 .heat-tile.tone-yield-high { background: linear-gradient(135deg, #163363 0%, #1d5fd1 100%); color: #ffffff; }
 .heat-tile.tone-yield-mid { background: #eaf2ff; color: #1648a8; }
 .heat-tile.tone-yield-low { background: #f3f5f9; color: #334155; }
+
+
+/* ---------- 适老化大字号增强 & 三问直白辅助条 ---------- */
+
+.hero-title {
+  font-size: 48rpx;
+}
+
+.hero-meta {
+  font-size: 25rpx;
+  color: #64748b;
+}
+
+.hk-tab,
+.us-tab,
+.a-tab {
+  min-height: 82rpx;
+  font-size: 29rpx;
+  font-weight: 680;
+}
+
+.module-guide-banner {
+  display: block;
+  margin: 18rpx 0 12rpx;
+  padding: 16rpx 20rpx;
+  border-left: 6rpx solid #1d5fd1;
+  border-radius: 8rpx 16rpx 16rpx 8rpx;
+  background: #f2f6fe;
+  color: #1e293b;
+  font-size: 27rpx;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.hk-stock-name,
+.us-stock-name,
+.a-stock-name {
+  font-size: 34rpx;
+  font-weight: 760;
+  color: #0f172a;
+}
+
+.hk-code,
+.us-code,
+.a-code {
+  font-size: 25rpx;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.us-row-name-col {
+  flex: 1.25;
+  min-width: 0;
+}
+
+.us-spark {
+  flex: 0 0 132rpx;
+  width: 132rpx;
+  height: 56rpx;
+}
+
+.us-price {
+  font-size: 33rpx;
+  font-weight: 780;
+}
+
+.us-change {
+  min-width: 134rpx;
+  height: 56rpx;
+  font-size: 26rpx;
+}
+
+.threeq-range-line {
+  flex: 0 0 100%;
+  padding: 10rpx 16rpx;
+  border-radius: 12rpx;
+  background: #f5f8fc;
+  color: #1e293b;
+  font-size: 26rpx;
+  font-weight: 620;
+  line-height: 1.48;
+  font-variant-numeric: tabular-nums;
+}
+
+.threeq-sub-note {
+  display: block;
+  margin-top: 14rpx;
+  padding: 12rpx 16rpx;
+  border-radius: 12rpx;
+  background: #f4f7fc;
+  color: #334155;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.xiji-cash-line {
+  display: block;
+  margin-top: 8rpx;
+  color: #15803d;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-stat-label {
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+.hk-stat-value {
+  font-size: 29rpx;
+  font-weight: 760;
+}
+
+.hk-row-meta {
+  font-size: 26rpx;
+  color: #475569;
+}
+
+.hk-row-caret {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1d5fd1;
+}
+
+.us-event-line {
+  font-size: 26rpx;
+  color: #475569;
+}
+
+.gold-quote-label {
+  font-size: 27rpx;
+}
+
+.gold-quote-price {
+  font-size: 48rpx;
+}
+
+.gold-parity-text {
+  font-size: 26rpx;
+}
+
+.guru-pill {
+  padding: 14rpx 22rpx;
+  font-size: 27rpx;
+}
+
+.guru-hold-name {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.guru-hold-move {
+  font-size: 24rpx;
+}
+
+.guru-hold-weight {
+  font-size: 30rpx;
+}
+
+.next-ask,
+.next-go {
+  font-size: 29rpx;
+}

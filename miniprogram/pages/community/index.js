@@ -38,6 +38,7 @@ Page({
     qrReady: Boolean(COMMUNITY.wechatQrImage),
     qrImage: COMMUNITY.wechatQrImage || "",
     showQr: false,
+    copiedWechatSuccess: false,
     adminAllowed: false,
   },
   onLoad(options = {}) {
@@ -118,6 +119,7 @@ Page({
     wx.setClipboardData({
       data: offer.copy,
       success: () => {
+        this.setData({ copiedWechatSuccess: true });
         track("service_copy", { id: offer.id, from: "community" });
         wx.showToast({ title: offer.toast || "已复制", icon: "none" });
       },

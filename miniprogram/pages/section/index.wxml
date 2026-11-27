@@ -47,29 +47,7 @@
     </view>
 
     <block wx:if="{{hkSubTab === 'apply'}}">
-
-      <!-- 近期上市新股首日涨跌，一根柱一只，从早到晚；红涨绿跌，零轴是发行价。 -->
-      <view
-        wx:if="{{hkFirstDayChart}}"
-        class="hk-fd"
-        aria-label="{{hkFirstDayChart.count}}只历史新股上市首日，样本上市日期至 {{hkFirstDayChart.lastDate}}，{{hkFirstDayChart.upText}}，{{hkFirstDayChart.flatDownText}}"
-      >
-        <view class="hk-fd-head">
-          <text class="hk-fd-title">{{hkFirstDayChart.count}}只新股首日</text>
-          <view class="hk-fd-figs">
-            <text class="hk-fd-value is-up">{{hkFirstDayChart.upText}}</text>
-            <text class="hk-fd-value is-down">{{hkFirstDayChart.flatDownText}}</text>
-          </view>
-        </view>
-        <text class="reading-hint">样本上市日期至 {{hkFirstDayChart.lastDate}}{{hkFirstDayChart.rangeText ? ' · ' + hkFirstDayChart.rangeText : ''}}，不代表当前行情。</text>
-        <view class="hk-fd-bars" aria-hidden="true">
-          <view class="hk-fd-zero" style="{{hkFirstDayChart.zeroStyle}}"></view>
-          <view wx:for="{{hkFirstDayChart.bars}}" wx:for-item="bar" wx:key="key" class="hk-fd-slot">
-            <view class="hk-fd-bar {{bar.tone}}" style="{{bar.style}}"></view>
-          </view>
-        </view>
-        <view class="hk-fd-link" data-group="ended" bindtap="openGroup" hover-class="tap-active" aria-role="button">查看每只新股首日表现 ›</view>
-      </view>
+      <text class="module-guide-banner">先看每只新股「是什么 · 当前进度 · 买一手多少钱」，底部看近期新股涨跌统计。</text>
       <view class="hk-stock-list" wx:if="{{hkApplyList.length}}">
         <view
           wx:for="{{hkApplyList}}"
@@ -88,19 +66,49 @@
             </view>
             <text class="hk-badge tone-{{item.tone}}">{{item.badgeText}}</text>
           </view>
+          <view wx:if="{{item.stageSteps && item.stageSteps.length}}" class="hk-stage-track" aria-hidden="true">
+            <view wx:for="{{item.stageSteps}}" wx:for-item="st" wx:key="label" class="hk-stage-step is-{{st.state}}">
+              <view class="hk-stage-dot"></view>
+              <text class="hk-stage-label">{{st.label}}</text>
+            </view>
+          </view>
           <view class="hk-stats">
             <view wx:for="{{item.stats}}" wx:for-item="stat" wx:key="label" class="hk-stat">
               <text class="hk-stat-label">{{stat.label}}</text>
               <text class="hk-stat-value">{{stat.value}}</text>
             </view>
           </view>
+          <text wx:if="{{item.plainGuide}}" class="threeq-sub-note">{{item.plainGuide}}</text>
           <view class="hk-row-meta">
             <text>{{item.deadlineLabel}}</text>
-            <text class="hk-row-caret">›</text>
+            <text class="hk-row-caret">看详情 ›</text>
           </view>
         </view>
       </view>
       <view class="hk-empty" wx:else><text>暂无可展示的招股资料，请以最新公告为准。</text></view>
+
+      <!-- 辅助判断：近期上市新股首日涨跌统计（捷利交易宝打新冷热晴雨表） -->
+      <view
+        wx:if="{{hkFirstDayChart}}"
+        class="hk-fd"
+        aria-label="{{hkFirstDayChart.count}}只历史新股上市首日，样本上市日期至 {{hkFirstDayChart.lastDate}}，{{hkFirstDayChart.upText}}，{{hkFirstDayChart.flatDownText}}"
+      >
+        <view class="hk-fd-head">
+          <text class="hk-fd-title">辅助参考 · 近{{hkFirstDayChart.count}}只新股首日</text>
+          <view class="hk-fd-figs">
+            <text class="hk-fd-value is-up">{{hkFirstDayChart.upText}}</text>
+            <text class="hk-fd-value is-down">{{hkFirstDayChart.flatDownText}}</text>
+          </view>
+        </view>
+        <text class="reading-hint">样本上市日期至 {{hkFirstDayChart.lastDate}}{{hkFirstDayChart.rangeText ? ' · ' + hkFirstDayChart.rangeText : ''}}，不代表当前行情。</text>
+        <view class="hk-fd-bars" aria-hidden="true">
+          <view class="hk-fd-zero" style="{{hkFirstDayChart.zeroStyle}}"></view>
+          <view wx:for="{{hkFirstDayChart.bars}}" wx:for-item="bar" wx:key="key" class="hk-fd-slot">
+            <view class="hk-fd-bar {{bar.tone}}" style="{{bar.style}}"></view>
+          </view>
+        </view>
+        <view class="hk-fd-link" data-group="ended" bindtap="openGroup" hover-class="tap-active" aria-role="button">查看每只新股首日表现 ›</view>
+      </view>
     </block>
 
     <block wx:if="{{hkSubTab === 'exit'}}">
@@ -200,15 +208,15 @@
 
     <block wx:if="{{usSubTab === 'all'}}">
       <view class="sort-bar">
-        <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">默认</text>
-        <text class="sort-pill {{usAllSort === 'perf60' ? 'is-active' : ''}}" data-sort="perf60" bindtap="sortUsAll" aria-role="button">60日涨跌</text>
-        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">低市盈率</text>
+        <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">默认排序</text>
+        <text class="sort-pill {{usAllSort === 'perf60' ? 'is-active' : ''}}" data-sort="perf60" bindtap="sortUsAll" aria-role="button">60日涨幅</text>
+        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">市盈率从低到高</text>
       </view>
       <view class="us-stock-list" wx:if="{{usAllList.length}}">
         <view
           wx:for="{{usAllList}}"
           wx:key="id"
-          class="us-stock-row"
+          class="us-stock-row has-event"
           data-id="{{item.id}}"
           bindtap="openUsDetail"
           hover-class="tap-active"
@@ -218,7 +226,7 @@
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
             <view class="us-row-tags">
-              <text class="us-code">{{item.code}}{{item.peBrief ? ' · ' + item.peBrief : ''}}</text>
+              <text class="us-code">{{item.code}} · {{item.bizBrief}}</text>
             </view>
           </view>
           <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
@@ -227,12 +235,14 @@
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
+          <text wx:if="{{item.rangeGuide}}" class="threeq-range-line">{{item.rangeGuide}}</text>
         </view>
       </view>
       <view class="us-empty" wx:else><text>美股数据暂不足以显示，请稍后刷新。</text></view>
     </block>
 
     <block wx:if="{{usSubTab === 'seven'}}">
+      <text class="module-guide-banner">美国市值与影响力最大的 7 家科技巨头。点任意一家看完整财报与图表。</text>
       <view class="us-stock-list" wx:if="{{usSevenList.length}}">
         <view
           wx:for="{{usSevenList}}"
@@ -247,7 +257,7 @@
           <view class="us-row-name-col">
             <text class="us-stock-name">{{item.name}}</text>
             <view class="us-row-tags">
-              <text class="us-code">{{item.code}}{{item.peBrief ? ' · ' + item.peBrief : ''}}</text>
+              <text class="us-code">{{item.code}} · {{item.bizBrief}}</text>
             </view>
           </view>
           <image wx:if="{{item.hasSpark}}" class="us-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
@@ -256,6 +266,7 @@
             <text class="us-price">{{item.priceText}}</text>
             <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
+          <text wx:if="{{item.rangeGuide}}" class="threeq-range-line">{{item.rangeGuide}}</text>
           <text wx:if="{{item.event}}" class="us-event-line">{{item.eventDate}} {{item.event}}</text>
         </view>
       </view>
@@ -365,7 +376,8 @@
               <view class="a-name-row">
                 <text class="a-stock-name">{{item.name}}</text>
               </view>
-              <text class="a-code">{{item.code}}{{item.factSummary ? ' · ' + item.factSummary : ''}}</text>
+              <text class="a-code">{{item.bizBrief}}{{item.factSummary ? ' · ' + item.factSummary : ''}}</text>
+              <text wx:if="{{item.xijiPriceLine}}" class="xiji-cash-line">{{item.xijiPriceLine}}</text>
             </view>
             <view class="us-right">
               <text class="us-price">{{item.priceText}}</text>
@@ -378,7 +390,7 @@
     </block>
 
     <block wx:if="{{aSubTab === 'stable'}}">
-      <text class="reading-hint">近5年按分红未下降次数评分；同分按代码排列。</text>
+      <text class="module-guide-banner">参考息记：看哪家公司近5年分红最稳、买1手多少钱、投1万元一年能分红多少。</text>
       <view class="a-rows" wx:if="{{aStableList.length}}">
         <view
           wx:for="{{aStableList}}"
@@ -396,12 +408,20 @@
               <view class="a-name-row">
                 <text class="a-stock-name">{{item.name}}</text>
               </view>
-              <text wx:if="{{item.stableBasis}}" class="a-code">{{item.stableBasis}}</text>
+              <text class="a-code">{{item.bizBrief}} · {{item.xijiStableLine}}</text>
+              <view wx:if="{{item.yearDots && item.yearDots.length}}" class="div-dots-row" aria-hidden="true">
+                <text class="div-dots-label">近5年派息</text>
+                <view wx:for="{{item.yearDots}}" wx:for-item="dot" wx:key="year" class="div-dot-item">
+                  <view class="div-dot is-{{dot.state}}"></view>
+                  <text class="div-dot-yr">{{dot.year}}年</text>
+                </view>
+              </view>
+              <text wx:if="{{item.xijiPriceLine}}" class="xiji-cash-line">{{item.xijiPriceLine}}</text>
             </view>
             <view class="a-metric">
               <view class="a-metric-num">
                 <text class="a-metric-value dividend-years">{{item.metricText}}</text>
-                <text class="a-metric-unit">分</text>
+                <text class="a-metric-unit">分稳</text>
               </view>
               <view class="a-metric-track"><view class="a-metric-fill" style="width: {{item.metricBar}}%;"></view></view>
             </view>
@@ -412,7 +432,7 @@
     </block>
 
     <block wx:if="{{aSubTab === 'yield'}}">
-      <text class="reading-hint">历史股息率＝年度分红÷历史股价（税前）。高股息率也可能来自股价下跌。</text>
+      <text class="module-guide-banner">历史股息率＝年度分红÷股价（税前）。注意：分红高的同时也要看公司每年稳不稳。</text>
       <view class="a-rows" wx:if="{{aYieldList.length}}">
         <view
           wx:for="{{aYieldList}}"
@@ -430,7 +450,8 @@
               <view class="a-name-row">
                 <text class="a-stock-name">{{item.name}}</text>
               </view>
-              <text class="a-code">{{item.yieldBasis}}</text>
+              <text class="a-code">{{item.bizBrief}} · {{item.xijiStableLine}}</text>
+              <text wx:if="{{item.xijiPriceLine}}" class="xiji-cash-line">{{item.xijiPriceLine}}</text>
             </view>
             <view class="a-metric">
               <view class="a-metric-num">
@@ -448,6 +469,7 @@
 
   <!-- 国际金和人民币金各自显示有日期的收盘历史。 -->
   <view wx:if="{{market === 'gold'}}" class="page-card gold-card">
+    <text class="module-guide-banner">上面看国内外最新金价与折算价差，下面看近期高低位与走势图。</text>
     <view class="gold-quotes">
       <view
         wx:for="{{goldQuotes}}"
@@ -646,6 +668,7 @@
        changeLabel 字段是披露口径（月报/季度/半年报持有），语义不同，这里如实
        显示成普通文字，不套颜色徽章暗示涨跌方向。 -->
   <view wx:if="{{market === 'guru'}}" class="page-card guru-card">
+    <text class="module-guide-banner">看巴菲特、张坤等知名投资人最新买了谁（季报公开有延迟，看选股思路，别高价硬抄）。</text>
     <view class="a-tabs">
       <view
         class="a-tab {{guruSubTab === 'holdings' ? 'is-active' : ''}}"

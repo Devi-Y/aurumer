@@ -27,18 +27,18 @@ const CHANNELS = {
   // ===== 第二梯队：随日活起量，提升单用户价值 =====
   brokerageAccounts: {
     tier: 2,
-    name: "港美 A 股开户分成",
+    name: "公开市场机构信息指引",
     status: "material_shown_pending_auth",
     configFile: "config/offers.js",
-    riskGate: "严格区分境内 A 股与境外港美股合规边界，明示推广关系与地区限制（如 IBKR 排除大陆居民推荐奖励），不代办开户。",
-    revenueEvidence: "券商官方可追溯转化回执与真实佣金结算单",
+    riskGate: "严格区分境内与境外公开信息边界，明示非招揽声明与地区适用限制，不代办业务。",
+    revenueEvidence: "合规合作机构真实结算单",
   },
-  vpnAffiliate: {
+  globalAccess: {
     tier: 2,
-    name: "VPN / 全球网络服务分成",
+    name: "海外公开资料访问指引",
     status: "material_shown_pending_auth",
     configFile: "config/offers.js",
-    riskGate: "核验服务主体、许可、授权与微信平台准入规范，页面文案严格保持中性合规。",
+    riskGate: "核验服务主体与微信平台准入规范，页面文案严格保持中性合规，仅限合法查阅公开资料。",
     revenueEvidence: "合格服务方实际订单与结算记录",
   },
   sponsorship: {

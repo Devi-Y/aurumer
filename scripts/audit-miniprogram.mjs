@@ -732,8 +732,8 @@ const offers = offersModule.exports;
   for (const file of miniFiles.filter((item) => !item.startsWith(dataDir))) {
     const source = await readFile(file, "utf8");
     const relative = path.relative(root, file);
-    // 全球信息访问的文案要中性合规：不出现这几类说法（代码注释也不写）。
-    assert(!/梯子|翻墙|绕过封锁|突破监管/i.test(source), `${relative} 出现了无关的访问类宣传`);
+    // 全球信息访问与渠道文案要中性合规：不出现敏感宣传或分成字眼（代码注释也不写）。
+    assert(!/梯子|翻墙|绕过封锁|突破监管|跨境出入金|开户分成|网络服务分成|\bVPN\b/.test(source), `${relative} 出现了高风险机审敏感词`);
     if (file === offersPath) continue;
     for (const offer of offers) {
       if (offer.copy) assert(!source.includes(offer.copy), `${relative} 写死了商业物料原文（应只在 config/offers.js）：${offer.id}`);

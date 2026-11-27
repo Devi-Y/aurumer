@@ -4030,3 +4030,546 @@
 .us-range-bar-row {
   flex-wrap: wrap;
 }
+
+/* ---------- 0.4.5 六大对标深度吸收：息记派息月历&息覆生活 · 富途涨乐捷利新股日程&保荐胜率 · IBKR东财七巨头横评 ---------- */
+
+.us-tab,
+.a-tab,
+.hk-tab {
+  padding-left: 4rpx;
+  padding-right: 4rpx;
+  font-size: 25rpx;
+  white-space: nowrap;
+}
+
+.hk-schedule-line {
+  display: block;
+  margin-top: 12rpx;
+  padding: 10rpx 14rpx;
+  border-radius: 12rpx;
+  background: #f5f8fd;
+  color: #1e3a8a;
+  font-size: 24rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-cs-line {
+  display: block;
+  margin-top: 8rpx;
+  color: #475569;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.hk-deadline-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.hk-countdown-pill {
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: #fff4e5;
+  color: #b45309;
+  font-size: 24rpx;
+  font-weight: 760;
+}
+
+.hk-hist-sort {
+  margin-top: 16rpx;
+}
+
+.hk-sb-crowd {
+  display: block;
+  margin-top: 2rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-crowd-box,
+.hk-sponsor-box {
+  margin-top: 18rpx;
+  padding: 20rpx 18rpx;
+  border: 1rpx solid #e8ecf3;
+  border-radius: 20rpx;
+  background: #ffffff;
+}
+
+.hk-sub-box-title {
+  display: block;
+  margin-bottom: 14rpx;
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 780;
+}
+
+.hk-crowd-head,
+.hk-crowd-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 14rpx 8rpx;
+}
+
+.hk-crowd-head {
+  border-radius: 12rpx;
+  background: #f5f8fc;
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.hk-crowd-row {
+  border-bottom: 1rpx solid #eef2f7;
+}
+
+.hk-crowd-row:last-child {
+  border-bottom: none;
+}
+
+.hk-crowd-c1 {
+  flex: 1.65;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.hk-crowd-name {
+  color: #0f172a;
+  font-size: 25rpx;
+  font-weight: 720;
+}
+
+.hk-crowd-sub {
+  color: #94a3b8;
+  font-size: 24rpx;
+}
+
+.hk-crowd-c2 {
+  flex: 0.9;
+  color: #1e293b;
+  font-size: 25rpx;
+  font-weight: 740;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.hk-crowd-c2.is-up,
+.hk-sp-win.is-up,
+.hk-sp-avg.is-up { color: #c2412d; }
+.hk-crowd-c2.is-down,
+.hk-sp-win.is-down,
+.hk-sp-avg.is-down { color: #0d8a52; }
+
+.hk-sp-row {
+  padding: 16rpx 0;
+  border-top: 1rpx solid #eef2f7;
+}
+
+.hk-sp-row:first-of-type {
+  border-top: none;
+  padding-top: 4rpx;
+}
+
+.hk-sp-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+}
+
+.hk-sp-left {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  min-width: 0;
+}
+
+.hk-sp-name {
+  color: #0f172a;
+  font-size: 28rpx;
+  font-weight: 760;
+}
+
+.hk-sp-right {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  font-size: 24rpx;
+  font-weight: 740;
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-sp-bar-track {
+  height: 12rpx;
+  margin-top: 10rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #edf1f7;
+}
+
+.hk-sp-bar-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #1d5fd1;
+}
+
+.hk-sp-bar-fill.is-up { background: linear-gradient(90deg, #f97316 0%, #dc2626 100%); }
+.hk-sp-bar-fill.is-down { background: #94a3b8; }
+
+.hk-sp-foot {
+  display: flex;
+  margin-top: 8rpx;
+  justify-content: space-between;
+  gap: 10rpx;
+  color: #64748b;
+  font-size: 24rpx;
+}
+
+.hk-sp-note {
+  display: block;
+  margin-top: 12rpx;
+  color: #94a3b8;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+/* IBKR GlobalAnalyst 七巨头横评矩阵 */
+.us-cmp-pills {
+  margin-top: 16rpx;
+}
+
+.ibkr-bench-strip {
+  display: flex;
+  margin-top: 14rpx;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.ibkr-bench-cell {
+  box-sizing: border-box;
+  width: calc(50% - 4rpx);
+  display: flex;
+  padding: 12rpx 14rpx;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 14rpx;
+  background: #f4f7fc;
+}
+
+.ibkr-bench-k {
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 640;
+}
+
+.ibkr-bench-v {
+  color: #1d5fd1;
+  font-size: 26rpx;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ibkr-table {
+  margin-top: 14rpx;
+  overflow: hidden;
+  border: 1rpx solid #e6ebf2;
+  border-radius: 18rpx;
+  background: #ffffff;
+}
+
+.ibkr-th,
+.ibkr-tr {
+  display: flex;
+  padding: 16rpx 16rpx;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.ibkr-th {
+  background: #f6f8fc;
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 720;
+}
+
+.ibkr-tr {
+  border-top: 1rpx solid #eef2f7;
+}
+
+.ibkr-c-name {
+  flex: 1.55;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.ibkr-name {
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 760;
+}
+
+.ibkr-sub {
+  color: #64748b;
+  font-size: 24rpx;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ibkr-c-mid {
+  flex: 0.95;
+  color: #1e293b;
+  font-size: 25rpx;
+  font-weight: 740;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ibkr-c-end {
+  flex: 1.15;
+  color: #1e293b;
+  font-size: 25rpx;
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ibkr-c-mid.is-worth,
+.ibkr-c-end.is-worth { color: #0b7a48; }
+.ibkr-c-mid.is-up { color: #c2412d; }
+.ibkr-c-mid.is-down,
+.ibkr-c-end.is-down { color: #b45309; }
+
+.ibkr-bar-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
+}
+
+.ibkr-cell-num {
+  font-size: 25rpx;
+  font-weight: 760;
+}
+
+.ibkr-mini-track {
+  width: 96rpx;
+  height: 8rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #e2e8f0;
+}
+
+.ibkr-mini-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #1d5fd1;
+}
+
+.ibkr-foot-note {
+  display: block;
+  margin-top: 12rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.us-filings-feed {
+  margin-top: 14rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.us-filing-item {
+  padding: 18rpx 4rpx;
+  border-bottom: 1rpx solid #edf0f5;
+}
+
+.us-filing-item:last-child {
+  border-bottom: none;
+}
+
+.us-filing-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+}
+
+.us-filing-name {
+  color: #0f172a;
+  font-size: 28rpx;
+  font-weight: 760;
+}
+
+.us-filing-date {
+  flex: none;
+  color: #64748b;
+  font-size: 24rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.us-filing-foot {
+  display: flex;
+  margin-top: 8rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.us-filing-sum {
+  color: #475569;
+  font-size: 25rpx;
+  line-height: 1.45;
+}
+
+/* 息记派息月历与息覆生活提示 */
+.a-life-strip {
+  display: block;
+  margin-top: 10rpx;
+  padding: 12rpx 16rpx;
+  border-radius: 14rpx;
+  background: #edf9f2;
+  color: #0d6e43;
+  font-size: 24rpx;
+  font-weight: 720;
+  line-height: 1.45;
+}
+
+.a-cal-summary {
+  display: block;
+  margin-top: 14rpx;
+  color: #475569;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.a-cal-grid {
+  display: flex;
+  margin-top: 14rpx;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.a-cal-cell {
+  box-sizing: border-box;
+  width: calc(25% - 8rpx);
+  display: flex;
+  padding: 16rpx 8rpx;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  border: 2rpx solid #e6ebf2;
+  border-radius: 16rpx;
+  background: #f8fafc;
+}
+
+.a-cal-cell.tone-has {
+  border-color: #cfe0fa;
+  background: #f2f7ff;
+}
+
+.a-cal-cell.tone-rich {
+  border-color: #b7e4cb;
+  background: #ecf9f2;
+}
+
+.a-cal-cell.is-selected {
+  border-color: #1d5fd1;
+  background: #1d5fd1;
+}
+
+.a-cal-m {
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 780;
+}
+
+.a-cal-c {
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 660;
+}
+
+.a-cal-cell.tone-rich .a-cal-c {
+  color: #0b7a48;
+}
+
+.a-cal-cell.is-selected .a-cal-m,
+.a-cal-cell.is-selected .a-cal-c {
+  color: #ffffff;
+}
+
+.a-cal-list {
+  margin-top: 18rpx;
+  border-top: 1rpx solid #e8ecf3;
+  padding-top: 14rpx;
+}
+
+.a-cal-list-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10rpx;
+  margin-bottom: 8rpx;
+}
+
+.a-cal-head-title {
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 780;
+}
+
+.a-cal-head-sub {
+  color: #94a3b8;
+  font-size: 24rpx;
+}
+
+.a-cal-row {
+  display: flex;
+  padding: 18rpx 0;
+  flex-direction: column;
+  gap: 10rpx;
+  border-bottom: 1rpx solid #edf0f5;
+}
+
+.a-cal-row:last-child {
+  border-bottom: none;
+}
+
+.a-cal-row-top,
+.a-cal-row-bottom {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.a-cal-plan {
+  color: #475569;
+  font-size: 25rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.a-cal-cash {
+  flex: none;
+  color: #0b7a48;
+  font-size: 25rpx;
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-tag.is-multi-div {
+  background: #e9f9f0;
+  color: #0b7a48;
+  font-weight: 740;
+}

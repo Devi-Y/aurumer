@@ -177,6 +177,50 @@ function hkDeadlineOffset(value) {
   return Math.round((target.getTime() - start.getTime()) / 86400000);
 }
 
+const HK_CORNERSTONE_NOISE_RE = /禁售期|财务报告准则|会计准则|补充协议|配发结果|历史财务|公允价值|招股章程|全球发售|香港发售|国际发售|发售股份|联交所|证券及期货|概无|不适用|董事|监事/u;
+
+function cleanCornerstoneNames(list) {
+  if (!Array.isArray(list)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const raw of list) {
+    const s = String(raw || "").trim();
+    if (!s || s.length < 2 || s.length > 22) continue;
+    if (HK_CORNERSTONE_NOISE_RE.test(s)) continue;
+    if (seen.has(s)) continue;
+    seen.add(s);
+    out.push(s);
+  }
+  return out;
+}
+
+function normalizeHkSponsorShort(rawName) {
+  const s = String(rawName || "").trim();
+  if (!s || /见历史|招股文件|待定|暂无/u.test(s)) return "";
+  if (/中国国际金融|中金/u.test(s)) return "中金公司";
+  if (/中信建投/u.test(s)) return "中信建投";
+  if (/中信里昂|中信证券|中信/u.test(s)) return "中信证券";
+  if (/华泰/u.test(s)) return "华泰国际";
+  if (/中银/u.test(s)) return "中银国际";
+  if (/高盛/u.test(s)) return "高盛亚洲";
+  if (/摩根士丹利/u.test(s)) return "摩根士丹利";
+  if (/摩根大通/u.test(s)) return "摩根大通";
+  if (/国泰君安/u.test(s)) return "国泰君安";
+  if (/海通/u.test(s)) return "海通国际";
+  if (/招银/u.test(s)) return "招银国际";
+  if (/招商/u.test(s)) return "招商证券";
+  if (/广发/u.test(s)) return "广发香港";
+  if (/建银/u.test(s)) return "建银国际";
+  if (/农银/u.test(s)) return "农银国际";
+  if (/工银/u.test(s)) return "工银国际";
+  if (/瑞银|UBS/iu.test(s)) return "瑞银集团";
+  if (/美林|BofA/iu.test(s)) return "美银证券";
+  return s
+    .replace(/（香港）|\(香港\)|（国际）|\(国际\)|（亚洲）|\(亚洲\)|有限责任公司|股份有限公司|有限公司|金融控股|企业融资|融资|证券|国际|资本/gu, "")
+    .trim()
+    .slice(0, 6);
+}
+
 // 「2,665.8百万港元」→「HK$26.7亿」；认不出单位就不显示，不猜。
 // 有占比写「基石占比 35.2%」，只有金额写「基石金额 HK$1.2亿」——同一列不能一行是百分比、
 // 一行是钱数还共用一个「基石」，读者分不清哪个是哪个。
@@ -199,6 +243,20 @@ function hkTone(group) {
   return "avoid";
 }
 
+function sortHkHistoryRows(rows, sortId = "latest") {
+  const list = Array.isArray(rows) ? rows.slice() : [];
+  if (sortId === "firstDay") {
+    return list.sort((a, b) => (b.firstDayNum ?? -1e9) - (a.firstDayNum ?? -1e9));
+  }
+  if (sortId === "pnl") {
+    return list.sort((a, b) => (b.pnlNum ?? -1e9) - (a.pnlNum ?? -1e9));
+  }
+  if (sortId === "drop") {
+    return list.sort((a, b) => (a.firstDayNum ?? 1e9) - (b.firstDayNum ?? 1e9));
+  }
+  return list;
+}
+
 // 「近期申购」取还在接受申购的三档（值得打/暂缓观察/暂不建议）；「中签后」
 // 取已出配发结果、还没被上游归档进历史的一档（group:"settled"）。两个视图
 // 曾经共用同一份「live」过滤池，导致一只股票配发结果一出就同时从两边消失——
@@ -218,12 +276,11 @@ function buildHkModule(snapshot) {
     const rawFirstSponsor = Array.isArray(raw.sponsorNames) && raw.sponsorNames.length
       ? String(raw.sponsorNames[0] || "")
       : (raw.sponsor ? String(raw.sponsor).split(/[、,，/]/)[0] : "");
-    const sponsorClean = rawFirstSponsor
-      .replace(/（香港）|有限公司|股份有限公司|金融控股|证券|国际|融资|资本/gu, "")
-      .trim()
-      .slice(0, 5);
+    const sponsorClean = normalizeHkSponsorShort(rawFirstSponsor);
     const indTag = raw.industry ? String(raw.industry).split(/[\/、·,，]/)[0].trim().slice(0, 6) : "";
-    const tagPills = [indTag, sponsorClean ? `保荐 ${sponsorClean}` : ""].filter(Boolean);
+    const lotRaw = String(raw.boardLot || raw.boardLotShares || "").replace(/,/g, "").trim();
+    const lotTag = /^\d+$/.test(lotRaw) ? `一手${lotRaw}股` : "";
+    const tagPills = [indTag, sponsorClean ? `保荐 ${sponsorClean}` : "", lotTag].filter(Boolean);
     const stageStep = item.group === "settled" ? 2 : (closed ? 1 : 0);
     const stageSteps = ["招股", "截止", "配发", "上市"].map((label, idx) => ({
       label,
@@ -252,6 +309,20 @@ function buildHkModule(snapshot) {
       verdictBadge = "不建议申购";
       verdictTone = "avoid";
     }
+    const csNames = cleanCornerstoneNames(raw.cornerstoneInvestors);
+    const cornerstoneLine = csNames.length
+      ? `基石机构：${csNames.slice(0, 3).join("、")}${csNames.length > 3 ? ` 等${csNames.length}家` : ""}`
+      : "";
+    const scheduleParts = [];
+    if (raw.offerStart && deadline && deadlineOffset != null) {
+      scheduleParts.push(`招股 ${String(raw.offerStart).slice(5, 10)} 至 ${String(deadline).slice(5, 10)}`);
+    }
+    if (raw.listingDate && deadlineOffset != null) {
+      scheduleParts.push(`预计上市 ${String(raw.listingDate).slice(5, 10)}`);
+    }
+    const countdownPill = !closed && deadlineOffset != null
+      ? (deadlineOffset === 0 ? "今日截止" : `剩 ${deadlineOffset} 天`)
+      : "";
     return {
       id: item.id,
       name: shortCompanyName(item.name, item.code || "新股", 10),
@@ -263,6 +334,9 @@ function buildHkModule(snapshot) {
       tone: verdictTone,
       reason: item.one || "招股资料仅供参考，请核对最新公告",
       deadlineLabel: deadlineOffset == null ? "截止日期待核" : `截止 ${String(deadline).slice(0, 10)}`,
+      scheduleLine: scheduleParts.join(" · "),
+      countdownPill,
+      cornerstoneLine,
       deadlineOffset,
       closed,
       stats: [
@@ -295,21 +369,66 @@ function buildHkModule(snapshot) {
   });
 
   const endedItems = items.filter((item) => item.group === "ended");
+  const oneLotValues = [];
+  const sponsorAgg = new Map();
+  const bucketDefs = [
+    { key: "cool", label: "冷门 (<15倍)", min: 0, max: 15, items: [] },
+    { key: "warm", label: "温和 (15–100倍)", min: 15, max: 100, items: [] },
+    { key: "hot", label: "火热 (≥100倍)", min: 100, max: Infinity, items: [] },
+  ];
+
   const historyRowsAll = endedItems.map((item) => {
     const raw = item.raw || {};
     const rev = raw.historicalReview || {};
     const grey = finiteOrNull(rev.greyMarketChange);
     const firstDay = finiteOrNull(rev.firstDayChange);
     const fee = finiteOrNull(raw.entryFee);
+    const oversub = finiteOrNull(raw.publicOversubscription);
+    const oneLot = finiteOrNull(raw.oneLotRate);
+    if (oneLot != null && oneLot > 0) oneLotValues.push(oneLot);
     const pnl = finiteOrNull(raw.oneLotPnl) != null
       ? Math.round(Number(raw.oneLotPnl))
       : ((fee != null && fee > 0 && firstDay != null) ? Math.round((fee * firstDay) / 100) : null);
+    if (oversub != null && firstDay != null) {
+      const targetBucket = bucketDefs.find((b) => oversub >= b.min && oversub < b.max);
+      if (targetBucket) targetBucket.items.push({ firstDay, oneLot, pnl });
+    }
+    const rawSponsors = (Array.isArray(raw.sponsorNames) && raw.sponsorNames.length)
+      ? raw.sponsorNames
+      : (raw.sponsor ? String(raw.sponsor).split(/[、,，/]/) : []);
+    const seenSp = new Set();
+    for (const spRaw of rawSponsors) {
+      const spName = normalizeHkSponsorShort(spRaw);
+      if (!spName || seenSp.has(spName) || firstDay == null) continue;
+      seenSp.add(spName);
+      const cur = sponsorAgg.get(spName) || { name: spName, count: 0, up: 0, sumFd: 0, bestName: "", bestFd: -1e9 };
+      cur.count += 1;
+      if (firstDay > 0) cur.up += 1;
+      cur.sumFd += firstDay;
+      if (firstDay > cur.bestFd) {
+        cur.bestFd = firstDay;
+        cur.bestName = shortCompanyName(item.name, item.code || "新股", 5);
+      }
+      sponsorAgg.set(spName, cur);
+    }
+
     const rawCode = String(item.code || raw.stockCode || "").replace(/\.HK$/i, "");
+    const crowdBits = [];
+    if (oversub != null) {
+      crowdBits.push(`抢购${oversub >= 100 ? Math.round(oversub).toLocaleString("en-US") : oversub.toFixed(1)}倍`);
+    }
+    if (oneLot != null) {
+      crowdBits.push(`一手中签${oneLot >= 10 ? oneLot.toFixed(0) : oneLot.toFixed(1)}%`);
+    }
     return {
       id: item.id,
       name: shortCompanyName(item.name, item.code || "新股", 7),
       code: rawCode || "",
       date: raw.listingDate ? String(raw.listingDate).slice(5) : "",
+      crowdText: crowdBits.join(" · "),
+      greyNum: grey,
+      firstDayNum: firstDay,
+      pnlNum: pnl,
       greyText: grey != null ? signedPct(grey, 1) : "—",
       greyTone: grey == null ? "flat" : (grey > 0 ? "up" : (grey < 0 ? "down" : "flat")),
       firstDayText: firstDay != null ? signedPct(firstDay, 1) : "—",
@@ -320,11 +439,55 @@ function buildHkModule(snapshot) {
   });
   const historyRows = historyRowsAll.slice(0, 12);
   const statsSummary = buildHkHistoryStats(snapshot);
+  const avgOneLot = oneLotValues.length
+    ? `${(oneLotValues.reduce((s, v) => s + v, 0) / oneLotValues.length).toFixed(1)}%`
+    : "—";
   const historySummary = statsSummary.sampleCount > 0 ? [
     { label: "首日上涨率", value: statsSummary.firstDayWinRate || "—" },
+    { label: "平均一手中签", value: avgOneLot },
     { label: "前夜首日同向", value: statsSummary.greyToFirstDirection || "—" },
     { label: "最高首日涨幅", value: statsSummary.maxFirstDay ? statsSummary.maxFirstDay.label : `${statsSummary.sampleCount}只` },
   ] : [];
+
+  const sponsorRows = [...sponsorAgg.values()]
+    .filter((entry) => entry.count >= 2)
+    .sort((a, b) => (b.count - a.count) || ((b.up / b.count) - (a.up / a.count)))
+    .slice(0, 10)
+    .map((entry) => {
+      const winPct = Math.round((entry.up / entry.count) * 100);
+      const avgFd = entry.sumFd / entry.count;
+      return {
+        name: entry.name,
+        countText: `保荐 ${entry.count} 只`,
+        recordText: `${entry.up}涨 ${entry.count - entry.up}不涨`,
+        winPct,
+        winText: `${winPct}%`,
+        winTone: winPct >= 60 ? "up" : (winPct <= 35 ? "down" : "flat"),
+        avgFdText: signedPct(avgFd, 1),
+        avgTone: avgFd > 0 ? "up" : (avgFd < 0 ? "down" : "flat"),
+        bestNote: entry.bestName ? `代表：${entry.bestName} (${signedPct(entry.bestFd, 1)})` : "",
+      };
+    });
+
+  const crowdBuckets = bucketDefs
+    .filter((b) => b.items.length > 0)
+    .map((b) => {
+      const up = b.items.filter((x) => x.firstDay > 0).length;
+      const winPct = Math.round((up / b.items.length) * 100);
+      const avgFd = b.items.reduce((s, x) => s + x.firstDay, 0) / b.items.length;
+      const lots = b.items.map((x) => x.oneLot).filter((v) => v != null);
+      const avgLot = lots.length ? `${(lots.reduce((s, v) => s + v, 0) / lots.length).toFixed(1)}%` : "—";
+      return {
+        key: b.key,
+        label: b.label,
+        countText: `${b.items.length}只`,
+        winText: `${winPct}%`,
+        avgLotText: avgLot,
+        avgFdText: signedPct(avgFd, 1),
+        fdTone: avgFd > 0 ? "up" : (avgFd < 0 ? "down" : "flat"),
+      };
+    });
+
   const openApply = applyList.filter((r) => !r.closed);
   const worthApply = openApply.filter((r) => r.tone === "worth");
   const answerBar = snapshot.actionsFresh === false
@@ -346,6 +509,8 @@ function buildHkModule(snapshot) {
     historyRows,
     historyRowsAll,
     historyTotal: historyRowsAll.length,
+    sponsorRows,
+    crowdBuckets,
   };
 }
 
@@ -615,7 +780,57 @@ function buildAHeatmap(allList, mode = "yield") {
   });
 }
 
-function usStockRow(item, sparkCache = null) {
+function formatUsdLarge(value) {
+  const n = finiteOrNull(value);
+  if (n == null) return "—";
+  const abs = Math.abs(n);
+  const sign = n < 0 ? "-" : "";
+  if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(2)}万亿`;
+  if (abs >= 1e8) return `${sign}$${Math.round(abs / 1e8).toLocaleString("en-US")}亿`;
+  if (abs >= 1e4) return `${sign}$${Math.round(abs / 1e4)}万`;
+  return `${sign}$${Math.round(abs)}`;
+}
+
+function medianOf(nums) {
+  const valid = (Array.isArray(nums) ? nums : []).filter((v) => v != null && Number.isFinite(v)).sort((a, b) => a - b);
+  if (!valid.length) return null;
+  const mid = Math.floor(valid.length / 2);
+  return valid.length % 2 ? valid[mid] : (valid[mid - 1] + valid[mid]) / 2;
+}
+
+function buildUsGuruHolderMap(snapshot) {
+  const map = new Map();
+  const investors = Array.isArray(snapshot && snapshot.investors) ? snapshot.investors : [];
+  for (const inv of investors) {
+    const holdings = Array.isArray(inv && inv.holdings) ? inv.holdings : [];
+    const seen = new Set();
+    for (const h of holdings) {
+      if (!h || h.putCall) continue;
+      const sym = String(h.ticker || h.code || "").trim().toUpperCase();
+      if (!sym || seen.has(sym)) continue;
+      seen.add(sym);
+      const cur = map.get(sym) || { count: 0, names: [] };
+      cur.count += 1;
+      const shortInv = String(inv.name || "").split("·").pop().slice(0, 4);
+      if (shortInv) cur.names.push(shortInv);
+      map.set(sym, cur);
+    }
+  }
+  return map;
+}
+
+function plainSecFormLabel(form) {
+  const f = String(form || "").trim().toUpperCase();
+  if (f === "10-Q") return "季度财报";
+  if (f === "10-K") return "年度财报";
+  if (f === "8-K") return "重大事项";
+  if (f === "6-K") return "境外公告";
+  if (f === "20-F") return "境外年报";
+  if (f === "4") return "高管持股";
+  return f || "官方备案";
+}
+
+function usStockRow(item, sparkCache = null, guruMap = null) {
   const signal = buildStrategySignal(item);
   const cacheKey = item.code || item.id;
   const spark = sparkCache && cacheKey && sparkCache.has(cacheKey)
@@ -641,13 +856,25 @@ function usStockRow(item, sparkCache = null) {
   const capChip = mcap != null && mcap >= 1e8
     ? (mcap >= 1e12 ? `$${(mcap / 1e12).toFixed(2)}万亿` : `$${Math.round(mcap / 1e8)}亿`)
     : "";
+  const symUpper = String(item.code || item.id || "").toUpperCase();
+  const guruHit = guruMap ? guruMap.get(symUpper) : null;
+  const guruCount = guruHit ? guruHit.count : 0;
+  const guruChip = guruCount >= 2 ? `${guruCount}家大师重仓` : (guruCount === 1 ? "大师重仓" : "");
   const shortTag = shortTagFor("us", item.id, item.code);
   const hasRangeBar = lo60 != null && hi60 != null && sortPos60 != null;
+  const gm = finiteOrNull(fund.grossMargin);
+  const pm = finiteOrNull(fund.profitMargin);
+  const roe = finiteOrNull(fund.roe);
+  const revG = finiteOrNull(fund.revenueGrowth);
+  const ocf = finiteOrNull(fund.operatingCashFlow);
+  const cash = finiteOrNull(fund.liquidAssets != null ? fund.liquidAssets : fund.cashAndEquivalents);
   return {
     id: item.id,
     name: item.name,
     code: item.code,
     shortTag,
+    guruChip,
+    guruCount,
     hasRangeBar,
     lo60Text: lo60 != null ? `$${lo60.toFixed(0)}` : "",
     hi60Text: hi60 != null ? `$${hi60.toFixed(0)}` : "",
@@ -656,21 +883,93 @@ function usStockRow(item, sparkCache = null) {
     posTone: sortPos60 != null ? (sortPos60 <= 25 ? "cool" : (sortPos60 >= 75 ? "warn" : "plain")) : "plain",
     peChip: pe != null && pe > 0 ? `回本约${pe.toFixed(0)}年` : "",
     capChip,
+    gmText: gm != null ? `${gm.toFixed(1)}%` : "—",
+    gmBar: gm != null ? Math.max(8, Math.min(100, Math.round(gm))) : 0,
+    pmText: pm != null ? `${pm.toFixed(1)}%` : "—",
+    roeText: roe != null ? `${roe.toFixed(1)}%` : "—",
+    revGText: revG != null ? signedPct(revG, 1) : "—",
+    revGTone: revG == null ? "flat" : (revG >= 15 ? "up" : (revG < 0 ? "down" : "flat")),
+    ocfText: formatUsdLarge(ocf),
+    cashText: formatUsdLarge(cash),
+    mcapText: formatUsdLarge(mcap),
+    peNumText: pe != null && pe > 0 ? `${pe.toFixed(1)}年` : "—",
     badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
     reason: signal.action,
     asOfText: referenceDateText([raw.asOf]),
     factChips: usFactChips(item, spark),
-    isSeven: MAGNIFICENT_SEVEN.includes(String(item.code || "").toUpperCase()),
-    sortPe: finiteOrNull(fund.pe),
-    sortMargin: finiteOrNull(fund.grossMargin),
-    sortGrowth: finiteOrNull(fund.revenueGrowth),
+    isSeven: MAGNIFICENT_SEVEN.includes(symUpper),
+    sortPe: pe,
+    sortMargin: gm,
+    sortGrowth: revG,
     sortPerf60: perf60,
     sortPos60,
+    sortMcap: mcap,
     ...usMetrics(item),
     ...spark,
     ...usOrderFields(item, signal),
   };
+}
+
+function buildUsSevenCompare(sevenRaw) {
+  if (!Array.isArray(sevenRaw) || !sevenRaw.length) return null;
+  const pes = sevenRaw.map((r) => (r.sortPe > 0 && r.sortPe < 250 ? r.sortPe : null)).filter((v) => v != null);
+  const medPe = medianOf(pes);
+  const medGm = medianOf(sevenRaw.map((r) => r.sortMargin));
+  const medGrowth = medianOf(sevenRaw.map((r) => r.sortGrowth));
+  const totalMcap = sevenRaw.reduce((sum, r) => sum + (r.sortMcap > 0 ? r.sortMcap : 0), 0);
+  const benchPills = [
+    totalMcap > 0 ? { label: "七巨头总市值", value: formatUsdLarge(totalMcap) } : null,
+    medPe != null ? { label: "中位回本年数", value: `${medPe.toFixed(1)}年` } : null,
+    medGm != null ? { label: "中位毛利率", value: `${medGm.toFixed(1)}%` } : null,
+    medGrowth != null ? { label: "中位营收增速", value: signedPct(medGrowth, 1) } : null,
+  ].filter(Boolean);
+
+  const rows = sevenRaw.map((r) => {
+    const order = r.order;
+    let buyGapText = "待更新";
+    let buyGapTone = "flat";
+    if (order) {
+      if (order.noBuy) {
+        buyGapText = "暂不低接";
+        buyGapTone = "down";
+      } else if (order.state === "buy") {
+        buyGapText = "已在低位区";
+        buyGapTone = "worth";
+      } else if (order.buyGapPct > 0) {
+        buyGapText = `距低位 ${order.buyGapPct.toFixed(1)}%`;
+        buyGapTone = order.buyGapPct <= 6 ? "worth" : "flat";
+      }
+    }
+    const peBetter = medPe != null && r.sortPe > 0 && r.sortPe <= medPe;
+    return {
+      id: r.id,
+      name: shortCompanyName(r.name, r.code, 4),
+      code: r.code,
+      shortTag: r.shortTag,
+      priceText: r.priceText,
+      changeText: r.changeText,
+      changeTone: r.changeTone,
+      peText: r.peNumText,
+      peTone: peBetter ? "worth" : (r.sortPe != null && r.sortPe >= 80 ? "down" : "flat"),
+      posText: r.sortPos60 != null ? `${r.sortPos60}%分位` : "—",
+      buyGapText,
+      buyGapTone,
+      verdictBadge: r.verdictBadge,
+      verdictTone: r.verdictTone,
+      revGText: r.revGText,
+      revGTone: r.revGTone,
+      gmText: r.gmText,
+      gmBar: r.gmBar,
+      pmRoeText: `${r.pmText} / ${r.roeText}`,
+      ocfText: r.ocfText,
+      cashText: r.cashText,
+      mcapText: r.mcapText,
+      guruText: r.guruCount > 0 ? `${r.guruCount}家大师` : "—",
+    };
+  });
+
+  return { benchPills, rows };
 }
 
 function buildUsModule(snapshot) {
@@ -678,8 +977,10 @@ function buildUsModule(snapshot) {
   const sevenItems = items.filter((item) => item.group === "seven");
   const hotItems = items.filter((item) => item.group === "hot");
   const sparkCache = new Map();
+  const guruMap = buildUsGuruHolderMap(snapshot);
 
-  const sevenRaw = sevenItems.map((item) => usStockRow(item, sparkCache));
+  const sevenRaw = sevenItems.map((item) => usStockRow(item, sparkCache, guruMap));
+  const sevenCompare = buildUsSevenCompare(sevenRaw);
   const triggerOrders = sevenRaw.map((r) => r.order).filter(Boolean);
   const triggerTiles = triggerOrders.length ? countTiles(triggerOrders, US_TRIGGERS) : [];
   const sevenList = sevenRaw.map(({ order, ...row }) => ({
@@ -716,7 +1017,7 @@ function buildUsModule(snapshot) {
   const computeAllList = () => {
     if (_allList) return _allList;
     _allList = usPoolItems(snapshot)
-      .map((item) => usStockRow(item, sparkCache))
+      .map((item) => usStockRow(item, sparkCache, guruMap))
       .sort((left, right) => compareUsOrder(left.order, right.order))
       .map(({ order, ...row }) => row);
     return _allList;
@@ -725,7 +1026,7 @@ function buildUsModule(snapshot) {
   const computeHotList = () => {
     if (_hotList) return _hotList;
     _hotList = hotItems.map((item) => {
-      const baseRow = usStockRow(item, sparkCache);
+      const baseRow = usStockRow(item, sparkCache, guruMap);
       const raw = item.raw || {};
       const fund = raw.fund || {};
       let takeText = "质量待核";
@@ -756,10 +1057,17 @@ function buildUsModule(snapshot) {
     const rawFilings = Array.isArray(snapshot && snapshot.us && snapshot.us.filings)
       ? snapshot.us.filings
       : [];
+    const seenFilingKeys = new Set();
     _filingsFeed = rawFilings
       .filter((entry) => entry && entry.symbol && entry.filingDate)
       .slice()
       .sort((a, b) => String(b.filingDate || "").localeCompare(String(a.filingDate || "")))
+      .filter((entry) => {
+        const sig = `${String(entry.symbol).toUpperCase()}|${entry.filingDate}|${entry.form || ""}|${(entry.labels || []).join(",")}`;
+        if (seenFilingKeys.has(sig)) return false;
+        seenFilingKeys.add(sig);
+        return true;
+      })
       .slice(0, 24)
       .map((entry, idx) => {
         const sym = String(entry.symbol || "").toUpperCase();
@@ -768,9 +1076,10 @@ function buildUsModule(snapshot) {
         return {
           key: `sec-${sym}-${entry.filingDate}-${idx}`,
           id: matched ? matched.id : sym,
-          name: matched ? matched.name : tickerZhLabel(sym, sym),
+          name: matched ? shortCompanyName(matched.name, sym, 6) : tickerShortZh(sym, sym),
           code: sym,
           form: entry.form || "8-K",
+          formZh: plainSecFormLabel(entry.form),
           date: String(entry.filingDate || ""),
           summary: labels.join(" · ") || "公开备案",
           sourceUrl: entry.sourceUrl || "",
@@ -783,6 +1092,7 @@ function buildUsModule(snapshot) {
     answerBar,
     triggerTiles,
     sevenList,
+    sevenCompare,
     sevenHeatmap,
     sevenHint,
     sevenMix,
@@ -926,6 +1236,28 @@ function aRankedList(items, lens, fresh = true) {
     });
 }
 
+function lifeExpenseHint(annualRmb) {
+  const amt = Number(annualRmb);
+  if (!Number.isFinite(amt) || amt <= 0) return "";
+  if (amt < 500) return "约抵大半年话费";
+  if (amt < 1200) return "约抵全年手机话费";
+  if (amt < 3000) return "约抵全年水电燃气费";
+  if (amt < 6000) return "约抵全年小区物业费";
+  if (amt < 15000) return "约抵全家一趟年度旅行";
+  return `月均约领 ¥${Math.round(amt / 12).toLocaleString("en-US")} 买菜零花`;
+}
+
+function buildLifeSummaryLine(list, wan = 1) {
+  const yields = (Array.isArray(list) ? list : [])
+    .map((r) => (r.historicalYield != null ? r.historicalYield : r.sortYield))
+    .filter((v) => v != null && Number.isFinite(v) && v > 0);
+  if (!yields.length) return "";
+  const avgY = yields.reduce((s, v) => s + v, 0) / yields.length;
+  const annual = Math.round(avgY * 100 * wan);
+  const life = lifeExpenseHint(annual);
+  return `息覆生活 · 投${wan}万按榜内均值年领约 ¥${annual.toLocaleString("en-US")}${life ? `（${life}）` : ""}`;
+}
+
 function formatPrincipalIncome(yieldPct, wan = 1) {
   if (!Number.isFinite(yieldPct) || yieldPct <= 0) return "";
   const annual = Math.round(yieldPct * 100 * wan);
@@ -940,6 +1272,108 @@ function withPrincipalWan(list, wan = 1) {
     return {
       ...row,
       annualPer10kText: y != null ? formatPrincipalIncome(y, wan) : row.annualPer10kText,
+    };
+  });
+}
+
+function extractRecentAnnualDistributions(raw) {
+  const hist = Array.isArray(raw && raw.financials && raw.financials.dividendHistory)
+    ? raw.financials.dividendHistory
+    : [];
+  const all = [];
+  for (const yr of hist) {
+    const dists = Array.isArray(yr && yr.distributions) ? yr.distributions : [];
+    for (const d of dists) {
+      const exDate = String((d && d.exDividendDate) || "").trim();
+      const perTen = finiteOrNull(d && d.perTenSharesRmb);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(exDate) || !(perTen > 0)) continue;
+      const stamp = Date.parse(`${exDate}T00:00:00Z`);
+      if (!Number.isFinite(stamp)) continue;
+      all.push({
+        exDate,
+        stamp,
+        month: Number(exDate.slice(5, 7)),
+        perTen,
+        plan: String((d && d.plan) || `10派${perTen.toFixed(2)}元`).replace(/\(.*?\)|（.*?）/g, "").trim(),
+      });
+    }
+  }
+  if (!all.length) return [];
+  all.sort((a, b) => b.stamp - a.stamp);
+  const maxStamp = all[0].stamp;
+  const cutoff = maxStamp - 385 * 86400000;
+  const byMonth = new Map();
+  for (const entry of all) {
+    if (entry.stamp < cutoff) break;
+    if (!byMonth.has(entry.month)) byMonth.set(entry.month, entry);
+  }
+  return [...byMonth.values()].sort((a, b) => a.month - b.month);
+}
+
+function buildADividendCalendar(items) {
+  const byMonth = new Map();
+  for (let m = 1; m <= 12; m += 1) byMonth.set(m, []);
+  let multiCount = 0;
+  for (const item of items) {
+    const raw = item.raw || {};
+    if (raw.assetType === "fund") continue;
+    const dists = extractRecentAnnualDistributions(raw);
+    if (!dists.length) continue;
+    if (dists.length >= 2) multiCount += 1;
+    const freqLabel = dists.length >= 3 ? `一年${dists.length}派` : (dists.length === 2 ? "一年2派" : "一年1派");
+    const price = finiteOrNull(raw.currentPrice);
+    for (const d of dists) {
+      const dps = d.perTen / 10;
+      const singleYieldPct = price != null && price > 0 ? (dps / price) * 100 : null;
+      byMonth.get(d.month).push({
+        key: `${item.id}-${d.exDate}`,
+        id: item.id,
+        name: shortCompanyName(item.name, item.code, 6),
+        code: formatACode(item.code, item.id),
+        freqLabel,
+        isMulti: dists.length >= 2,
+        exDate: d.exDate,
+        planShort: d.plan || `10派${d.perTen.toFixed(2)}元`,
+        dps,
+        price,
+        singleYieldPct,
+      });
+    }
+  }
+  const months = [];
+  let coveredMonths = 0;
+  for (let m = 1; m <= 12; m += 1) {
+    const rows = byMonth.get(m);
+    rows.sort((a, b) => (b.singleYieldPct ?? 0) - (a.singleYieldPct ?? 0));
+    if (rows.length > 0) coveredMonths += 1;
+    months.push({
+      month: m,
+      label: `${m}月`,
+      count: rows.length,
+      countText: rows.length ? `${rows.length}只` : "无",
+      tone: rows.length >= 4 ? "rich" : (rows.length > 0 ? "has" : "empty"),
+    });
+  }
+  const curMonth = new Date().getMonth() + 1;
+  let defaultMonth = curMonth;
+  if (!(byMonth.get(defaultMonth) || []).length) {
+    const upcoming = months.find((x) => x.month > curMonth && x.count > 0) || months.find((x) => x.count > 0);
+    if (upcoming) defaultMonth = upcoming.month;
+  }
+  const summaryText = `已覆盖全年 ${coveredMonths} 个派息月 · ${multiCount} 只支持一年多派，错峰搭配可月月领息`;
+  return { months, byMonth, defaultMonth, summaryText };
+}
+
+function formatCalendarRows(rows, wan = 1) {
+  return (Array.isArray(rows) ? rows : []).map((r) => {
+    let cashNote = "";
+    if (r.price != null && r.price > 0 && r.dps > 0) {
+      const cash = Math.round(((wan * 10000) / r.price) * r.dps);
+      cashNote = `投${wan}万单次约领 ¥${cash.toLocaleString("en-US")}`;
+    }
+    return {
+      ...r,
+      cashNote,
     };
   });
 }
@@ -962,9 +1396,14 @@ function buildAModule(snapshot) {
   let _yieldList = null;
   let _allPack = null;
   let _fund = undefined;
+  let _calendar = null;
   const ensureAll = () => {
     if (!_allPack) _allPack = aAllModule(items, fresh);
     return _allPack;
+  };
+  const ensureCalendar = () => {
+    if (!_calendar) _calendar = buildADividendCalendar(items);
+    return _calendar;
   };
   const stockItems = items.filter((it) => !(it.raw && it.raw.assetType === "fund"));
   const cheapNames = fresh
@@ -989,6 +1428,7 @@ function buildAModule(snapshot) {
     },
     get allList() { return ensureAll().allList; },
     get triggerTiles() { return ensureAll().triggerTiles; },
+    get calendar() { return ensureCalendar(); },
     get fund() {
       if (_fund === undefined) {
         const fundItem = items.find((item) => item.raw && item.raw.assetType === "fund");
@@ -1981,10 +2421,15 @@ Page({
     hkHistorySummary: [],
     hkHistoryRows: [],
     hkHistoryTotal: 0,
+    hkHistorySort: "latest",
     hkShowAllHistory: false,
+    hkSponsorRows: [],
+    hkCrowdBuckets: [],
     sectionAnswerBar: "",
     // 美股专属：原型的「七姐妹/热门三只/SEC公告」视图，只有 market==='us' 时渲染。
     usSubTab: "seven",
+    usCompareDim: "val",
+    usSevenCompare: null,
     usHeatMode: "day",
     usHeatmap: [],
     usSevenHeatmap: [],
@@ -2002,6 +2447,11 @@ Page({
     // A股收息专属：原型的「分红稳定性/分红收益性」两个前五榜单，只有 market==='a' 时渲染。
     aSubTab: "stable",
     aPrincipalWan: 1,
+    aLifeSummary: "",
+    aCalendarMonths: [],
+    aCalendarMonth: 7,
+    aCalendarRows: [],
+    aCalendarSummary: "",
     aHeatMode: "yield",
     aHeatmap: [],
     aAllFilter: "all",
@@ -2211,7 +2661,7 @@ Page({
         this._hkExitList = hkExitList;
         const hkSelection = resolveHkExitSelection(hkExitList, this.data.hkExitSelectedId);
         const showAll = Boolean(this.data.hkShowAllHistory);
-        const allHist = hkModule.historyRowsAll || hkModule.historyRows || [];
+        const sortedHist = sortHkHistoryRows(hkModule.historyRowsAll || hkModule.historyRows || [], this.data.hkHistorySort);
         Object.assign(patch, {
           sectionAnswerBar: hkModule.answerBar || "",
           hkApplyList: hkModule.applyList,
@@ -2223,8 +2673,10 @@ Page({
           hkExitView: hkSelection.view,
           hkExitChart: hkModule.exitChart,
           hkHistorySummary: hkModule.historySummary || [],
-          hkHistoryRows: showAll ? allHist : allHist.slice(0, 12),
-          hkHistoryTotal: hkModule.historyTotal || allHist.length,
+          hkHistoryRows: showAll ? sortedHist : sortedHist.slice(0, 12),
+          hkHistoryTotal: hkModule.historyTotal || sortedHist.length,
+          hkSponsorRows: hkModule.sponsorRows || [],
+          hkCrowdBuckets: hkModule.crowdBuckets || [],
         });
       } else if (market === "us" && cached.usModule) {
         const usModule = cached.usModule;
@@ -2232,6 +2684,7 @@ Page({
           sectionAnswerBar: usModule.answerBar || "",
           usTriggerTiles: usModule.triggerTiles,
           usSevenList: usModule.sevenList,
+          usSevenCompare: usModule.sevenCompare || null,
           usSevenHeatmap: usModule.sevenHeatmap || [],
           usSevenHint: usModule.sevenHint,
           usSevenMix: usModule.sevenMix,
@@ -2239,7 +2692,9 @@ Page({
         });
         // 按激活子 tab 懒下发列表（含 SVG Base64），首屏只算并只传七家大公司 7 条。
         if (this.data.usSubTab === "hot") patch.usHotList = usModule.hotList;
-        if (this.data.usSubTab === "filings") patch.usFilingsList = usModule.filingsFeed || [];
+        if (this.data.usSubTab === "filings" || (this.data.usSubTab === "compare" && this.data.usCompareDim === "filings")) {
+          patch.usFilingsList = usModule.filingsFeed || [];
+        }
         if (this.data.usSubTab === "heatmap") patch.usHeatmap = buildUsHeatmap(usModule.allList, this.data.usHeatMode);
         if (this.data.usSubTab === "all") patch.usAllList = this.applyUsView(usModule.allList, this.data.usAllFilter, this.data.usAllSort);
         this._usModule = usModule;
@@ -2250,11 +2705,26 @@ Page({
         Object.assign(patch, {
           sectionAnswerBar: aModule.answerBar || "",
           aStableList: withPrincipalWan(aModule.stableList, wan),
+          aLifeSummary: buildLifeSummaryLine(aModule.stableList, wan),
         });
-        if (this.data.aSubTab === "yield") patch.aYieldList = withPrincipalWan(aModule.yieldList, wan);
+        if (this.data.aSubTab === "yield") {
+          patch.aYieldList = withPrincipalWan(aModule.yieldList, wan);
+          patch.aLifeSummary = buildLifeSummaryLine(aModule.yieldList, wan);
+        }
+        if (this.data.aSubTab === "calendar") {
+          const cal = aModule.calendar;
+          const m = cal.byMonth.has(this.data.aCalendarMonth) && (cal.byMonth.get(this.data.aCalendarMonth) || []).length
+            ? this.data.aCalendarMonth
+            : cal.defaultMonth;
+          patch.aCalendarMonths = cal.months;
+          patch.aCalendarMonth = m;
+          patch.aCalendarSummary = cal.summaryText;
+          patch.aCalendarRows = formatCalendarRows(cal.byMonth.get(m) || [], wan);
+        }
         if (this.data.aSubTab === "heatmap") patch.aHeatmap = buildAHeatmap(aModule.allList, this.data.aHeatMode);
         if (this.data.aSubTab === "all") {
           patch.aAllList = withPrincipalWan(this.applyAView(aModule.allList, this.data.aAllFilter, this.data.aAllSort), wan);
+          patch.aLifeSummary = buildLifeSummaryLine(aModule.allList, wan);
           patch.aFund = aModule.fund;
         }
       } else if (market === "gold" && cached.goldModule) {
@@ -2337,11 +2807,23 @@ Page({
   },
   toggleHkHistoryAll() {
     const next = !this.data.hkShowAllHistory;
-    const allHist = (this._hkModule && (this._hkModule.historyRowsAll || this._hkModule.historyRows)) || this.data.hkHistoryRows || [];
+    const rawHist = (this._hkModule && (this._hkModule.historyRowsAll || this._hkModule.historyRows)) || this.data.hkHistoryRows || [];
+    const sortedHist = sortHkHistoryRows(rawHist, this.data.hkHistorySort);
     this.setData({
       hkShowAllHistory: next,
-      hkHistoryRows: next ? allHist : allHist.slice(0, 12),
+      hkHistoryRows: next ? sortedHist : sortedHist.slice(0, 12),
     });
+  },
+  sortHkHistory(event) {
+    const sortId = String(event.currentTarget.dataset.sort || "latest");
+    if (sortId === this.data.hkHistorySort) return;
+    const rawHist = (this._hkModule && (this._hkModule.historyRowsAll || this._hkModule.historyRows)) || [];
+    const sortedHist = sortHkHistoryRows(rawHist, sortId);
+    this.setData({
+      hkHistorySort: sortId,
+      hkHistoryRows: this.data.hkShowAllHistory ? sortedHist : sortedHist.slice(0, 12),
+    });
+    track("section_tab", { market: "hk", tab: `hist_${sortId}` });
   },
   switchUsSubTab(event) {
     const id = event.currentTarget.dataset.id;
@@ -2351,7 +2833,7 @@ Page({
     if (id === "hot" && !this.data.usHotList.length && mod) {
       patch.usHotList = mod.hotList;
     }
-    if (id === "filings" && !this.data.usFilingsList.length && mod) {
+    if ((id === "filings" || (id === "compare" && this.data.usCompareDim === "filings")) && !this.data.usFilingsList.length && mod) {
       patch.usFilingsList = mod.filingsFeed || [];
     }
     if (id === "heatmap" && mod) {
@@ -2362,6 +2844,16 @@ Page({
     }
     this.setData(patch);
     track("section_tab", { market: "us", tab: String(id) });
+  },
+  switchUsCompareDim(event) {
+    const dim = String(event.currentTarget.dataset.dim || "val");
+    if (dim === this.data.usCompareDim) return;
+    const patch = { usCompareDim: dim };
+    if (dim === "filings" && !this.data.usFilingsList.length && this._usModule) {
+      patch.usFilingsList = this._usModule.filingsFeed || [];
+    }
+    this.setData(patch);
+    track("section_tab", { market: "us", tab: `cmp_${dim}` });
   },
   switchUsHeatMode(event) {
     const mode = String(event.currentTarget.dataset.mode || "day");
@@ -2425,18 +2917,43 @@ Page({
     const patch = { aSubTab: id };
     const mod = this._aModule;
     const wan = this.data.aPrincipalWan || 1;
-    if (id === "yield" && !this.data.aYieldList.length && mod) {
-      patch.aYieldList = withPrincipalWan(mod.yieldList, wan);
+    if (id === "stable" && mod) {
+      patch.aLifeSummary = buildLifeSummaryLine(mod.stableList, wan);
+    }
+    if (id === "yield" && mod) {
+      if (!this.data.aYieldList.length) patch.aYieldList = withPrincipalWan(mod.yieldList, wan);
+      patch.aLifeSummary = buildLifeSummaryLine(mod.yieldList, wan);
+    }
+    if (id === "calendar" && mod) {
+      const cal = mod.calendar;
+      const curM = this.data.aCalendarMonth;
+      const m = cal.byMonth.has(curM) && (cal.byMonth.get(curM) || []).length ? curM : cal.defaultMonth;
+      patch.aCalendarMonths = cal.months;
+      patch.aCalendarMonth = m;
+      patch.aCalendarSummary = cal.summaryText;
+      patch.aCalendarRows = formatCalendarRows(cal.byMonth.get(m) || [], wan);
     }
     if (id === "heatmap" && mod) {
       patch.aHeatmap = buildAHeatmap(mod.allList, this.data.aHeatMode);
     }
     if (id === "all" && mod) {
       patch.aAllList = withPrincipalWan(this.applyAView(mod.allList, this.data.aAllFilter, this.data.aAllSort), wan);
+      patch.aLifeSummary = buildLifeSummaryLine(mod.allList, wan);
       patch.aFund = mod.fund || null;
     }
     this.setData(patch);
     track("section_tab", { market: "a", tab: String(id) });
+  },
+  selectACalendarMonth(event) {
+    const m = Number(event.currentTarget.dataset.month) || 0;
+    if (!m || !this._aModule) return;
+    const cal = this._aModule.calendar;
+    const wan = this.data.aPrincipalWan || 1;
+    this.setData({
+      aCalendarMonth: m,
+      aCalendarRows: formatCalendarRows(cal.byMonth.get(m) || [], wan),
+    });
+    track("section_tab", { market: "a", tab: `cal_${m}` });
   },
   selectAPrincipal(event) {
     const wan = Number(event.currentTarget.dataset.wan) || 1;
@@ -2445,11 +2962,19 @@ Page({
     const patch = { aPrincipalWan: wan };
     if (mod) {
       patch.aStableList = withPrincipalWan(mod.stableList, wan);
+      const activePool = this.data.aSubTab === "yield"
+        ? mod.yieldList
+        : (this.data.aSubTab === "all" ? mod.allList : mod.stableList);
+      patch.aLifeSummary = buildLifeSummaryLine(activePool, wan);
       if (this.data.aYieldList.length || this.data.aSubTab === "yield") {
         patch.aYieldList = withPrincipalWan(mod.yieldList, wan);
       }
       if (this.data.aAllList.length || this.data.aSubTab === "all") {
         patch.aAllList = withPrincipalWan(this.applyAView(mod.allList, this.data.aAllFilter, this.data.aAllSort), wan);
+      }
+      if (this.data.aCalendarMonths.length || this.data.aSubTab === "calendar") {
+        const cal = mod.calendar;
+        patch.aCalendarRows = formatCalendarRows(cal.byMonth.get(this.data.aCalendarMonth) || [], wan);
       }
     }
     this.setData(patch);

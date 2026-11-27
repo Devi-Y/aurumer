@@ -128,6 +128,76 @@ function setCharts(base, ...charts) {
   base.visual = base.charts[0] || null;
 }
 
+const DETAIL_CORNERSTONE_NOISE_RE = /禁售期|财务报告准则|会计准则|补充协议|配发结果|历史财务|公允价值|招股章程|全球发售|香港发售|国际发售|发售股份|联交所|证券及期货|概无|不适用|董事|监事/u;
+
+function cleanDetailCornerstones(values) {
+  if (!Array.isArray(values)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const v of values) {
+    const s = String(v || "").trim();
+    if (!s || s.length < 2 || s.length > 22) continue;
+    if (DETAIL_CORNERSTONE_NOISE_RE.test(s)) continue;
+    if (seen.has(s)) continue;
+    seen.add(s);
+    out.push(s);
+  }
+  return out;
+}
+
+function normalizeDetailSponsorShort(rawName) {
+  const s = String(rawName || "").trim();
+  if (!s || /见历史|招股文件|待定|暂无/u.test(s)) return "";
+  if (/中国国际金融|中金/u.test(s)) return "中金公司";
+  if (/中信建投/u.test(s)) return "中信建投";
+  if (/中信里昂|中信证券|中信/u.test(s)) return "中信证券";
+  if (/华泰/u.test(s)) return "华泰国际";
+  if (/中银/u.test(s)) return "中银国际";
+  if (/高盛/u.test(s)) return "高盛亚洲";
+  if (/摩根士丹利/u.test(s)) return "摩根士丹利";
+  if (/摩根大通/u.test(s)) return "摩根大通";
+  if (/国泰君安/u.test(s)) return "国泰君安";
+  if (/海通/u.test(s)) return "海通国际";
+  if (/招银/u.test(s)) return "招银国际";
+  if (/招商/u.test(s)) return "招商证券";
+  if (/广发/u.test(s)) return "广发香港";
+  return s
+    .replace(/（香港）|\(香港\)|（国际）|\(国际\)|（亚洲）|\(亚洲\)|有限责任公司|股份有限公司|有限公司|金融控股|企业融资|融资|证券|国际|资本/gu, "")
+    .trim()
+    .slice(0, 6);
+}
+
+function buildSponsorTrackCard(raw, snapshot) {
+  const names = Array.isArray(raw && raw.sponsorNames) && raw.sponsorNames.length
+    ? raw.sponsorNames
+    : (raw && raw.sponsor ? String(raw.sponsor).split(/[、,，/]/) : []);
+  const targetSponsors = [...new Set(names.map(normalizeDetailSponsorShort).filter(Boolean))];
+  if (!targetSponsors.length) return null;
+  const hist = Array.isArray(snapshot && snapshot.hk && snapshot.hk.history) ? snapshot.hk.history : [];
+  const rows = [];
+  for (const sp of targetSponsors.slice(0, 2)) {
+    const matched = hist.filter((h) => {
+      const hList = Array.isArray(h && h.sponsorNames) && h.sponsorNames.length
+        ? h.sponsorNames
+        : (h && h.sponsor ? String(h.sponsor).split(/[、,，/]/) : []);
+      return hList.map(normalizeDetailSponsorShort).includes(sp) && hasNumber(h?.historicalReview?.firstDayChange);
+    });
+    if (!matched.length) continue;
+    const up = matched.filter((h) => Number(h.historicalReview.firstDayChange) > 0).length;
+    const avg = matched.reduce((s, h) => s + Number(h.historicalReview.firstDayChange), 0) / matched.length;
+    rows.push([
+      `${sp}保荐样本`,
+      `${matched.length}只（${up}涨 · 胜率${Math.round((up / matched.length) * 100)}%）`,
+    ]);
+    rows.push([
+      `${sp}首日均涨`,
+      `${avg >= 0 ? "+" : ""}${avg.toFixed(1)}%`,
+    ]);
+  }
+  if (!rows.length) return null;
+  return metricTilesVisual(rows, "保荐人历史战绩对照");
+}
+
 function joinNames(values, fallback = "暂缺") {
   if (Array.isArray(values) && values.length) return shortOrgList(values, "", 2);
   const text = String(fallback || "").trim();
@@ -981,7 +1051,8 @@ function buildHKView(base, item, snapshot) {
   const offerPrice = raw.offerPrice || (raw.priceLow && raw.priceHigh ? `${raw.priceLow}-${raw.priceHigh}港元` : "待公布");
   const sponsors = joinNames(raw.sponsorNames, raw.sponsor || "");
   const underwriters = joinNames(raw.underwriterNames, "");
-  const cornerstones = joinNames(raw.cornerstoneInvestors, "");
+  const cleanCsList = cleanDetailCornerstones(raw.cornerstoneInvestors);
+  const cornerstones = joinNames(cleanCsList, "");
   const stabilizer = shortOrgList([raw.stabilizingManager].filter(Boolean), "", 1);
   const lotSize = raw.boardLot || (raw.boardLotShares ? `${raw.boardLotShares}` : null);
   const offer = hasNumber(raw.priceHigh) ? Number(raw.priceHigh)
@@ -1108,6 +1179,7 @@ function buildHKView(base, item, snapshot) {
   ].filter((row) => row[1]), "资料说明", "数据与状态均来自港交所公开公告。");
 
   const qualityRadar = null;
+  const sponsorTrackTiles = buildSponsorTrackCard(raw, snapshot);
   const performanceCurve = hkPerformanceCurveVisual(review);
   const cohortScatter = hkCohortScatterVisual(review, strategyEvidence);
   const ruleSteps = personalRuleStepsVisual(raw.personalRule);
@@ -1123,6 +1195,7 @@ function buildHKView(base, item, snapshot) {
       qualityRadar,
       capitalTiles,
       structureTiles,
+      sponsorTrackTiles,
       qualityTiles,
       scoreMeter(answer.score, "研究分", item.badge || answer.verdict),
     );
@@ -1136,6 +1209,7 @@ function buildHKView(base, item, snapshot) {
       scheduleTiles,
       capitalTiles,
       offerBandVisual(raw, offerPrice),
+      sponsorTrackTiles,
       exitTierBars,
       hkCohortVisual(strategyEvidence),
       structureTiles,
@@ -1146,8 +1220,8 @@ function buildHKView(base, item, snapshot) {
 
   // 四标签下「申购」「卖出」「依据」各自拥有的图表，不再靠标题正则猜归属。
   base.subscribeCharts = (ended
-    ? [qualityRadar, capitalTiles, structureTiles, offerBandVisual(raw, offerPrice)]
-    : [ruleSteps, qualityRadar, scheduleTiles, capitalTiles, offerBandVisual(raw, offerPrice), structureTiles]
+    ? [qualityRadar, capitalTiles, structureTiles, sponsorTrackTiles, offerBandVisual(raw, offerPrice)]
+    : [ruleSteps, qualityRadar, scheduleTiles, capitalTiles, sponsorTrackTiles, offerBandVisual(raw, offerPrice), structureTiles]
   ).filter(Boolean);
   // hkCohortVisual/cohortScatter 恒放最后一位兜底：即便还没配发结果，卖出
   // tab 也不能是空的。exitTierBars 放最前——它是「打中后观察分位」原本
@@ -1225,6 +1299,12 @@ function buildHKView(base, item, snapshot) {
     offerDeadline: raw.offerDeadline || raw.offerEnd || "",
     firstDayChange: review.firstDayChange,
   };
+  base.hkIpoCalc = !ended && !raw.withdrawn && hasNumber(raw.entryFee) && Number(raw.entryFee) > 0
+    ? {
+        entryFee: Number(raw.entryFee),
+        lotSize: lotSize ? `${lotSize}股` : "1手",
+      }
+    : null;
 }
 
 function buildUSView(base, item, snapshot) {
@@ -1329,18 +1409,70 @@ function buildUSView(base, item, snapshot) {
   });
 
   const revenueHistory = Array.isArray(fund.revenueHistory) ? fund.revenueHistory.filter(hasNumber).map(Number) : [];
-  const revenueVisual = revenueHistory.length >= 2
-    ? priceVisual(revenueHistory.slice().reverse(), "营收趋势", (value) => formatLarge(value), "近几期公开营收金额。", "营收变化")
+  const chronologicalLabels = (len) => {
+    if (len === 4) return ["3年前", "2年前", "上财年", "最新财年"];
+    if (len === 3) return ["2年前", "上财年", "最新财年"];
+    return Array.from({ length: len }, (_, i) => (i === len - 1 ? "最新期" : `前${len - 1 - i}期`));
+  };
+  const revChrono = revenueHistory.slice(0, 4).reverse();
+  const revLabels = chronologicalLabels(revChrono.length);
+  const revenueVisual = revChrono.length >= 2
+    ? solidVisual(
+        revChrono.map((val, idx) => ({
+          label: revLabels[idx],
+          value: val,
+          valueText: `$${formatLarge(val)}`,
+        })),
+        "近4财年营收阶梯（美元）",
+      )
     : null;
   const netIncomeHistory = Array.isArray(fund.netIncomeHistory) ? fund.netIncomeHistory.filter(hasNumber).map(Number) : [];
-  const netIncomeVisual = netIncomeHistory.length >= 2
-    ? priceVisual(netIncomeHistory.slice().reverse(), "净利润趋势", (value) => formatLarge(value), "近几期公开净利润金额。", "净利变化")
+  const niChrono = netIncomeHistory.slice(0, 4).reverse();
+  const niLabels = chronologicalLabels(niChrono.length);
+  const netIncomeVisual = niChrono.length >= 2
+    ? solidVisual(
+        niChrono.map((val, idx) => ({
+          label: niLabels[idx],
+          value: val,
+          valueText: `${val < 0 ? "-" : ""}$${formatLarge(Math.abs(val))}`,
+        })),
+        "近4财年净利润阶梯（美元）",
+      )
     : null;
+
+  // 对标 IBKR Fundamentals Explorer：对比七大巨头同业中位数基准。
+  const sevenSet = new Set(["NVDA", "MSFT", "AAPL", "GOOGL", "AMZN", "META", "TSLA"]);
+  const sevenFunds = usPool.filter((entry) => entry && sevenSet.has(String(entry.symbol || "").toUpperCase()));
+  const calcMed = (arr) => {
+    const valid = arr.filter((v) => hasNumber(v)).map(Number).sort((a, b) => a - b);
+    if (!valid.length) return null;
+    const m = Math.floor(valid.length / 2);
+    return valid.length % 2 ? valid[m] : (valid[m - 1] + valid[m]) / 2;
+  };
+  const sMedPe = calcMed(sevenFunds.map((f) => (f.pe > 0 && f.pe < 250 ? f.pe : null)));
+  const sMedGm = calcMed(sevenFunds.map((f) => f.grossMargin));
+  const sMedPm = calcMed(sevenFunds.map((f) => f.profitMargin));
+  const sMedRevG = calcMed(sevenFunds.map((f) => f.revenueGrowth));
+  const usPeerBench = metricTilesVisual([
+    hasNumber(fund.pe) && fund.pe > 0 && sMedPe != null
+      ? ["回本年数 vs 巨头中位", `${Number(fund.pe).toFixed(1)}年 / 中位${sMedPe.toFixed(1)}年`]
+      : null,
+    hasNumber(fund.grossMargin) && sMedGm != null
+      ? ["毛利率 vs 巨头中位", `${Number(fund.grossMargin).toFixed(1)}% / 中位${sMedGm.toFixed(1)}%`]
+      : null,
+    hasNumber(fund.revenueGrowth) && sMedRevG != null
+      ? ["营收增速 vs 巨头中位", `${formatPercent(fund.revenueGrowth)} / 中位${formatPercent(sMedRevG)}`]
+      : null,
+    hasNumber(fund.profitMargin) && sMedPm != null
+      ? ["净利率 vs 巨头中位", `${Number(fund.profitMargin).toFixed(1)}% / 中位${sMedPm.toFixed(1)}%`]
+      : null,
+  ].filter(Boolean), "同业基准对照（对比七巨头中位）");
 
   setCharts(
     base,
     chart,
     meterVisual(history, quote, "价格位置", money),
+    usPeerBench,
     usRank,
     marginBars,
     growthTiles,
@@ -1350,7 +1482,7 @@ function buildUSView(base, item, snapshot) {
     revenueVisual,
     netIncomeVisual,
   );
-  base.overviewCharts = [marginBars, revenueVisual].filter(Boolean).slice(0, 2);
+  base.overviewCharts = [revenueVisual, usPeerBench || marginBars].filter(Boolean).slice(0, 2);
 
   // 「价格」保留走势和区间，「动态」集中展示公告与近期营收/盈利趋势。
   base.trendCharts = [
@@ -1359,6 +1491,7 @@ function buildUSView(base, item, snapshot) {
   ].filter(Boolean);
   base.dynamicsCharts = [revenueVisual, netIncomeVisual].filter(Boolean);
   base.evidenceCharts = [
+    usPeerBench,
     usRank,
     marginBars,
     growthTiles,
@@ -1625,6 +1758,49 @@ function buildAShareView(base, item, snapshot) {
   const aPriceMeter = aHistory.length >= 10 && hasNumber(raw.currentPrice)
     ? meterVisual(aHistory, Number(raw.currentPrice), "历史区间位置", (value) => money(value, "¥"), "按已收录历史收盘价计算的相对位置，不代表估值高低。")
     : null;
+  let aYieldBandMeter = null;
+  if (historical && hasNumber(historical.dividendPerShare) && Number(historical.dividendPerShare) > 0 && aHistory.length >= 20 && hasNumber(raw.currentPrice) && Number(raw.currentPrice) > 0) {
+    const dpsNum = Number(historical.dividendPerShare);
+    const dailyYields = aHistory.map((close) => (dpsNum / close) * 100);
+    const minY = Math.min(...dailyYields);
+    const maxY = Math.max(...dailyYields);
+    const curY = (dpsNum / Number(raw.currentPrice)) * 100;
+    if (maxY > minY) {
+      const rankPct = Math.round((dailyYields.filter((y) => y <= curY).length / dailyYields.length) * 100);
+      const barPos = Math.max(0, Math.min(100, Math.round(((curY - minY) / (maxY - minY)) * 100)));
+      aYieldBandMeter = withChartMeta({
+        kind: "meter",
+        title: `近${aHistory.length}日股息率分位`,
+        percent: barPos,
+        lowLabel: `低息 ${minY.toFixed(2)}%`,
+        midLabel: `高于近1年 ${rankPct}% 交易日`,
+        highLabel: `高息 ${maxY.toFixed(2)}%`,
+        stats: [
+          { label: "按现价折算", value: `${curY.toFixed(2)}%` },
+          { label: "近1年最高息", value: `${maxY.toFixed(2)}%` },
+          { label: "近1年最低息", value: `${minY.toFixed(2)}%` },
+        ],
+      });
+    }
+  }
+  const allDists = (Array.isArray(financials.dividendHistory) ? financials.dividendHistory : [])
+    .flatMap((yr) => (Array.isArray(yr && yr.distributions) ? yr.distributions : []))
+    .filter((d) => d && /^\d{4}-\d{2}-\d{2}$/.test(String(d.exDividendDate || "")) && hasNumber(d.perTenSharesRmb) && Number(d.perTenSharesRmb) > 0)
+    .sort((a, b) => String(b.exDividendDate).localeCompare(String(a.exDividendDate)));
+  base.recentDistributions = allDists.slice(0, 6).map((d, idx) => {
+    const basis = String(d.reportBasis || "");
+    let basisShort = "";
+    if (/^\d{4}-12-31$/.test(basis)) basisShort = `${basis.slice(0, 4)}年报`;
+    else if (/^\d{4}-06-30$/.test(basis)) basisShort = `${basis.slice(0, 4)}中报`;
+    else if (/^\d{4}-09-30$/.test(basis)) basisShort = `${basis.slice(0, 4)}三季报`;
+    else if (/^\d{4}-03-31$/.test(basis)) basisShort = `${basis.slice(0, 4)}一季报`;
+    return {
+      key: `dist-${idx}-${d.exDividendDate}`,
+      exDate: String(d.exDividendDate),
+      basisShort,
+      planText: String(d.plan || `10派${Number(d.perTenSharesRmb).toFixed(2)}元`).replace(/\(.*?\)|（.*?）/g, "").trim(),
+    };
+  });
   const priceBand = solidVisual([
     hasNumber(raw.currentPrice) ? { label: "样本报价", value: Number(raw.currentPrice), valueText: money(raw.currentPrice, "¥") } : null,
     hasNumber(raw.previousClose) ? { label: "昨收", value: Number(raw.previousClose), valueText: money(raw.previousClose, "¥") } : null,
@@ -1632,6 +1808,7 @@ function buildAShareView(base, item, snapshot) {
 
   setCharts(
     base,
+    aYieldBandMeter,
     yieldDetails,
     metricTilesVisual([
       ["自由现金流", formatLarge(financials.freeCashFlow)],
@@ -1652,9 +1829,10 @@ function buildAShareView(base, item, snapshot) {
   );
 
   base.trendCharts = aPriceLine
-    ? [aPriceLine, aPriceMeter].filter(Boolean)
+    ? [aPriceLine, aPriceMeter, aYieldBandMeter].filter(Boolean)
     : [priceBand].filter(Boolean);
   base.dividendCharts = [
+    aYieldBandMeter,
     dividendHistoryVisual(raw, snapshot.updatedAt),
     yieldDetails,
     metricTilesVisual([
@@ -3302,7 +3480,10 @@ Page({
     memberToolsEnabled: PRODUCT.memberToolsEnabled,
     writable: false,
     dividendShares: 1000,
+    dividendYears: 5,
     dividendCalcView: null,
+    hkCalcMode: "cash1",
+    hkIpoCalcView: null,
     posterBusy: false,
     starred: false,
     peerCompare: [],
@@ -3408,7 +3589,8 @@ Page({
           peerNav: buildPeerNav(snapshot, item),
           peerCompare: buildPeerCompare(snapshot, item),
           starred: isQuickStarred(item.market, item.id),
-          dividendCalcView: this.formatDividendCalc(view.dividendCalc, this.data.dividendShares),
+          dividendCalcView: this.formatDividendCalc(view.dividendCalc, this.data.dividendShares, this.data.dividendYears),
+          hkIpoCalcView: this.formatHkIpoCalc(view.hkIpoCalc, this.data.hkCalcMode),
           activeModule,
           activeCharts: chartsForModule(view, activeModule),
           group: item.group || "",
@@ -3496,16 +3678,40 @@ Page({
       wx.showToast({ title: result.starred ? "已星标（首页搜索框可直达）" : "已取消星标", icon: "none" });
     }
   },
-  formatDividendCalc(calc, shares) {
+  formatDividendCalc(calc, shares, years = 5) {
     if (!calc || !hasNumber(calc.dps) || !hasNumber(calc.price)) return null;
     const count = Number(shares) || 1000;
+    const yrs = Number(years) >= 0 ? Number(years) : 5;
+    const dps = Number(calc.dps);
+    const price = Number(calc.price);
+    const annualCash = dps * count;
+    const initCost = price * count;
+    let lifeTag = "约抵半年手机话费";
+    if (annualCash >= 15000) lifeTag = `月均领 ¥${Math.round(annualCash / 12).toLocaleString("en-US")} 零花`;
+    else if (annualCash >= 6000) lifeTag = "约抵全家年度旅行";
+    else if (annualCash >= 3000) lifeTag = "约抵全年小区物业费";
+    else if (annualCash >= 1200) lifeTag = "约抵全年水电燃气费";
+    else if (annualCash >= 500) lifeTag = "约抵全年手机话费";
+    const rate = price > 0 ? dps / price : 0;
+    const dripShares = yrs > 0 ? Math.floor(count * Math.pow(1 + rate, yrs)) : count;
+    const dripGainShares = Math.max(0, dripShares - count);
+    const dripAnnualCash = dps * dripShares;
+    const yocPct = initCost > 0 ? (dripAnnualCash / initCost) * 100 : 0;
+    const dilutedPerShare = Math.max(0, price - dps * (yrs || 1));
     return {
       shares: count,
+      years: yrs,
       year: calc.year,
-      dpsText: `¥${Number(calc.dps).toFixed(4)}`,
-      cashText: `¥${(Number(calc.dps) * count).toFixed(2)}`,
-      costText: `¥${Math.round(Number(calc.price) * count).toLocaleString("en-US")}`,
+      dpsText: `¥${dps.toFixed(4)}`,
+      cashText: `¥${annualCash.toFixed(2)}`,
+      lifeTag,
+      costText: `¥${Math.round(initCost).toLocaleString("en-US")}`,
       priceAsOf: calc.priceAsOf,
+      dripSharesText: `${dripShares.toLocaleString("en-US")}股`,
+      dripGainText: dripGainShares > 0 ? `+${dripGainShares.toLocaleString("en-US")}股` : "不变",
+      dripCashText: `¥${Math.round(dripAnnualCash).toLocaleString("en-US")}`,
+      yocText: `${yocPct.toFixed(2)}%`,
+      dilutedCostText: `¥${dilutedPerShare.toFixed(2)}`,
     };
   },
   selectDividendShares(event) {
@@ -3514,7 +3720,49 @@ Page({
     if (!calc) return;
     this.setData({
       dividendShares: shares,
-      dividendCalcView: this.formatDividendCalc(calc, shares),
+      dividendCalcView: this.formatDividendCalc(calc, shares, this.data.dividendYears),
+    });
+  },
+  selectDividendYears(event) {
+    const years = Number(event.currentTarget.dataset.years);
+    if (!Number.isFinite(years)) return;
+    const calc = this._fullView && this._fullView.dividendCalc;
+    if (!calc) return;
+    this.setData({
+      dividendYears: years,
+      dividendCalcView: this.formatDividendCalc(calc, this.data.dividendShares, years),
+    });
+  },
+  formatHkIpoCalc(calc, mode = "cash1") {
+    if (!calc || !hasNumber(calc.entryFee) || !(Number(calc.entryFee) > 0)) return null;
+    const fee1 = Number(calc.entryFee);
+    const m = String(mode || "cash1");
+    const lots = m === "margin10" ? 10 : (m === "cash5" ? 5 : 1);
+    const isMargin = m === "margin10";
+    const interest = isMargin ? Math.round(fee1 * 9 * 0.039 * (3 / 365)) : 0;
+    const brokerFee = isMargin ? 100 : 0;
+    const extraCost = interest + brokerFee;
+    const principal = isMargin ? Math.ceil(fee1 * 10 * 0.1 + brokerFee) : Math.ceil(fee1 * lots);
+    const breakevenPct = ((fee1 * 0.011 + extraCost) / fee1) * 100;
+    const gain10 = Math.round(fee1 * 0.1 - extraCost);
+    const loss10 = Math.round(fee1 * 0.1 + extraCost);
+    return {
+      mode: m,
+      lotsText: `${lots}手（每手${calc.lotSize}）`,
+      principalText: `HK$${principal.toLocaleString("en-US")}`,
+      costNote: isMargin ? `约 HK$${extraCost}（含百元融资费+3天计息）` : "HK$0（现金申购免息）",
+      breakevenText: `约 +${breakevenPct.toFixed(1)}%`,
+      up10Text: `${gain10 >= 0 ? "+" : "-"}HK$${Math.abs(gain10).toLocaleString("en-US")}`,
+      down10Text: `-HK$${loss10.toLocaleString("en-US")}`,
+    };
+  },
+  selectHkCalcMode(event) {
+    const mode = String(event.currentTarget.dataset.mode || "cash1");
+    const calc = this._fullView && this._fullView.hkIpoCalc;
+    if (!calc) return;
+    this.setData({
+      hkCalcMode: mode,
+      hkIpoCalcView: this.formatHkIpoCalc(calc, mode),
     });
   },
   // 借鉴韭圈儿×Claude：一键把当前详情页绘制成高清研报图片卡，支持长按保存或直接转发群聊。

@@ -2345,3 +2345,152 @@
   font-size: 26rpx;
   line-height: 1.5;
 }
+
+/* ---------- 0.4.5 息记复投试算&除息流水 · 富途打新算账器 · IBKR同业与大师持仓背书 ---------- */
+
+.div-life-tag {
+  display: block;
+  margin-top: 4rpx;
+  color: #0b7a48;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.div-sub-tag {
+  display: block;
+  margin-top: 4rpx;
+  color: #64748b;
+  font-size: 24rpx;
+}
+
+.div-calc-v.is-blue {
+  color: #1d5fd1;
+}
+
+.drip-box {
+  margin: 14rpx 22rpx 4rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid #dbe6f7;
+  background: #f8fbff;
+}
+
+.drip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+}
+
+.drip-title {
+  color: #1e3a8a;
+  font-size: 25rpx;
+  font-weight: 760;
+}
+
+.drip-pills {
+  display: flex;
+  gap: 8rpx;
+}
+
+.drip-pill {
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 24rpx;
+  font-weight: 680;
+}
+
+.drip-pill.is-active {
+  border-color: #1d5fd1;
+  background: #1d5fd1;
+  color: #ffffff;
+}
+
+.drip-stats {
+  display: flex;
+  margin-top: 14rpx;
+  gap: 8rpx;
+}
+
+.drip-stat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.drip-k {
+  color: #64748b;
+  font-size: 24rpx;
+}
+
+.drip-v {
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.drip-v.is-green { color: #0b7a48; }
+.drip-v.is-blue { color: #1d5fd1; }
+
+.hk-calc-pills {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.hk-calc-card {
+  padding-bottom: 18rpx;
+}
+
+.guru-endorse-card,
+.dist-log-card {
+  padding-bottom: 12rpx;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
+}
+
+.guru-endorse-row,
+.dist-log-row {
+  display: flex;
+  padding: 14rpx 22rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  border-top: 1rpx solid #edf0f5;
+}
+
+.guru-endorse-name {
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 740;
+}
+
+.guru-endorse-val {
+  color: #1d5fd1;
+  font-size: 25rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dist-log-left {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.dist-log-date {
+  color: #334155;
+  font-size: 26rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+}
+
+.dist-log-plan {
+  color: #0b7a48;
+  font-size: 26rpx;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+}

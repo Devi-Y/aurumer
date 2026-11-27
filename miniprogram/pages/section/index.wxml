@@ -48,7 +48,15 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{hkSubTab === 'exit'}}"
-      >中签与首日涨跌</view>
+      >中签与战绩</view>
+      <view
+        class="hk-tab {{hkSubTab === 'sponsors' ? 'is-active' : ''}}"
+        data-id="sponsors"
+        bindtap="switchHkSubTab"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-selected="{{hkSubTab === 'sponsors'}}"
+      >保荐人胜率</view>
     </view>
 
     <block wx:if="{{hkSubTab === 'apply'}}">
@@ -112,9 +120,14 @@
               <text class="hk-stat-value">{{stat.value}}</text>
             </view>
           </view>
+          <text wx:if="{{item.scheduleLine}}" class="hk-schedule-line">{{item.scheduleLine}}</text>
+          <text wx:if="{{item.cornerstoneLine}}" class="hk-cs-line">{{item.cornerstoneLine}}</text>
           <view class="hk-row-meta">
-            <text>{{item.deadlineLabel}}</text>
-            <text class="hk-row-caret">详情 ›</text>
+            <view class="hk-deadline-wrap">
+              <text>{{item.deadlineLabel}}</text>
+              <text wx:if="{{item.countdownPill}}" class="hk-countdown-pill">{{item.countdownPill}}</text>
+            </view>
+            <text class="hk-row-caret">算账与详情 ›</text>
           </view>
         </view>
       </view>
@@ -187,7 +200,13 @@
         <text class="hk-tier-foot">{{hkExitChart.sampleText}}</text>
       </view>
 
-      <!-- 捷利交易宝同款：新股前夜 · 首日涨跌 · 一手盈亏战绩账本 -->
+      <!-- 捷利交易宝同款：新股前夜 · 首日涨跌 · 一手盈亏战绩账本（支持四维切换排序） -->
+      <view wx:if="{{hkHistoryRows.length}}" class="sort-bar hk-hist-sort">
+        <text class="sort-pill {{hkHistorySort === 'latest' ? 'is-active' : ''}}" data-sort="latest" bindtap="sortHkHistory" aria-role="button">按最新</text>
+        <text class="sort-pill {{hkHistorySort === 'firstDay' ? 'is-active' : ''}}" data-sort="firstDay" bindtap="sortHkHistory" aria-role="button">首日涨幅榜</text>
+        <text class="sort-pill {{hkHistorySort === 'pnl' ? 'is-active' : ''}}" data-sort="pnl" bindtap="sortHkHistory" aria-role="button">一手赚钱榜</text>
+        <text class="sort-pill {{hkHistorySort === 'drop' ? 'is-active' : ''}}" data-sort="drop" bindtap="sortHkHistory" aria-role="button">破发复盘</text>
+      </view>
       <view wx:if="{{hkHistoryRows.length}}" class="hk-scoreboard">
         <view class="hk-sb-head">
           <text class="hk-sb-col-name">已上市新股</text>
@@ -208,6 +227,7 @@
           <view class="hk-sb-col-name">
             <text class="hk-sb-name">{{item.name}}</text>
             <text class="hk-sb-sub">{{item.code}}{{item.date ? ' · ' + item.date : ''}}</text>
+            <text wx:if="{{item.crowdText}}" class="hk-sb-crowd">{{item.crowdText}}</text>
           </view>
           <text class="hk-sb-col-num is-{{item.greyTone}}">{{item.greyText}}</text>
           <text class="hk-sb-col-num is-{{item.firstDayTone}}">{{item.firstDayText}}</text>
@@ -224,6 +244,53 @@
         </view>
       </view>
       <text wx:if="{{!hkExitChart && !hkExitOptions.length && !hkHistoryRows.length}}" class="hk-empty-text">历史样本不足</text>
+    </block>
+
+    <block wx:if="{{hkSubTab === 'sponsors'}}">
+      <!-- 对标捷利交易宝新股通：抢购热度三档规律 + 保荐人历史护盘胜率榜 -->
+      <view wx:if="{{hkCrowdBuckets.length}}" class="hk-crowd-box">
+        <text class="hk-sub-box-title">抢购冷热与中签胜率规律（基于已收录真实样本）</text>
+        <view class="hk-crowd-head">
+          <text class="hk-crowd-c1">抢购热度分档</text>
+          <text class="hk-crowd-c2">一手中签</text>
+          <text class="hk-crowd-c2">首日胜率</text>
+          <text class="hk-crowd-c2">首日均涨</text>
+        </view>
+        <view wx:for="{{hkCrowdBuckets}}" wx:key="key" class="hk-crowd-row">
+          <view class="hk-crowd-c1">
+            <text class="hk-crowd-name">{{item.label}}</text>
+            <text class="hk-crowd-sub">样本 {{item.countText}}</text>
+          </view>
+          <text class="hk-crowd-c2">{{item.avgLotText}}</text>
+          <text class="hk-crowd-c2">{{item.winText}}</text>
+          <text class="hk-crowd-c2 is-{{item.fdTone}}">{{item.avgFdText}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{hkSponsorRows.length}}" class="hk-sponsor-box">
+        <text class="hk-sub-box-title">头部保荐机构历史首日战绩（保荐≥2只）</text>
+        <view wx:for="{{hkSponsorRows}}" wx:key="name" class="hk-sp-row">
+          <view class="hk-sp-top">
+            <view class="hk-sp-left">
+              <text class="hk-sp-name">{{item.name}}</text>
+              <text class="code-pill">{{item.countText}}</text>
+            </view>
+            <view class="hk-sp-right">
+              <text class="hk-sp-win is-{{item.winTone}}">首日胜率 {{item.winText}}</text>
+              <text class="hk-sp-avg is-{{item.avgTone}}">均值 {{item.avgFdText}}</text>
+            </view>
+          </view>
+          <view class="hk-sp-bar-track">
+            <view class="hk-sp-bar-fill is-{{item.winTone}}" style="width: {{item.winPct}}%;"></view>
+          </view>
+          <view class="hk-sp-foot">
+            <text>{{item.recordText}}</text>
+            <text wx:if="{{item.bestNote}}">{{item.bestNote}}</text>
+          </view>
+        </view>
+        <text class="hk-sp-note">注：以上为已上市历史样本客观统计，过往保荐表现不代表后续新股必然上涨。</text>
+      </view>
+      <text wx:else class="hk-empty-text">保荐人统计样本待补充</text>
     </block>
   </view>
 
@@ -242,6 +309,14 @@
         aria-role="button"
         aria-selected="{{usSubTab === 'seven'}}"
       >七大巨头</view>
+      <view
+        class="us-tab {{usSubTab === 'compare' ? 'is-active' : ''}}"
+        data-id="compare"
+        bindtap="switchUsSubTab"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-selected="{{usSubTab === 'compare'}}"
+      >巨头横评</view>
       <view
         class="us-tab {{usSubTab === 'hot' ? 'is-active' : ''}}"
         data-id="hot"
@@ -267,6 +342,135 @@
         aria-selected="{{usSubTab === 'heatmap'}}"
       >热力图</view>
     </view>
+
+    <block wx:if="{{usSubTab === 'compare'}}">
+      <!-- 对标 IBKR GlobalAnalyst × 东方财富美股：七巨头同台三维横评 + 全池官方公告快讯 -->
+      <view class="sort-bar us-cmp-pills">
+        <text class="sort-pill {{usCompareDim === 'val' ? 'is-active' : ''}}" data-dim="val" bindtap="switchUsCompareDim" aria-role="button">估值与买点</text>
+        <text class="sort-pill {{usCompareDim === 'growth' ? 'is-active' : ''}}" data-dim="growth" bindtap="switchUsCompareDim" aria-role="button">增速与毛利</text>
+        <text class="sort-pill {{usCompareDim === 'cash' ? 'is-active' : ''}}" data-dim="cash" bindtap="switchUsCompareDim" aria-role="button">现金流家底</text>
+        <text class="sort-pill {{usCompareDim === 'filings' ? 'is-active' : ''}}" data-dim="filings" bindtap="switchUsCompareDim" aria-role="button">公告快讯</text>
+      </view>
+
+      <block wx:if="{{usCompareDim !== 'filings' && usSevenCompare}}">
+        <view wx:if="{{usSevenCompare.benchPills.length}}" class="ibkr-bench-strip">
+          <view wx:for="{{usSevenCompare.benchPills}}" wx:key="label" class="ibkr-bench-cell">
+            <text class="ibkr-bench-k">{{item.label}}</text>
+            <text class="ibkr-bench-v">{{item.value}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{usCompareDim === 'val'}}" class="ibkr-table">
+          <view class="ibkr-th">
+            <text class="ibkr-c-name">公司</text>
+            <text class="ibkr-c-mid">回本年数</text>
+            <text class="ibkr-c-mid">近3月位置</text>
+            <text class="ibkr-c-end">距低接区</text>
+          </view>
+          <view
+            wx:for="{{usSevenCompare.rows}}"
+            wx:key="id"
+            class="ibkr-tr"
+            data-id="{{item.id}}"
+            bindtap="openUsDetail"
+            hover-class="tap-active"
+            aria-role="button"
+          >
+            <view class="ibkr-c-name">
+              <text class="ibkr-name">{{item.name}}</text>
+              <text class="ibkr-sub">{{item.code}} · {{item.priceText}}</text>
+            </view>
+            <text class="ibkr-c-mid is-{{item.peTone}}">{{item.peText}}</text>
+            <text class="ibkr-c-mid">{{item.posText}}</text>
+            <text class="ibkr-c-end is-{{item.buyGapTone}}">{{item.buyGapText}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{usCompareDim === 'growth'}}" class="ibkr-table">
+          <view class="ibkr-th">
+            <text class="ibkr-c-name">公司</text>
+            <text class="ibkr-c-mid">营收增速</text>
+            <text class="ibkr-c-mid">毛利率</text>
+            <text class="ibkr-c-end">净利/回报</text>
+          </view>
+          <view
+            wx:for="{{usSevenCompare.rows}}"
+            wx:key="id"
+            class="ibkr-tr"
+            data-id="{{item.id}}"
+            bindtap="openUsDetail"
+            hover-class="tap-active"
+            aria-role="button"
+          >
+            <view class="ibkr-c-name">
+              <text class="ibkr-name">{{item.name}}</text>
+              <text class="ibkr-sub">{{item.shortTag}}</text>
+            </view>
+            <text class="ibkr-c-mid is-{{item.revGTone}}">{{item.revGText}}</text>
+            <view class="ibkr-c-mid ibkr-bar-cell">
+              <text class="ibkr-cell-num">{{item.gmText}}</text>
+              <view class="ibkr-mini-track"><view class="ibkr-mini-fill" style="width: {{item.gmBar}}%;"></view></view>
+            </view>
+            <text class="ibkr-c-end">{{item.pmRoeText}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{usCompareDim === 'cash'}}" class="ibkr-table">
+          <view class="ibkr-th">
+            <text class="ibkr-c-name">公司</text>
+            <text class="ibkr-c-mid">经营现金流</text>
+            <text class="ibkr-c-mid">现金储备</text>
+            <text class="ibkr-c-end">总市值</text>
+          </view>
+          <view
+            wx:for="{{usSevenCompare.rows}}"
+            wx:key="id"
+            class="ibkr-tr"
+            data-id="{{item.id}}"
+            bindtap="openUsDetail"
+            hover-class="tap-active"
+            aria-role="button"
+          >
+            <view class="ibkr-c-name">
+              <text class="ibkr-name">{{item.name}}</text>
+              <text class="ibkr-sub">{{item.guruText}}</text>
+            </view>
+            <text class="ibkr-c-mid">{{item.ocfText}}</text>
+            <text class="ibkr-c-mid">{{item.cashText}}</text>
+            <text class="ibkr-c-end">{{item.mcapText}}</text>
+          </view>
+        </view>
+        <text class="ibkr-foot-note">点任意一行可进入个股详情查看近 4 财年营收/净利柱图与完整依据。</text>
+      </block>
+
+      <block wx:if="{{usCompareDim === 'filings'}}">
+        <view wx:if="{{usFilingsList.length}}" class="us-filings-feed">
+          <view
+            wx:for="{{usFilingsList}}"
+            wx:key="key"
+            class="us-filing-item"
+            data-id="{{item.id}}"
+            bindtap="openUsDetail"
+            hover-class="tap-active"
+            aria-role="button"
+          >
+            <view class="us-filing-head">
+              <view class="code-name-line">
+                <text class="us-filing-name">{{item.name}}</text>
+                <text class="code-pill">{{item.code}}</text>
+                <text class="mini-tag">{{item.formZh}}</text>
+              </view>
+              <text class="us-filing-date">{{item.date}}</text>
+            </view>
+            <view class="us-filing-foot">
+              <text class="us-filing-sum">{{item.summary}}</text>
+              <text class="hk-row-caret">详情 ›</text>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="us-empty"><text>近期暂无已收录的官方备案快讯。</text></view>
+      </block>
+    </block>
 
     <block wx:if="{{usSubTab === 'heatmap'}}">
       <view class="sort-bar">
@@ -394,6 +598,7 @@
             <text wx:if="{{item.posChip}}" class="data-chip is-{{item.posTone}}">{{item.posChip}}</text>
             <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
             <text wx:if="{{item.capChip}}" class="data-chip">{{item.capChip}}</text>
+            <text wx:if="{{item.guruChip}}" class="data-chip is-income">{{item.guruChip}}</text>
           </view>
           <text wx:if="{{item.event}}" class="us-event-line">{{item.eventDate}} {{item.event}}</text>
         </view>
@@ -459,7 +664,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'stable'}}"
-      >稳分红榜</view>
+      >稳分红</view>
       <view
         class="a-tab {{aSubTab === 'yield' ? 'is-active' : ''}}"
         data-id="yield"
@@ -467,7 +672,15 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'yield'}}"
-      >高股息榜</view>
+      >高股息</view>
+      <view
+        class="a-tab {{aSubTab === 'calendar' ? 'is-active' : ''}}"
+        data-id="calendar"
+        bindtap="switchASubTab"
+        hover-class="tap-active"
+        aria-role="button"
+        aria-selected="{{aSubTab === 'calendar'}}"
+      >派息月历</view>
       <view
         class="a-tab {{aSubTab === 'all' ? 'is-active' : ''}}"
         data-id="all"
@@ -486,7 +699,7 @@
       >热力图</view>
     </view>
 
-    <!-- 对标「息记」：投入本金收息档位器，点金额实时换算全榜每年/每月现金分红 -->
+    <!-- 对标「息记」：投入本金收息档位器 + 息覆生活开销具象化提示 -->
     <view wx:if="{{aSubTab !== 'heatmap'}}" class="a-calc-strip">
       <text class="a-calc-label">收息试算</text>
       <view class="a-calc-pills">
@@ -496,6 +709,54 @@
         <text class="a-calc-pill {{aPrincipalWan === 50 ? 'is-active' : ''}}" data-wan="50" bindtap="selectAPrincipal" aria-role="button">投50万</text>
       </view>
     </view>
+    <text wx:if="{{aSubTab !== 'heatmap' && aSubTab !== 'calendar' && aLifeSummary}}" class="a-life-strip">{{aLifeSummary}}</text>
+
+    <block wx:if="{{aSubTab === 'calendar'}}">
+      <text wx:if="{{aCalendarSummary}}" class="a-cal-summary">{{aCalendarSummary}}</text>
+      <view class="a-cal-grid" wx:if="{{aCalendarMonths.length}}">
+        <view
+          wx:for="{{aCalendarMonths}}"
+          wx:key="month"
+          class="a-cal-cell tone-{{item.tone}} {{aCalendarMonth === item.month ? 'is-selected' : ''}}"
+          data-month="{{item.month}}"
+          bindtap="selectACalendarMonth"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text class="a-cal-m">{{item.label}}</text>
+          <text class="a-cal-c">{{item.countText}}</text>
+        </view>
+      </view>
+      <view class="a-cal-list" wx:if="{{aCalendarRows.length}}">
+        <view class="a-cal-list-head">
+          <text class="a-cal-head-title">{{aCalendarMonth}}月历史除息标的（{{aCalendarRows.length}}只）</text>
+          <text class="a-cal-head-sub">按近一年已实施记录归纳</text>
+        </view>
+        <view
+          wx:for="{{aCalendarRows}}"
+          wx:key="key"
+          class="a-cal-row"
+          data-id="{{item.id}}"
+          bindtap="openADetail"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <view class="a-cal-row-top">
+            <view class="code-name-line">
+              <text class="a-stock-name">{{item.name}}</text>
+              <text class="code-pill">{{item.code}}</text>
+              <text class="mini-tag {{item.isMulti ? 'is-multi-div' : ''}}">{{item.freqLabel}}</text>
+            </view>
+            <text class="hk-row-caret">复投试算 ›</text>
+          </view>
+          <view class="a-cal-row-bottom">
+            <text class="a-cal-plan">{{item.exDate}} 除息 · {{item.planShort}}</text>
+            <text wx:if="{{item.cashNote}}" class="a-cal-cash">{{item.cashNote}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="a-empty" wx:else><text>{{aCalendarMonth}}月暂无已收录的除息记录，请点击上方高亮月份查看。</text></view>
+    </block>
 
     <block wx:if="{{aSubTab === 'heatmap'}}">
       <view class="sort-bar">

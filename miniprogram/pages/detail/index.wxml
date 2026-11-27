@@ -317,10 +317,10 @@
           </view>
         </view>
 
-        <!-- A股收息首屏分红试算器：点股数直接看年度现金分红（对标息记） -->
+        <!-- A股收息首屏分红与复投试算器：点股数+年限看年度分红、生活映射与成本摊薄（对标息记） -->
         <view wx:if="{{view.market == 'a' && dividendCalcView}}" class="section-card div-calc-card">
           <view class="div-calc-head">
-            <text class="block-title">持股分红试算</text>
+            <text class="block-title">持股分红与复投试算</text>
             <text class="div-calc-year">{{dividendCalcView.year}}年度已实施</text>
           </view>
           <view class="div-calc-pills">
@@ -333,12 +333,64 @@
             <view class="div-calc-metric">
               <text class="div-calc-k">年度税前分红</text>
               <text class="div-calc-v">{{dividendCalcView.cashText}}</text>
+              <text class="div-life-tag">息覆生活 · {{dividendCalcView.lifeTag}}</text>
             </view>
             <view class="div-calc-metric">
               <text class="div-calc-k">{{dividendCalcView.priceAsOf}} 对应市值</text>
               <text class="div-calc-v is-sub">{{dividendCalcView.costText}}</text>
+              <text class="div-sub-tag">收息{{dividendYears || 1}}年摊薄至 {{dividendCalcView.dilutedCostText}}/股</text>
             </view>
           </view>
+          <view class="drip-box">
+            <view class="drip-head">
+              <text class="drip-title">分红再买股（复利推演）</text>
+              <view class="drip-pills">
+                <text class="drip-pill {{dividendYears === 3 ? 'is-active' : ''}}" data-years="3" bindtap="selectDividendYears" aria-role="button">3年</text>
+                <text class="drip-pill {{dividendYears === 5 ? 'is-active' : ''}}" data-years="5" bindtap="selectDividendYears" aria-role="button">5年</text>
+                <text class="drip-pill {{dividendYears === 10 ? 'is-active' : ''}}" data-years="10" bindtap="selectDividendYears" aria-role="button">10年</text>
+              </view>
+            </view>
+            <view class="drip-stats">
+              <view class="drip-stat">
+                <text class="drip-k">{{dividendYears}}年后攒股</text>
+                <text class="drip-v">{{dividendCalcView.dripSharesText}}</text>
+              </view>
+              <view class="drip-stat">
+                <text class="drip-k">届时年领</text>
+                <text class="drip-v is-green">{{dividendCalcView.dripCashText}}</text>
+              </view>
+              <view class="drip-stat">
+                <text class="drip-k">相对本金息率</text>
+                <text class="drip-v is-blue">{{dividendCalcView.yocText}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 港股打新首屏本金与回本试算器（对标富途牛牛打新计算器） -->
+        <view wx:if="{{view.market == 'hk' && hkIpoCalcView}}" class="section-card div-calc-card hk-calc-card">
+          <view class="div-calc-head">
+            <text class="block-title">打新本金与回本算账</text>
+            <text class="div-calc-year">{{hkIpoCalcView.lotsText}}</text>
+          </view>
+          <view class="div-calc-pills hk-calc-pills">
+            <text class="div-calc-pill {{hkCalcMode === 'cash1' ? 'is-active' : ''}}" data-mode="cash1" bindtap="selectHkCalcMode" aria-role="button">现金1手(0息)</text>
+            <text class="div-calc-pill {{hkCalcMode === 'cash5' ? 'is-active' : ''}}" data-mode="cash5" bindtap="selectHkCalcMode" aria-role="button">现金5手</text>
+            <text class="div-calc-pill {{hkCalcMode === 'margin10' ? 'is-active' : ''}}" data-mode="margin10" bindtap="selectHkCalcMode" aria-role="button">10倍融资10手</text>
+          </view>
+          <view class="div-calc-result">
+            <view class="div-calc-metric">
+              <text class="div-calc-k">需准备本金</text>
+              <text class="div-calc-v is-sub">{{hkIpoCalcView.principalText}}</text>
+              <text class="div-sub-tag">{{hkIpoCalcView.costNote}}</text>
+            </view>
+            <view class="div-calc-metric">
+              <text class="div-calc-k">中1手回本涨幅</text>
+              <text class="div-calc-v is-blue">{{hkIpoCalcView.breakevenText}}</text>
+              <text class="div-sub-tag">涨10% {{hkIpoCalcView.up10Text}} · 跌10% {{hkIpoCalcView.down10Text}}</text>
+            </view>
+          </view>
+          <text class="div-calc-note">按公开招股入场费与常见券商费率算术试算，不预测上市涨跌。</text>
         </view>
 
         <!-- 首屏核心图表直出（A股历年分红柱图 / 美股利润率与营收图 / 港股样本涨跌图 / 大佬重仓权重图） -->
@@ -366,6 +418,41 @@
         </view>
 
         <text wx:if="{{view.overview.reason}}" class="module-answer">{{view.overview.reason}}</text>
+
+        <!-- 对标富途牛牛：明星大师持仓联动背书卡（美股七姐妹等机构重仓股首屏直出） -->
+        <view wx:if="{{view.market == 'us' && view.holdings && view.holdings.length}}" class="section-card guru-endorse-card">
+          <view class="div-calc-head">
+            <text class="block-title">聪明钱大师持仓追踪</text>
+            <text class="div-calc-year">{{view.holdings.length}}家机构披露持有</text>
+          </view>
+          <view wx:for="{{view.holdings}}" wx:key="name" class="guru-endorse-row">
+            <text class="guru-endorse-name">{{item.name}}</text>
+            <text class="guru-endorse-val">{{item.value}}</text>
+          </view>
+        </view>
+
+        <!-- 对标 IBKR × 东方财富：同池可比龙头一键横向切换 -->
+        <view wx:if="{{peerCompare && peerCompare.length}}" class="section-card peer-cmp-card">
+          <view class="div-calc-head">
+            <text class="block-title">{{view.market == 'us' ? '同池巨头横向对照' : '同板块收息股对照'}}</text>
+            <text class="div-calc-year">点击秒切</text>
+          </view>
+          <view class="peer-cmp-grid">
+            <view
+              wx:for="{{peerCompare}}"
+              wx:key="id"
+              class="peer-cmp-cell"
+              data-id="{{item.id}}"
+              bindtap="switchPeer"
+              hover-class="tap-active"
+              aria-role="button"
+            >
+              <text class="peer-cmp-name">{{item.name}}</text>
+              <text class="peer-cmp-m1">{{item.metric1}}</text>
+              <text wx:if="{{item.metric2}}" class="peer-cmp-m2">{{item.metric2}}</text>
+            </view>
+          </view>
+        </view>
 
         <view wx:if="{{view.overview.keyRisk}}" class="risk-card">
           <text class="risk-label">风险留意</text>
@@ -452,6 +539,19 @@
             </view>
           </view>
           <text class="div-calc-note">按每股税前分红 {{dividendCalcView.dpsText}} 算术对照，纯历史口径，不预测未来分红。</text>
+        </view>
+        <view wx:if="{{view.recentDistributions && view.recentDistributions.length}}" class="section-card dist-log-card">
+          <view class="div-calc-head">
+            <text class="block-title">近期历次除息派现记录</text>
+            <text class="div-calc-year">官方分红方案</text>
+          </view>
+          <view wx:for="{{view.recentDistributions}}" wx:key="key" class="dist-log-row">
+            <view class="dist-log-left">
+              <text class="dist-log-date">{{item.exDate}} 除息</text>
+              <text wx:if="{{item.basisShort}}" class="mini-tag">{{item.basisShort}}</text>
+            </view>
+            <text class="dist-log-plan">{{item.planText}}</text>
+          </view>
         </view>
         <block wx:if="{{activeCharts.length}}">
           <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />

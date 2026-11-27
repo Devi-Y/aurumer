@@ -3,19 +3,11 @@
     "pages/index/index",
     "pages/section/index",
     "pages/list/index",
-    "pages/detail/index"
+    "pages/detail/index",
+    "pages/guide/index",
+    "pages/community/index"
   ],
   "subpackages": [
-    {
-      "root": "pages/guide",
-      "name": "guide",
-      "pages": ["index"]
-    },
-    {
-      "root": "pages/community",
-      "name": "community",
-      "pages": ["index"]
-    },
     {
       "root": "pages/community-terms",
       "name": "communityTerms",
@@ -42,12 +34,6 @@
       "pages": ["index"]
     }
   ],
-  "preloadRule": {
-    "pages/index/index": {
-      "network": "all",
-      "packages": ["guide", "community"]
-    }
-  },
   "window": {
     "navigationBarTitleText": "望潮 Aurum",
     "navigationBarBackgroundColor": "#FFFFFF",

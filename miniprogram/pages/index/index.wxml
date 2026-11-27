@@ -41,9 +41,10 @@
         <text>未找到“{{searchQuery}}”，可换简称或代码试试</text>
       </view>
 
-      <view wx:if="{{hotPicks.length}}" class="search-picks-row">
-        <view class="search-picks-label" aria-hidden="true">
-          <text>热度</text>
+      <view wx:if="{{hotPicks.length}}" class="search-picks-section">
+        <view class="search-picks-head">
+          <text class="search-picks-badge">热度</text>
+          <text class="search-picks-sub">美 · A · 港代表走势直达</text>
         </view>
         <view class="search-picks-grid">
           <view
@@ -55,10 +56,18 @@
             bindtap="openSearchResult"
             hover-class="tap-active"
             aria-role="button"
-            aria-label="热门股票 {{item.label}} {{item.code}}"
+            aria-label="热门股票 {{item.label}} {{item.code}} {{item.figure}}"
           >
-            <text class="search-pick-name">{{item.label}}</text>
+            <view class="pick-top-row">
+              <text class="search-pick-name">{{item.label}}</text>
+              <text class="pick-mkt-dot mkt-{{item.market}}">{{item.marketTag}}</text>
+            </view>
             <text class="search-pick-code">{{item.code}}</text>
+            <image wx:if="{{item.sparkSrc}}" class="pick-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
+            <view wx:else class="pick-spark-placeholder">
+              <text class="pick-ipo-tag">新股招股</text>
+            </view>
+            <text wx:if="{{item.figure}}" class="pick-figure tone-{{item.figTone}}">{{item.figure}}</text>
           </view>
         </view>
       </view>

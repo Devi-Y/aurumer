@@ -4,28 +4,28 @@
   display: flex;
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 24rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  padding: 20rpx 26rpx calc(20rpx + env(safe-area-inset-bottom));
   flex-direction: column;
   justify-content: space-between;
   overflow-x: hidden;
-  background: #f3f5f9;
+  background: #f2f5fa;
 }
 
 .home-main {
   display: flex;
   flex: 1;
   flex-direction: column;
-  justify-content: center;
-  gap: 24rpx;
+  justify-content: space-between;
+  gap: 22rpx;
 }
 
-/* ---------- 顶部一体化搜索卡 + 港美A热度代表（含代码，左右严格对齐） ---------- */
+/* ---------- 顶部一体化搜索 + 港美A带走势图的热度卡片 ---------- */
 
 .home-search-wrap {
   position: relative;
   z-index: 20;
   flex: none;
-  padding: 22rpx 22rpx 20rpx;
+  padding: 22rpx 22rpx 22rpx;
   border-radius: 32rpx;
   background: #ffffff;
   box-shadow: 0 8rpx 28rpx rgba(15, 23, 42, 0.045);
@@ -165,34 +165,38 @@
   text-align: center;
 }
 
-.search-picks-row {
+.search-picks-section {
   display: flex;
-  margin-top: 16rpx;
-  align-items: stretch;
+  margin-top: 18rpx;
+  flex-direction: column;
   gap: 12rpx;
 }
 
-.search-picks-label {
+.search-picks-head {
   display: flex;
-  width: 56rpx;
-  flex: none;
-  padding: 8rpx 6rpx;
-  box-sizing: border-box;
+  padding: 0 2rpx;
   align-items: center;
-  justify-content: center;
-  border-radius: 16rpx;
+  gap: 12rpx;
+}
+
+.search-picks-badge {
+  padding: 4rpx 14rpx;
+  border-radius: 10rpx;
   background: #eaf2ff;
   color: #1d5fd1;
-  font-size: 24rpx;
-  font-weight: 760;
-  line-height: 1.25;
-  text-align: center;
+  font-size: 23rpx;
+  font-weight: 780;
+}
+
+.search-picks-sub {
+  color: #64748b;
+  font-size: 23rpx;
+  font-weight: 560;
 }
 
 .search-picks-grid {
   display: flex;
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   gap: 12rpx;
 }
 
@@ -200,44 +204,98 @@
   display: flex;
   flex: 1;
   min-width: 0;
-  padding: 12rpx 10rpx;
+  padding: 16rpx 14rpx 14rpx;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
   gap: 4rpx;
   border: 1rpx solid #ebeef5;
-  border-radius: 18rpx;
-  background: #f7f9fc;
+  border-radius: 20rpx;
+  background: #f8fafd;
+}
+
+.pick-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6rpx;
 }
 
 .search-pick-name {
-  max-width: 100%;
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
   color: #0f172a;
   font-size: 28rpx;
-  font-weight: 740;
+  font-weight: 780;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.pick-mkt-dot {
+  flex: none;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+  background: #eaf2ff;
+  color: #1d5fd1;
+  font-size: 19rpx;
+  font-weight: 720;
+}
+
+.pick-mkt-dot.mkt-a { background: #fdf1ef; color: #c2412d; }
+.pick-mkt-dot.mkt-hk { background: #eef6f2; color: #0d8a52; }
+
 .search-pick-code {
-  max-width: 100%;
   overflow: hidden;
   color: #64748b;
-  font-size: 22rpx;
-  font-weight: 620;
+  font-size: 21rpx;
+  font-weight: 640;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ---------- 比例方正协调的 3×3 适老化九宫格 ---------- */
+.pick-spark {
+  display: block;
+  width: 100%;
+  height: 46rpx;
+  margin: 6rpx 0 2rpx;
+}
+
+.pick-spark-placeholder {
+  display: flex;
+  height: 46rpx;
+  margin: 6rpx 0 2rpx;
+  align-items: center;
+}
+
+.pick-ipo-tag {
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  background: #eef4ff;
+  color: #1d5fd1;
+  font-size: 20rpx;
+  font-weight: 680;
+}
+
+.pick-figure {
+  color: #0f172a;
+  font-size: 27rpx;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.pick-figure.tone-up { color: #c2412d; }
+.pick-figure.tone-down { color: #0d8a52; }
+
+/* ---------- 撑满主屏黄金比例的 3×3 适老化九宫格 ---------- */
 
 .home-panel {
-  flex: none;
-  padding: 22rpx 12rpx;
+  display: flex;
+  flex: 1;
+  padding: 18rpx 12rpx;
   border-radius: 32rpx;
   background: #ffffff;
   box-shadow: 0 8rpx 28rpx rgba(15, 23, 42, 0.045);
@@ -246,7 +304,9 @@
 .entry-grid {
   display: flex;
   width: 100%;
+  flex: 1;
   flex-wrap: wrap;
+  align-content: space-evenly;
 }
 
 .grid-card {
@@ -260,7 +320,7 @@
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  padding: 18rpx 8rpx;
+  padding: 14rpx 8rpx;
   border-radius: 16rpx;
   text-align: center;
 }

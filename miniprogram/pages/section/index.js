@@ -215,11 +215,15 @@ function buildHkModule(snapshot) {
     const deadline = raw.offerDeadline || raw.offerEnd;
     const deadlineOffset = hkDeadlineOffset(deadline);
     const closed = deadlineOffset != null && deadlineOffset < 0;
-    const sponsorText = Array.isArray(raw.sponsorNames) && raw.sponsorNames.length
-      ? shortOrgList(raw.sponsorNames, "", 1)
-      : (raw.sponsor ? shortOrgList(String(raw.sponsor).split(/[、,，/]/).map((s) => s.trim()).filter(Boolean), "", 1) : "");
+    const rawFirstSponsor = Array.isArray(raw.sponsorNames) && raw.sponsorNames.length
+      ? String(raw.sponsorNames[0] || "")
+      : (raw.sponsor ? String(raw.sponsor).split(/[、,，/]/)[0] : "");
+    const sponsorClean = rawFirstSponsor
+      .replace(/（香港）|有限公司|股份有限公司|金融控股|证券|国际|融资|资本/gu, "")
+      .trim()
+      .slice(0, 5);
     const indTag = raw.industry ? String(raw.industry).split(/[\/、·,，]/)[0].trim().slice(0, 6) : "";
-    const tagPills = [indTag, sponsorText ? `保荐 ${sponsorText}` : ""].filter(Boolean);
+    const tagPills = [indTag, sponsorClean ? `保荐 ${sponsorClean}` : ""].filter(Boolean);
     const stageStep = item.group === "settled" ? 2 : (closed ? 1 : 0);
     const stageSteps = ["招股", "截止", "配发", "上市"].map((label, idx) => ({
       label,
@@ -553,12 +557,7 @@ function buildUsModule(snapshot) {
   const hotItems = items.filter((item) => item.group === "hot");
   const sparkCache = new Map();
 
-  // 「全部」：池里每一只，复用 sparkCache 避免七姐妹和热门股重复做 SVG Base64 编码。
-  const allRows = usPoolItems(snapshot)
-    .map((item) => usStockRow(item, sparkCache))
-    .sort((left, right) => compareUsOrder(left.order, right.order));
   const triggerTiles = []; // 历史参考不生成即时到价提示。
-  const allList = allRows.map(({ order, ...row }) => row);
 
   const sevenList = sevenItems.map((item) => usStockRow(item, sparkCache)).map(({ order, ...row }) => ({
     ...row,
@@ -575,67 +574,99 @@ function buildUsModule(snapshot) {
   const sevenMix = [...labelCounts.values()].sort((left, right) => (toneOrder[left.tone] ?? 3) - (toneOrder[right.tone] ?? 3));
   const sevenHint = sevenMix.map((entry) => `${entry.count} 家${entry.label}`).join(" · ") || "七姐妹判断待更新";
 
-  const hotList = hotItems.map((item) => {
-    const raw = item.raw || {};
-    const { order, ...orderFields } = usOrderFields(item, buildStrategySignal(item));
-    const fund = raw.fund || {};
-    let takeText = "质量待核";
-    let takeTone = "caution";
-    if (usQualityEligibility(fund) === true) { takeText = "质量达标"; takeTone = "worth"; }
-    else if (usQualityEligibility(fund) === false) { takeText = "质量不达标"; takeTone = "avoid"; }
-    const heat = finiteOrNull(raw.heatScore);
-    const cacheKey = item.code || item.id;
-    const spark = cacheKey && sparkCache.has(cacheKey)
-      ? sparkCache.get(cacheKey)
-      : historySpark(item, US_SPARK_SIZE);
-    return {
-      id: item.id,
-      name: item.name,
-      code: item.code,
-      why: item.heatDriver || "",
-      event: eventBrief(snapshot, item.code),
-      eventDate: eventFactFor(snapshot, item.code).eventDate || "",
-      takeText,
-      takeTone,
-      heatText: heat != null ? String(Math.round(heat)) : "—",
-      asOfText: referenceDateText([raw.asOf]),
-      factChips: usFactChips(item, spark),
-      ...usMetrics(item),
-      ...spark,
-      ...orderFields,
-    };
-  });
-  const hotHint = hotList.length
-    ? `样本内热度前 ${hotList.length} 只`
+  const hotHint = hotItems.length
+    ? `样本内热度前 ${hotItems.length} 只`
     : "近期没有明显热度突出的美股";
 
-  // 借鉴 Quartr：把全池真实 SEC 备案聚合成按日期倒序的公告速递流，支持直达详情或复制 SEC 原文。
-  const poolByCode = new Map(allList.map((row) => [String(row.code || "").toUpperCase(), row]));
-  const rawFilings = Array.isArray(snapshot && snapshot.us && snapshot.us.filings)
-    ? snapshot.us.filings
-    : [];
-  const filingsFeed = rawFilings
-    .filter((entry) => entry && entry.symbol && entry.filingDate)
-    .slice()
-    .sort((a, b) => String(b.filingDate || "").localeCompare(String(a.filingDate || "")))
-    .slice(0, 24)
-    .map((entry, idx) => {
-      const sym = String(entry.symbol || "").toUpperCase();
-      const matched = poolByCode.get(sym);
-      const labels = Array.isArray(entry.labels) ? entry.labels.filter(Boolean) : [];
+  let _allList = null;
+  let _hotList = null;
+  let _filingsFeed = null;
+
+  const computeAllList = () => {
+    if (_allList) return _allList;
+    _allList = usPoolItems(snapshot)
+      .map((item) => usStockRow(item, sparkCache))
+      .sort((left, right) => compareUsOrder(left.order, right.order))
+      .map(({ order, ...row }) => row);
+    return _allList;
+  };
+
+  const computeHotList = () => {
+    if (_hotList) return _hotList;
+    _hotList = hotItems.map((item) => {
+      const raw = item.raw || {};
+      const { order, ...orderFields } = usOrderFields(item, buildStrategySignal(item));
+      const fund = raw.fund || {};
+      let takeText = "质量待核";
+      let takeTone = "caution";
+      if (usQualityEligibility(fund) === true) { takeText = "质量达标"; takeTone = "worth"; }
+      else if (usQualityEligibility(fund) === false) { takeText = "质量不达标"; takeTone = "avoid"; }
+      const heat = finiteOrNull(raw.heatScore);
+      const cacheKey = item.code || item.id;
+      const spark = cacheKey && sparkCache.has(cacheKey)
+        ? sparkCache.get(cacheKey)
+        : historySpark(item, US_SPARK_SIZE);
+      if (cacheKey) sparkCache.set(cacheKey, spark);
       return {
-        key: `sec-${sym}-${entry.filingDate}-${idx}`,
-        id: matched ? matched.id : sym,
-        name: matched ? matched.name : tickerZhLabel(sym, sym),
-        code: sym,
-        form: entry.form || "8-K",
-        date: String(entry.filingDate || ""),
-        summary: labels.join(" · ") || "公开备案",
-        sourceUrl: entry.sourceUrl || "",
+        id: item.id,
+        name: item.name,
+        code: item.code,
+        why: item.heatDriver || "",
+        event: eventBrief(snapshot, item.code),
+        eventDate: eventFactFor(snapshot, item.code).eventDate || "",
+        takeText,
+        takeTone,
+        heatText: heat != null ? String(Math.round(heat)) : "—",
+        asOfText: referenceDateText([raw.asOf]),
+        factChips: usFactChips(item, spark),
+        ...usMetrics(item),
+        ...spark,
+        ...orderFields,
       };
     });
+    return _hotList;
+  };
 
-  return { allList, triggerTiles, sevenList, sevenHint, sevenMix, hotList, hotHint, filingsFeed };
+  const computeFilingsFeed = () => {
+    if (_filingsFeed) return _filingsFeed;
+    const allList = computeAllList();
+    const poolByCode = new Map(allList.map((row) => [String(row.code || "").toUpperCase(), row]));
+    const rawFilings = Array.isArray(snapshot && snapshot.us && snapshot.us.filings)
+      ? snapshot.us.filings
+      : [];
+    _filingsFeed = rawFilings
+      .filter((entry) => entry && entry.symbol && entry.filingDate)
+      .slice()
+      .sort((a, b) => String(b.filingDate || "").localeCompare(String(a.filingDate || "")))
+      .slice(0, 24)
+      .map((entry, idx) => {
+        const sym = String(entry.symbol || "").toUpperCase();
+        const matched = poolByCode.get(sym);
+        const labels = Array.isArray(entry.labels) ? entry.labels.filter(Boolean) : [];
+        return {
+          key: `sec-${sym}-${entry.filingDate}-${idx}`,
+          id: matched ? matched.id : sym,
+          name: matched ? matched.name : tickerZhLabel(sym, sym),
+          code: sym,
+          form: entry.form || "8-K",
+          date: String(entry.filingDate || ""),
+          summary: labels.join(" · ") || "公开备案",
+          sourceUrl: entry.sourceUrl || "",
+        };
+      });
+    return _filingsFeed;
+  };
+
+  return {
+    triggerTiles,
+    sevenList,
+    sevenHint,
+    sevenMix,
+    hotHint,
+    get allList() { return computeAllList(); },
+    get hotList() { return computeHotList(); },
+    get filingsFeed() { return computeFilingsFeed(); },
+  };
 }
 
 // 借鉴 Stock Events：用 5 个颜色圆点展示近 5 个所属年度是否连续稳定派息（绿=稳/增，琥珀=减息，灰=缺记录）。
@@ -693,11 +724,7 @@ function aRankedList(items, lens) {
       const dataChips = [];
       if (lens === "stable5" && historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
       if (lens !== "stable5" && stability != null) dataChips.push(`稳度 ${stability}分`);
-      if (curPrice != null) {
-        dataChips.push(`现价 ¥${curPrice.toFixed(2)}`);
-        dataChips.push(`一手 ¥${Math.round(curPrice * 100).toLocaleString("en-US")}`);
-      }
-      if (historicalYield) dataChips.push(`万分红 ¥${Math.round(historicalYield.yieldPercent * 100)}`);
+      if (curPrice != null) dataChips.push(`一手 ¥${Math.round(curPrice * 100).toLocaleString("en-US")}`);
       const spark = historySpark(item, US_SPARK_SIZE);
       return {
         id: item.id,
@@ -738,14 +765,33 @@ function withMetricBars(list, lens) {
   });
 }
 
-// 前五只展示名字和对应分红指标，买卖参考留在详情。
+// 前五只展示名字和对应分红指标，其余页签按需懒计算，首屏仅算 5 条。
 function buildAModule(snapshot) {
   const items = allItems(snapshot, "a");
   const stableList = withMetricBars(aRankedList(items, "stable5"), "stable5");
-  const yieldList = withMetricBars(aRankedList(items, "yield5"), "yield5");
-  const fundItem = items.find((item) => item.raw && item.raw.assetType === "fund");
-  const { allList, triggerTiles } = aAllModule(items, snapshot.actionsFresh !== false);
-  return { allList, triggerTiles, stableList, yieldList, fund: fundItem ? aFundView(fundItem) : null };
+  let _yieldList = null;
+  let _allPack = null;
+  let _fund = undefined;
+  const ensureAll = () => {
+    if (!_allPack) _allPack = aAllModule(items, snapshot.actionsFresh !== false);
+    return _allPack;
+  };
+  return {
+    stableList,
+    get yieldList() {
+      if (!_yieldList) _yieldList = withMetricBars(aRankedList(items, "yield5"), "yield5");
+      return _yieldList;
+    },
+    get allList() { return ensureAll().allList; },
+    get triggerTiles() { return ensureAll().triggerTiles; },
+    get fund() {
+      if (_fund === undefined) {
+        const fundItem = items.find((item) => item.raw && item.raw.assetType === "fund");
+        _fund = fundItem ? aFundView(fundItem) : null;
+      }
+      return _fund;
+    },
+  };
 }
 
 // 「全部」：每只股票（红利 ETF 在下面单独一张卡）现价离参考买入/卖出价多远，
@@ -1238,7 +1284,17 @@ function guruHistoryRows(history, currency) {
 }
 
 function buildGuruModule(snapshot) {
-  const profiles = allItems(snapshot, "guru").filter((item) => item.group !== "overlap");
+  const groupRank = { us: 0, hk: 1, a: 2 };
+  const profiles = allItems(snapshot, "guru")
+    .filter((item) => item.group !== "overlap")
+    .sort((a, b) => {
+      const ga = groupRank[a.group] ?? 3;
+      const gb = groupRank[b.group] ?? 3;
+      if (ga !== gb) return ga - gb;
+      const aPri = /berkshire|巴菲特/i.test(`${a.id} ${a.name}`) ? -1 : 0;
+      const bPri = /berkshire|巴菲特/i.test(`${b.id} ${b.name}`) ? -1 : 0;
+      return aPri - bPri;
+    });
   // 增减需要前后两期可比。单期申报里的持仓不能当成新进。
   const investors = Array.isArray(snapshot.investors) ? snapshot.investors.filter(hasAdjacentGuruReports) : [];
   const trend = buildGuruTrend({ investors });
@@ -1248,8 +1304,6 @@ function buildGuruModule(snapshot) {
   const trendEmptyText = trend.reportPeriod ? "这些样本暂无可展示的持仓变化" : "暂无同一报告期可比较的持仓资料";
   const marketTag = { us: "美", hk: "港", a: "A" };
   const institutionList = profiles.map((item) => {
-    // 「约 30% 年化」「12.18% 年化」抽出数字，右侧只摆一个大数；原文带「约」的
-    // 保留成 ≈，小数最多一位，不把估算值写得比原文更精确。
     const perfRaw = String(item.raw?.profile?.performanceValue || "");
     const perf = perfRaw.match(/-?\d+(?:\.\d+)?/);
     return {
@@ -1263,11 +1317,13 @@ function buildGuruModule(snapshot) {
         : "",
     };
   });
-  const holdingsByInstitution = {};
-  profiles.forEach((item) => {
+  const profileById = new Map(profiles.map((item) => [String(item.id || ""), item]));
+  const computedHoldings = new Map();
+  const buildOneHolding = (id) => {
+    if (computedHoldings.has(id)) return computedHoldings.get(id);
+    const item = profileById.get(String(id || ""));
+    if (!item) return null;
     const holdings = Array.isArray(item.raw?.holdings) ? item.raw.holdings : [];
-    // 13F/十大重仓最多给到 10 条（answers.js 的 smartMoneyItems 已 slice(0,10)），
-    // 这里跟着展示到 10，默认只露前 5，其余靠「展开」按需加载，不新取数。
     const topWeight = Math.max(...holdings.slice(0, 10).map((holding) => Number(holding.weight)).filter(Number.isFinite), 1e-6);
     const rows = holdings.slice(0, 10).map((holding) => {
       const weight = Number(holding.weight);
@@ -1284,19 +1340,14 @@ function buildGuruModule(snapshot) {
         moveTone: /新进|新建|增持/.test(move) ? "worth" : (/减持|清仓|退出/.test(move) ? "avoid" : ""),
       };
     });
-    // 美股 13F 经理（group:us/hk）披露单位是美元，东方财富A股基金（group:a）是人民币。
     const currency = item.group === "a" ? "¥" : "$";
     const history = Array.isArray(item.raw?.history) ? item.raw.history : [];
-    // isLive 为真代表这条数据来自 investors[] 的实时 13F 快照；为假的 6 家
-    // （3 港股 + 3 A股样本基金）用的是静态定期报告样本，不是 13F，要诚实标注，
-    // 复用 detail/index.js 里已经在用的同一套 isLive 判断。
     const isLive = Boolean(item.raw?.isLive);
     const trackingScore = Number.isFinite(Number(item.raw?.trackingScore)) ? Number(item.raw.trackingScore) : null;
     const shortDate = (value) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value || "")) ? String(value).slice(2) : "—");
-    holdingsByInstitution[item.id] = {
+    const built = {
       rows,
       hint: rows.length ? `重仓前 ${rows.length}` : "暂无持仓披露",
-      // 报告期 / 披露日 / 来源 / 可靠度四格，取代原来三行说明文字。
       stats: [
         { label: "报告期", value: shortDate(item.raw?.reportDate) },
         { label: "披露日", value: shortDate(item.raw?.filingDate) },
@@ -1308,19 +1359,19 @@ function buildGuruModule(snapshot) {
       historyChart: guruHistoryChart(history, currency),
       historyRowsData: guruHistoryRows(history, currency),
       historyHint: history.length >= 2 ? `近 ${history.length} 期季度披露` : "",
-      // 东方财富十大重仓股接口不披露基金总规模/持仓数，即使有多期 history，
-      // portfolioValue 也一直是 null，图表画不出来；措辞要跟"完全没有多期历史"
-      // 区分开，不能让人以为下面连新增/清仓表都没有。
       historyChartEmptyText: history.length >= 2
         ? "规模未披露 · 下表为各期新增/清仓"
         : "仅有最新一期披露",
     };
+    computedHoldings.set(id, built);
+    return built;
+  };
+  const holdingsByInstitution = new Proxy({}, {
+    get(_, prop) {
+      return typeof prop === "string" ? buildOneHolding(prop) : undefined;
+    },
   });
-  const defaultId = String(
-    ["us", "hk", "a"].map((group) => profiles.find((item) => item.group === group)).find(Boolean)?.id
-      || (profiles[0] && profiles[0].id)
-      || "",
-  );
+  const defaultId = String((profiles[0] && profiles[0].id) || "");
   return { profiles, trend, trendRows, trendTitle, trendHint, trendEmptyText, institutionList, holdingsByInstitution, defaultId };
 }
 
@@ -1674,7 +1725,11 @@ Page({
       nextLink: market === "guru" && !PRODUCT.showPaidCommunity ? null : (NEXT_LINKS[market] || null) });
     wx.setNavigationBarTitle({ title: META[market].title });
     track("section_open", { market: String(market), from: "direct" });
-    this.refresh();
+    if (typeof wx !== "undefined" && typeof wx.nextTick === "function") {
+      wx.nextTick(() => this.refresh());
+    } else {
+      this.refresh();
+    }
   },
   onPullDownRefresh() {
     this.refresh(() => wx.stopPullDownRefresh(), true);
@@ -1811,29 +1866,23 @@ Page({
         });
       } else if (market === "us" && cached.usModule) {
         const usModule = cached.usModule;
-        this._usAllList = usModule.allList;
-        this._usHotList = usModule.hotList;
-        this._usFilingsList = usModule.filingsFeed || [];
         Object.assign(patch, {
           usTriggerTiles: usModule.triggerTiles,
           usSevenList: usModule.sevenList,
           usSevenHint: usModule.sevenHint,
           usSevenMix: usModule.sevenMix,
           usHotHint: usModule.hotHint,
-          usFilingsCount: this._usFilingsList.length,
         });
-        // 按激活子 tab 懒下发列表（含 SVG Base64），首屏只传七家大公司 7 条。
+        // 按激活子 tab 懒下发列表（含 SVG Base64），首屏只算并只传七家大公司 7 条。
         if (this.data.usSubTab === "hot") patch.usHotList = usModule.hotList;
-        if (this.data.usSubTab === "filings") patch.usFilingsList = this._usFilingsList;
+        if (this.data.usSubTab === "filings") patch.usFilingsList = usModule.filingsFeed || [];
         if (this.data.usSubTab === "heatmap") patch.usHeatmap = buildUsHeatmap(usModule.allList, this.data.usHeatMode);
         if (this.data.usSubTab === "all") patch.usAllList = this.applyUsView(usModule.allList, this.data.usAllFilter, this.data.usAllSort);
+        this._usModule = usModule;
       } else if (market === "a" && cached.aModule) {
         const aModule = cached.aModule;
-        this._aAllList = aModule.allList;
-        this._aFund = aModule.fund;
-        this._aYieldList = aModule.yieldList;
+        this._aModule = aModule;
         Object.assign(patch, {
-          aTriggerTiles: aModule.triggerTiles,
           aStableList: aModule.stableList,
         });
         if (this.data.aSubTab === "yield") patch.aYieldList = aModule.yieldList;
@@ -1917,17 +1966,18 @@ Page({
     const id = event.currentTarget.dataset.id;
     if (!id || id === this.data.usSubTab) return;
     const patch = { usSubTab: id };
-    if (id === "hot" && !this.data.usHotList.length && Array.isArray(this._usHotList)) {
-      patch.usHotList = this._usHotList;
+    const mod = this._usModule;
+    if (id === "hot" && !this.data.usHotList.length && mod) {
+      patch.usHotList = mod.hotList;
     }
-    if (id === "filings" && !this.data.usFilingsList.length && Array.isArray(this._usFilingsList)) {
-      patch.usFilingsList = this._usFilingsList;
+    if (id === "filings" && !this.data.usFilingsList.length && mod) {
+      patch.usFilingsList = mod.filingsFeed || [];
     }
-    if (id === "heatmap" && Array.isArray(this._usAllList)) {
-      patch.usHeatmap = buildUsHeatmap(this._usAllList, this.data.usHeatMode);
+    if (id === "heatmap" && mod) {
+      patch.usHeatmap = buildUsHeatmap(mod.allList, this.data.usHeatMode);
     }
-    if (id === "all" && Array.isArray(this._usAllList)) {
-      patch.usAllList = this.applyUsView(this._usAllList, this.data.usAllFilter, this.data.usAllSort);
+    if (id === "all" && mod) {
+      patch.usAllList = this.applyUsView(mod.allList, this.data.usAllFilter, this.data.usAllSort);
     }
     this.setData(patch);
     track("section_tab", { market: "us", tab: String(id) });
@@ -1937,7 +1987,7 @@ Page({
     if (mode === this.data.usHeatMode) return;
     this.setData({
       usHeatMode: mode,
-      usHeatmap: buildUsHeatmap(this._usAllList || [], mode),
+      usHeatmap: buildUsHeatmap((this._usModule && this._usModule.allList) || [], mode),
     });
     track("section_tab", { market: "us", tab: `heat_${mode}` });
   },
@@ -1966,18 +2016,20 @@ Page({
   filterUsAll(event) {
     const filterId = String(event.currentTarget.dataset.filter || "all");
     if (filterId === this.data.usAllFilter) return;
+    const all = (this._usModule && this._usModule.allList) || this.data.usAllList;
     this.setData({
       usAllFilter: filterId,
-      usAllList: this.applyUsView(this._usAllList || this.data.usAllList, filterId, this.data.usAllSort),
+      usAllList: this.applyUsView(all, filterId, this.data.usAllSort),
     });
     track("section_tab", { market: "us", tab: `filter_${filterId}` });
   },
   sortUsAll(event) {
     const sortId = String(event.currentTarget.dataset.sort || "default");
     if (sortId === this.data.usAllSort) return;
+    const all = (this._usModule && this._usModule.allList) || this.data.usAllList;
     this.setData({
       usAllSort: sortId,
-      usAllList: this.applyUsView(this._usAllList || this.data.usAllList, this.data.usAllFilter, sortId),
+      usAllList: this.applyUsView(all, this.data.usAllFilter, sortId),
     });
     track("section_tab", { market: "us", tab: `sort_${sortId}` });
   },
@@ -1990,15 +2042,16 @@ Page({
     const id = event.currentTarget.dataset.id;
     if (!id || id === this.data.aSubTab) return;
     const patch = { aSubTab: id };
-    if (id === "yield" && !this.data.aYieldList.length && Array.isArray(this._aYieldList)) {
-      patch.aYieldList = this._aYieldList;
+    const mod = this._aModule;
+    if (id === "yield" && !this.data.aYieldList.length && mod) {
+      patch.aYieldList = mod.yieldList;
     }
-    if (id === "heatmap" && Array.isArray(this._aAllList)) {
-      patch.aHeatmap = buildAHeatmap(this._aAllList, this.data.aHeatMode);
+    if (id === "heatmap" && mod) {
+      patch.aHeatmap = buildAHeatmap(mod.allList, this.data.aHeatMode);
     }
-    if (id === "all" && Array.isArray(this._aAllList)) {
-      patch.aAllList = this.applyAView(this._aAllList, this.data.aAllFilter, this.data.aAllSort);
-      patch.aFund = this._aFund || null;
+    if (id === "all" && mod) {
+      patch.aAllList = this.applyAView(mod.allList, this.data.aAllFilter, this.data.aAllSort);
+      patch.aFund = mod.fund || null;
     }
     this.setData(patch);
     track("section_tab", { market: "a", tab: String(id) });
@@ -2008,7 +2061,7 @@ Page({
     if (mode === this.data.aHeatMode) return;
     this.setData({
       aHeatMode: mode,
-      aHeatmap: buildAHeatmap(this._aAllList || [], mode),
+      aHeatmap: buildAHeatmap((this._aModule && this._aModule.allList) || [], mode),
     });
     track("section_tab", { market: "a", tab: `heat_${mode}` });
   },
@@ -2037,18 +2090,20 @@ Page({
   filterAAll(event) {
     const filterId = String(event.currentTarget.dataset.filter || "all");
     if (filterId === this.data.aAllFilter) return;
+    const all = (this._aModule && this._aModule.allList) || this.data.aAllList;
     this.setData({
       aAllFilter: filterId,
-      aAllList: this.applyAView(this._aAllList || this.data.aAllList, filterId, this.data.aAllSort),
+      aAllList: this.applyAView(all, filterId, this.data.aAllSort),
     });
     track("section_tab", { market: "a", tab: `filter_${filterId}` });
   },
   sortAAll(event) {
     const sortId = String(event.currentTarget.dataset.sort || "default");
     if (sortId === this.data.aAllSort) return;
+    const all = (this._aModule && this._aModule.allList) || this.data.aAllList;
     this.setData({
       aAllSort: sortId,
-      aAllList: this.applyAView(this._aAllList || this.data.aAllList, this.data.aAllFilter, sortId),
+      aAllList: this.applyAView(all, this.data.aAllFilter, sortId),
     });
     track("section_tab", { market: "a", tab: `sort_${sortId}` });
   },

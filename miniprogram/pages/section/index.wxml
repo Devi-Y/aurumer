@@ -47,6 +47,28 @@
     </view>
 
     <block wx:if="{{hkSubTab === 'apply'}}">
+      <!-- 首屏置顶：近期上市新股首日涨跌晴雨表（捷利交易宝同款零轴柱图） -->
+      <view
+        wx:if="{{hkFirstDayChart}}"
+        class="hk-fd"
+        aria-label="{{hkFirstDayChart.count}}只历史新股上市首日，样本上市日期至 {{hkFirstDayChart.lastDate}}，{{hkFirstDayChart.upText}}，{{hkFirstDayChart.flatDownText}}"
+      >
+        <view class="hk-fd-head">
+          <text class="hk-fd-title">近{{hkFirstDayChart.count}}只新股首日 · 至 {{hkFirstDayChart.lastDate}}</text>
+          <view class="hk-fd-figs">
+            <text class="hk-fd-value is-up">{{hkFirstDayChart.upText}}</text>
+            <text class="hk-fd-value is-down">{{hkFirstDayChart.flatDownText}}</text>
+          </view>
+        </view>
+        <view class="hk-fd-bars" aria-hidden="true">
+          <view class="hk-fd-zero" style="{{hkFirstDayChart.zeroStyle}}"></view>
+          <view wx:for="{{hkFirstDayChart.bars}}" wx:for-item="bar" wx:key="key" class="hk-fd-slot">
+            <view class="hk-fd-bar {{bar.tone}}" style="{{bar.style}}"></view>
+          </view>
+        </view>
+        <view class="hk-fd-link" data-group="ended" bindtap="openGroup" hover-class="tap-active" aria-role="button">新股首日明细 ›</view>
+      </view>
+
       <view class="hk-stock-list" wx:if="{{hkApplyList.length}}">
         <view
           wx:for="{{hkApplyList}}"
@@ -89,28 +111,6 @@
         </view>
       </view>
       <view class="hk-empty" wx:else><text>暂无可展示的招股资料，请以最新公告为准。</text></view>
-
-      <!-- 辅助判断：近期上市新股首日涨跌柱状图 -->
-      <view
-        wx:if="{{hkFirstDayChart}}"
-        class="hk-fd"
-        aria-label="{{hkFirstDayChart.count}}只历史新股上市首日，样本上市日期至 {{hkFirstDayChart.lastDate}}，{{hkFirstDayChart.upText}}，{{hkFirstDayChart.flatDownText}}"
-      >
-        <view class="hk-fd-head">
-          <text class="hk-fd-title">近{{hkFirstDayChart.count}}只新股首日 · 至 {{hkFirstDayChart.lastDate}}</text>
-          <view class="hk-fd-figs">
-            <text class="hk-fd-value is-up">{{hkFirstDayChart.upText}}</text>
-            <text class="hk-fd-value is-down">{{hkFirstDayChart.flatDownText}}</text>
-          </view>
-        </view>
-        <view class="hk-fd-bars" aria-hidden="true">
-          <view class="hk-fd-zero" style="{{hkFirstDayChart.zeroStyle}}"></view>
-          <view wx:for="{{hkFirstDayChart.bars}}" wx:for-item="bar" wx:key="key" class="hk-fd-slot">
-            <view class="hk-fd-bar {{bar.tone}}" style="{{bar.style}}"></view>
-          </view>
-        </view>
-        <view class="hk-fd-link" data-group="ended" bindtap="openGroup" hover-class="tap-active" aria-role="button">新股首日明细 ›</view>
-      </view>
     </block>
 
     <block wx:if="{{hkSubTab === 'exit'}}">
@@ -432,10 +432,9 @@
               <view class="code-name-line">
                 <text class="a-stock-name">{{item.name}}</text>
                 <text class="code-pill">{{item.code}}</text>
-                <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
               </view>
               <view wx:if="{{item.yearDots && item.yearDots.length}}" class="div-dots-row" aria-hidden="true">
-                <text class="div-dots-label">近5年</text>
+                <text class="div-dots-label">5年</text>
                 <view wx:for="{{item.yearDots}}" wx:for-item="dot" wx:key="year" class="div-dot-item">
                   <view class="div-dot is-{{dot.state}}"></view>
                   <text class="div-dot-yr">{{dot.year}}</text>
@@ -445,6 +444,7 @@
                 <text wx:for="{{item.dataChips}}" wx:for-item="chip" wx:key="*this" class="data-chip">{{chip}}</text>
               </view>
             </view>
+            <image wx:if="{{item.hasSpark}}" class="a-mini-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
             <view class="a-metric">
               <view class="a-metric-num">
                 <text class="a-metric-value dividend-years">{{item.metricText}}</text>
@@ -476,10 +476,9 @@
               <view class="code-name-line">
                 <text class="a-stock-name">{{item.name}}</text>
                 <text class="code-pill">{{item.code}}</text>
-                <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
               </view>
               <view wx:if="{{item.yearDots && item.yearDots.length}}" class="div-dots-row" aria-hidden="true">
-                <text class="div-dots-label">近5年</text>
+                <text class="div-dots-label">5年</text>
                 <view wx:for="{{item.yearDots}}" wx:for-item="dot" wx:key="year" class="div-dot-item">
                   <view class="div-dot is-{{dot.state}}"></view>
                   <text class="div-dot-yr">{{dot.year}}</text>
@@ -489,6 +488,7 @@
                 <text wx:for="{{item.dataChips}}" wx:for-item="chip" wx:key="*this" class="data-chip">{{chip}}</text>
               </view>
             </view>
+            <image wx:if="{{item.hasSpark}}" class="a-mini-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
             <view class="a-metric">
               <view class="a-metric-num">
                 <text class="a-metric-value">{{item.metricText}}</text>
@@ -517,14 +517,11 @@
         aria-selected="{{goldCurrency === item.id}}"
       >
         <view class="gold-quote-head">
-          <view class="code-name-line">
-            <text class="gold-quote-label">{{item.label}}</text>
-            <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
-          </view>
+          <text class="gold-quote-label">{{item.label}}</text>
           <text wx:if="{{item.changeText}}" class="gold-quote-delta is-{{item.changeTone}}">{{item.changeText}}</text>
         </view>
         <text class="gold-quote-price">{{item.priceText}}</text>
-        <text class="gold-quote-unit">{{item.unit}}</text>
+        <text class="gold-quote-unit">{{item.code ? item.code + ' · ' : ''}}{{item.unit}}</text>
         <text class="gold-quote-unit">{{item.asOfText}}</text>
       </view>
     </view>
@@ -557,10 +554,14 @@
 
       <view wx:if="{{goldChart}}" class="gold-chart">
         <canvas type="2d" id="{{goldChart.canvasId}}" class="gold-chart-canvas"></canvas>
-        <view class="gold-chart-labels">
-          <text>{{goldChart.lowLabel}}</text>
-          <text>{{goldChart.latestLabel}}</text>
-          <text>{{goldChart.highLabel}}</text>
+        <view class="us-range-bar-row gold-pos-bar" aria-hidden="true">
+          <text class="us-range-num">{{goldChart.lowLabel}}</text>
+          <view class="us-range-track">
+            <view class="us-range-fill" style="width: {{goldChart.rangePos}}%;"></view>
+            <view class="us-range-dot" style="left: {{goldChart.rangePos}}%;"></view>
+          </view>
+          <text class="us-range-num">{{goldChart.highLabel}}</text>
+          <text class="data-chip">{{goldChart.rangePos}}%位</text>
         </view>
         <text class="gold-chart-caption">{{goldChart.dateText}} · {{goldChart.source}}</text>
       </view>

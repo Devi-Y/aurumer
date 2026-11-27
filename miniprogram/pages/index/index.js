@@ -281,21 +281,42 @@ function shortHotLabel(rawName) {
   let text = String(rawName || "").trim();
   if (!text) return "";
   text = text
-    .replace(/股份有限公司|有限责任公司|控股有限公司|有限公司/gu, "")
-    .replace(/\s*-\s*(B|W|SW|S)$/iu, "")
-    .replace(/^(赣州|常州|江苏|深圳|北京|上海|广东|浙江|杭州|苏州)/u, "")
+    .replace(/集团股份有限公司|集团控股有限公司|股份有限公司|有限责任公司|控股有限公司|集团|有限公司/gu, "")
+    .replace(/\s*-\s*(B|W|SW|S|A)$/iu, "")
+    .replace(/^(赣州|常州|镇江|江苏|深圳|北京|上海|广东|浙江|杭州|苏州)/u, "")
     .replace(/^易方达中证/u, "")
     .trim();
-  if (text.length > 5 && /科技|资讯|文化旅游/u.test(text)) {
-    text = text.replace(/(科技|资讯|文化旅游)$/u, "").trim();
+  if (text.length > 4 && /新材料|半导体|科技|资讯|文化旅游/u.test(text)) {
+    text = text.replace(/(新材料|科技|资讯|文化旅游)$/u, "").trim();
   }
-  return text.length > 5 ? text.slice(0, 5) : text;
+  return text.length > 4 ? text.slice(0, 4) : text;
 }
 
-// 自动从最新快照拉取港、美、A 三地高热度代表股票，并设固定龙头兜底。
-function buildHotPicks(snapshot, index) {
-  const byKey = new Map((index || []).map((row) => [row.key, row]));
-  const usCandidates = usPoolItems(snapshot)
+function hotSparkFor(item) {
+  const raw = (item && item.raw) || {};
+  const closes = (Array.isArray(raw.history) ? raw.history : [])
+    .map((entry) => positivePrice(entry && entry.close != null ? entry.close : entry))
+    .filter((v) => v != null);
+  if (closes.length < 6) return { sparkSrc: "", figTone: "flat" };
+  const tone = toneOf(closes[closes.length - 1] - closes[0]);
+  return {
+    sparkSrc: sparklineSvg(sampleSeries(closes, 28), { width: 160, height: 48 }),
+    figTone: tone,
+  };
+}
+
+// 自动从最新快照拉取美、港、A 三地高热度代表股票（含走势小图与最新价），零滚动铺满展示。
+function buildHotPicks(snapshot) {
+  const usPool = usPoolItems(snapshot);
+  const hkPool = allItems(snapshot, "hk");
+  const aPool = allItems(snapshot, "a").filter((item) => (item.raw && item.raw.assetType) !== "fund");
+
+  const itemMap = new Map();
+  for (const item of usPool) itemMap.set(`us:${item.id}`, { market: "us", item });
+  for (const item of hkPool) itemMap.set(`hk:${item.id}`, { market: "hk", item });
+  for (const item of aPool) itemMap.set(`a:${item.id}`, { market: "a", item });
+
+  const usCandidates = usPool
     .map((item) => {
       const symbol = String(item.id || item.code || "");
       const heat = Number(item.raw && item.raw.heatScore) || 0;
@@ -304,7 +325,7 @@ function buildHotPicks(snapshot, index) {
     })
     .sort((a, b) => b.score - a.score);
 
-  const hkCandidates = allItems(snapshot, "hk")
+  const hkCandidates = hkPool
     .filter((item) => String(item.badge || "") !== "发行已取消")
     .map((item, idx) => {
       const raw = item.raw || {};
@@ -315,12 +336,11 @@ function buildHotPicks(snapshot, index) {
     })
     .sort((a, b) => b.score - a.score);
 
-  const aCandidates = allItems(snapshot, "a")
-    .filter((item) => (item.raw && item.raw.assetType) !== "fund")
+  const aCandidates = aPool
     .map((item, idx) => {
       const raw = item.raw || {};
       const move = Math.abs(Number(raw.changePercent) || 0) * 6;
-      const div = Number(raw.currentDividendYield || raw.historicalDividendYield) || 0;
+      const div = Number(raw.currentDividendYield || (raw.historicalDividendYield && raw.historicalDividendYield.yieldPercent)) || 0;
       const flagship = /^(600900|600036|600941|601088|000333)/.test(String(item.id || "")) ? 18 : 0;
       return { key: `a:${item.id}`, score: flagship + div * 2 + move - idx * 0.3 };
     })
@@ -328,40 +348,57 @@ function buildHotPicks(snapshot, index) {
 
   const interleaved = [
     usCandidates[0] && usCandidates[0].key,
-    hkCandidates[0] && hkCandidates[0].key,
     aCandidates[0] && aCandidates[0].key,
+    hkCandidates[0] && hkCandidates[0].key,
     "us:NVDA",
     "a:600900",
     "us:TSLA",
     "a:600036",
   ].filter(Boolean);
 
-  const formatHotCode = (row) => {
-    const rawCode = String(row.code || row.id || "").trim();
+  const formatHotCode = (market, code, id) => {
+    const rawCode = String(code || id || "").trim();
     if (!rawCode) return "";
-    if (row.market === "hk") return /\.HK$/i.test(rawCode) ? rawCode.toUpperCase() : `${rawCode}.HK`;
-    if (row.market === "a") {
+    if (market === "hk") return /\.HK$/i.test(rawCode) ? rawCode.toUpperCase() : `${rawCode}.HK`;
+    if (market === "a") {
       if (/\.(SH|SZ)$/i.test(rawCode)) return rawCode.toUpperCase();
       return /^6|^5/.test(rawCode) ? `${rawCode}.SH` : `${rawCode}.SZ`;
     }
     return rawCode.toUpperCase();
   };
 
+  const formatHotFigure = (market, item) => {
+    const raw = item.raw || {};
+    if (market === "us" && positivePrice(raw.price) != null) return `$${Number(raw.price).toFixed(1)}`;
+    if (market === "a" && positivePrice(raw.currentPrice) != null) return `¥${Number(raw.currentPrice).toFixed(2)}`;
+    if (market === "hk") {
+      const op = String(raw.offerPrice || "").replace(/HK\$|港元|\s+/giu, "").trim();
+      return op ? `HK$${op}` : (item.badge || "新股");
+    }
+    return "";
+  };
+
   const picks = [];
   const used = new Set();
   for (const key of interleaved) {
     if (used.has(key)) continue;
-    const row = byKey.get(key);
-    if (!row) continue;
-    const label = shortHotLabel(row.name);
+    const hit = itemMap.get(key);
+    if (!hit) continue;
+    const { market, item } = hit;
+    const label = shortHotLabel(item.name);
     if (!label) continue;
     used.add(key);
+    const { sparkSrc, figTone } = hotSparkFor(item);
     picks.push({
-      key: row.key,
-      market: row.market,
-      id: row.id,
+      key,
+      market,
+      marketTag: MARKET_TAG[market] || "",
+      id: item.id,
       label,
-      code: formatHotCode(row),
+      code: formatHotCode(market, item.code, item.id),
+      figure: formatHotFigure(market, item),
+      sparkSrc,
+      figTone,
     });
     if (picks.length >= 3) break;
   }
@@ -387,11 +424,15 @@ Page({
   onLoad() {
     trackHomeVisit();
     this._snapshot = null;
-    this._searchIndex = [];
+    this._searchIndex = null;
     this._trendsDataKey = "";
     this._loadedOnce = true;
-    this.syncStarPicks();
-    this.refreshAnswers();
+    const boot = () => {
+      this.syncStarPicks();
+      this.refreshAnswers();
+    };
+    if (typeof wx !== "undefined" && typeof wx.nextTick === "function") wx.nextTick(boot);
+    else boot();
   },
   onShow() {
     this.syncStarPicks();
@@ -430,11 +471,8 @@ Page({
         if (kind !== this.data.freshnessKind) patch.freshnessKind = kind;
         if (force || !this._trendsDataKey || dataKey !== this._trendsDataKey) {
           this._trendsDataKey = dataKey;
-          const trends = buildHomeTrends(data);
-          this._searchIndex = buildSearchIndex(data);
-          const hotPicks = buildHotPicks(data, this._searchIndex);
-          patch.trends = trends;
-          patch.pulse = buildMarketPulse(trends);
+          this._searchIndex = null;
+          const hotPicks = buildHotPicks(data);
           patch.hotPicks = hotPicks;
           patch.quickPicks = hotPicks;
         }
@@ -445,6 +483,9 @@ Page({
     );
   },
   onSearchFocus() {
+    if (!this._searchIndex && this._snapshot) {
+      this._searchIndex = buildSearchIndex(this._snapshot);
+    }
     this.setData({ searchFocused: true });
   },
   onSearchInput(event) {
@@ -452,6 +493,9 @@ Page({
     if (!query) {
       this.setData({ searchQuery: "", searchResults: [] });
       return;
+    }
+    if (!this._searchIndex && this._snapshot) {
+      this._searchIndex = buildSearchIndex(this._snapshot);
     }
     const q = query.toLowerCase();
     const matches = (this._searchIndex || [])

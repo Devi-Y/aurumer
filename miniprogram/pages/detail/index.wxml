@@ -112,7 +112,10 @@
       </view>
       <text class="hero-asof">{{dataAsOf || '读取历史资料'}}</text>
 
-      <!-- 可视化高低区间尺（美股/A股/黄金）或 4 步进度条（港股新股），代替大段说明文字 -->
+      <!-- Robinhood 同款首屏价格走势曲线：直接嵌在价格下方，告别重复标题框 -->
+      <image wx:if="{{view.heroSpark}}" class="hero-spark-img" src="{{view.heroSpark}}" mode="scaleToFill" aria-hidden="true"></image>
+
+      <!-- 可视化高低区间尺（美股/A股/黄金）或 4 步进度条（港股新股） -->
       <view wx:if="{{view.heroRange}}" class="hero-range-box" aria-hidden="true">
         <view class="meter-track">
           <view class="meter-fill" style="width: {{view.heroRange.percent}}%;"></view>
@@ -290,10 +293,9 @@
         </view>
       </view>
 
-      <!-- 对标 Robinhood × 富途 × 息记：走势曲线 + 多周期涨跌格 + 双列核心数据 + 进度条指标 -->
+      <!-- 对标 Robinhood × 富途 × 息记：多周期涨跌色块 + 强弱进度条 + 双列核心数据 -->
       <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
-        <template wx:if="{{view.overview.sparkCard && (!view.overview.priceCard || view.overview.priceCard.kind !== 'line')}}" is="chart-visual" data="{{item: view.overview.sparkCard}}" />
-        <template wx:elif="{{view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
+        <template wx:if="{{!view.heroSpark && view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
 
         <view wx:if="{{view.overview.periodReturns && view.overview.periodReturns.length}}" class="period-strip">
           <view wx:for="{{view.overview.periodReturns}}" wx:key="label" class="period-cell tone-{{item.tone}}">

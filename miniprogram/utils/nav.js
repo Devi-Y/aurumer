@@ -87,6 +87,14 @@ function openPage(url) {
 }
 
 function goHome() {
+  const stack = currentStack();
+  if (stack.length > 1 && stack[0] && stack[0].route === "pages/index/index" && typeof wx.navigateBack === "function") {
+    wx.navigateBack({ delta: stack.length - 1, fail: () => wx.reLaunch({ url: "/pages/index/index" }) });
+    return;
+  }
+  if (stack.length === 1 && stack[0] && stack[0].route === "pages/index/index") {
+    return;
+  }
   wx.reLaunch({ url: "/pages/index/index" });
 }
 

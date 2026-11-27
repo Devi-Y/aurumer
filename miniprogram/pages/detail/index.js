@@ -2695,7 +2695,11 @@ function detailView(item, snapshot) {
   base.heroFigure = heroFigure;
   base.heroDelta = heroDelta;
   base.heroTone = heroTone;
-  base.keyStats = (base.metrics || []).slice(0, 6);
+  const sparkChart = (base.trendCharts || []).find((c) => c && c.kind === "line" && c.src);
+  base.heroSpark = sparkChart ? sparkChart.src : "";
+  base.keyStats = (base.metrics || [])
+    .filter((row) => row && !/^(历史报价|现价|报价日涨跌|今日)$/.test(String(row[0] || "")))
+    .slice(0, 6);
   Object.assign(base, buildHeroVisualMeta(base, item, snapshot));
 
   return base;
@@ -3139,7 +3143,11 @@ Page({
       snapshotReviewAt: addDaysLabel(todayLabelLocal(), 14),
     });
     track("detail_open", { market: String(options.market || "hk") });
-    this.refresh();
+    if (typeof wx !== "undefined" && typeof wx.nextTick === "function") {
+      wx.nextTick(() => this.refresh());
+    } else {
+      this.refresh();
+    }
   },
   onShow() {
     if (PRODUCT.memberToolsEnabled) this.refreshMemberLink();

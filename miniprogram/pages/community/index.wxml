@@ -49,9 +49,9 @@
       <view class="inline-link" bindtap="openTerms" aria-role="button">查看《服务与退款约定》 ›</view>
     </block>
 
-    <block wx:if="{{verificationPending || (order && !order.paid)}}">
+    <block wx:if="{{verificationPending}}">
       <view class="cp-pending-bar">
-        <text class="sec-muted">{{verificationPending ? '订单状态待核对，已付款请刷新：' : '订单处理中，请刷新状态避免重复付款：'}}</text>
+        <text class="sec-muted">订单状态待核对，如已付款请刷新或联系客服：</text>
         <view class="cp-pending-actions">
           <button class="inline-btn-link" bindtap="refreshOrder" loading="{{checking}}" disabled="{{checking}}">刷新订单状态</button>
           <button open-type="contact" class="inline-btn-link">联系客服</button>

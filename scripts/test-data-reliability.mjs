@@ -418,7 +418,7 @@ test("two failed cloud sources return a bounded explicit unavailable response", 
   const result = await handler.main({ action: "getSnapshot", force: true });
   assert.equal(result.ok, false);
   assert.equal(result.error, "DATA_TEMPORARILY_UNAVAILABLE");
-  assert.equal(requested.length, 3);
+  assert.equal(requested.length, 5);
 });
 
 test("a fast malformed source cannot beat the valid slower cloud fallback", async () => {

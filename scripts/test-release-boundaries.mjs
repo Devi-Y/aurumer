@@ -254,7 +254,7 @@ test("a cold warm loads the newer DB watermark before racing fast old Pages agai
   assert.ok(result.sourceUrl.includes("raw.githubusercontent.com"));
   const state = fixture.state();
   assert.equal(state.record.updatedAt, raw.updatedAt);
-  assert.equal(state.requested.length, 3);
+  assert.equal(state.requested.length, 5);
   assert.equal(state.cacheWrites, 1);
   assert.equal(state.factsWritten, 1);
 });

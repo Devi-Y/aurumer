@@ -7,14 +7,18 @@ const { degradeStaleActions, snapshotAgeMs, isActionFresh, compareSnapshotVersio
 const { alertOpsOnce } = require("./ops-alert");
 
 /** 部署后可用 health 核对：必须与 Git 该文件一致。 */
-const SOURCE_REVISION = "2026-11-25-304-a90d-v1";
+const SOURCE_REVISION = "2026-11-27-jsdelivr-mirror-v1";
 const SOURCE_URL = "https://devi-y.github.io/aurumer/data/live-snapshot.json";
 // 三条官方通道都读取同一 main 分支的公开文件。有效来源胜出后取消其他请求；
 // 单独校验结构、日期和版本水位，较旧的来源不能覆盖已验证的新批次。
+// 2026-11-27 实测：腾讯云函数直连 GitHub 三条通道全部超时，补两条 jsDelivr 镜像
+// （每日自动更新推送后会主动刷新镜像缓存），较旧的镜像同样会被版本水位拒收。
 const SOURCE_URLS = [
   SOURCE_URL,
   "https://raw.githubusercontent.com/Devi-Y/aurumer/main/data/live-snapshot.json",
   "https://api.github.com/repos/Devi-Y/aurumer/contents/data/live-snapshot.json?ref=main",
+  "https://fastly.jsdelivr.net/gh/Devi-Y/aurumer@main/data/live-snapshot.json",
+  "https://testingcf.jsdelivr.net/gh/Devi-Y/aurumer@main/data/live-snapshot.json",
 ];
 /** 10 分钟内视为新鲜；超过则后台回源，前台仍先读缓存。 */
 const CACHE_TTL_MS = 10 * 60 * 1000;

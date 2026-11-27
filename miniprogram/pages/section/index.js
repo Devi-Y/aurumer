@@ -1,6 +1,6 @@
 const { loadSnapshot, snapshotVersionKey } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { allItems, groupDefinitions, shortCompanyName, shortOrgList, money, aShareDividendStability, tickerZhLabel, usPoolItems, usQualityEligibility } = require("../../utils/answers");
+const { allItems, groupDefinitions, shortCompanyName, shortOrgList, money, aShareDividendStability, tickerZhLabel, tickerShortZh, usPoolItems, usQualityEligibility } = require("../../utils/answers");
 const { getDividendStability } = require("../../utils/dividend-stability");
 const PRODUCT = require("../../config/product");
 const {
@@ -182,12 +182,12 @@ function hkDeadlineOffset(value) {
 // 一行是钱数还共用一个「基石」，读者分不清哪个是哪个。
 function hkCornerstoneStat(raw) {
   const percent = finiteOrNull(raw.cornerstonePercent);
-  if (percent != null) return { label: "基石占比", value: `${percent.toFixed(1)}%` };
+  if (percent != null) return { label: "大机构锁仓", value: `${percent.toFixed(1)}%` };
   const match = String(raw.cornerstoneAmount || "").replace(/,/g, "").match(/([\d.]+)\s*(百万|亿)/);
   const value = match ? Number(match[1]) * (match[2] === "亿" ? 1e8 : 1e6) : NaN;
-  if (!Number.isFinite(value) || value <= 0) return { label: "基石投资", value: "未公布" };
+  if (!Number.isFinite(value) || value <= 0) return { label: "大机构锁仓", value: "暂无披露" };
   return {
-    label: "基石金额",
+    label: "大机构锁仓",
     value: value >= 1e8 ? `HK$${(value / 1e8).toFixed(1)}亿` : `HK$${Math.round(value / 1e4)}万`,
   };
 }
@@ -237,7 +237,8 @@ function buildHkModule(snapshot) {
       tagPills,
       stageSteps,
       badgeText: closed ? "已截止" : (deadlineOffset == null ? "日期待核" : "日期参考"),
-      tone: closed ? "settled" : "caution",
+      statusLabel: closed ? "已截止" : (deadlineOffset == null ? "日期待核" : "已公布日期"),
+      tone: closed ? "settled" : (deadlineOffset == null ? "caution" : "worth"),
       reason: "招股资料仅供参考，请核对最新公告",
       deadlineLabel: deadlineOffset == null ? "截止日期待核" : `截止 ${String(deadline).slice(0, 10)}`,
       deadlineOffset,
@@ -434,7 +435,7 @@ function usFactChips(item, spark) {
   const chips = [];
   const pe = finiteOrNull(fund.pe);
   const revG = finiteOrNull(fund.revenueGrowth);
-  if (pe != null && pe > 0) chips.push({ label: `PE ${pe.toFixed(1)}x`, tone: "plain" });
+  if (pe != null && pe > 0) chips.push({ label: `市盈 ${pe.toFixed(0)}倍`, tone: "plain" });
   if (revG != null) chips.push({ label: `营收 ${signedPct(revG, 1)}`, tone: revG >= 0 ? "up" : "down" });
   if (spark && spark.hasSpark && spark.sparkChangeText) {
     chips.push({ label: `${spark.sparkDays}日 ${spark.sparkChangeText}`, tone: spark.sparkTone || "plain" });
@@ -532,8 +533,9 @@ function usStockRow(item, sparkCache = null) {
     lo60Text: lo60 != null ? `$${lo60.toFixed(0)}` : "",
     hi60Text: hi60 != null ? `$${hi60.toFixed(0)}` : "",
     pos60Pct: sortPos60 != null ? sortPos60 : 50,
-    posChip: sortPos60 != null ? `${sortPos60}%位` : "",
-    peChip: pe != null && pe > 0 ? `PE ${pe.toFixed(1)}x` : "",
+    posChip: sortPos60 != null ? (sortPos60 <= 25 ? "近60日偏低" : (sortPos60 >= 75 ? "近60日偏高" : "近60日居中")) : "",
+    posTone: sortPos60 != null ? (sortPos60 <= 25 ? "cool" : (sortPos60 >= 75 ? "warn" : "plain")) : "plain",
+    peChip: pe != null && pe > 0 ? `市盈 ${pe.toFixed(0)}倍` : "",
     badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
     reason: signal.action,
@@ -721,6 +723,7 @@ function aRankedList(items, lens) {
       }
       const raw = item.raw || {};
       const curPrice = finiteOrNull(raw.currentPrice);
+      const annualPer10kText = historicalYield ? `投1万年息 ¥${Math.round(historicalYield.yieldPercent * 100)}` : "";
       const dataChips = [];
       if (lens === "stable5" && historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
       if (lens !== "stable5" && stability != null) dataChips.push(`稳度 ${stability}分`);
@@ -732,6 +735,7 @@ function aRankedList(items, lens) {
         name: item.name,
         code: formatACode(item.code, item.id),
         shortTag: shortTagFor("a", item.id, item.code, raw.industry),
+        annualPer10kText,
         dataChips,
         ...spark,
         badgeText: item.badge,
@@ -812,11 +816,10 @@ function aAllModule(items, fresh) {
       const factParts = [];
       if (historicalYield) factParts.push(`股息率 ${historicalYield.yieldPercent.toFixed(2)}%`);
       if (stability != null) factParts.push(`稳度 ${stability}分`);
+      const annualPer10kText = historicalYield ? `投1万年息 ¥${Math.round(historicalYield.yieldPercent * 100)}` : "";
       const dataChips = [];
       if (historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
-      if (stability != null) dataChips.push(`稳度 ${stability}分`);
       if (price != null) dataChips.push(`一手 ¥${Math.round(price * 100).toLocaleString("en-US")}`);
-      if (historicalYield) dataChips.push(`万分红 ¥${Math.round(historicalYield.yieldPercent * 100)}`);
       const spark = historySpark(item, US_SPARK_SIZE);
       return {
         order,
@@ -824,6 +827,7 @@ function aAllModule(items, fresh) {
         name: item.name,
         code: formatACode(item.code, item.id),
         shortTag: shortTagFor("a", item.id, item.code, raw.industry),
+        annualPer10kText,
         dataChips,
         factSummary: factParts.join(" · "),
         yearDots: buildDividendDots(raw),
@@ -961,6 +965,7 @@ function goldLineChart(history, digits, source) {
   const rangePos = high > low ? Math.max(0, Math.min(100, Math.round(((latest - low) / (high - low)) * 100))) : 50;
   const rangeMood = rangePos <= 25 ? "靠近区间低位" : (rangePos >= 75 ? "靠近区间高位" : "处于区间中段");
   const rangeTone = rangePos <= 25 ? "cool" : (rangePos >= 75 ? "warn" : "flat");
+  const posLabel = rangePos <= 25 ? "区间偏低" : (rangePos >= 75 ? "区间偏高" : "区间居中");
   return {
     canvasId: "gold-price-line",
     values,
@@ -972,6 +977,7 @@ function goldLineChart(history, digits, source) {
     latestLabel: `期末 ${latest.toFixed(digits)}`,
     highLabel: `最高 ${high.toFixed(digits)}`,
     rangePos,
+    posLabel,
     rangeMood,
     rangeTone,
   };
@@ -1132,10 +1138,35 @@ function buildGoldModule(snapshot) {
     },
   };
 
-  const parityInfo = goldParity(gold);
-  const parityLine = parityInfo ? parityInfo.headline : "";
+  const fxPrice = finiteOrNull(gold.quotes?.usdCny?.price);
+  const etf = gold.quotes?.etf || {};
+  const etfPrice = finiteOrNull(etf.price);
+  const etfChange = finiteOrNull(etf.changePercent);
+  const convertedGram = (hasNumber(international.price) && fxPrice != null && fxPrice > 0)
+    ? (Number(international.price) * fxPrice) / 31.1034768
+    : null;
+  const compareTiles = [
+    convertedGram != null ? {
+      key: "conv",
+      label: "国际金折算",
+      value: `¥${convertedGram.toFixed(1)}/克`,
+      sub: `汇率 ${fxPrice.toFixed(2)}`,
+    } : null,
+    hasNumber(domestic.price) ? {
+      key: "sge",
+      label: "上海金收盘",
+      value: `¥${Number(domestic.price).toFixed(2)}/克`,
+      sub: domestic.asOf ? `${String(domestic.asOf).slice(5)} 收盘` : "上金所",
+    } : null,
+    etfPrice != null ? {
+      key: "gld",
+      label: "美股黄金ETF",
+      value: `$${etfPrice.toFixed(1)}`,
+      sub: etfChange != null ? `GLD ${signedPct(etfChange, 1)}` : "GLD",
+    } : null,
+  ].filter(Boolean);
 
-  return { quotes, perCurrency, parityLine };
+  return { quotes, perCurrency, parityLine: "", compareTiles };
 }
 
 // 币种/周期切换只在这两个预计算好的结构里挑数据，不重新访问快照或重算——
@@ -1163,20 +1194,17 @@ function resolveGoldView(goldModule, currency, periodId) {
   };
 }
 
-// 持仓表先找中文名：代码对得上就「TSM（台积电）」，基金月报只有英文全称的
-// 就按全称对（「Tencent Holdings Ltd」→「腾讯控股」）。都对不上才原样显示。
+// 持仓表中文名优先：能识别中文简称直接写「苹果」「美国运通」「腾讯控股」，代码单独放右侧蓝色胶囊。
 const HAS_HAN = /[\u4e00-\u9fa5]/u;
 function guruHoldingName(holding) {
   if (!holding) return holdingLabel(holding);
   const suffix = instrumentSuffix(holding.putCall);
-  const byTicker = holding.ticker ? tickerZhLabel(holding.ticker) : "";
-  if (HAS_HAN.test(byTicker)) return `${byTicker}${suffix}`;
-  const byName = tickerZhLabel(holding.issuer || holding.name || "");
-  if (HAS_HAN.test(byName)) return `${byName}${suffix}`;
-  // 没有中文名的美股小盘：「NTRA（Natera）」，和有中文名的「TSM（台积电）」同一个写法。
-  if (/^[A-Z]{1,5}(\.[A-Z])?$/u.test(String(holding.ticker || ""))) {
-    return `${tickerZhLabel(holding.ticker, holding.issuer || holding.name)}${suffix}`;
+  const shortZh = tickerShortZh(holding.ticker, holding.issuer || holding.name);
+  if (shortZh && (HAS_HAN.test(shortZh) || shortZh.toUpperCase() !== String(holding.ticker || "").trim().toUpperCase())) {
+    return `${shortZh}${suffix}`;
   }
+  const byName = tickerShortZh(holding.issuer || holding.name || "");
+  if (byName && HAS_HAN.test(byName)) return `${byName}${suffix}`;
   return holdingLabel(holding);
 }
 
@@ -1191,9 +1219,9 @@ function guruTrendRow(row) {
     .map(([type, label]) => `${counts[type]}家${label}`)
     .join(" · ");
   const tone = row.adders.length && row.cutters.length ? "caution" : (row.adders.length ? "worth" : "avoid");
-  const label = tickerZhLabel(row.name || row.symbol, row.issuer) || "待更新";
+  const label = tickerShortZh(row.symbol || row.name, row.issuer) || tickerZhLabel(row.name || row.symbol, row.issuer) || "待更新";
   const rawSym = String(row.symbol || "").trim().toUpperCase();
-  const code = /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawSym) && !label.includes(rawSym) ? rawSym : "";
+  const code = /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawSym) && label.toUpperCase() !== rawSym && !label.includes(rawSym) ? rawSym : "";
   return { key: row.symbol || row.name, label, code, tone, badge };
 }
 
@@ -1330,16 +1358,44 @@ function buildGuruModule(snapshot) {
       const move = String(holding.changeLabel || "");
       const displayName = guruHoldingName(holding);
       const rawTicker = String(holding.ticker || holding.code || "").trim().toUpperCase();
-      const code = /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawTicker) && !displayName.includes(rawTicker) ? rawTicker : "";
+      const code = /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawTicker) && displayName.toUpperCase() !== rawTicker && !displayName.includes(rawTicker) ? rawTicker : "";
       return {
         name: displayName,
         code,
+        weightNum: Number.isFinite(weight) ? weight : 0,
         weightText: Number.isFinite(weight) ? `${weight.toFixed(1)}%` : "—",
         weightBar: Number.isFinite(weight) ? Math.max(3, Math.round((weight / topWeight) * 100)) : 0,
         moveText: move || "—",
         moveTone: /新进|新建|增持/.test(move) ? "worth" : (/减持|清仓|退出/.test(move) ? "avoid" : ""),
       };
     });
+    const top5Rows = rows.slice(0, 5).filter((r) => r.weightNum > 0);
+    const top5Sum = top5Rows.reduce((s, r) => s + r.weightNum, 0);
+    let concentration = null;
+    if (top5Rows.length >= 2 && top5Sum > 0) {
+      const denom = Math.max(100, top5Sum);
+      const segs = top5Rows.map((r, idx) => ({
+        key: `seg-${idx}`,
+        tone: `c${idx + 1}`,
+        name: String(r.name || "").slice(0, 5),
+        pctText: `${r.weightNum.toFixed(1)}%`,
+        width: Math.max(3, Math.round((r.weightNum / denom) * 1000) / 10),
+      }));
+      if (denom - top5Sum >= 2) {
+        segs.push({
+          key: "seg-rest",
+          tone: "rest",
+          name: "其余仓位",
+          pctText: `${(denom - top5Sum).toFixed(1)}%`,
+          width: Math.max(2, Math.round(((denom - top5Sum) / denom) * 1000) / 10),
+        });
+      }
+      concentration = {
+        topSumText: `前${top5Rows.length}大重仓合计 ${top5Sum.toFixed(1)}%`,
+        segments: segs,
+        legend: segs,
+      };
+    }
     const currency = item.group === "a" ? "¥" : "$";
     const history = Array.isArray(item.raw?.history) ? item.raw.history : [];
     const isLive = Boolean(item.raw?.isLive);
@@ -1347,12 +1403,13 @@ function buildGuruModule(snapshot) {
     const shortDate = (value) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value || "")) ? String(value).slice(2) : "—");
     const built = {
       rows,
+      concentration,
       hint: rows.length ? `重仓前 ${rows.length}` : "暂无持仓披露",
       stats: [
         { label: "报告期", value: shortDate(item.raw?.reportDate) },
         { label: "披露日", value: shortDate(item.raw?.filingDate) },
-        { label: "来源", value: isLive ? "美国证监会" : "基金定期报告" },
-        { label: "可靠度", value: trackingScore != null ? String(trackingScore) : "—" },
+        { label: "来源", value: isLive ? "美国证监会" : "基金季报" },
+        { label: "披露完整度", value: trackingScore != null ? `${trackingScore}分` : "—" },
       ],
       isLive,
       trackingScore,
@@ -1673,6 +1730,7 @@ Page({
     goldChartNote: "",
     goldLadder: null,
     goldParityLine: "",
+    goldCompareTiles: [],
     // 机构持仓专属：模仿富途「明星机构持仓」，一进来直接看各家机构重仓，点铭牌秒切。
     guruSubTab: "holdings",
     guruTrendRows: [],
@@ -1689,6 +1747,7 @@ Page({
     guruHoldingsRows: [],
     guruHoldingsRowsShown: [],
     guruHoldingsExpanded: false,
+    guruConcentration: null,
     guruHoldingsHint: "",
     guruHoldingStats: [],
     guruIsLive: false,
@@ -1898,6 +1957,7 @@ Page({
         Object.assign(patch, {
           goldQuotes: goldModule.quotes,
           goldParityLine: goldModule.parityLine || "",
+          goldCompareTiles: goldModule.compareTiles || [],
           goldPeriod: goldView.period,
           goldZoneTone: goldView.zoneTone,
           goldCurrencyLabel: goldView.currencyLabel,
@@ -1924,6 +1984,7 @@ Page({
           guruInstitutionOrg: guruSelection.org,
           guruHoldingsRows: guruSelection.holdings.rows,
           guruHoldingsRowsShown: holdingsRowsShown(guruSelection.holdings.rows, this.data.guruHoldingsExpanded),
+          guruConcentration: guruSelection.holdings.concentration || null,
           guruHoldingsHint: guruSelection.holdings.hint,
           guruHoldingStats: guruSelection.holdings.stats,
           guruIsLive: guruSelection.holdings.isLive,
@@ -2189,6 +2250,7 @@ Page({
       // 切换机构时收起「展开」，避免上一家展开到10条的状态带到下一家。
       guruHoldingsExpanded: false,
       guruHoldingsRowsShown: holdingsRowsShown(selection.holdings.rows, false),
+      guruConcentration: selection.holdings.concentration || null,
       guruHoldingsHint: selection.holdings.hint,
       guruHoldingStats: selection.holdings.stats,
       guruIsLive: selection.holdings.isLive,

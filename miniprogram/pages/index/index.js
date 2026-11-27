@@ -372,8 +372,8 @@ function buildHotPicks(snapshot) {
     if (market === "us" && positivePrice(raw.price) != null) return `$${Number(raw.price).toFixed(1)}`;
     if (market === "a" && positivePrice(raw.currentPrice) != null) return `¥${Number(raw.currentPrice).toFixed(2)}`;
     if (market === "hk") {
-      const op = String(raw.offerPrice || "").replace(/HK\$|港元|\s+/giu, "").trim();
-      return op ? `HK$${op}` : (item.badge || "新股");
+      const match = String(raw.offerPrice || "").match(/\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?/);
+      return match ? `HK$${match[0].replace(/\s+/g, "")}` : (item.badge || "新股");
     }
     return "";
   };

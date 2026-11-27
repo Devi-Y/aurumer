@@ -95,7 +95,7 @@
       <view class="hero-top">
         <view class="hero-tag-row">
           <text class="hero-label">{{view.marketLabel}}</text>
-          <text wx:if="{{view.primaryJudgment}}" class="hero-judgment">结论 · {{view.primaryJudgment}}</text>
+          <text wx:if="{{view.primaryJudgment}}" class="hero-judgment">结论 · {{view.heroVerdict || view.primaryJudgment}}</text>
         </view>
         <text class="hero-star-btn {{starred ? 'is-starred' : ''}}" bindtap="toggleStar" aria-role="button" aria-label="{{starred ? '取消收藏' : '加入收藏'}}">{{starred ? '★ 已收藏' : '☆ 收藏'}}</text>
       </view>
@@ -304,26 +304,7 @@
           </view>
         </view>
 
-        <view wx:if="{{view.keyStats && view.keyStats.length}}" class="apple-stats-grid">
-          <view wx:for="{{view.keyStats}}" wx:key="*this" class="apple-stat-cell">
-            <text class="apple-stat-k">{{item[0]}}</text>
-            <text class="apple-stat-v">{{item[1]}}</text>
-          </view>
-        </view>
-
-        <view wx:if="{{view.overview.healthChecks && view.overview.healthChecks.length}}" class="health-bars-box">
-          <view wx:for="{{view.overview.healthChecks}}" wx:key="label" class="health-bar-row">
-            <view class="health-bar-head">
-              <text class="health-bar-k">{{item.label}}</text>
-              <text class="health-bar-v tone-{{item.tone}}">{{item.valueText}}</text>
-            </view>
-            <view class="health-bar-track">
-              <view class="health-bar-fill tone-{{item.tone}}" style="width: {{item.percent}}%;"></view>
-            </view>
-          </view>
-        </view>
-
-        <!-- A股收息首屏分红试算器：点股数直接看年度现金分红 -->
+        <!-- A股收息首屏分红试算器：点股数直接看年度现金分红（对标息记） -->
         <view wx:if="{{view.market == 'a' && dividendCalcView}}" class="section-card div-calc-card">
           <view class="div-calc-head">
             <text class="block-title">持股分红试算</text>
@@ -343,6 +324,30 @@
             <view class="div-calc-metric">
               <text class="div-calc-k">{{dividendCalcView.priceAsOf}} 对应市值</text>
               <text class="div-calc-v is-sub">{{dividendCalcView.costText}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 首屏核心图表直出（A股历年分红柱图 / 美股利润率与营收图 / 港股样本涨跌图 / 大佬重仓权重图） -->
+        <block wx:if="{{activeCharts.length}}">
+          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
+        </block>
+
+        <view wx:if="{{view.keyStats && view.keyStats.length}}" class="apple-stats-grid">
+          <view wx:for="{{view.keyStats}}" wx:key="*this" class="apple-stat-cell">
+            <text class="apple-stat-k">{{item[0]}}</text>
+            <text class="apple-stat-v">{{item[1]}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{view.overview.healthChecks && view.overview.healthChecks.length}}" class="health-bars-box">
+          <view wx:for="{{view.overview.healthChecks}}" wx:key="label" class="health-bar-row">
+            <view class="health-bar-head">
+              <text class="health-bar-k">{{item.label}}</text>
+              <text class="health-bar-v tone-{{item.tone}}">{{item.valueText}}</text>
+            </view>
+            <view class="health-bar-track">
+              <view class="health-bar-fill tone-{{item.tone}}" style="width: {{item.percent}}%;"></view>
             </view>
           </view>
         </view>

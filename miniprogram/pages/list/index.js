@@ -104,7 +104,7 @@ function comparisonMetric(item, market, group) {
       // 直接拼进 `表观年化 ${...}` 会读成"表观年化 13.2% 年化"。按解析出来的数
       // 重新写一遍，「约」这个不确定标记要留着，它是原文本来的意思。
       const approx = /约/.test(String(item.raw.profile.performanceValue)) ? "约 " : "";
-      return { value, label: `表观年化 ${approx}${value.toFixed(1)}%` };
+      return { value, label: `公开年化 ${approx}${value.toFixed(1)}%` };
     }
     const weight = Number(item.raw?.holdings?.[0]?.weight);
     if (Number.isFinite(weight) && weight > 0) {

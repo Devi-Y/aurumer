@@ -43,7 +43,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{hkSubTab === 'exit'}}"
-      >配发与首日复盘</view>
+      >中签与首日涨跌</view>
     </view>
 
     <block wx:if="{{hkSubTab === 'apply'}}">
@@ -66,7 +66,10 @@
             <view class="hk-fd-bar {{bar.tone}}" style="{{bar.style}}"></view>
           </view>
         </view>
-        <view class="hk-fd-link" data-group="ended" bindtap="openGroup" hover-class="tap-active" aria-role="button">新股首日明细 ›</view>
+        <view class="hk-fd-foot">
+          <text wx:if="{{hkFirstDayChart.rangeText}}" class="hk-fd-range">{{hkFirstDayChart.rangeText}}</text>
+          <view class="hk-fd-link" data-group="ended" bindtap="openGroup" hover-class="tap-active" aria-role="button">新股首日明细 ›</view>
+        </view>
       </view>
 
       <view class="hk-stock-list" wx:if="{{hkApplyList.length}}">
@@ -90,7 +93,7 @@
                 <text wx:for="{{item.tagPills}}" wx:for-item="tg" wx:key="*this" class="mini-tag">{{tg}}</text>
               </view>
             </view>
-            <text class="hk-badge tone-{{item.tone}}">{{item.badgeText}}</text>
+            <text class="hk-badge tone-{{item.tone}}">{{item.statusLabel || item.badgeText}}</text>
           </view>
           <view wx:if="{{item.stageSteps && item.stageSteps.length}}" class="hk-stage-track" aria-hidden="true">
             <view wx:for="{{item.stageSteps}}" wx:for-item="st" wx:key="label" class="hk-stage-step is-{{st.state}}">
@@ -212,7 +215,7 @@
       <view class="sort-bar">
         <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">默认</text>
         <text class="sort-pill {{usAllSort === 'perf60' ? 'is-active' : ''}}" data-sort="perf60" bindtap="sortUsAll" aria-role="button">60日涨幅</text>
-        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">PE低到高</text>
+        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">市盈率低</text>
       </view>
       <view class="us-stock-list" wx:if="{{usAllList.length}}">
         <view
@@ -245,7 +248,7 @@
               <view class="us-range-dot" style="left: {{item.pos60Pct}}%;"></view>
             </view>
             <text class="us-range-num">{{item.hi60Text}}</text>
-            <text wx:if="{{item.posChip}}" class="data-chip">{{item.posChip}}</text>
+            <text wx:if="{{item.posChip}}" class="data-chip is-{{item.posTone}}">{{item.posChip}}</text>
             <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
           </view>
         </view>
@@ -285,7 +288,7 @@
               <view class="us-range-dot" style="left: {{item.pos60Pct}}%;"></view>
             </view>
             <text class="us-range-num">{{item.hi60Text}}</text>
-            <text wx:if="{{item.posChip}}" class="data-chip">{{item.posChip}}</text>
+            <text wx:if="{{item.posChip}}" class="data-chip is-{{item.posTone}}">{{item.posChip}}</text>
             <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
           </view>
           <text wx:if="{{item.event}}" class="us-event-line">{{item.eventDate}} {{item.event}}</text>
@@ -357,7 +360,7 @@
         hover-class="tap-active"
         aria-role="button"
         aria-selected="{{aSubTab === 'all'}}"
-      >红利全池</view>
+      >全部高息股</view>
     </view>
 
     <block wx:if="{{aSubTab === 'all'}}">
@@ -399,7 +402,8 @@
                 <text class="code-pill">{{item.code}}</text>
                 <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
               </view>
-              <view wx:if="{{item.dataChips && item.dataChips.length}}" class="a-chip-row">
+              <view wx:if="{{item.annualPer10kText || (item.dataChips && item.dataChips.length)}}" class="a-chip-row">
+                <text wx:if="{{item.annualPer10kText}}" class="data-chip is-income">{{item.annualPer10kText}}</text>
                 <text wx:for="{{item.dataChips}}" wx:for-item="chip" wx:key="*this" class="data-chip">{{chip}}</text>
               </view>
             </view>
@@ -440,7 +444,8 @@
                   <text class="div-dot-yr">{{dot.year}}</text>
                 </view>
               </view>
-              <view wx:if="{{item.dataChips && item.dataChips.length}}" class="a-chip-row">
+              <view wx:if="{{item.annualPer10kText || (item.dataChips && item.dataChips.length)}}" class="a-chip-row">
+                <text wx:if="{{item.annualPer10kText}}" class="data-chip is-income">{{item.annualPer10kText}}</text>
                 <text wx:for="{{item.dataChips}}" wx:for-item="chip" wx:key="*this" class="data-chip">{{chip}}</text>
               </view>
             </view>
@@ -448,7 +453,7 @@
             <view class="a-metric">
               <view class="a-metric-num">
                 <text class="a-metric-value dividend-years">{{item.metricText}}</text>
-                <text class="a-metric-unit">分稳</text>
+                <text class="a-metric-unit">稳度分</text>
               </view>
               <view class="a-metric-track"><view class="a-metric-fill" style="width: {{item.metricBar}}%;"></view></view>
             </view>
@@ -484,7 +489,8 @@
                   <text class="div-dot-yr">{{dot.year}}</text>
                 </view>
               </view>
-              <view wx:if="{{item.dataChips && item.dataChips.length}}" class="a-chip-row">
+              <view wx:if="{{item.annualPer10kText || (item.dataChips && item.dataChips.length)}}" class="a-chip-row">
+                <text wx:if="{{item.annualPer10kText}}" class="data-chip is-income">{{item.annualPer10kText}}</text>
                 <text wx:for="{{item.dataChips}}" wx:for-item="chip" wx:key="*this" class="data-chip">{{chip}}</text>
               </view>
             </view>
@@ -525,8 +531,12 @@
         <text class="gold-quote-unit">{{item.asOfText}}</text>
       </view>
     </view>
-    <view wx:if="{{goldParityLine}}" class="gold-parity-strip">
-      <text class="gold-parity-text">{{goldParityLine}}</text>
+    <view wx:if="{{goldCompareTiles.length}}" class="gold-compare-grid">
+      <view wx:for="{{goldCompareTiles}}" wx:key="key" class="gold-compare-cell">
+        <text class="gold-compare-k">{{item.label}}</text>
+        <text class="gold-compare-v">{{item.value}}</text>
+        <text wx:if="{{item.sub}}" class="gold-compare-sub">{{item.sub}}</text>
+      </view>
     </view>
 
     <view class="gold-panel">
@@ -561,7 +571,7 @@
             <view class="us-range-dot" style="left: {{goldChart.rangePos}}%;"></view>
           </view>
           <text class="us-range-num">{{goldChart.highLabel}}</text>
-          <text class="data-chip">{{goldChart.rangePos}}%位</text>
+          <text class="data-chip is-{{goldChart.rangeTone}}">{{goldChart.posLabel}}</text>
         </view>
         <text class="gold-chart-caption">{{goldChart.dateText}} · {{goldChart.source}}</text>
       </view>
@@ -774,6 +784,24 @@
           <view wx:for="{{guruHoldingStats}}" wx:key="label" class="guru-stat">
             <text class="guru-stat-k">{{item.label}}</text>
             <text class="guru-stat-v">{{item.value}}</text>
+          </view>
+        </view>
+
+        <!-- 模仿富途「持仓分布」：前五大重仓彩色分段条，仓位集中度一眼看清 -->
+        <view wx:if="{{guruConcentration}}" class="guru-conc-box" aria-hidden="true">
+          <view class="guru-conc-head">
+            <text class="guru-conc-title">重仓分布</text>
+            <text class="guru-conc-sum">{{guruConcentration.topSumText}}</text>
+          </view>
+          <view class="guru-conc-bar">
+            <view wx:for="{{guruConcentration.segments}}" wx:key="key" class="guru-conc-seg is-{{item.tone}}" style="width: {{item.width}}%;"></view>
+          </view>
+          <view class="guru-conc-legend">
+            <view wx:for="{{guruConcentration.legend}}" wx:key="key" class="guru-conc-key">
+              <view class="guru-conc-dot is-{{item.tone}}"></view>
+              <text class="guru-conc-name">{{item.name}}</text>
+              <text class="guru-conc-pct">{{item.pctText}}</text>
+            </view>
           </view>
         </view>
 

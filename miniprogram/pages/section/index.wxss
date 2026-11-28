@@ -5233,11 +5233,38 @@
   font-weight: 680;
 }
 
-.section-legal-link {
-  display: block;
-  margin-top: 8rpx;
-  color: #64748b;
+.us-etf-title {
+  color: #162033;
+  font-size: 28rpx;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.us-etf-meta-line {
+  display: flex;
+  margin-top: 6rpx;
+  align-items: center;
+  gap: 10rpx;
+  flex-wrap: wrap;
+}
+
+.us-etf-yield {
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: #ecfdf5;
+  color: #0b7a48;
   font-size: 24rpx;
-  font-weight: 660;
-  text-align: center;
+  font-weight: 720;
+}
+
+.us-etf-spark {
+  width: 112rpx;
+  height: 40rpx;
+  flex: none;
+}
+
+.us-etf-mini-spark {
+  width: 100%;
+  height: 36rpx;
+  margin: 4rpx 0 2rpx;
 }

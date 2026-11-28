@@ -3091,11 +3091,42 @@
   font-weight: 680;
 }
 
-.detail-legal-link {
-  display: block;
-  margin-top: 8rpx;
-  color: #64748b;
+.dualline-chart-box {
+  margin-top: 12rpx;
+  padding: 14rpx 14rpx 10rpx;
+  border-radius: 16rpx;
+  background: #f8fafd;
+}
+
+.dualline-head-row {
+  display: flex;
+  margin-bottom: 8rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+  flex-wrap: wrap;
+}
+
+.dualline-alpha {
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
   font-size: 24rpx;
-  font-weight: 660;
-  text-align: center;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+}
+
+.dualline-alpha.tone-up {
+  background: #fdf2f0;
+  color: #c2412d;
+}
+
+.dualline-alpha.tone-down {
+  background: #ecfdf5;
+  color: #0f766e;
+}
+
+.dualline-img {
+  display: block;
+  width: 100%;
+  height: 228rpx;
 }

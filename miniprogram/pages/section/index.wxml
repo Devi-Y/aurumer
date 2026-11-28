@@ -422,16 +422,20 @@
         <view class="us-etf-panel">
           <view class="guru-conc-head">
             <text class="guru-conc-title">美股宽基与收息 ETF 基准</text>
-            <text class="guru-conc-sum">Yahoo Finance 实时同步</text>
+            <text class="guru-conc-sum">近60日走势 · 实时息率</text>
           </view>
           <view wx:for="{{usEtfList}}" wx:key="symbol" class="us-etf-row">
             <view class="us-etf-left">
               <view class="code-name-line">
-                <text class="us-stock-name">{{item.zhName}}</text>
+                <text class="us-etf-title">{{item.zhName}}</text>
                 <text class="code-pill">{{item.symbol}}</text>
               </view>
-              <text class="us-etf-role">{{item.role}}{{item.asOfText ? ' · ' + item.asOfText : ''}}</text>
+              <view class="us-etf-meta-line">
+                <text wx:if="{{item.yieldText}}" class="us-etf-yield">{{item.yieldText}}</text>
+                <text class="us-etf-role">{{item.role}}</text>
+              </view>
             </view>
+            <image wx:if="{{item.sparkSrc}}" class="us-etf-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
             <view class="us-right">
               <text class="us-price">{{item.priceText}}</text>
               <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
@@ -607,8 +611,9 @@
             <text class="us-etf-sym">{{item.symbol}}</text>
             <text class="us-etf-chg is-{{item.changeTone}}">{{item.changeText}}</text>
           </view>
+          <image wx:if="{{item.sparkSrc}}" class="us-etf-mini-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
           <text class="us-etf-prc">{{item.priceText}}</text>
-          <text class="us-etf-tag">{{item.zhName}}</text>
+          <text class="us-etf-tag">{{item.yieldText || item.zhName}}</text>
         </view>
       </view>
       <view class="sort-bar">
@@ -938,6 +943,7 @@
         <text class="sort-pill {{aAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortAAll" aria-role="button">默认</text>
         <text class="sort-pill {{aAllSort === 'yield' ? 'is-active' : ''}}" data-sort="yield" bindtap="sortAAll" aria-role="button">股息率高</text>
         <text class="sort-pill {{aAllSort === 'stable' ? 'is-active' : ''}}" data-sort="stable" bindtap="sortAAll" aria-role="button">分红更稳</text>
+        <text class="sort-pill {{aAllSort === 'pb' ? 'is-active' : ''}}" data-sort="pb" bindtap="sortAAll" aria-role="button">市净率低</text>
       </view>
       <view class="a-rows" wx:if="{{aAllList.length}}">
         <view
@@ -1161,7 +1167,6 @@
       <view wx:if="{{goldLadder}}" class="gold-ladder">
         <view class="guru-conc-head">
           <text class="guru-conc-title">历史观察价位带</text>
-          <text class="guru-conc-sum">客观分位算术 · 非买卖指令</text>
         </view>
         <view class="gold-ladder-axis" aria-hidden="true">
           <text class="gold-ladder-now tone-{{goldZoneTone}}" style="left: {{goldLadder.priceLabelLeft}}%;">现价 {{goldLadder.priceText}}</text>
@@ -1353,7 +1358,6 @@
       <view wx:if="{{guruActionDonut}}" class="guru-conc-box guru-action-box" aria-hidden="true">
         <view class="guru-conc-head">
           <text class="guru-conc-title">本季机构调仓动作分布</text>
-          <text class="guru-conc-sum">法定披露客观汇总</text>
         </view>
         <view class="guru-conc-visual">
           <view class="guru-conc-donut-wrap">
@@ -1683,7 +1687,6 @@
 
   <view class="page-note">
     <text>{{disclaimer}}</text>
-    <text class="section-legal-link" bindtap="openLegal" aria-role="button">《合规声明与隐私指引》</text>
   </view>
 
   <view wx:if="{{answerSheet}}" class="answer-mask" bindtap="closeAnswerSheet" catchtouchmove="true">

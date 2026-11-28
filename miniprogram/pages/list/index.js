@@ -9,7 +9,8 @@ const { goldPlanView } = require("../../utils/market-lenses");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { buildHkHistoryStats, buildHkIndustryStats, buildHkSponsorStats } = require("../../utils/hk-history-stats");
-const { donutSvg } = require("../../utils/svg-charts");
+const { donutSvg, cleanSparkSvg } = require("../../utils/svg-charts");
+const { sampleSeries } = require("../../utils/sparkline");
 const { marketSources } = require("../../utils/sources");
 const { SMART_MONEY_PROFILES } = require("../../utils/smart-money");
 // 页头那句「数据截至 …」和新闻资讯页共用同一个写法：同一份快照在两个页面上
@@ -285,11 +286,19 @@ Page({
           ? item.code
           : "";
 
+        const rawHist = Array.isArray(item.raw?.history)
+          ? item.raw.history.map((e) => Number(e?.close ?? e)).filter((v) => Number.isFinite(v) && v > 0)
+          : [];
+        const sparkSrc = (market === "us" || market === "a") && rawHist.length >= 10
+          ? cleanSparkSvg(sampleSeries(rawHist, 36), { width: 136, height: 38 })
+          : "";
+
         return {
           id: item.id,
           name: item.name,
           shortName: resolvedShortName,
           code: cleanCode,
+          sparkSrc,
           badge: dedupBadge,
           badgeTone: market,
           badgeSentiment: badgeSentimentFor(market, item.group),

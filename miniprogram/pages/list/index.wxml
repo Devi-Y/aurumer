@@ -135,6 +135,7 @@
         <text class="item-rank">{{item.positionLabel}}</text>
         <text class="item-name">{{item.shortName}}</text>
         <text wx:if="{{item.code}}" class="item-code">{{item.code}}</text>
+        <image wx:if="{{item.sparkSrc}}" class="item-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
       </view>
       <text wx:if="{{item.fact}}" class="item-fact">{{item.fact}}</text>
       <view class="item-foot">

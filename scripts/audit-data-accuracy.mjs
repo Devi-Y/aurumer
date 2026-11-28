@@ -330,7 +330,7 @@ for (const topic of ["accounts", "info", "us-start", "hk-open", "a-open"]) {
 const legalConfig = loadPageFactory("pages/legal/index.js");
 const lPage = instantiatePage(legalConfig);
 scanPoisonStrings(lPage.data, "legal");
-assert((lPage.data.sections || []).some((s) => String(s.title).includes("全站数据合规")), "协议页必须包含全站数据合规与跨境社群边界章节");
+assert.equal((lPage.data.sections || []).length, 7, "协议页应保持精简的 7 节折叠结构");
 
 const ILLEGAL_PROMISE_RE = /稳赚不赔|保本保息|保本高息|必涨牛股|包中签|保证翻倍|内幕消息|带你暴富/;
 function walkSourceFiles(dir, out = []) {

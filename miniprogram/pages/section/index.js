@@ -38,7 +38,7 @@ const { asOfText } = require("../../utils/dates");
 const { marketReferenceAsOf, referenceDateText } = require("../../utils/historical-reference");
 const { historicalGoldSeries, domesticGoldClose } = require("../../utils/gold-series");
 const { goldParity } = require("../../utils/gold-parity");
-const { PALETTE, donutSvg, gaugeSvg, groupedBarsSvg, monthDensitySvg } = require("../../utils/svg-charts");
+const { PALETTE, donutSvg, gaugeSvg, groupedBarsSvg, monthDensitySvg, cleanSparkSvg } = require("../../utils/svg-charts");
 
 const SHORT_TAG_MAP = {
   NVDA: "AI芯片",
@@ -1155,6 +1155,10 @@ function buildUsModule(snapshot) {
       const sym = String(q.symbol).toUpperCase();
       const meta = ETF_ROLE_META[sym] || { zhName: q.name || sym, role: "基准ETF" };
       const chg = finiteOrNull(q.changePercent);
+      const dy = finiteOrNull(q.dividendYield);
+      const closes = Array.isArray(q.history)
+        ? q.history.map((h) => finiteOrNull(h?.close ?? h)).filter((v) => v != null && v > 0)
+        : [];
       return {
         symbol: sym,
         zhName: meta.zhName,
@@ -1162,6 +1166,8 @@ function buildUsModule(snapshot) {
         priceText: `$${Number(q.price).toFixed(2)}`,
         changeText: signedPct(chg, 2),
         changeTone: chg == null ? "flat" : (chg >= 0 ? "up" : "down"),
+        yieldText: dy != null && dy > 0 ? `息率 ${dy.toFixed(1)}%` : "",
+        sparkSrc: closes.length >= 10 ? cleanSparkSvg(closes, { width: 148, height: 42 }) : "",
         asOfText: q.asOf ? String(q.asOf).slice(5, 10) : "",
       };
     });
@@ -1375,10 +1381,12 @@ function aRankedList(items, lens, fresh = true) {
         priceZone = plan.zone;
       }
       const curPrice = finiteOrNull(raw.currentPrice);
+      const pbVal = finiteOrNull(raw.pb);
       const annualPer10kText = historicalYield ? `投1万年息 ¥${Math.round(historicalYield.yieldPercent * 100)}` : "";
       const dataChips = [];
       if (lens === "stable5" && historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
       if (lens !== "stable5" && stability != null) dataChips.push(`稳定度 ${stability}分`);
+      if (pbVal != null && pbVal > 0) dataChips.push(`市净 ${pbVal.toFixed(2)}倍`);
       if (curPrice != null) dataChips.push(`一手 ¥${Math.round(curPrice * 100).toLocaleString("en-US")}`);
       const spark = historySpark(item, US_SPARK_SIZE);
       return {
@@ -1710,8 +1718,12 @@ function aAllModule(items, fresh) {
       if (historicalYield) factParts.push(`股息率 ${historicalYield.yieldPercent.toFixed(2)}%`);
       if (stability != null) factParts.push(`稳定度 ${stability}分`);
       const annualPer10kText = historicalYield ? `投1万年息 ¥${Math.round(historicalYield.yieldPercent * 100)}` : "";
+      const pbVal = finiteOrNull(raw.pb);
+      const peVal = finiteOrNull(raw.pe);
       const dataChips = [];
       if (historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
+      if (pbVal != null && pbVal > 0) dataChips.push(`市净 ${pbVal.toFixed(2)}倍`);
+      else if (peVal != null && peVal > 0) dataChips.push(`市盈 ${peVal.toFixed(1)}倍`);
       if (price != null) dataChips.push(`一手 ¥${Math.round(price * 100).toLocaleString("en-US")}`);
       const spark = historySpark(item, US_SPARK_SIZE);
       return {
@@ -1727,6 +1739,7 @@ function aAllModule(items, fresh) {
         ...spark,
         sortYield: historicalYield ? historicalYield.yieldPercent : null,
         sortStability: stability != null ? Number(stability) : null,
+        sortPb: pbVal,
         sortCuts: stabilityDetail.decreaseCount,
         sortChange: change,
         badgeText: item.badge,
@@ -3424,6 +3437,9 @@ Page({
     }
     if (sortId === "stable") {
       return rows.sort((a, b) => (b.sortStability ?? -1e9) - (a.sortStability ?? -1e9) || (b.sortYield ?? -1e9) - (a.sortYield ?? -1e9));
+    }
+    if (sortId === "pb") {
+      return rows.sort((a, b) => ((a.sortPb > 0 ? a.sortPb : 1e9) - (b.sortPb > 0 ? b.sortPb : 1e9)));
     }
     if (sortId === "change") {
       return rows.sort((a, b) => (b.sortChange ?? -1e9) - (a.sortChange ?? -1e9));

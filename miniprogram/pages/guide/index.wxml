@@ -4,12 +4,6 @@
     <text wx:for="{{guidePills}}" wx:key="*this" class="guide-step-pill">{{item}}</text>
   </view>
 
-  <!-- 合规风险隔离提示条 -->
-  <view class="guide-compliance-bar">
-    <text class="guide-compliance-tag">合规提示</text>
-    <text class="guide-compliance-text">望潮不代办开户、不触碰资金；外部渠道独立运营，请先核验监管牌照</text>
-  </view>
-
   <!-- 港美股双渠道直达：只留指引与渠道 -->
   <block wx:if="{{choices.length}}">
     <view wx:for="{{choices}}" wx:key="topic" class="page-card offer-card">
@@ -94,7 +88,6 @@
 
   <view class="page-footer">
     <text class="footer-note">{{footerDisclaimer}}</text>
-    <text class="footer-legal-link" bindtap="openLegal" aria-role="button">《合规声明与隐私指引》</text>
   </view>
 
   <view class="page-nav">

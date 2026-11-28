@@ -392,6 +392,65 @@ function monthDensitySvg(counts12, { width = 340, height = 84, activeMonth = 0 }
   return toDataUri(svg);
 }
 
+/**
+ * 10. 同起点收益率双曲线叠加走势对比图 (dualLineSvg)
+ * 对标富途牛牛、东方财富、IBKR「个股 vs 基准指数/ETF」同起点累计涨跌幅叠加曲线图。
+ */
+function dualLineSvg(seriesA, seriesB, { width = 340, height = 136, colorA = "#1d5fd1", colorB = "#94a3b8" } = {}) {
+  const rawA = (Array.isArray(seriesA) ? seriesA : []).map(Number).filter((v) => Number.isFinite(v) && v > 0);
+  const rawB = (Array.isArray(seriesB) ? seriesB : []).map(Number).filter((v) => Number.isFinite(v) && v > 0);
+  const len = Math.min(rawA.length, rawB.length);
+  if (len < 6) return "";
+  const subA = rawA.slice(-len);
+  const subB = rawB.slice(-len);
+  const baseA = subA[0];
+  const baseB = subB[0];
+  if (!(baseA > 0 && baseB > 0)) return "";
+
+  const pctA = subA.map((v) => ((v - baseA) / baseA) * 100);
+  const pctB = subB.map((v) => ((v - baseB) / baseB) * 100);
+  const all = [...pctA, ...pctB, 0];
+  const lo = Math.min(...all);
+  const hi = Math.max(...all);
+  const span = Math.max(hi - lo, 0.5);
+
+  const padX = 10;
+  const padTop = 12;
+  const padBottom = 12;
+  const plotW = width - padX * 2;
+  const plotH = height - padTop - padBottom;
+  const stepX = plotW / (len - 1);
+  const yAt = (v) => padTop + (1 - (v - lo) / span) * plotH;
+
+  const buildPath = (arr) => {
+    const pts = arr.map((v, i) => [padX + i * stepX, yAt(v)]);
+    let d = `M${f1(pts[0][0])} ${f1(pts[0][1])}`;
+    for (let i = 1; i < pts.length - 1; i += 1) {
+      d += `Q${f1(pts[i][0])} ${f1(pts[i][1])} ${f1((pts[i][0] + pts[i + 1][0]) / 2)} ${f1((pts[i][1] + pts[i + 1][1]) / 2)}`;
+    }
+    const end = pts[pts.length - 1];
+    d += `L${f1(end[0])} ${f1(end[1])}`;
+    return { d, pts, end };
+  };
+
+  const pathA = buildPath(pctA);
+  const pathB = buildPath(pctB);
+  const yZero = yAt(0);
+  const areaA = `${pathA.d}L${f1(pathA.end[0])} ${height}L${f1(pathA.pts[0][0])} ${height}Z`;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">`
+    + `<defs><linearGradient id="dlf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${colorA}" stop-opacity="0.16"/><stop offset="0.85" stop-color="${colorA}" stop-opacity="0.02"/><stop offset="1" stop-color="${colorA}" stop-opacity="0"/></linearGradient></defs>`
+    + `<line x1="${padX}" y1="${f1(yZero)}" x2="${width - padX}" y2="${f1(yZero)}" stroke="#cbd5e1" stroke-width="1.1" stroke-dasharray="4 3"/>`
+    + `<path d="${areaA}" fill="url(#dlf)"/>`
+    + `<path d="${pathB.d}" fill="none" stroke="${colorB}" stroke-width="2" stroke-dasharray="4 2.5" stroke-linejoin="round" stroke-linecap="round"/>`
+    + `<path d="${pathA.d}" fill="none" stroke="${colorA}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`
+    + `<circle cx="${f1(pathB.end[0])}" cy="${f1(pathB.end[1])}" r="3.2" fill="${colorB}"/>`
+    + `<circle cx="${f1(pathA.end[0])}" cy="${f1(pathA.end[1])}" r="7.5" fill="${colorA}" fill-opacity="0.16"/>`
+    + `<circle cx="${f1(pathA.end[0])}" cy="${f1(pathA.end[1])}" r="4" fill="${colorA}"/>`
+    + "</svg>";
+  return toDataUri(svg);
+}
+
 module.exports = {
   PALETTE,
   donutSvg,
@@ -403,4 +462,5 @@ module.exports = {
   ipoTrackSvg,
   pentagonSvg,
   monthDensitySvg,
+  dualLineSvg,
 };

@@ -147,7 +147,7 @@
         <text wx:if="{{item.avgScoreText}}" class="pentagon-score-pill">综合 {{item.avgScoreText}}</text>
       </view>
       <view class="pentagon-dim-list">
-        <view wx:for="{{item.dims}}" wx:for-item="dim" wx:key="label" class="pentagon-dim-row">
+        <view class="pentagon-dim-row" wx:for="{{item.dims}}" wx:for-item="dim" wx:key="label">
           <view class="pentagon-dim-head">
             <text class="pentagon-dim-k">{{dim.label}}</text>
             <text class="pentagon-dim-v">{{dim.valueText}}</text>
@@ -157,6 +157,17 @@
           </view>
         </view>
       </view>
+    </view>
+
+    <view wx:if="{{item.kind == 'dualline'}}" class="dualline-chart-box">
+      <view class="dualline-head-row">
+        <view class="dual-legend-row">
+          <view class="dual-legend-item"><view class="dual-dot is-a"></view><text>{{item.selfLegend}}</text></view>
+          <view class="dual-legend-item"><view class="dual-dot is-peer"></view><text>{{item.benchLegend}}</text></view>
+        </view>
+        <text wx:if="{{item.alphaText}}" class="dualline-alpha tone-{{item.alphaTone}}">{{item.alphaText}}</text>
+      </view>
+      <image wx:if="{{item.src}}" class="dualline-img" src="{{item.src}}" mode="scaleToFill" aria-hidden="true"></image>
     </view>
   </view>
 </template>
@@ -401,7 +412,6 @@
             <text class="block-title">{{view.overview.orderPlan.title}}</text>
             <text class="verdict-stamp tone-{{view.overview.orderPlan.verdictTone}}">{{view.overview.orderPlan.verdictBadge}}</text>
           </view>
-          <text class="calc-compliance-tag">客观历史分位统计 · 非证券投资咨询或买卖指令</text>
           <view wx:if="{{view.overview.orderPlan.rows && view.overview.orderPlan.rows.length}}" class="ref-plan-rows">
             <view wx:for="{{view.overview.orderPlan.rows}}" wx:key="key" class="ref-plan-row">
               <text class="ref-plan-k">{{item.label}}</text>
@@ -428,7 +438,6 @@
             <text class="block-title">持股分红与复投试算</text>
             <text class="div-calc-year">{{dividendCalcView.year}}年度已实施</text>
           </view>
-          <text class="calc-compliance-tag">按已实施历史分红静态折算 · 过往派息不代表未来承诺</text>
           <view class="div-calc-pills">
             <text class="div-calc-pill {{dividendShares === 100 ? 'is-active' : ''}}" data-shares="100" bindtap="selectDividendShares" aria-role="button">100股</text>
             <text class="div-calc-pill {{dividendShares === 1000 ? 'is-active' : ''}}" data-shares="1000" bindtap="selectDividendShares" aria-role="button">1000股</text>
@@ -495,7 +504,6 @@
             <text class="block-title">打新本金与回本算账</text>
             <text class="div-calc-year">{{hkIpoCalcView.lotsText}}</text>
           </view>
-          <text class="calc-compliance-tag">公开招股规费静态测算 · 非新股申购建议</text>
           <view class="div-calc-pills hk-calc-pills">
             <text class="div-calc-pill {{hkCalcMode === 'cash1' ? 'is-active' : ''}}" data-mode="cash1" bindtap="selectHkCalcMode" aria-role="button">现金1手(0息)</text>
             <text class="div-calc-pill {{hkCalcMode === 'cash5' ? 'is-active' : ''}}" data-mode="cash5" bindtap="selectHkCalcMode" aria-role="button">现金5手</text>
@@ -572,25 +580,12 @@
             <text class="div-calc-year">点击秒切</text>
           </view>
           <view class="peer-cmp-grid">
-            <view
-              wx:for="{{peerCompare}}"
-              wx:key="id"
-              class="peer-cmp-cell"
-              data-id="{{item.id}}"
-              bindtap="switchPeer"
-              hover-class="tap-active"
-              aria-role="button"
-            >
+            <view class="peer-cmp-cell" wx:for="{{peerCompare}}" wx:key="id" data-id="{{item.id}}" bindtap="switchPeer" hover-class="tap-active" aria-role="button">
               <text class="peer-cmp-name">{{item.name}}</text>
               <text class="peer-cmp-m1">{{item.metric1}}</text>
               <text wx:if="{{item.metric2}}" class="peer-cmp-m2">{{item.metric2}}</text>
             </view>
           </view>
-        </view>
-
-        <view wx:if="{{view.overview.keyRisk}}" class="risk-card">
-          <text class="risk-label">风险留意</text>
-          <text class="risk-body">{{view.overview.keyRisk}}</text>
         </view>
       </view>
 
@@ -973,7 +968,6 @@
     <partner-strip market="{{market}}" />
 
     <text class="disclaimer">{{view.disclaimer}}</text>
-    <text class="detail-legal-link" bindtap="openLegal" aria-role="button">《合规声明与隐私指引》</text>
   </view>
 
   <view wx:if="{{snapshotSheetOpen}}" class="snapshot-mask" catchtouchmove="true">

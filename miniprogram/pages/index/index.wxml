@@ -115,6 +115,5 @@
 
   <view class="page-footer" aria-label="{{footerDisclaimer}}{{dataAsOf ? '，' + dataAsOf : ''}}">
     <text class="footer-note">{{footerDisclaimer}}</text>
-    <text class="footer-legal-link" bindtap="openLegal" aria-role="button">合规声明与隐私指引 ›</text>
   </view>
 </view>

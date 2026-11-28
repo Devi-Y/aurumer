@@ -37,6 +37,9 @@ test("A-share Xiji benchmark: full 20-stock pool, 12-month calendar, cost-yield 
     const item = findItem(snapshot, "a", code);
     const view = detApi.detailView(item, snapshot);
     assert.ok(view.dividendCharts.some((c) => c.kind === "gauge" && /股息率.*(分位|表盘)/.test(c.title)), `${code} exposes 1-year yield percentile gauge`);
+    assert.ok(view.dividendCharts.some((c) => c.kind === "donut" && /派息结构/.test(c.title)), `${code} exposes real payout-ratio donut`);
+    assert.ok(view.evidenceCharts.some((c) => c.kind === "dualbars" && /近4财年营收与归母净利对比/.test(c.title)), `${code} exposes 4yr revenue & profit dual bars`);
+    assert.ok(view.trendCharts.some((c) => c.kind === "dualline" && /对比红利ETF/.test(c.title)), `${code} exposes dual-line return chart vs 515180`);
     assert.ok(Array.isArray(view.recentDistributions) && view.recentDistributions.length >= 1, `${code} exposes real ex-dividend log`);
     const spotCalc = detPage.formatDividendCalc(view.dividendCalc, 1000, 10, "spot");
     const dipCalc = detPage.formatDividendCalc(view.dividendCalc, 1000, 10, "dip12");
@@ -87,6 +90,7 @@ test("US Mag7 & Smart-Money Futu/Eastmoney/IBKR benchmark: FCF vs CapEx matrix, 
   assert.ok(usMod.sevenCompare.rows.some((r) => r.fcfText && r.fcfText !== "—" && r.capexText !== "—"), "computes CapEx & Free Cash Flow across Mag7");
   assert.ok(usMod.sevenCompare.benchPills.length >= 3);
   assert.equal(usMod.etfList.length, 5, "activates all 5 US sleeve benchmark ETFs with live Yahoo quotes");
+  assert.ok(usMod.etfList.every((e) => e.sparkSrc && e.yieldText), "every US benchmark ETF carries 60d sparkline and TTM yield");
   assert.ok(usMod.sectorDonut && usMod.sectorDonut.src.startsWith("data:image/svg+xml;base64,"), "exposes 30-stock US sector donut SVG");
   assert.ok(usMod.sevenList.some((r) => r.guruChip.includes("大师重仓")));
   assert.ok(usMod.filingsFeed.length >= 5 && usMod.filingsFeed[0].formZh);
@@ -105,6 +109,7 @@ test("US Mag7 & Smart-Money Futu/Eastmoney/IBKR benchmark: FCF vs CapEx matrix, 
   assert.ok(nvda.dynamicsCharts.some((c) => c.kind === "dualbars" && c.title.includes("近4财年营收与净利润对比")));
   assert.ok(nvda.evidenceCharts.some((c) => c.kind === "compare" && c.title.includes("七巨头中位")));
   assert.ok(nvda.trendCharts.some((c) => c.kind === "gauge" && c.title.includes("价格分位表盘")));
+  assert.ok(nvda.trendCharts.some((c) => c.kind === "dualline" && c.title.includes("对比标普500")));
   assert.ok(nvda.holdings.length >= 1 && nvda.holdings[0].investorId, "surfaces clickable institutional guru holdings on Mag7");
 
   const { api: homeApi } = loadPageExports("miniprogram/pages/index/index.js", ["buildSearchIndex"]);

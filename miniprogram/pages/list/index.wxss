@@ -445,6 +445,13 @@
 
 .item-foot .arrow { margin-left: auto; }
 
+.item-spark {
+  width: 136rpx;
+  height: 38rpx;
+  margin-left: auto;
+  flex: none;
+}
+
 .tap-active { background: #edf2fb; }.empty {
   display: flex;
   min-height: 260rpx;

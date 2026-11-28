@@ -13,6 +13,8 @@ const { isPositionChange, instrumentSuffix } = require("../../utils/guru-changes
 const { hkLeverageEligible, goldPlanView, yieldImpliedPlan, cleanUsGrossMargin, US_BANK_SYMBOLS, isABankCode } = require("../../utils/market-lenses");
 const { goldTurningViews } = require("../../utils/daily-answers");
 const strategyEvidence = require("../../data/strategy-evidence");
+let bundledSnapshot = null;
+try { bundledSnapshot = require("../../data/live-snapshot"); } catch (_) { bundledSnapshot = null; }
 const { captureFact, captureDecisionEvidence } = require("../../utils/fact-snapshot");
 const { marketSources, dedupeSources, sourceName } = require("../../utils/sources");
 const { filingsFor, formatFiling, formatFilingLine, filingCoverageNote } = require("../../utils/us-filings");
@@ -22,7 +24,31 @@ const { getDividendStability } = require("../../utils/dividend-stability");
 // 的同口径字段就摆在快照里，把它算成「池内第 6/30」是零新增数据的一次密度提升。
 const { poolRankVisual } = require("../../utils/pool-rank");
 const { sparklineSvg, sampleSeries } = require("../../utils/sparkline");
-const { PALETTE, donutSvg, gaugeSvg, groupedBarsSvg, zoneSparklineSvg, pentagonSvg } = require("../../utils/svg-charts");
+const { PALETTE, donutSvg, gaugeSvg, groupedBarsSvg, zoneSparklineSvg, pentagonSvg, dualLineSvg } = require("../../utils/svg-charts");
+
+function buildDualLineCompareVisual(selfSeries, benchSeries, { title, selfName, benchName }) {
+  const cleanA = (Array.isArray(selfSeries) ? selfSeries : []).map(Number).filter((v) => Number.isFinite(v) && v > 0);
+  const cleanB = (Array.isArray(benchSeries) ? benchSeries : []).map(Number).filter((v) => Number.isFinite(v) && v > 0);
+  const len = Math.min(cleanA.length, cleanB.length);
+  if (len < 10) return null;
+  const subA = cleanA.slice(-len);
+  const subB = cleanB.slice(-len);
+  const pctA = ((subA[subA.length - 1] - subA[0]) / subA[0]) * 100;
+  const pctB = ((subB[subB.length - 1] - subB[0]) / subB[0]) * 100;
+  const alpha = pctA - pctB;
+  const fmt = (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`;
+  const src = dualLineSvg(subA, subB);
+  if (!src) return null;
+  return withChartMeta({
+    kind: "dualline",
+    title,
+    src,
+    selfLegend: `${selfName} ${fmt(pctA)}`,
+    benchLegend: `${benchName} ${fmt(pctB)}`,
+    alphaText: `${alpha >= 0 ? "跑赢" : "跑输"} ${fmt(alpha)}`,
+    alphaTone: alpha >= 0 ? "up" : "down",
+  });
+}
 const { annualRank } = require("../../utils/smart-money");
 // 黄金四个报价之间唯一那条换算（1 金衡盎司 = 31.1035 克），栏目页和详情页共用。
 const { goldParity } = require("../../utils/gold-parity");
@@ -1265,8 +1291,13 @@ function buildHKView(base, item, snapshot) {
     });
   }
   let hkStructureDonut = null;
-  if (hasNumber(raw.cornerstonePercent) && Number(raw.cornerstonePercent) > 0 && Number(raw.cornerstonePercent) < 95) {
-    const csPct = Number(raw.cornerstonePercent);
+  const effectiveCsPct = hasNumber(raw.cornerstonePercent) && Number(raw.cornerstonePercent) > 0
+    ? Number(raw.cornerstonePercent)
+    : (hasNumber(raw.cornerstoneAmount) && publicValue != null && publicValue > 0
+      ? (Number(raw.cornerstoneAmount) / (publicValue * 10)) * 100
+      : null);
+  if (effectiveCsPct != null && effectiveCsPct >= 3 && effectiveCsPct < 95) {
+    const csPct = effectiveCsPct;
     const restPct = Math.max(0, 100 - csPct);
     const segs = [
       { label: "基石机构锁仓", value: csPct, pctText: `${csPct.toFixed(1)}%`, color: "#1d5fd1" },
@@ -1658,10 +1689,24 @@ function buildUSView(base, item, snapshot) {
     usDualFinVisual || revenueVisual,
     netIncomeVisual,
   );
-  base.overviewCharts = [usPentagon, usDualFinVisual || revenueVisual, usPeerBench || marginBars].filter(Boolean).slice(0, 3);
+  const rawSleeves = Array.isArray(snapshot?.us?.sleeveQuotes) && snapshot.us.sleeveQuotes.length
+    ? snapshot.us.sleeveQuotes
+    : (Array.isArray(bundledSnapshot?.us?.sleeveQuotes) ? bundledSnapshot.us.sleeveQuotes : []);
+  const vooObj = rawSleeves.find((s) => String(s?.symbol || "").toUpperCase() === "VOO");
+  const vooCloses = Array.isArray(vooObj?.history) ? vooObj.history.map((h) => Number(h?.close ?? h)).filter((v) => v > 0) : [];
+  const usVsVooVisual = symUpper !== "VOO" && history.length >= 15 && vooCloses.length >= 15
+    ? buildDualLineCompareVisual(history, vooCloses, {
+        title: `近${Math.min(history.length, vooCloses.length)}日走势对比标普500`,
+        selfName: symUpper,
+        benchName: "标普500(VOO)",
+      })
+    : null;
+
+  base.overviewCharts = [usPentagon, usVsVooVisual, usDualFinVisual || usPeerBench || marginBars].filter(Boolean).slice(0, 3);
 
   // 「价格」保留走势和扇形分位表盘，「动态」集中展示公告与近期营收/盈利趋势。
   base.trendCharts = [
+    usVsVooVisual,
     chart,
     pos60Gauge || meterVisual(history, quote, "价格位置", money),
   ].filter(Boolean);
@@ -1901,13 +1946,16 @@ function buildAShareView(base, item, snapshot) {
     : "缺少完整分红或报价资料，历史股息率暂不计算。";
   base.metrics = [
     ["税前历史股息率", yieldText],
-    ["每股分红（税前）", dividendText],
-    ["分红所属年度", historical ? `${historical.year}年` : null],
+    hasNumber(raw.pb) ? ["市净率", `${Number(raw.pb).toFixed(2)}倍`] : ["每股分红（税前）", dividendText],
+    hasNumber(raw.pe) ? ["市盈率", `${Number(raw.pe).toFixed(1)}倍`] : ["分红所属年度", historical ? `${historical.year}年` : null],
+    historical && hasNumber(financials.payoutRatio) ? ["分红派息率", `${Number(financials.payoutRatio).toFixed(1)}%`] : null,
     isBank
       ? ["归母净利润", hasNumber(financials.netProfit) ? formatLarge(financials.netProfit) : null]
       : ["自由现金流", hasNumber(cleanFcf) ? formatLarge(cleanFcf) : null],
     ["股东回报", hasNumber(financials.roe) ? formatPercent(financials.roe) : null],
-    isBank && hasNumber(financials.revenue) ? ["营业总收入", formatLarge(financials.revenue)] : null,
+    hasNumber(raw.marketCap) ? ["总市值", `¥${formatLarge(raw.marketCap)}`] : null,
+    ["每股分红（税前）", dividendText],
+    ["分红所属年度", historical ? `${historical.year}年` : null],
     ["计算所用报价", historical ? money(historical.price, "¥") : null],
     ["报价日期", historical ? historical.priceAsOf : null],
   ].filter(Boolean);
@@ -2044,6 +2092,69 @@ function buildAShareView(base, item, snapshot) {
       ].filter(Boolean), "现金流安全垫结构")
     : null;
 
+  // 对标息记：真实分红派息率环形扇形图（现金分红 vs 利润留存）
+  let aPayoutDonut = null;
+  if (historical && hasNumber(financials.payoutRatio) && Number(financials.payoutRatio) > 0 && Number(financials.payoutRatio) <= 100) {
+    const pr = Number(financials.payoutRatio);
+    const keep = Math.max(0, 100 - pr);
+    const segs = [
+      { label: "现金分红", value: pr, pctText: `${pr.toFixed(1)}%`, color: "#0f9f6e" },
+      { label: "留存发展", value: keep, pctText: `${keep.toFixed(1)}%`, color: "#cbd5e1" },
+    ];
+    aPayoutDonut = withChartMeta({
+      kind: "donut",
+      title: `${financials.payoutYear || "最近"}年度利润派息结构`,
+      src: donutSvg(segs),
+      centerMain: `${Math.round(pr)}%`,
+      centerSub: "派息率",
+      legend: segs,
+    });
+  }
+
+  // 对标东方财富 F10：近 4 财年营收与归母净利并排双色柱状走势图
+  let aDualFinVisual = null;
+  const aRevHist = Array.isArray(financials.revenueHistory) ? financials.revenueHistory.slice(0, 4).reverse() : [];
+  const aNpHist = Array.isArray(financials.netProfitHistory) ? financials.netProfitHistory.slice(0, 4).reverse() : [];
+  if (aRevHist.length >= 2 && aNpHist.length === aRevHist.length) {
+    const dualGroups = aRevHist.map((r, idx) => {
+      const npVal = Number(aNpHist[idx]?.value) || 0;
+      const revVal = Number(r?.value) || 0;
+      return {
+        id: `afy-${idx}`,
+        label: `${r.period}年`,
+        a: revVal,
+        b: npVal,
+        aText: formatLarge(revVal),
+        bText: formatLarge(npVal),
+        bTone: npVal < 0 ? "down" : "up",
+      };
+    });
+    const dualSrc = groupedBarsSvg(dualGroups);
+    if (dualSrc) {
+      aDualFinVisual = withChartMeta({
+        kind: "dualbars",
+        title: "近4财年营收与归母净利对比",
+        legendA: "营业总收入",
+        legendB: "归母净利润",
+        src: dualSrc,
+        items: dualGroups,
+      });
+    }
+  }
+
+  // 对标息记 × 东方财富：个股 vs 中证红利ETF(515180) 近90日同起点涨跌叠加走势图
+  const etfFund = ((snapshot?.aShare?.funds) || [])[0];
+  const etfCloses = Array.isArray(etfFund?.history)
+    ? etfFund.history.map((h) => Number(h?.close ?? h)).filter((v) => v > 0)
+    : [];
+  const aVsEtfVisual = aHistory.length >= 20 && etfCloses.length >= 20
+    ? buildDualLineCompareVisual(aHistory, etfCloses, {
+        title: `近${Math.min(aHistory.length, etfCloses.length)}日走势对比红利ETF`,
+        selfName: shortCompanyName(item.name, raw.code, 4),
+        benchName: "红利ETF",
+      })
+    : null;
+
   setCharts(
     base,
     aYieldBandMeter,
@@ -2052,16 +2163,15 @@ function buildAShareView(base, item, snapshot) {
     aPriceLine || priceBand,
     aPriceMeter,
     cashStructureBars,
-    solidVisual([
-      hasNumber(financials.revenueGrowth) ? { label: "营收增长", value: financials.revenueGrowth, valueText: formatPercent(financials.revenueGrowth) } : null,
-      hasNumber(financials.roe) ? { label: "股东回报", value: financials.roe, valueText: formatPercent(financials.roe) } : null,
-    ].filter(Boolean), "成长质量"),
+    aPayoutDonut,
+    aDualFinVisual,
   );
 
   base.trendCharts = aPriceLine
-    ? [aPriceLine, aPriceMeter, aYieldBandMeter].filter(Boolean)
+    ? [aVsEtfVisual, aPriceLine, aPriceMeter, aYieldBandMeter].filter(Boolean)
     : [priceBand].filter(Boolean);
   base.dividendCharts = [
+    aPayoutDonut,
     aYieldBandMeter,
     dividendHistoryVisual(raw, snapshot.updatedAt),
     cashStructureBars,
@@ -2070,10 +2180,11 @@ function buildAShareView(base, item, snapshot) {
   ].filter(Boolean);
   base.overviewCharts = [
     aPentagon,
-    aYieldBandMeter,
-    dividendHistoryVisual(raw, snapshot.updatedAt, "5"),
-  ].filter(Boolean);
+    aVsEtfVisual || aYieldBandMeter,
+    aPayoutDonut || aDualFinVisual || dividendHistoryVisual(raw, snapshot.updatedAt, "5"),
+  ].filter(Boolean).slice(0, 3);
   base.evidenceCharts = [
+    aDualFinVisual,
     solidVisual([
       hasNumber(financials.revenueGrowth) ? { label: "营收增长", value: financials.revenueGrowth, valueText: formatPercent(financials.revenueGrowth) } : null,
       hasNumber(financials.roe) ? { label: "股东回报", value: financials.roe, valueText: formatPercent(financials.roe) } : null,
@@ -2529,7 +2640,26 @@ function buildGoldView(base, item) {
   }).filter(Boolean);
   const goldMacroBars = macroBarRows.length >= 3 ? barVisual(macroBarRows, "黄金六维宏观驱动强度") : null;
 
+  const cnyByDate = new Map(cnySeries.map((r) => [r.date, Number(r.close)]));
+  const alignedIntl = [];
+  const alignedCny = [];
+  for (const r of intlSeries) {
+    const cVal = cnyByDate.get(r.date);
+    if (Number.isFinite(Number(r.close)) && Number.isFinite(cVal) && cVal > 0) {
+      alignedIntl.push(Number(r.close));
+      alignedCny.push(cVal);
+    }
+  }
+  const goldDualLine = alignedIntl.length >= 10
+    ? buildDualLineCompareVisual(alignedIntl, alignedCny, {
+        title: `近${alignedIntl.length}个重叠交易日国内外金价对比`,
+        selfName: "国际金(USD)",
+        benchName: "上海金(CNY)",
+      })
+    : null;
+
   base.trendCharts = [
+    goldDualLine,
     goldCloseVisual(internationalHistory, "国际金", 0, "$"),
     goldCloseVisual(domesticHistory, "人民币金", 2, "¥"),
     intlGoldGauge,
@@ -2554,7 +2684,7 @@ function buildGoldView(base, item) {
     ["上海金收盘", hasNumber(domestic.price) ? `¥${Number(domestic.price).toFixed(2)}/克` : null],
     ["美股黄金ETF", hasNumber(etf.price) ? `$${Number(etf.price).toFixed(1)}` : null],
   ].filter((r) => r[1]), "国内外金价对照");
-  base.overviewCharts = [intlGoldGauge, goldMacroBars, parityTiles || fallbackGoldCompare].filter(Boolean).slice(0, 3);
+  base.overviewCharts = [intlGoldGauge, goldDualLine || goldMacroBars, parityTiles || fallbackGoldCompare].filter(Boolean).slice(0, 3);
   base.evidenceCharts = [
     scoreMeter(internationalScore, "国际金观察分", action),
     scoreMeter(domesticScore, "人民币金观察分", "国内价格"),

@@ -67,14 +67,22 @@ assert(dividendEtf && Number.isFinite(Number(dividendEtf.currentPrice)), "A股�
 assert(dividendEtf.asOf, "A股收息基金 515180 缺少行情时间");
 assert(Array.isArray(dividendEtf.history) && dividendEtf.history.length >= 5, "A股收息基金 515180 缺少价格历史");
 assert(["live", "fallback"].includes(dividendEtf.dataStatus || "live"), "A股收息基金 515180 数据状态未标记");
+const A_BANK_CODES = new Set(["601398", "601939", "601288", "601328", "600036", "601166", "600000"]);
 assert(
-  snapshot.aShare.fundamentals.every((item) =>
-    Number.isFinite(item.operatingCashFlow)
-    && Number.isFinite(item.capitalExpenditure)
-    && Number.isFinite(item.freeCashFlow)
-    && item.period !== "mock",
-  ),
-  "A股必须使用可核验现金流资料，不能发布 mock 财务",
+  snapshot.aShare.fundamentals.every((item) => {
+    const code = String(item.code || "").replace(/\.(SH|SZ)$/i, "");
+    if (A_BANK_CODES.has(code)) {
+      return Number.isFinite(item.revenue)
+        && Number.isFinite(item.netProfit)
+        && item.freeCashFlow == null
+        && item.period !== "mock";
+    }
+    return Number.isFinite(item.operatingCashFlow)
+      && Number.isFinite(item.capitalExpenditure)
+      && Number.isFinite(item.freeCashFlow)
+      && item.period !== "mock";
+  }),
+  "A股非银标的必须使用可核验现金流资料，商业银行须使用真实营收净利且不得将存款混作自由现金流",
 );
 assert(
   snapshot.aShare.quotes.filter((item) => String(item.industry || "").trim()).length >= 20,

@@ -329,6 +329,19 @@
             <text>{{item.value}}{{item.linkId ? ' ›' : ''}}</text>
           </view>
         </view>
+        <view wx:if="{{view.soldList && view.soldList.length}}" class="section-card detail-sold-card">
+          <text class="block-title">本期披露清仓退出（{{view.soldList.length}}只）</text>
+          <view class="detail-sold-pills">
+            <text
+              wx:for="{{view.soldList}}"
+              wx:key="key"
+              class="detail-sold-pill"
+              data-market="{{item.linkMarket}}"
+              data-id="{{item.linkId}}"
+              bindtap="openHoldingStock"
+            >{{item.name}}</text>
+          </view>
+        </view>
         <view wx:if="{{view.sourceLinks.length}}" class="section-card source-card">
           <text class="block-title">官方出处</text>
           <view
@@ -388,6 +401,7 @@
             <text class="block-title">{{view.overview.orderPlan.title}}</text>
             <text class="verdict-stamp tone-{{view.overview.orderPlan.verdictTone}}">{{view.overview.orderPlan.verdictBadge}}</text>
           </view>
+          <text class="calc-compliance-tag">客观历史分位统计 · 非证券投资咨询或买卖指令</text>
           <view wx:if="{{view.overview.orderPlan.rows && view.overview.orderPlan.rows.length}}" class="ref-plan-rows">
             <view wx:for="{{view.overview.orderPlan.rows}}" wx:key="key" class="ref-plan-row">
               <text class="ref-plan-k">{{item.label}}</text>
@@ -414,6 +428,7 @@
             <text class="block-title">持股分红与复投试算</text>
             <text class="div-calc-year">{{dividendCalcView.year}}年度已实施</text>
           </view>
+          <text class="calc-compliance-tag">按已实施历史分红静态折算 · 过往派息不代表未来承诺</text>
           <view class="div-calc-pills">
             <text class="div-calc-pill {{dividendShares === 100 ? 'is-active' : ''}}" data-shares="100" bindtap="selectDividendShares" aria-role="button">100股</text>
             <text class="div-calc-pill {{dividendShares === 1000 ? 'is-active' : ''}}" data-shares="1000" bindtap="selectDividendShares" aria-role="button">1000股</text>
@@ -480,6 +495,7 @@
             <text class="block-title">打新本金与回本算账</text>
             <text class="div-calc-year">{{hkIpoCalcView.lotsText}}</text>
           </view>
+          <text class="calc-compliance-tag">公开招股规费静态测算 · 非新股申购建议</text>
           <view class="div-calc-pills hk-calc-pills">
             <text class="div-calc-pill {{hkCalcMode === 'cash1' ? 'is-active' : ''}}" data-mode="cash1" bindtap="selectHkCalcMode" aria-role="button">现金1手(0息)</text>
             <text class="div-calc-pill {{hkCalcMode === 'cash5' ? 'is-active' : ''}}" data-mode="cash5" bindtap="selectHkCalcMode" aria-role="button">现金5手</text>
@@ -754,6 +770,19 @@
             <text>{{item.value}}{{item.linkId ? ' ›' : ''}}</text>
           </view>
         </view>
+        <view wx:if="{{view.soldList && view.soldList.length}}" class="section-card detail-sold-card">
+          <text class="block-title">本期披露清仓退出（{{view.soldList.length}}只）</text>
+          <view class="detail-sold-pills">
+            <text
+              wx:for="{{view.soldList}}"
+              wx:key="key"
+              class="detail-sold-pill"
+              data-market="{{item.linkMarket}}"
+              data-id="{{item.linkId}}"
+              bindtap="openHoldingStock"
+            >{{item.name}}</text>
+          </view>
+        </view>
         <view wx:if="{{!activeCharts.length && !view.holdings.length}}" class="module-empty">当前没有可展示的持仓明细。</view>
       </view>
 
@@ -944,6 +973,7 @@
     <partner-strip market="{{market}}" />
 
     <text class="disclaimer">{{view.disclaimer}}</text>
+    <text class="detail-legal-link" bindtap="openLegal" aria-role="button">《合规声明与隐私指引》</text>
   </view>
 
   <view wx:if="{{snapshotSheetOpen}}" class="snapshot-mask" catchtouchmove="true">

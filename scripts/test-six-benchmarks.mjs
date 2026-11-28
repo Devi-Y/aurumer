@@ -23,6 +23,7 @@ test("A-share Xiji benchmark: full 20-stock pool, 12-month calendar, cost-yield 
   assert.equal(aMod.allList.length, 20, "all-20 tab genuinely covers all 20 A-share dividend stocks");
   assert.match(aMod.answerBar, /^20 只收息股/, "answerBar reflects all 20 A-share stocks");
   assert.ok(aMod.sectorDonut && aMod.sectorDonut.src.startsWith("data:image/svg+xml;base64,"), "A-share section exposes sector allocation donut SVG");
+  assert.ok(aMod.sectorDonut.legend.every((s) => s.avgYieldText.startsWith("均息 ")), "A-share sector donut shows per-sector average dividend yield");
   const cal = aMod.calendar;
   assert.equal(cal.months.length, 12);
   assert.ok(cal.months.filter((m) => m.count > 0).length >= 6, "calendar covers multiple payout months");
@@ -62,6 +63,8 @@ test("HK IPO Futu/Zhangle/TradeGo benchmark: cornerstone de-noising, sponsor win
   assert.ok(hkMod.sponsorRows.length >= 3, "aggregates sponsor track records from 45 IPOs");
   assert.ok(hkMod.crowdBuckets.length >= 2, "aggregates oversubscription crowd buckets");
   assert.ok(hkMod.industryRows.length >= 3, "aggregates industry first-day win-rate leaderboard");
+  assert.equal(hkMod.stageCompare.length, 3, "exposes grey/firstDay/fiveDay 3-stage win-rate & avg-return chart");
+  assert.ok(Array.isArray(hkMod.freshApplyList) && hkMod.freshApplyList.length <= hkMod.applyList.length, "separates fresh live IPOs from stale unarchived rows");
   assert.ok(hkMod.applyList.every((r) => !/股份有限$/.test(r.name)), "strips -B/-W legal tails cleanly");
   const topPnl = secApi.sortHkHistoryRows(hkMod.historyRowsAll, "pnl");
   assert.ok((topPnl[0].pnlNum ?? 0) >= (topPnl[1].pnlNum ?? 0));
@@ -78,15 +81,22 @@ test("HK IPO Futu/Zhangle/TradeGo benchmark: cornerstone de-noising, sponsor win
 });
 
 test("US Mag7 & Smart-Money Futu/Eastmoney/IBKR benchmark: FCF vs CapEx matrix, 4yr F10 pillar charts, search & bidirectional guru links", () => {
-  const { api: secApi } = loadPageExports("miniprogram/pages/section/index.js", ["buildUsModule", "buildGuruModule"]);
+  const { api: secApi } = loadPageExports("miniprogram/pages/section/index.js", ["buildUsModule", "buildGuruModule", "buildGoldModule"]);
   const usMod = secApi.buildUsModule(snapshot);
   assert.ok(usMod.sevenCompare && usMod.sevenCompare.rows.length === 7);
   assert.ok(usMod.sevenCompare.rows.some((r) => r.fcfText && r.fcfText !== "—" && r.capexText !== "—"), "computes CapEx & Free Cash Flow across Mag7");
   assert.ok(usMod.sevenCompare.benchPills.length >= 3);
+  assert.equal(usMod.etfList.length, 5, "activates all 5 US sleeve benchmark ETFs with live Yahoo quotes");
+  assert.ok(usMod.sectorDonut && usMod.sectorDonut.src.startsWith("data:image/svg+xml;base64,"), "exposes 30-stock US sector donut SVG");
   assert.ok(usMod.sevenList.some((r) => r.guruChip.includes("大师重仓")));
   assert.ok(usMod.filingsFeed.length >= 5 && usMod.filingsFeed[0].formZh);
 
+  const goldMod = secApi.buildGoldModule(snapshot);
+  assert.ok(goldMod.perCurrency.usd.ladder && goldMod.perCurrency.usd.ladder.tiles.length === 3, "gold exposes 3-level historical observation ladder");
+
   const guruMod = secApi.buildGuruModule(snapshot);
+  assert.ok(guruMod.actionDonut && guruMod.actionDonut.src.startsWith("data:image/svg+xml;base64,"), "guru exposes quarterly action breakdown donut SVG");
+  assert.ok(guruMod.holdingsByInstitution.druckenmiller.soldPills.length >= 1, "surfaces disclosed sold/exited positions on guru holding cards");
   assert.ok(guruMod.overlapRows.some((r) => r.linkMarket === "us" && r.linkId), "guru overlap rows link to in-pool US stocks");
   assert.ok(guruMod.overlapRows.every((r) => !/德鲁肯米$/.test(r.holdersText)), "does not chop Druckenmiller surname");
 

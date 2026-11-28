@@ -28,7 +28,42 @@
   white-space: nowrap;
 }
 
-.section-list,
+.guide-compliance-bar {
+  display: flex;
+  margin: 0 24rpx 18rpx;
+  padding: 14rpx 20rpx;
+  align-items: center;
+  gap: 12rpx;
+  border: 1rpx solid #fde68a;
+  border-radius: 20rpx;
+  background: #fffbeb;
+}
+
+.guide-compliance-tag {
+  flex: none;
+  padding: 3rpx 12rpx;
+  border-radius: 8rpx;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 24rpx;
+  font-weight: 780;
+}
+
+.guide-compliance-text {
+  flex: 1;
+  min-width: 0;
+  color: #78350f;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin: 0 24rpx 22rpx;
+}
+
 .offer-card {
   margin: 0 24rpx 22rpx;
   border-radius: 30rpx;
@@ -131,17 +166,73 @@
 
 .sec {
   display: flex;
-  padding: 26rpx;
+  padding: 26rpx 26rpx 24rpx;
   flex-direction: column;
   gap: 16rpx;
   background: #ffffff;
   border-radius: 30rpx;
+  box-shadow: 0 8rpx 26rpx rgba(15, 23, 42, 0.04);
 }
 
 .sec-title {
   color: #0f172a;
-  font-size: 31rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.sec-matrix {
+  display: flex;
+  flex-direction: column;
+  border: 1rpx solid #e5ecf6;
+  border-radius: 18rpx;
+  overflow: hidden;
+}
+
+.sec-matrix-row {
+  display: flex;
+  padding: 16rpx 18rpx;
+  align-items: flex-start;
+  gap: 16rpx;
+  border-bottom: 1rpx solid #eef2f8;
+  background: #ffffff;
+}
+
+.sec-matrix-row:nth-child(even) {
+  background: #f8fafd;
+}
+
+.sec-matrix-row:last-child {
+  border-bottom: none;
+}
+
+.sec-matrix-k {
+  width: 128rpx;
+  flex: none;
+  color: #1d5fd1;
+  font-size: 25rpx;
   font-weight: 760;
+  line-height: 1.45;
+}
+
+.sec-matrix-v {
+  flex: 1;
+  min-width: 0;
+  color: #1e293b;
+  font-size: 25rpx;
+  font-weight: 580;
+  line-height: 1.45;
+}
+
+.sec-points {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.sec-point {
+  color: #475569;
+  font-size: 25rpx;
+  line-height: 1.5;
 }
 
 .sec-links {
@@ -185,7 +276,9 @@
 .page-footer {
   display: flex;
   padding: 8rpx 28rpx 0;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
   text-align: center;
 }
 
@@ -196,13 +289,20 @@
   line-height: 1.5;
 }
 
+.footer-legal-link {
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 660;
+}
+
 @media (max-width: 340px) {
-  .section-list, .offer-card { margin-left: 14rpx; margin-right: 14rpx; }
+  .section-list, .offer-card, .guide-compliance-bar { margin-left: 14rpx; margin-right: 14rpx; }
   .offer-head { font-size: 33rpx; }
+  .sec-matrix-k { width: 112rpx; }
 }
 
 @media (min-width: 700px) {
-  .section-list, .offer-card {
+  .section-list, .offer-card, .guide-compliance-bar {
     max-width: 820px;
     margin-left: auto;
     margin-right: auto;

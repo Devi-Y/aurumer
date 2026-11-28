@@ -30,6 +30,11 @@
       <text wx:for="{{highlights}}" wx:key="*this" class="cp-tag">{{item}}</text>
     </view>
 
+    <view class="cp-compliance-strip">
+      <text class="cp-compliance-pill">合规红线</text>
+      <text class="cp-compliance-copy">不荐股喊单 · 不承诺收益 · 不代客理财 · 纯公开数据研习</text>
+    </view>
+
     <!-- 已开通 / 核对异常 / 待支付 主操作区 -->
     <block wx:if="{{order && order.paid && !verificationPending}}">
       <view class="cp-paid-box">
@@ -122,6 +127,7 @@
 
   <view class="page-footer">
     <text class="footer-note">{{footerDisclaimer}}</text>
+    <text class="inline-link" bindtap="openLegal" aria-role="button">《合规声明与隐私指引》</text>
   </view>
 
   <view class="page-nav">

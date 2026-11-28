@@ -330,6 +330,35 @@
   font-weight: 580;
 }
 
+.cp-compliance-strip {
+  display: flex;
+  padding: 14rpx 18rpx;
+  align-items: center;
+  gap: 10rpx;
+  border: 1rpx solid #fde68a;
+  border-radius: 16rpx;
+  background: #fffbeb;
+}
+
+.cp-compliance-pill {
+  flex: none;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 24rpx;
+  font-weight: 780;
+}
+
+.cp-compliance-copy {
+  flex: 1;
+  min-width: 0;
+  color: #78350f;
+  font-size: 24rpx;
+  font-weight: 620;
+  line-height: 1.4;
+}
+
 .cp-paid-box {
   display: flex;
   padding: 22rpx;

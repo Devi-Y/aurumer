@@ -12,7 +12,7 @@ const snapshot = JSON.parse(fs.readFileSync(path.join(rootDir, "data", "live-sna
 const bundledSnapshot = require(path.join(miniDir, "data", "live-snapshot.js"));
 const { sanitizeSnapshot } = require(path.join(rootDir, "cloudfunctions", "aurum-data", "sanitize.js"));
 const { getHistoricalDividendYield } = require(path.join(miniDir, "utils", "historical-dividend-yield.js"));
-const { yieldImpliedPlan, US_NO_GROSS_MARGIN, cleanUsGrossMargin } = require(path.join(miniDir, "utils", "market-lenses.js"));
+const { yieldImpliedPlan, US_NO_GROSS_MARGIN, US_BANK_SYMBOLS, A_BANK_CODES, isABankCode, cleanUsGrossMargin } = require(path.join(miniDir, "utils", "market-lenses.js"));
 const { allItems, findItem, usPoolItems } = require(path.join(miniDir, "utils", "answers.js"));
 const { scoreForItem } = require(path.join(miniDir, "utils", "strategy-score.js"));
 const { buildStrategySignal } = require(path.join(miniDir, "utils", "strategy-signals.js"));
@@ -101,6 +101,12 @@ assert.equal(snapshot.aShare.quotes.length, 20, "A股行情池应完整包含 20
 for (const q of snapshot.aShare.quotes) {
   const f = aFundMap.get(q.code);
   assert(f, `A股 ${q.code} 缺少对应财务分红记录`);
+  if (isABankCode(q.code)) {
+    assert(
+      f.freeCashFlow == null && f.cashConversion == null && f.operatingCashFlow == null,
+      `商业银行 ${q.code} 吸收客户存款计入经营现金流，不得展示失真的工业自由现金流或现金利润比`,
+    );
+  }
   const hy = getHistoricalDividendYield({ ...q, financials: f });
   assert(hy && hy.dividendPerShare > 0 && hy.yieldPercent > 0, `A股 ${q.code} 无法算出已核验历史股息率`);
   assert(
@@ -132,12 +138,21 @@ for (const fund of snapshot.aShare.funds || []) {
 assert.equal(snapshot.us.stocks.length, 30, "美股池应包含 30 只标的");
 for (const f of snapshot.us.fundamentals) {
   if (US_NO_GROSS_MARGIN.has(f.symbol)) {
-    assert(f.grossMargin == null || Number(f.grossMargin) < 99.5, `金融/支付/交易所标的 ${f.symbol} 不得展示失真的 100% 毛利率`);
-    assert.equal(cleanUsGrossMargin(f.symbol, 100), null, `cleanUsGrossMargin(${f.symbol}, 100) 必须返回 null`);
+    assert.equal(f.grossMargin, null, `金融/支付/保险标的 ${f.symbol} 不得展示失真或不可比毛利率`);
+    assert.equal(cleanUsGrossMargin(f.symbol, 82.7), null, `cleanUsGrossMargin(${f.symbol}, 82.7) 必须返回 null`);
+  }
+  if (US_BANK_SYMBOLS.has(f.symbol)) {
+    assert.equal(f.operatingCashFlow, null, `商业银行 ${f.symbol} 不得展示存贷款口径的经营现金流`);
   }
   if (f.symbol === "BRK.B") {
     assert(f.targetPrice == null || Number(f.targetPrice) < 5000, "BRK.B 不得混入 BRK.A 的数十万美元目标价");
   }
+}
+const sleeveFile = JSON.parse(fs.readFileSync(path.join(rootDir, "data", "sleeve-quotes.json"), "utf8"));
+assert.equal((sleeveFile.quotes || []).length, 5, "美股核心与收息 ETF 基准应完整包含 5 只标的");
+for (const sym of ["VOO", "JEPQ", "SCHD", "O", "SGOV"]) {
+  const hit = sleeveFile.quotes.find((x) => x.symbol === sym);
+  assert(hit && Number(hit.price) > 0, `美股基准 ETF ${sym} 价格缺失或无效`);
 }
 for (const s of cleanSnap.us.stocks) {
   assert(Number(s.price) > 0, `美股 ${s.symbol} 价格无效`);
@@ -250,7 +265,7 @@ for (const market of ["hk", "us", "a", "gold", "guru"]) {
       }
     }
   }
-  if (market === "a") {
+    if (market === "a") {
     page.switchASubTab({ currentTarget: { dataset: { id: "calendar" } } });
     scanPoisonStrings(page.data, "section(a:calendar)");
     for (const m of page.data.aCalendarMonths || []) {
@@ -262,6 +277,18 @@ for (const market of ["hk", "us", "a", "gold", "guru"]) {
           }
         }
       }
+    }
+  }
+  if (market === "us") {
+    assert.equal((page.data.usEtfList || []).length, 5, "美股栏目必须加载 5 只宽基与收息 ETF 基准");
+    page.switchUsSubTab({ currentTarget: { dataset: { id: "all" } } });
+    assert(page.data.usSectorDonut && page.data.usSectorDonut.src.startsWith("data:image/svg+xml;base64,"), "美股全部30只必须渲染行业分布环图");
+  }
+  if (market === "gold") {
+    const p180 = Number(snapshot.gold?.quotes?.international?.percentile180);
+    if (Number.isFinite(p180) && p180 <= 25) {
+      assert(!page.data.sectionAnswerBar.includes("偏高"), `国际金处于 ${p180}% 历史低分位时，结论条不得自相矛盾显示「偏高」: ${page.data.sectionAnswerBar}`);
+      assert(!String(page.data.goldQuotes?.[0]?.verdictBadge || "").includes("偏高"), "国际金低分位卡片不得误标为偏高区");
     }
   }
 }
@@ -284,8 +311,43 @@ for (const [market, id] of sampleTargets) {
   assert(!dump.includes("伦敦金") && !dump.includes("伦敦现货"), `详情页 ${market}:${id} 不得将纽约期金误标为伦敦金`);
   assert(!dump.includes("回本约") && !dump.includes("回本年数"), `详情页 ${market}:${id} 不得将市盈率误标为回本年数`);
   if (market === "us" && US_NO_GROSS_MARGIN.has(id)) {
-    assert(!dump.includes("毛利 100%"), `详情页 us:${id} 不得展示失真的「毛利 100%」`);
+    assert(!dump.includes("毛利率") && !dump.includes("毛利 "), `详情页 us:${id} 不得展示不可比或失真的毛利率`);
   }
+  if (market === "a" && A_BANK_CODES.has(String(id).replace(/\.(SH|SZ)$/i, ""))) {
+    assert(!dump.includes("自由现金流") && !dump.includes("现金利润比"), `商业银行详情页 a:${id} 不得展示客户存款失真的自由现金流或现金利润比`);
+  }
+}
+
+// 9. Consult / Guide / Legal pages & Full-App Compliance Redline Scan
+const guideConfig = loadPageFactory("pages/guide/index.js");
+for (const topic of ["accounts", "info", "us-start", "hk-open", "a-open"]) {
+  const gPage = instantiatePage(guideConfig);
+  gPage.onLoad({ topic });
+  scanPoisonStrings(gPage.data, `guide(${topic})`);
+  assert.equal(gPage.data.lead, "", `指引页 ${topic} lead 应保持精简为空`);
+  assert((gPage.data.sections || []).length >= 1, `指引页 ${topic} 不得为空白无规则说明页`);
+}
+const legalConfig = loadPageFactory("pages/legal/index.js");
+const lPage = instantiatePage(legalConfig);
+scanPoisonStrings(lPage.data, "legal");
+assert((lPage.data.sections || []).some((s) => String(s.title).includes("全站数据合规")), "协议页必须包含全站数据合规与跨境社群边界章节");
+
+const ILLEGAL_PROMISE_RE = /稳赚不赔|保本保息|保本高息|必涨牛股|包中签|保证翻倍|内幕消息|带你暴富/;
+function walkSourceFiles(dir, out = []) {
+  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, ent.name);
+    if (ent.isDirectory()) {
+      if (ent.name === "data" || ent.name === "node_modules") continue;
+      walkSourceFiles(full, out);
+    } else if (/\.(js|wxml)$/.test(ent.name)) {
+      out.push(full);
+    }
+  }
+  return out;
+}
+for (const file of walkSourceFiles(miniDir)) {
+  const content = fs.readFileSync(file, "utf8");
+  assert(!ILLEGAL_PROMISE_RE.test(content), `文件 ${path.relative(rootDir, file)} 含有违规承诺敏感词`);
 }
 
 // 8. Web index.html & assets/dashboard.js static accuracy contracts

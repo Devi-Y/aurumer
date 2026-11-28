@@ -1931,15 +1931,19 @@ function applyLiveData(payload){
   }
   if(payload.us?.fundamentals?.length){
     const noGmSet=new Set(['JPM','BAC','WFC','USB','EWBC','SLM','BRK.B','COIN','MA','V','AXP','CB','ICE','SPGI','MCO','HOOD']);
+    const usBankSet=new Set(['JPM','BAC','WFC','USB','EWBC','SLM']);
     const bySymbol=new Map(payload.us.fundamentals.map(row=>[row.symbol,row]));
     US_STOCKS.forEach(stock=>{
       const rawData=bySymbol.get(stock.t);
       if(!rawData)return;
-      const cleanGm=(noGmSet.has(stock.t)&&Number(rawData.grossMargin)>=99.5)?null:rawData.grossMargin;
+      const cleanGm=noGmSet.has(stock.t)?null:rawData.grossMargin;
+      const isUsBank=usBankSet.has(stock.t);
       const bogusTarget=(stock.t==='BRK.B'&&Number(rawData.targetPrice)>=10000);
       const data={
         ...rawData,
         grossMargin:cleanGm,
+        operatingCashFlow:isUsBank?null:rawData.operatingCashFlow,
+        capitalExpenditures:isUsBank?null:rawData.capitalExpenditures,
         targetPrice:bogusTarget?null:rawData.targetPrice,
         targetUpside:bogusTarget?null:rawData.targetUpside,
       };
@@ -3159,8 +3163,20 @@ window.updateAShareCalc = (id) => {
     button.classList.toggle('on',Number(button.dataset.year)===Number(years));
   });
 };
+function isABankWeb(item){
+  const code=String(item?.code||item?.symbol||'').replace(/\.(SH|SZ)$/i,'').toUpperCase();
+  return ['601398','601939','601288','601988','601328','600036','601166','600000'].includes(code)||/银行/.test(String(item?.industry||item?.financials?.industry||''));
+}
 function aShareCashFlowFacts(item){
   const data=item.financials||{};
+  if(isABankWeb(item)){
+    return {
+      available:false,
+      label:'商业银行口径',
+      detail:`归母净利与ROE衡量收息质量（银行吸收存款计入经营现金流，不适用工业自由现金流） · ${data.period||data.reportDate||'定期财报'}`,
+      source:data.source||'公开财务数据',
+    };
+  }
   const available=Number.isFinite(data.freeCashFlow)&&Number.isFinite(data.operatingCashFlow);
   if(!available){
     return {
@@ -3179,12 +3195,13 @@ function aShareCashFlowFacts(item){
 }
 function aShareFinancialRows(item){
   const data=item.financials||{};
+  const bank=isABankWeb(item);
   const rows=[
     ['财务报告期',data.period||data.reportDate],
-    ['经营现金流',Number.isFinite(data.operatingCashFlow)?fmtCNY(data.operatingCashFlow):null],
-    ['资本开支',Number.isFinite(data.capitalExpenditure)?fmtCNY(data.capitalExpenditure):null],
-    ['自由现金流',Number.isFinite(data.freeCashFlow)?fmtCNY(data.freeCashFlow):null],
-    ['现金利润比',Number.isFinite(data.cashConversion)?`${data.cashConversion.toFixed(2)} 倍`:null],
+    ['经营现金流',!bank&&Number.isFinite(data.operatingCashFlow)?fmtCNY(data.operatingCashFlow):null],
+    ['资本开支',!bank&&Number.isFinite(data.capitalExpenditure)?fmtCNY(data.capitalExpenditure):null],
+    ['自由现金流',!bank&&Number.isFinite(data.freeCashFlow)?fmtCNY(data.freeCashFlow):null],
+    ['现金利润比',!bank&&Number.isFinite(data.cashConversion)?`${data.cashConversion.toFixed(2)} 倍`:null],
     ['营收增长',Number.isFinite(data.revenueGrowth)?fmtPct(data.revenueGrowth):null],
     ['净利润增长',Number.isFinite(data.netProfitGrowth)?fmtPct(data.netProfitGrowth):null],
     ['净资产收益率',Number.isFinite(data.roe)?`${data.roe.toFixed(1)}%`:null],

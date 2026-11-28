@@ -128,12 +128,19 @@ const US_NO_GROSS_MARGIN = new Set([
   "JPM", "BAC", "WFC", "USB", "EWBC", "SLM", "BRK.B",
   "COIN", "MA", "V", "AXP", "CB", "ICE", "SPGI", "MCO", "HOOD",
 ]);
+const US_BANK_SYMBOLS = new Set(["JPM", "BAC", "WFC", "USB", "EWBC", "SLM"]);
+const A_BANK_CODES = new Set(["601398", "601939", "601288", "601988", "601328", "600036", "601166", "600000"]);
+
+function isABankItem(code, financials = {}) {
+  const clean = String(code || financials.symbol || financials.code || "").trim().toUpperCase().replace(/\.(SH|SZ)$/i, "");
+  return A_BANK_CODES.has(clean) || /银行/u.test(String(financials.industry || ""));
+}
 
 function cleanUsGrossMargin(symbol, value) {
   if (!hasNumber(value)) return null;
   const gm = Number(value);
   const sym = String(symbol || "").trim().toUpperCase();
-  if (US_NO_GROSS_MARGIN.has(sym) && gm >= 99.5) return null;
+  if (US_NO_GROSS_MARGIN.has(sym)) return null;
   if (gm < -200 || gm > 100) return null;
   return gm;
 }
@@ -152,19 +159,29 @@ function sanitizeUSFundamental(item = {}) {
     modelValidation,
     ...rest
   } = item;
+  const symUpper = String(item.symbol || "").trim().toUpperCase();
+  const isBank = US_BANK_SYMBOLS.has(symUpper);
   const grossMargin = cleanUsGrossMargin(item.symbol, item.grossMargin);
   const qualityView = typeof item.qualityEligible === "boolean"
     ? { state: item.qualityEligible ? "passed" : "failed", reportPeriod: item.period || null }
     : item.qualityView || { state: "unknown", reportPeriod: item.period || null };
   if (item.amountUnit === "USD") {
-    return { ...rest, grossMargin, qualityView, amountUnit: "USD", currency: item.currency || "USD" };
+    return {
+      ...rest,
+      grossMargin,
+      operatingCashFlow: isBank ? null : item.operatingCashFlow,
+      capitalExpenditures: isBank ? null : item.capitalExpenditures,
+      qualityView,
+      amountUnit: "USD",
+      currency: item.currency || "USD",
+    };
   }
   return {
     ...rest,
     grossMargin,
     qualityView,
-    operatingCashFlow: scaleUsdThousands(item.operatingCashFlow),
-    capitalExpenditures: scaleUsdThousands(item.capitalExpenditures),
+    operatingCashFlow: isBank ? null : scaleUsdThousands(item.operatingCashFlow),
+    capitalExpenditures: isBank ? null : scaleUsdThousands(item.capitalExpenditures),
     cashAndEquivalents: scaleUsdThousands(item.cashAndEquivalents),
     shortTermInvestments: scaleUsdThousands(item.shortTermInvestments),
     liquidAssets: scaleUsdThousands(item.liquidAssets),
@@ -202,11 +219,14 @@ function sanitizeUsFilings(list) {
 
 function aShareResearchView(item = {}, financials = {}) {
   const hasPriceAndYield = hasNumber(item.currentPrice) && hasNumber(item.currentDividendYield);
-  const hasCashFlow = hasNumber(financials.operatingCashFlow) && hasNumber(financials.freeCashFlow);
+  const isBank = isABankItem(item.code, financials);
+  const hasCashFlow = isBank
+    ? (hasNumber(financials.roe) || hasNumber(financials.netProfit))
+    : (hasNumber(financials.operatingCashFlow) && hasNumber(financials.freeCashFlow));
   const state = hasPriceAndYield && hasCashFlow ? "complete" : hasPriceAndYield ? "review" : "limited";
   const labels = { complete: "收息资料齐", review: "现金流待核", limited: "资料偏少" };
   const notes = {
-    complete: "价格、分红与现金流字段较完整。",
+    complete: isBank ? "价格、分红与盈利回报字段较完整（商业银行不适用工业自由现金流口径）。" : "价格、分红与现金流字段较完整。",
     review: "价格和分红已更新，现金流字段仍需核对最新财报。",
     limited: "关键公开资料尚不完整。",
   };
@@ -262,6 +282,16 @@ function sanitizeAShareFundamental(item = {}) {
     modelValidation,
     ...rest
   } = item;
+  if (isABankItem(item.code, item)) {
+    return {
+      ...rest,
+      operatingCashFlow: null,
+      capitalExpenditure: null,
+      freeCashFlow: null,
+      freeCashFlowMargin: null,
+      cashConversion: null,
+    };
+  }
   return rest;
 }
 

@@ -618,6 +618,9 @@ Page({
     track("section_open", { market, from: "home_trend" });
     wx.navigateTo({ url: `/pages/section/index?market=${market}` });
   },
+  openLegal() {
+    openPage("/pages/legal/index");
+  },
   onShareAppMessage() {
     track("share_tap", { page: "home" });
     return {

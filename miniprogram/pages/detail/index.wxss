@@ -3062,3 +3062,40 @@
   .ipo-scen-k { font-size: 12px; }
   .ipo-scen-v { font-size: 14px; }
 }
+
+.calc-compliance-tag {
+  display: block;
+  margin: 4rpx 22rpx 8rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.detail-sold-card {
+  padding-bottom: 20rpx;
+}
+
+.detail-sold-pills {
+  display: flex;
+  padding: 6rpx 22rpx 0;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.detail-sold-pill {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #feece9;
+  color: #9f2d20;
+  font-size: 24rpx;
+  font-weight: 680;
+}
+
+.detail-legal-link {
+  display: block;
+  margin-top: 8rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 660;
+  text-align: center;
+}

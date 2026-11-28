@@ -180,6 +180,9 @@ Page({
   goHome() {
     goHome();
   },
+  openLegal() {
+    openPage("/pages/legal/index");
+  },
   onShareAppMessage() {
     track("share_tap", { page: "guide", topic: this.data.topic });
     return { title: `${this.data.title}｜望潮`, path: this.data.sharePath };

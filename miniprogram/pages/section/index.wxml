@@ -94,9 +94,9 @@
         </view>
       </view>
 
-      <view class="hk-stock-list" wx:if="{{hkApplyList.length}}">
+      <view class="hk-stock-list" wx:if="{{hkApplyShown.length}}">
         <view
-          wx:for="{{hkApplyList}}"
+          wx:for="{{hkApplyShown}}"
           wx:key="id"
           class="hk-stock-row"
           data-id="{{item.id}}"
@@ -138,6 +138,15 @@
             </view>
             <text class="hk-row-caret">算账与详情 ›</text>
           </view>
+        </view>
+        <view
+          wx:if="{{hkStaleApplyCount > 0}}"
+          class="hk-sb-more"
+          bindtap="toggleHkStaleApply"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text>{{hkShowStaleApply ? '收起待定与往期记录 ▴' : '展开其余待定与往期记录（' + hkStaleApplyCount + '只）▾'}}</text>
         </view>
       </view>
       <view class="hk-empty" wx:else><text>暂无可展示的招股资料，请以最新公告为准。</text></view>
@@ -181,6 +190,29 @@
         <view wx:for="{{hkHistorySummary}}" wx:key="label" class="hk-hist-stat">
           <text class="hk-hist-v">{{item.value}}</text>
           <text class="hk-hist-k">{{item.label}}</text>
+        </view>
+      </view>
+
+      <!-- 对标富途牛牛 × 涨乐全球通：前夜暗盘 · 首日 · 首周三阶段胜率与均涨对比图 -->
+      <view wx:if="{{hkStageCompare.length}}" class="hk-stage-cmp-box">
+        <view class="guru-conc-head">
+          <text class="guru-conc-title">三阶段胜率与均涨对照</text>
+          <text class="guru-conc-sum">历史样本客观统计</text>
+        </view>
+        <view class="hk-stage-cmp-rows">
+          <view wx:for="{{hkStageCompare}}" wx:key="key" class="hk-stage-cmp-row">
+            <view class="hk-stage-cmp-left">
+              <text class="hk-stage-cmp-name">{{item.label}}</text>
+              <text class="hk-stage-cmp-sub">{{item.sampleText}}</text>
+            </view>
+            <view class="hk-stage-cmp-bar-wrap">
+              <view class="hk-sp-bar-track">
+                <view class="hk-sp-bar-fill is-{{item.winTone}}" style="width: {{item.winPct}}%;"></view>
+              </view>
+              <text class="hk-stage-cmp-win is-{{item.winTone}}">胜率 {{item.winText}}</text>
+            </view>
+            <text class="hk-stage-cmp-avg is-{{item.avgTone}}">均 {{item.avgText}}</text>
+          </view>
         </view>
       </view>
 
@@ -382,10 +414,33 @@
         <text class="sort-pill {{usCompareDim === 'val' ? 'is-active' : ''}}" data-dim="val" bindtap="switchUsCompareDim" aria-role="button">估值与买点</text>
         <text class="sort-pill {{usCompareDim === 'growth' ? 'is-active' : ''}}" data-dim="growth" bindtap="switchUsCompareDim" aria-role="button">增速与毛利</text>
         <text class="sort-pill {{usCompareDim === 'cash' ? 'is-active' : ''}}" data-dim="cash" bindtap="switchUsCompareDim" aria-role="button">现金流家底</text>
+        <text wx:if="{{usEtfList.length}}" class="sort-pill {{usCompareDim === 'etf' ? 'is-active' : ''}}" data-dim="etf" bindtap="switchUsCompareDim" aria-role="button">ETF基准</text>
         <text class="sort-pill {{usCompareDim === 'filings' ? 'is-active' : ''}}" data-dim="filings" bindtap="switchUsCompareDim" aria-role="button">公告快讯</text>
       </view>
 
-      <block wx:if="{{usCompareDim !== 'filings' && usSevenCompare}}">
+      <block wx:if="{{usCompareDim === 'etf' && usEtfList.length}}">
+        <view class="us-etf-panel">
+          <view class="guru-conc-head">
+            <text class="guru-conc-title">美股宽基与收息 ETF 基准</text>
+            <text class="guru-conc-sum">Yahoo Finance 实时同步</text>
+          </view>
+          <view wx:for="{{usEtfList}}" wx:key="symbol" class="us-etf-row">
+            <view class="us-etf-left">
+              <view class="code-name-line">
+                <text class="us-stock-name">{{item.zhName}}</text>
+                <text class="code-pill">{{item.symbol}}</text>
+              </view>
+              <text class="us-etf-role">{{item.role}}{{item.asOfText ? ' · ' + item.asOfText : ''}}</text>
+            </view>
+            <view class="us-right">
+              <text class="us-price">{{item.priceText}}</text>
+              <text class="us-change is-{{item.changeTone}}">{{item.changeText}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <block wx:if="{{usCompareDim !== 'filings' && usCompareDim !== 'etf' && usSevenCompare}}">
         <view wx:if="{{usSevenCompare.benchPills.length}}" class="ibkr-bench-strip">
           <view wx:for="{{usSevenCompare.benchPills}}" wx:key="label" class="ibkr-bench-cell">
             <text class="ibkr-bench-k">{{item.label}}</text>
@@ -533,6 +588,29 @@
     </block>
 
     <block wx:if="{{usSubTab === 'all'}}">
+      <view wx:if="{{usSectorDonut}}" class="a-sector-strip us-sector-strip" aria-hidden="true">
+        <view class="a-sector-donut-wrap">
+          <image class="a-sector-donut-img" src="{{usSectorDonut.src}}" mode="aspectFit"></image>
+          <text class="a-sector-donut-center">{{usSectorDonut.centerMain}}</text>
+        </view>
+        <view class="a-sector-legend">
+          <view wx:for="{{usSectorDonut.legend}}" wx:key="key" class="a-sector-key">
+            <view class="a-sector-dot" style="background: {{item.color}};"></view>
+            <text class="a-sector-name">{{item.label}}</text>
+            <text class="a-sector-cnt">{{item.countText}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{usEtfList.length}}" class="us-etf-strip">
+        <view wx:for="{{usEtfList}}" wx:key="symbol" class="us-etf-chip">
+          <view class="us-etf-chip-top">
+            <text class="us-etf-sym">{{item.symbol}}</text>
+            <text class="us-etf-chg is-{{item.changeTone}}">{{item.changeText}}</text>
+          </view>
+          <text class="us-etf-prc">{{item.priceText}}</text>
+          <text class="us-etf-tag">{{item.zhName}}</text>
+        </view>
+      </view>
       <view class="sort-bar">
         <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">按性价比</text>
         <text class="sort-pill {{usAllSort === 'perf60' ? 'is-active' : ''}}" data-sort="perf60" bindtap="sortUsAll" aria-role="button">近3月涨幅</text>
@@ -754,10 +832,13 @@
         <text class="a-sector-donut-center">{{aSectorDonut.centerMain}}</text>
       </view>
       <view class="a-sector-legend">
-        <view wx:for="{{aSectorDonut.legend}}" wx:key="key" class="a-sector-key">
-          <view class="a-sector-dot" style="background: {{item.color}};"></view>
-          <text class="a-sector-name">{{item.label}}</text>
-          <text class="a-sector-cnt">{{item.countText}}</text>
+        <view wx:for="{{aSectorDonut.legend}}" wx:key="key" class="a-sector-key is-rich">
+          <view class="a-sector-key-top">
+            <view class="a-sector-dot" style="background: {{item.color}};"></view>
+            <text class="a-sector-name">{{item.label}}</text>
+            <text class="a-sector-cnt">{{item.countText}}</text>
+          </view>
+          <text wx:if="{{item.avgYieldText}}" class="a-sector-yield">{{item.avgYieldText}}</text>
         </view>
       </view>
     </view>
@@ -1077,6 +1158,31 @@
       <text wx:else class="gold-chart-empty">{{goldChartNote}}</text>
 
       <!-- 研究价位轴：红线=风险下沿，绿段=观察低位，琥珀段=观察上沿，圆点=现价 -->
+      <view wx:if="{{goldLadder}}" class="gold-ladder">
+        <view class="guru-conc-head">
+          <text class="guru-conc-title">历史观察价位带</text>
+          <text class="guru-conc-sum">客观分位算术 · 非买卖指令</text>
+        </view>
+        <view class="gold-ladder-axis" aria-hidden="true">
+          <text class="gold-ladder-now tone-{{goldZoneTone}}" style="left: {{goldLadder.priceLabelLeft}}%;">现价 {{goldLadder.priceText}}</text>
+          <view class="gold-ladder-track">
+            <view class="gold-ladder-band is-watch" style="left: {{goldLadder.watchLeft}}%; width: {{goldLadder.watchWidth}}%;"></view>
+            <view class="gold-ladder-band is-upper" style="left: {{goldLadder.upperLeft}}%; width: {{goldLadder.upperWidth}}%;"></view>
+            <view wx:if="{{goldLadder.hasRisk}}" class="gold-ladder-risk" style="left: {{goldLadder.riskLeft}}%;"></view>
+            <view class="gold-ladder-dot tone-{{goldZoneTone}}" style="left: {{goldLadder.priceLeft}}%;"></view>
+          </view>
+        </view>
+        <view class="gold-ladder-legend">
+          <view wx:for="{{goldLadder.tiles}}" wx:key="key" class="gold-ladder-key is-{{item.key}}">
+            <view class="gold-ladder-key-head">
+              <view class="gold-ladder-swatch"></view>
+              <text class="gold-ladder-key-label">{{item.label}}</text>
+            </view>
+            <text class="gold-ladder-key-value">{{item.value}}</text>
+            <text wx:if="{{item.note}}" class="gold-ladder-key-note tone-{{item.noteTone}}">{{item.note}}</text>
+          </view>
+        </view>
+      </view>
 
     </view>
 
@@ -1244,6 +1350,28 @@
     </view>
 
     <block wx:if="{{guruSubTab === 'trend'}}">
+      <view wx:if="{{guruActionDonut}}" class="guru-conc-box guru-action-box" aria-hidden="true">
+        <view class="guru-conc-head">
+          <text class="guru-conc-title">本季机构调仓动作分布</text>
+          <text class="guru-conc-sum">法定披露客观汇总</text>
+        </view>
+        <view class="guru-conc-visual">
+          <view class="guru-conc-donut-wrap">
+            <image class="guru-conc-donut-img" src="{{guruActionDonut.src}}" mode="aspectFit"></image>
+            <view class="guru-conc-donut-center">
+              <text class="guru-conc-donut-v">{{guruActionDonut.centerMain}}</text>
+              <text class="guru-conc-donut-k">调仓动作</text>
+            </view>
+          </view>
+          <view class="guru-conc-legend">
+            <view wx:for="{{guruActionDonut.legend}}" wx:key="label" class="guru-conc-key">
+              <view class="guru-conc-dot" style="background: {{item.color}};"></view>
+              <text class="guru-conc-name">{{item.label}}</text>
+              <text class="guru-conc-pct">{{item.pctText}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
       <view wx:if="{{guruOverlapRows.length}}" class="guru-overlap-box">
         <view class="guru-conc-head">
           <text class="guru-conc-title">多机构共同重仓</text>
@@ -1396,6 +1524,19 @@
             <text class="guru-institution-more-text">展开其余 {{guruHoldingsRows.length - guruHoldingsRowsShown.length}} 项</text>
           </view>
         </view>
+        <view wx:if="{{guruSoldPills.length}}" class="guru-sold-box">
+          <text class="guru-sold-label">本期披露清仓退出</text>
+          <view class="guru-sold-pills">
+            <text
+              wx:for="{{guruSoldPills}}"
+              wx:key="key"
+              class="guru-sold-pill"
+              data-market="{{item.linkMarket}}"
+              data-id="{{item.linkId}}"
+              bindtap="openGuruStock"
+            >{{item.name}}</text>
+          </view>
+        </view>
         <view class="a-empty" wx:else><text>暂无持仓披露</text></view>
         <view
           wx:if="{{guruInstitutionId}}"
@@ -1542,6 +1683,7 @@
 
   <view class="page-note">
     <text>{{disclaimer}}</text>
+    <text class="section-legal-link" bindtap="openLegal" aria-role="button">《合规声明与隐私指引》</text>
   </view>
 
   <view wx:if="{{answerSheet}}" class="answer-mask" bindtap="closeAnswerSheet" catchtouchmove="true">

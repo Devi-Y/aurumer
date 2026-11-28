@@ -4,6 +4,12 @@
     <text wx:for="{{guidePills}}" wx:key="*this" class="guide-step-pill">{{item}}</text>
   </view>
 
+  <!-- 合规风险隔离提示条 -->
+  <view class="guide-compliance-bar">
+    <text class="guide-compliance-tag">合规提示</text>
+    <text class="guide-compliance-text">望潮不代办开户、不触碰资金；外部渠道独立运营，请先核验监管牌照</text>
+  </view>
+
   <!-- 港美股双渠道直达：只留指引与渠道 -->
   <block wx:if="{{choices.length}}">
     <view wx:for="{{choices}}" wx:key="topic" class="page-card offer-card">
@@ -54,9 +60,18 @@
     </block>
   </view>
 
-  <view wx:if="{{sections.length}}" class="page-card section-list">
-    <view wx:for="{{sections}}" wx:key="key" class="sec">
+  <view wx:if="{{sections.length}}" class="section-list">
+    <view wx:for="{{sections}}" wx:key="key" class="page-card sec">
       <text class="sec-title">{{item.title}}</text>
+      <view wx:if="{{item.rows.length}}" class="sec-matrix">
+        <view wx:for="{{item.rows}}" wx:for-item="row" wx:key="key" class="sec-matrix-row">
+          <text class="sec-matrix-k">{{row.label}}</text>
+          <text class="sec-matrix-v">{{row.value}}</text>
+        </view>
+      </view>
+      <view wx:if="{{item.points.length}}" class="sec-points">
+        <text wx:for="{{item.points}}" wx:for-item="pt" wx:key="key" class="sec-point">· {{pt.text}}</text>
+      </view>
       <view wx:if="{{item.links.length}}" class="sec-links">
         <view
           wx:for="{{item.links}}"
@@ -71,7 +86,7 @@
           aria-label="复制{{link.name}}的网址"
         >
           <text class="link-name">{{link.name}}</text>
-          <text class="link-action">复制网址</text>
+          <text class="link-action">复制官方网址 ›</text>
         </view>
       </view>
     </view>
@@ -79,6 +94,7 @@
 
   <view class="page-footer">
     <text class="footer-note">{{footerDisclaimer}}</text>
+    <text class="footer-legal-link" bindtap="openLegal" aria-role="button">《合规声明与隐私指引》</text>
   </view>
 
   <view class="page-nav">

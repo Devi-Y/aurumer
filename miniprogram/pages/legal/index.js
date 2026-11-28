@@ -57,6 +57,14 @@ const SECTIONS = [
       "协议版本更新后，之前的确认不会自动沿用；再次购买前须阅读并确认新版本。重大变化将在会员页提示，正式文本由运营主体在发布前完成审查。",
     ],
   },
+  {
+    title: "八、全站数据合规、跨境边界与社群准则",
+    paragraphs: [
+      "望潮（深圳岳大科技有限公司）系公开市场历史数据整理与个人复盘工具，非持牌证券投资咨询机构或证券经纪商；站内分位、区间、试算与图表均由公开财报及历史价格客观算术生成，不构成荐股、新股申购建议或具体买卖指令，市场有风险，投资须自主决策、盈亏自负。",
+      "指引页展示的监管查询网址与第三方外部机构链接均由对应主体独立运营；望潮不代办证券开户、不触碰用户资金与交易账户、不向境内居民非法招揽境外证券交易；网络工具指引仅限合法查阅交易所公告与学术财报资料，严禁用于任何违法违规用途。",
+      "年度会员交流群实行「不荐股喊单、不承诺收益、不代客理财、不分成抽成」合规红线，仅面向已满 18 周岁完全民事行为能力人开放，支持入群 7 天内无理由全额原路退款，到期不自动续费。",
+    ],
+  },
 ];
 
 function policyText() {
@@ -74,7 +82,7 @@ function policyText() {
 Page({
   data: {
     legalInfo,
-    sections: SECTIONS.map((section) => ({ ...section, expanded: false })),
+    sections: SECTIONS.map((section, idx) => ({ ...section, expanded: idx === SECTIONS.length - 1 })),
     draft: !legalInfo.operatorReady,
   },
   toggleSection(event) {

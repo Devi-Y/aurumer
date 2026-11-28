@@ -161,6 +161,9 @@ Page({
   openTerms() {
     openPage("/pages/community-terms/index");
   },
+  openLegal() {
+    openPage("/pages/legal/index");
+  },
   goBack() {
     wx.navigateBack({ fail: () => goHome() });
   },

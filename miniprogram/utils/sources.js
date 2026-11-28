@@ -22,8 +22,9 @@ const OFFICIAL_SOURCES = {
   "gold-sge": { name: "上海黄金交易所 Au99.99", url: "https://www.sge.com.cn/sjzx/quotation_daily_new" },
   // 下面三个给入门教程用（config/guides.js）：港股公告总入口，和查券商牌照的两个官方查询页。
   hkexnews: { name: "港交所披露易", url: "https://www.hkexnews.hk/" },
-  "finra-brokercheck": { name: "美国 FINRA 券商查询", url: "https://brokercheck.finra.org/" },
-  "sfc-register": { name: "香港证监会持牌人查询", url: "https://apps.sfc.hk/publicregWeb/" },
+  "finra-brokercheck": { name: "美国 FINRA 券商牌照查询", url: "https://brokercheck.finra.org/" },
+  "sfc-register": { name: "香港证监会 SFC 持牌人查询", url: "https://apps.sfc.hk/publicregWeb/" },
+  "csrc-brokers": { name: "中国证监会合法证券机构名录", url: "https://www.csrc.gov.cn/csrc/c101900/common_list.shtml" },
 };
 
 // 每个栏目对应哪几个官方入口。黄金那条另有活的 gold.sources，见 marketSources()。

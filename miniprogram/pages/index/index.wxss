@@ -520,4 +520,11 @@
   .entry-icon { width: 28px; height: 28px; }
   .card-title { font-size: 16px; }
   .footer-note { max-width: 640px; font-size: 13px; }
+  .footer-legal-link { font-size: 13px; }
+}
+
+.footer-legal-link {
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 660;
 }

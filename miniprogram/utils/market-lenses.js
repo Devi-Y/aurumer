@@ -12,14 +12,29 @@ const US_NO_GROSS_MARGIN = new Set([
   "JPM", "BAC", "WFC", "USB", "EWBC", "SLM", "BRK.B",
   "COIN", "MA", "V", "AXP", "CB", "ICE", "SPGI", "MCO", "HOOD",
 ]);
+const US_BANK_SYMBOLS = new Set(["JPM", "BAC", "WFC", "USB", "EWBC", "SLM"]);
+const A_BANK_CODES = new Set(["601398", "601939", "601288", "601988", "601328", "600036", "601166", "600000"]);
 const A_CORE_INDUSTRY = /水电|公用事业|银行|通信|高速|铁路|家电|现金牛/u;
 const A_CYCLE_INDUSTRY = /能源|煤炭|油气|炼化|钢铁|建材|火电/u;
+
+function isABankCode(codeOrRaw) {
+  const raw = typeof codeOrRaw === "object" && codeOrRaw !== null
+    ? (codeOrRaw.code || codeOrRaw.symbol || codeOrRaw.id || "")
+    : codeOrRaw;
+  const clean = String(raw || "").trim().toUpperCase().replace(/\.(SH|SZ)$/i, "");
+  if (A_BANK_CODES.has(clean)) return true;
+  if (typeof codeOrRaw === "object" && codeOrRaw !== null) {
+    const ind = String(codeOrRaw.industry || codeOrRaw.financials?.industry || "");
+    if (/银行/u.test(ind)) return true;
+  }
+  return false;
+}
 
 function cleanUsGrossMargin(symbol, grossMargin) {
   if (!hasNumber(grossMargin)) return null;
   const gm = Number(grossMargin);
   const sym = String(symbol || "").trim().toUpperCase();
-  if (US_NO_GROSS_MARGIN.has(sym) && gm >= 99.5) return null;
+  if (US_NO_GROSS_MARGIN.has(sym)) return null;
   if (gm < -200 || gm > 100) return null;
   return gm;
 }
@@ -415,6 +430,9 @@ module.exports = {
   MAGNIFICENT_SEVEN,
   US_CYCLICAL,
   US_NO_GROSS_MARGIN,
+  US_BANK_SYMBOLS,
+  A_BANK_CODES,
+  isABankCode,
   cleanUsGrossMargin,
   hasNumber,
   number,

@@ -8,13 +8,15 @@ const {
   aOrderState, aOrderLine, compareAOrder, A_TRIGGERS, goldLevelNotes,
 } = require("../../utils/order-plan");
 // 结论行要按「低估 / 风险」这两个透镜选人，和今日答案用同一个判断。
-const { parseOfferPrice, yieldImpliedPlan, goldZoneForPrice, goldPlanView, MAGNIFICENT_SEVEN, cleanUsGrossMargin } = require("../../utils/market-lenses");
+const { parseOfferPrice, yieldImpliedPlan, goldZoneForPrice, goldPlanView, MAGNIFICENT_SEVEN, cleanUsGrossMargin, US_BANK_SYMBOLS, isABankCode } = require("../../utils/market-lenses");
 // 港股打新「中签后」每只股票自己的观察分位——已经是详情页在用的同一份
 // 真实数据计算，这里原样复用，不重新写一遍价格逻辑。
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
 // 美股「七姐妹」每行的判断句复用详情页同一套 usSignal——不是另起一套话术。
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
+let bundledSnapshot = null;
+try { bundledSnapshot = require("../../data/live-snapshot"); } catch (_) { bundledSnapshot = null; }
 const { goHome, openPage } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { eventBrief, eventFactFor } = require("../../utils/us-event-facts");
@@ -36,7 +38,7 @@ const { asOfText } = require("../../utils/dates");
 const { marketReferenceAsOf, referenceDateText } = require("../../utils/historical-reference");
 const { historicalGoldSeries, domesticGoldClose } = require("../../utils/gold-series");
 const { goldParity } = require("../../utils/gold-parity");
-const { PALETTE, donutSvg, monthDensitySvg } = require("../../utils/svg-charts");
+const { PALETTE, donutSvg, gaugeSvg, groupedBarsSvg, monthDensitySvg } = require("../../utils/svg-charts");
 
 const SHORT_TAG_MAP = {
   NVDA: "AI芯片",
@@ -284,10 +286,10 @@ function buildHkModule(snapshot) {
     const lotRaw = String(raw.boardLot || raw.boardLotShares || "").replace(/,/g, "").trim();
     const lotTag = /^\d+$/.test(lotRaw) ? `一手${lotRaw}股` : "";
     const tagPills = [indTag, sponsorClean ? `保荐 ${sponsorClean}` : "", lotTag].filter(Boolean);
-    const stageStep = item.group === "settled" ? 2 : (closed ? 1 : 0);
+    const stageStep = item.group === "settled" ? 2 : (closed ? 1 : (deadlineOffset == null ? -1 : 0));
     const stageSteps = ["招股", "截止", "配发", "上市"].map((label, idx) => ({
       label,
-      state: idx < stageStep ? "done" : (idx === stageStep ? "now" : "todo"),
+      state: stageStep < 0 ? "todo" : (idx < stageStep ? "done" : (idx === stageStep ? "now" : "todo")),
     }));
     const rawCode = String(item.code || item.id || "").replace(/\.HK$/i, "");
     const freshHk = snapshot.actionsFresh !== false;
@@ -347,6 +349,7 @@ function buildHkModule(snapshot) {
       cornerstoneLine,
       deadlineOffset,
       closed,
+      isStaleClosed: Boolean(closed && deadlineOffset != null && deadlineOffset < -14),
       stats: [
         { label: "招股价", value: offer != null ? `HK$${offer}` : "待更新" },
         { label: "一手本金", value: entryFee != null ? `HK$${Math.round(entryFee).toLocaleString("en-US")}` : "待更新" },
@@ -361,6 +364,11 @@ function buildHkModule(snapshot) {
     return 0;
   };
   applyList.sort((left, right) => applyOrder(left) - applyOrder(right));
+  const hasScheduledFresh = applyList.some((r) => !r.isStaleClosed && r.deadlineOffset != null);
+  const freshApplyList = hasScheduledFresh
+    ? applyList.filter((r) => !r.isStaleClosed && r.deadlineOffset != null)
+    : applyList.filter((r) => !r.isStaleClosed);
+  const staleApplyCount = applyList.length - freshApplyList.length;
 
   const exitList = exitItems.map((item) => {
     const plan = buildHkExitPlan(item, { evidence: strategyEvidence, snapshot });
@@ -537,23 +545,52 @@ function buildHkModule(snapshot) {
       };
     });
 
+  const stageDefs = [
+    { key: "greyMarketChange", label: "前夜暗盘" },
+    { key: "firstDayChange", label: "上市首日" },
+    { key: "fiveDayChange", label: "首周五日" },
+  ];
+  const stageCompare = stageDefs.map((st) => {
+    const vals = endedItems
+      .map((it) => finiteOrNull(it.raw?.historicalReview?.[st.key]))
+      .filter((v) => v != null);
+    if (!vals.length) return null;
+    const up = vals.filter((v) => v > 0).length;
+    const winPct = Math.round((up / vals.length) * 100);
+    const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
+    return {
+      key: st.key,
+      label: st.label,
+      sampleText: `${vals.length}只`,
+      winPct,
+      winText: `${winPct}%`,
+      winTone: winPct >= 55 ? "up" : (winPct <= 40 ? "down" : "flat"),
+      avgNum: avg,
+      avgText: signedPct(avg, 1),
+      avgTone: avg > 0 ? "up" : (avg < 0 ? "down" : "flat"),
+    };
+  }).filter(Boolean);
+
   const openApply = applyList.filter((r) => !r.closed && r.deadlineOffset != null && r.deadlineOffset >= 0);
   const worthApply = openApply.filter((r) => r.tone === "worth");
   const answerBar = snapshot.actionsFresh === false
     ? "数据待更新 · 招股状态请核对港交所公告"
     : (openApply.length
       ? (worthApply.length
-        ? `招股中 ${openApply.length} 只 · 值得申购：${worthApply.slice(0, 3).map((r) => r.name).join("、")}`
-        : `招股中 ${openApply.length} 只 · 暂无高性价比标的`)
+        ? `招股中 ${openApply.length} 只 · 样本靠前：${worthApply.slice(0, 3).map((r) => r.name).join("、")}`
+        : `招股中 ${openApply.length} 只 · 暂无高分样本`)
       : `暂无在招新股 · 近 ${statsSummary.sampleCount || historyRowsAll.length} 只首日胜率 ${statsSummary.firstDayWinRate || "—"}`);
 
   return {
     answerBar,
     applyList,
+    freshApplyList,
+    staleApplyCount,
     applyTiles: [],
     firstDayChart: hkFirstDayChart(snapshot),
     exitList,
     exitChart: hkExitTierChart(buildHkExitBands(snapshot)),
+    stageCompare,
     historySummary,
     historyRows,
     historyRowsAll,
@@ -675,7 +712,10 @@ function finiteOrNull(value) {
 }
 
 function signedPct(value, digits = 1) {
-  return value == null ? "—" : `${value >= 0 ? "+" : ""}${value.toFixed(digits)}%`;
+  if (value == null) return "—";
+  const rounded = Number(value.toFixed(digits));
+  if (rounded === 0) return digits > 0 ? `0.${"0".repeat(digits)}%` : "0%";
+  return `${rounded > 0 ? "+" : ""}${value.toFixed(digits)}%`;
 }
 
 // 一条收盘走势（美股每行 60 日、红利 ETF 90 日），出成 SVG 图片；首尾涨跌写成旁边的数字。
@@ -928,17 +968,20 @@ function usStockRow(item, sparkCache = null, guruMap = null) {
   const guruChip = guruCount >= 2 ? `${guruCount}家大师重仓` : (guruCount === 1 ? "大师重仓" : "");
   const shortTag = shortTagFor("us", item.id, item.code);
   const hasRangeBar = lo60 != null && hi60 != null && sortPos60 != null;
+  const isUsBank = US_BANK_SYMBOLS.has(symUpper);
   const gm = cleanUsGrossMargin(symUpper, fund.grossMargin);
   const pm = finiteOrNull(fund.profitMargin);
   const roe = finiteOrNull(fund.roe);
   const revG = finiteOrNull(fund.revenueGrowth);
-  const ocf = finiteOrNull(fund.operatingCashFlow);
-  const rawCapex = finiteOrNull(fund.capitalExpenditures);
+  const ocf = isUsBank ? null : finiteOrNull(fund.operatingCashFlow);
+  const rawCapex = isUsBank ? null : finiteOrNull(fund.capitalExpenditures);
   const absCapex = rawCapex != null ? Math.abs(rawCapex) : null;
-  const fcf = finiteOrNull(fund.freeCashFlow) != null
-    ? finiteOrNull(fund.freeCashFlow)
-    : (ocf != null && absCapex != null ? ocf - absCapex : null);
-  const cash = finiteOrNull(fund.liquidAssets != null ? fund.liquidAssets : fund.cashAndEquivalents);
+  const fcf = isUsBank
+    ? null
+    : (finiteOrNull(fund.freeCashFlow) != null
+      ? finiteOrNull(fund.freeCashFlow)
+      : (ocf != null && absCapex != null ? ocf - absCapex : null));
+  const cash = isUsBank ? null : finiteOrNull(fund.liquidAssets != null ? fund.liquidAssets : fund.cashAndEquivalents);
   return {
     id: item.id,
     name: item.name,
@@ -1094,6 +1137,34 @@ function buildUsModule(snapshot) {
   let _allList = null;
   let _hotList = null;
   let _filingsFeed = null;
+  let _sectorDonut = null;
+
+  const ETF_ROLE_META = {
+    VOO: { zhName: "标普500ETF", role: "美股宽基底仓" },
+    SCHD: { zhName: "嘉信红利ETF", role: "高股息成长" },
+    JEPQ: { zhName: "纳指备兑ETF", role: "月度派息高息" },
+    O: { zhName: "Realty房产", role: "月度派息收租" },
+    SGOV: { zhName: "短债现金ETF", role: "美元短债管理" },
+  };
+  const rawSleeves = Array.isArray(snapshot && snapshot.us && snapshot.us.sleeveQuotes) && snapshot.us.sleeveQuotes.length
+    ? snapshot.us.sleeveQuotes
+    : (Array.isArray(bundledSnapshot && bundledSnapshot.us && bundledSnapshot.us.sleeveQuotes) ? bundledSnapshot.us.sleeveQuotes : []);
+  const etfList = rawSleeves
+    .filter((q) => q && q.symbol && finiteOrNull(q.price) > 0)
+    .map((q) => {
+      const sym = String(q.symbol).toUpperCase();
+      const meta = ETF_ROLE_META[sym] || { zhName: q.name || sym, role: "基准ETF" };
+      const chg = finiteOrNull(q.changePercent);
+      return {
+        symbol: sym,
+        zhName: meta.zhName,
+        role: meta.role,
+        priceText: `$${Number(q.price).toFixed(2)}`,
+        changeText: signedPct(chg, 2),
+        changeTone: chg == null ? "flat" : (chg >= 0 ? "up" : "down"),
+        asOfText: q.asOf ? String(q.asOf).slice(5, 10) : "",
+      };
+    });
 
   const computeAllList = () => {
     if (_allList) return _allList;
@@ -1102,6 +1173,30 @@ function buildUsModule(snapshot) {
       .sort((left, right) => compareUsOrder(left.order, right.order))
       .map(({ order, ...row }) => row);
     return _allList;
+  };
+
+  const computeSectorDonut = () => {
+    if (_sectorDonut !== null) return _sectorDonut;
+    const all = computeAllList();
+    const buckets = [
+      { key: "chip", label: "AI与芯片", syms: new Set(["NVDA", "AMD", "AVGO", "TSM", "ASML", "ARM", "SMCI"]), color: "#1d5fd1", count: 0 },
+      { key: "cloud", label: "云与软件", syms: new Set(["MSFT", "ORCL", "PLTR", "CRWD", "NOW", "CRM", "SNOW"]), color: "#0f9f6e", count: 0 },
+      { key: "net", label: "消费科技", syms: new Set(["AAPL", "GOOGL", "AMZN", "META", "TSLA", "NFLX", "UBER", "SHOP"]), color: "#d97706", count: 0 },
+      { key: "fin", label: "金融支付", syms: new Set(["BRK.B", "JPM", "V", "MA", "COIN", "MSTR", "SLM", "HRB"]), color: "#6366f1", count: 0 },
+      { key: "life", label: "医药零售", syms: new Set(["LLY", "COST", "WMT", "UNH"]), color: "#ec4899", count: 0 },
+    ];
+    for (const row of all) {
+      const sym = String(row.code || row.id || "").toUpperCase();
+      const b = buckets.find((x) => x.syms.has(sym)) || buckets[2];
+      b.count += 1;
+    }
+    const active = buckets.filter((b) => b.count > 0);
+    _sectorDonut = active.length >= 2 ? {
+      src: donutSvg(active.map((b) => ({ value: b.count, color: b.color })), { size: 144, strokeWidth: 20 }),
+      centerMain: `${all.length}只`,
+      legend: active.map((b) => ({ key: b.key, label: b.label, countText: `${b.count}只`, color: b.color })),
+    } : undefined;
+    return _sectorDonut;
   };
 
   const computeHotList = () => {
@@ -1178,6 +1273,8 @@ function buildUsModule(snapshot) {
     sevenHint,
     sevenMix,
     hotHint,
+    etfList,
+    get sectorDonut() { return computeSectorDonut(); },
     get allList() { return computeAllList(); },
     get hotList() { return computeHotList(); },
     get filingsFeed() { return computeFilingsFeed(); },
@@ -1530,21 +1627,34 @@ function buildAModule(snapshot) {
     return _calendar;
   };
   const sectorBuckets = [
-    { key: "bank", label: "银行金融", re: /银行|金融/u, color: "#1d5fd1", count: 0 },
-    { key: "util", label: "公用交通", re: /水电|电力|火电|通信|高速|铁路|公用/u, color: "#0f9f6e", count: 0 },
-    { key: "res", label: "能源材料", re: /煤炭|油气|石油|石化|钢铁|建材|水泥|能源/u, color: "#d97706", count: 0 },
-    { key: "mfg", label: "家电制造", re: /家电|制造|白电/u, color: "#6366f1", count: 0 },
+    { key: "bank", label: "银行金融", re: /银行|金融/u, color: "#1d5fd1", count: 0, yields: [] },
+    { key: "util", label: "公用交通", re: /水电|电力|火电|通信|高速|铁路|公用/u, color: "#0f9f6e", count: 0, yields: [] },
+    { key: "res", label: "能源材料", re: /煤炭|油气|石油|石化|钢铁|建材|水泥|能源/u, color: "#d97706", count: 0, yields: [] },
+    { key: "mfg", label: "家电制造", re: /家电|制造|白电/u, color: "#6366f1", count: 0, yields: [] },
   ];
   for (const st of fullStocks) {
     const ind = String(st?.raw?.industry || st?.raw?.financials?.industry || "");
     const hit = sectorBuckets.find((b) => b.re.test(ind)) || sectorBuckets[1];
     hit.count += 1;
+    const hy = getHistoricalDividendYield(st.raw || {});
+    if (hy && hy.yieldPercent > 0) hit.yields.push(hy.yieldPercent);
   }
-  const activeSectors = sectorBuckets.filter((b) => b.count > 0);
+  const activeSectors = sectorBuckets.filter((b) => b.count > 0).map((b) => {
+    const avgY = b.yields.length ? b.yields.reduce((s, v) => s + v, 0) / b.yields.length : null;
+    return { ...b, avgY };
+  });
+  const maxSecYield = Math.max(1, ...activeSectors.map((b) => b.avgY || 0));
   const sectorDonut = activeSectors.length >= 2 ? {
-    src: donutSvg(activeSectors.map((b) => ({ value: b.count, color: b.color })), { size: 120, strokeWidth: 22 }),
+    src: donutSvg(activeSectors.map((b) => ({ value: b.count, color: b.color })), { size: 144, strokeWidth: 20 }),
     centerMain: `${fullStocks.length}只`,
-    legend: activeSectors.map((b) => ({ key: b.key, label: b.label, countText: `${b.count}只`, color: b.color })),
+    legend: activeSectors.map((b) => ({
+      key: b.key,
+      label: b.label,
+      countText: `${b.count}只`,
+      avgYieldText: b.avgY != null ? `均息 ${b.avgY.toFixed(2)}%` : "",
+      yieldBar: b.avgY != null ? Math.max(18, Math.round((b.avgY / maxSecYield) * 100)) : 0,
+      color: b.color,
+    })),
   } : null;
 
   const cheapNames = fresh
@@ -1870,13 +1980,15 @@ function paintGoldLineChart(ctx, width, height, values) {
   dot(lastIdx, "#d97706", 3);
 }
 
-function plainGoldZone(zoneLabel, fresh) {
+function plainGoldZone(zoneLabel, fresh, pctRank = null) {
   if (!fresh) return "数据待更新";
   const z = String(zoneLabel || "");
-  if (z.includes("低位")) return "偏低关注区";
-  if (z.includes("上沿")) return "偏高分批区";
-  if (z.includes("风险下沿")) return "跌破警戒位";
-  return "中间观察区";
+  if (z === "仍在观察低位" || z.includes("低位")) return "偏低关注区";
+  if (z === "进入观察上沿") return "偏高分批区";
+  if (z === "触及风险下沿" || z.includes("风险下沿")) return "触及警戒位";
+  if (pctRank != null && Number.isFinite(pctRank) && pctRank <= 25) return "近半年偏低区";
+  if (pctRank != null && Number.isFinite(pctRank) && pctRank >= 78) return "近半年偏高区";
+  return "中性观察区";
 }
 
 function buildGoldModule(snapshot) {
@@ -1887,6 +1999,19 @@ function buildGoldModule(snapshot) {
   const international = gold.quotes?.international || {};
   const domestic = domesticGoldClose(snapshot) || {};
 
+  const intlSeriesAll = historicalGoldSeries(snapshot, "international");
+  const domSeriesAll = historicalGoldSeries(snapshot, "domestic");
+  const computeRangePos = (rows, curPrice) => {
+    const vals = (rows || []).map((r) => finiteOrNull(r.close)).filter((v) => v != null && v > 0);
+    const p = finiteOrNull(curPrice);
+    if (vals.length < 10 || p == null) return null;
+    const lo = Math.min(...vals);
+    const hi = Math.max(...vals);
+    return hi > lo ? Math.max(0, Math.min(100, Math.round(((p - lo) / (hi - lo)) * 100))) : 50;
+  };
+  const intlPct180 = computeRangePos(intlSeriesAll.rows, international.price) ?? finiteOrNull(international.percentile180);
+  const domPct90 = computeRangePos(domSeriesAll.rows, domestic.price) ?? finiteOrNull(domestic.percentile30);
+
   const intlZone = goldZoneForPrice(international.price, plan.internationalWatch, plan.internationalUpper, plan.internationalRisk);
   const cnyZone = goldZoneForPrice(domestic.price, plan.domesticWatch, plan.domesticUpper, plan.domesticRisk);
   const intlWatchText = freshGold && plan.internationalWatch ? `关注区间 $${goldRangeText(plan.internationalWatch, 0)}` : "";
@@ -1894,6 +2019,8 @@ function buildGoldModule(snapshot) {
 
   const intlChange = finiteOrNull(international.changePercent);
   const domChange = finiteOrNull(domestic.changePercent);
+  const intlBadge = plainGoldZone(intlZone.label, freshGold && Boolean(plan.internationalWatch), intlPct180);
+  const domBadge = plainGoldZone(cnyZone.label, freshGold && Boolean(plan.domesticWatch), domPct90);
   const quotes = [
     {
       id: "usd",
@@ -1904,8 +2031,10 @@ function buildGoldModule(snapshot) {
       asOfText: referenceDateText([international.asOf]),
       changeText: intlChange != null ? signedPct(intlChange, 2) : "",
       changeTone: intlChange == null ? "flat" : (intlChange >= 0 ? "up" : "down"),
-      verdictBadge: plainGoldZone(intlZone.label, freshGold && Boolean(plan.internationalWatch)),
-      verdictTone: freshGold && plan.internationalWatch ? goldTone(intlZone.tone) : "settled",
+      verdictBadge: intlBadge,
+      verdictTone: freshGold && plan.internationalWatch
+        ? (intlBadge.includes("偏低") ? "worth" : goldTone(intlZone.tone))
+        : "settled",
       watchRangeText: intlWatchText,
     },
     {
@@ -1917,8 +2046,10 @@ function buildGoldModule(snapshot) {
       asOfText: referenceDateText([domestic.asOf], "收盘"),
       changeText: domChange != null ? signedPct(domChange, 2) : "",
       changeTone: domChange == null ? "flat" : (domChange >= 0 ? "up" : "down"),
-      verdictBadge: plainGoldZone(cnyZone.label, freshGold && Boolean(plan.domesticWatch)),
-      verdictTone: freshGold && plan.domesticWatch ? goldTone(cnyZone.tone) : "settled",
+      verdictBadge: domBadge,
+      verdictTone: freshGold && plan.domesticWatch
+        ? (domBadge.includes("偏低") ? "worth" : goldTone(cnyZone.tone))
+        : "settled",
       watchRangeText: domWatchText,
     },
   ];
@@ -1975,7 +2106,7 @@ function buildGoldModule(snapshot) {
   if (convertedGram != null && domPriceNum != null && convertedGram > 0) {
     const diff = domPriceNum - convertedGram;
     const diffPct = (diff / convertedGram) * 100;
-    spreadBadge = `上海金较国际折算 ${diff >= 0 ? "+" : "-"}¥${Math.abs(diff).toFixed(1)}/克（${signedPct(diffPct, 1)}）`;
+    spreadBadge = `上海金较国际折算 ${diff >= 0 ? "+" : "-"}¥${Math.abs(diff).toFixed(1)}/克（${signedPct(diffPct, 2)}）`;
   }
   const intlRows = historicalGoldSeries(snapshot, "international").rows || [];
   const intlCloses = intlRows.map((r) => finiteOrNull(r.close)).filter((v) => v != null && v > 0);
@@ -1993,11 +2124,17 @@ function buildGoldModule(snapshot) {
     }
   }
 
+  const goldGauge = intlPct180 != null ? {
+    src: gaugeSvg(intlPct180, { width: 220, height: 120, mode: "price" }),
+    pctText: `${intlPct180}% 分位`,
+    note: intlPct180 <= 25 ? "近半年历史低位带" : (intlPct180 >= 75 ? "近半年历史高位带" : "近半年历史中段"),
+  } : null;
+
   const answerBar = !freshGold
     ? "数据待更新 · 暂不展示黄金参考区间"
-    : `国际金当前处于${plainGoldZone(intlZone.label, true)}${intlWatchText ? ` · ${intlWatchText}` : ""}`;
+    : `国际金当前处于${intlBadge}${intlWatchText ? ` · ${intlWatchText}` : ""}`;
 
-  return { answerBar, quotes, perCurrency, parityLine: "", compareTiles, spreadBadge, returnPills };
+  return { answerBar, quotes, perCurrency, parityLine: "", compareTiles, spreadBadge, returnPills, goldGauge };
 }
 
 // 币种/周期切换只在这两个预计算好的结构里挑数据，不重新访问快照或重算——
@@ -2267,12 +2404,28 @@ function buildGuruModule(snapshot) {
     const currency = item.group === "a" ? "¥" : "$";
     const history = Array.isArray(item.raw?.history) ? item.raw.history : [];
     const isLive = Boolean(item.raw?.isLive);
-    const rawSrcText = `${item.raw?.source || ""} ${item.raw?.profile?.report || ""} ${item.raw?.profile?.sourceName || ""}`;
+    const primarySrc = String(item.raw?.source || "");
+    const fallbackSrc = `${item.raw?.profile?.report || ""} ${item.raw?.profile?.sourceName || ""}`;
     const sourceShort = isLive
       ? "美国证监会"
-      : (/月度|月报|Factsheet/i.test(rawSrcText)
+      : (/月度|月报|Factsheet/i.test(primarySrc)
         ? "基金月报"
-        : (/半年报/i.test(rawSrcText) ? "基金半年报" : "基金季报"));
+        : (/半年报/i.test(primarySrc)
+          ? "基金半年报"
+          : (/季报|定期报告/i.test(primarySrc)
+            ? "基金季报"
+            : (/月度|月报|Factsheet/i.test(fallbackSrc) ? "基金月报" : (/半年报/i.test(fallbackSrc) ? "基金半年报" : "基金季报")))));
+    const rawSold = Array.isArray(item.raw?.sold) ? item.raw.sold : [];
+    const soldPills = rawSold.slice(0, 6).map((s, idx) => {
+      const disp = guruHoldingName(s);
+      const rawT = String(s?.ticker || "").trim().toUpperCase();
+      const lnk = s && s.putCall ? { linkMarket: "", linkId: "" } : resolveStockLink(rawT, disp);
+      return {
+        key: `sold-${idx}-${rawT || disp}`,
+        name: disp,
+        ...lnk,
+      };
+    });
     const trackingScore = Number.isFinite(Number(item.raw?.trackingScore)) ? Number(item.raw.trackingScore) : null;
     const shortDate = (value) => {
       const m = String(value || "").match(/(\d{4}-\d{2}-\d{2})/);
@@ -2284,6 +2437,7 @@ function buildGuruModule(snapshot) {
     const reportValue = repAgeDays > 190 ? `${shortDate(item.raw?.reportDate)}·旧期` : shortDate(item.raw?.reportDate);
     const built = {
       rows,
+      soldPills,
       concentration,
       hint: rows.length ? `重仓前 ${rows.length}` : "暂无持仓披露",
       stats: [
@@ -2365,11 +2519,37 @@ function buildGuruModule(snapshot) {
     holdersText: entry.holders.slice(0, 3).join(" · "),
   }));
 
+  let moveNew = 0;
+  let moveAdd = 0;
+  let moveCut = 0;
+  let moveSold = 0;
+  for (const inv of investors) {
+    for (const h of inv.holdings || []) {
+      const ch = String(h?.changeLabel || "");
+      if (/新进|新建/.test(ch)) moveNew += 1;
+      else if (/增持/.test(ch)) moveAdd += 1;
+      else if (/减持/.test(ch)) moveCut += 1;
+    }
+    moveSold += Array.isArray(inv.sold) ? inv.sold.length : 0;
+  }
+  const actionSegs = [
+    { label: "新进建仓", value: moveNew, pctText: `${moveNew}笔`, color: "#0f9f6e" },
+    { label: "增持加仓", value: moveAdd, pctText: `${moveAdd}笔`, color: "#1d5fd1" },
+    { label: "减持缩仓", value: moveCut, pctText: `${moveCut}笔`, color: "#d97706" },
+    { label: "清仓退出", value: moveSold, pctText: `${moveSold}笔`, color: "#dc4c3e" },
+  ].filter((s) => s.value > 0);
+  const totalMoves = actionSegs.reduce((s, x) => s + x.value, 0);
+  const actionDonut = actionSegs.length >= 2 ? {
+    src: donutSvg(actionSegs, { size: 144, strokeWidth: 20 }),
+    centerMain: `${totalMoves}笔`,
+    legend: actionSegs,
+  } : null;
+
   const defaultId = String((profiles[0] && profiles[0].id) || "");
   const answerBar = overlapRows.length
     ? `${profiles.length} 家机构共同重仓前 ${ Math.min(3, overlapRows.length) }：${overlapRows.slice(0, 3).map((r) => `${r.name}(${r.count}家)`).join("、")}`
     : `已收录 ${profiles.length} 家顶级机构最新公开持仓（季度披露有滞后，仅学思路不照抄）`;
-  return { answerBar, profiles, trend, trendRows, overlapRows, trendTitle, trendHint, trendEmptyText, institutionList, holdingsByInstitution, defaultId };
+  return { answerBar, profiles, trend, trendRows, overlapRows, actionDonut, trendTitle, trendHint, trendEmptyText, institutionList, holdingsByInstitution, defaultId };
 }
 
 const GURU_EMPTY_HOLDINGS = {
@@ -2625,8 +2805,12 @@ Page({
     // 港股打新专属：原型的「近期申购/中签后」两个视图，只有 market==='hk' 时渲染。
     hkSubTab: "apply",
     hkApplyList: [],
+    hkApplyShown: [],
+    hkStaleApplyCount: 0,
+    hkShowStaleApply: false,
     hkApplyTiles: [],
     hkFirstDayChart: null,
+    hkStageCompare: [],
     hkExitOptions: [],
     hkExitIndex: 0,
     hkExitSelectedId: "",
@@ -2651,6 +2835,8 @@ Page({
     usAllFilter: "all",
     usAllSort: "default",
     usAllList: [],
+    usEtfList: [],
+    usSectorDonut: null,
     usTriggerTiles: [],
     usSevenList: [],
     usSevenHint: "",
@@ -2691,10 +2877,13 @@ Page({
     goldCompareTiles: [],
     goldSpreadBadge: "",
     goldReturnPills: [],
+    goldGauge: null,
     // 机构持仓专属：模仿富途「明星机构持仓」，一进来直接看各家机构重仓，点铭牌秒切。
     guruSubTab: "holdings",
     guruTrendRows: [],
     guruOverlapRows: [],
+    guruActionDonut: null,
+    guruSoldPills: [],
     guruTrendTitle: "持仓变化",
     guruTrendHint: "",
     guruTrendEmptyText: "正在读取披露资料",
@@ -2880,8 +3069,11 @@ Page({
         Object.assign(patch, {
           sectionAnswerBar: hkModule.answerBar || "",
           hkApplyList: hkModule.applyList,
+          hkApplyShown: this.data.hkShowStaleApply ? hkModule.applyList : (hkModule.freshApplyList || hkModule.applyList),
+          hkStaleApplyCount: hkModule.staleApplyCount || 0,
           hkApplyTiles: hkModule.applyTiles,
           hkFirstDayChart: hkModule.firstDayChart,
+          hkStageCompare: hkModule.stageCompare || [],
           hkExitOptions: hkExitList.map((item) => ({ id: item.id, text: item.text })),
           hkExitIndex: hkSelection.index,
           hkExitSelectedId: hkSelection.id,
@@ -2905,6 +3097,7 @@ Page({
           usSevenHint: usModule.sevenHint,
           usSevenMix: usModule.sevenMix,
           usHotHint: usModule.hotHint,
+          usEtfList: usModule.etfList || [],
         });
         // 按激活子 tab 懒下发列表（含 SVG Base64），首屏只算并只传七家大公司 7 条。
         if (this.data.usSubTab === "hot") patch.usHotList = usModule.hotList;
@@ -2912,7 +3105,10 @@ Page({
           patch.usFilingsList = usModule.filingsFeed || [];
         }
         if (this.data.usSubTab === "heatmap") patch.usHeatmap = buildUsHeatmap(usModule.allList, this.data.usHeatMode);
-        if (this.data.usSubTab === "all") patch.usAllList = this.applyUsView(usModule.allList, this.data.usAllFilter, this.data.usAllSort);
+        if (this.data.usSubTab === "all") {
+          patch.usAllList = this.applyUsView(usModule.allList, this.data.usAllFilter, this.data.usAllSort);
+          patch.usSectorDonut = usModule.sectorDonut || null;
+        }
         this._usModule = usModule;
       } else if (market === "a" && cached.aModule) {
         const aModule = cached.aModule;
@@ -2956,6 +3152,7 @@ Page({
           goldCompareTiles: goldModule.compareTiles || [],
           goldSpreadBadge: goldModule.spreadBadge || "",
           goldReturnPills: goldModule.returnPills || [],
+          goldGauge: goldModule.goldGauge || null,
           goldPeriod: goldView.period,
           goldZoneTone: goldView.zoneTone,
           goldCurrencyLabel: goldView.currencyLabel,
@@ -2973,6 +3170,7 @@ Page({
           sourceLinks: cached.sourceLinks,
           guruTrendRows: guruModule.trendRows,
           guruOverlapRows: guruModule.overlapRows || [],
+          guruActionDonut: guruModule.actionDonut || null,
           guruTrendTitle: guruModule.trendTitle,
           guruTrendHint: guruModule.trendHint,
           guruTrendEmptyText: guruModule.trendEmptyText,
@@ -2984,6 +3182,7 @@ Page({
           guruInstitutionOrg: guruSelection.org,
           guruHoldingsRows: guruSelection.holdings.rows,
           guruHoldingsRowsShown: holdingsRowsShown(guruSelection.holdings.rows, this.data.guruHoldingsExpanded),
+          guruSoldPills: guruSelection.holdings.soldPills || [],
           guruConcentration: guruSelection.holdings.concentration || null,
           guruHoldingsHint: guruSelection.holdings.hint,
           guruHoldingStats: guruSelection.holdings.stats,
@@ -3023,6 +3222,14 @@ Page({
     if (!id) return;
     this.openDetail(id, "section_hk_apply");
   },
+  toggleHkStaleApply() {
+    const next = !this.data.hkShowStaleApply;
+    const mod = this._hkModule;
+    this.setData({
+      hkShowStaleApply: next,
+      hkApplyShown: mod ? (next ? mod.applyList : (mod.freshApplyList || mod.applyList)) : this.data.hkApplyList,
+    });
+  },
   toggleHkHistoryAll() {
     const next = !this.data.hkShowAllHistory;
     const rawHist = (this._hkModule && (this._hkModule.historyRowsAll || this._hkModule.historyRows)) || this.data.hkHistoryRows || [];
@@ -3059,6 +3266,7 @@ Page({
     }
     if (id === "all" && mod) {
       patch.usAllList = this.applyUsView(mod.allList, this.data.usAllFilter, this.data.usAllSort);
+      patch.usSectorDonut = mod.sectorDonut || null;
     }
     this.setData(patch);
     track("section_tab", { market: "us", tab: String(id) });
@@ -3333,6 +3541,7 @@ Page({
       // 切换机构时收起「展开」，避免上一家展开到10条的状态带到下一家。
       guruHoldingsExpanded: false,
       guruHoldingsRowsShown: holdingsRowsShown(selection.holdings.rows, false),
+      guruSoldPills: selection.holdings.soldPills || [],
       guruConcentration: selection.holdings.concentration || null,
       guruHoldingsHint: selection.holdings.hint,
       guruHoldingStats: selection.holdings.stats,
@@ -3530,6 +3739,9 @@ Page({
   },
   goHome() {
     goHome();
+  },
+  openLegal() {
+    openPage("/pages/legal/index");
   },
   onShareAppMessage() {
     track("share_tap", { page: "section", market: this.data.market });

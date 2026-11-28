@@ -51,8 +51,8 @@
     {
       id: "value-partners-classic", name: "价值伙伴经典基金", org: "Value Partners Hong Kong", av: "VP",
       market: "hk", marketLabel: "港股", featuredSmartMoney: true, selectionOrder: 1,
-      aum: "基金规模约 12.1 亿美元", style: "大中华深度价值 · 逆向", q: "2026-05-29 月报", stance: "长期价值代表", sc: "buy",
-      performanceValue: "13.2% 年化", performanceDetail: "Class A USD · 1993–2026-05 · 累计 +5,958.4%",
+      aum: "基金规模约 12.1 亿美元", style: "大中华深度价值 · 逆向", q: "2026-10-31 月报", stance: "长期价值代表", sc: "buy",
+      performanceValue: "13.2% 年化", performanceDetail: "Class A USD · 1993–2026-10 · 累计 +5,958.4%",
       performanceBasis: "NAV 复权、股息再投资、扣费后；不同份额回报不同。",
       performanceSourceUrl: "https://www.valuepartners-group.com/ftp/files/reports/vpaf/001_fact_sheet/eng/vpaf_fact_sheet_2026-05-01_en.pdf",
       sourceUrl: "https://www.valuepartners-group.com/ftp/files/reports/vpaf/001_fact_sheet/eng/vpaf_fact_sheet_2026-05-01_en.pdf",
@@ -81,7 +81,7 @@
     {
       id: "jpm-china-growth", name: "摩根中国增长与收益", org: "J.P. Morgan · Rebecca Jiang 团队", av: "JP",
       market: "hk", marketLabel: "港股", featuredSmartMoney: true, selectionOrder: 3,
-      aum: "净资产约 2.46 亿英镑", style: "高质量成长 · 主动选股", q: "2026-03-31 半年报", stance: "质量与成长并重", sc: "caution",
+      aum: "净资产约 2.46 亿英镑", style: "高质量成长 · 主动选股", q: "2026-09-30 月报", stance: "质量与成长并重", sc: "caution",
       performanceValue: "约 7.6% 年化", performanceDetail: "NAV · 近十年累计 +107.9%（按公开累计值折算）",
       performanceBasis: "英镑总回报、股息再投资；基金可使用衍生品和杠杆。",
       performanceSourceUrl: "https://am.jpmorgan.com/content/dam/jpm-am-aem/emea/gb/en/regulatory/semi-annual-report/china-growth-income-hy-2026.pdf",
@@ -96,8 +96,8 @@
     {
       id: "chinaamc-largecap", name: "华夏大盘精选", org: "华夏基金 · 屠环宇", av: "HX",
       market: "a", marketLabel: "A股", featuredSmartMoney: true, selectionOrder: 1,
-      aum: "基金净资产约 37.5 亿元", style: "大型成长 · 科技制造", q: "基金定期报告", stance: "AI 与高端制造", sc: "buy",
-      performanceValue: "约 18.7% 年化", performanceDetail: "2004–2026Q1 · 累计 +3,984.2%（按公开累计值折算）",
+      aum: "基金净资产约 37.5 亿元", style: "大型成长 · 科技制造", q: "2026-09-30 三季报", stance: "AI 与高端制造", sc: "buy",
+      performanceValue: "约 18.7% 年化", performanceDetail: "2004–2026Q3 · 累计 +3,984.2%（按公开累计值折算）",
       performanceBasis: "基金公开净值；现任经理自 2024-03-26 起任职，历史收益不能全部归因于现任经理。",
       performanceSourceUrl: "https://www.chinaamc.com/upload/resources/file/2026/04/22/94f8a16edc4443afb24ee193a9c3cb75.pdf",
       sourceUrl: "https://www.chinaamc.com/upload/resources/file/2026/04/22/94f8a16edc4443afb24ee193a9c3cb75.pdf",
@@ -111,8 +111,8 @@
     {
       id: "fullgoal-tianhui", name: "富国天惠", org: "富国基金 · 朱少醒", av: "ZS",
       market: "a", marketLabel: "A股", featuredSmartMoney: true, selectionOrder: 2,
-      aum: "基金净资产约 197.4 亿元", style: "均衡成长 · 淡化择时", q: "基金定期报告", stance: "长期高仓位", sc: "caution",
-      performanceValue: "约 15.2% 年化", performanceDetail: "2005–2026Q1 · 累计 +1,675.3%（按公开累计值折算）",
+      aum: "基金净资产约 197.4 亿元", style: "均衡成长 · 淡化择时", q: "2026-09-30 三季报", stance: "长期高仓位", sc: "caution",
+      performanceValue: "约 15.2% 年化", performanceDetail: "2005–2026Q3 · 累计 +1,675.3%（按公开累计值折算）",
       performanceBasis: "A/B份额公开净值；朱少醒自成立起连续管理。",
       performanceSourceUrl: "https://www.fullgoal.com.cn/wbs-file/fund_report/20260422/CN_50100000_161005_FB030010_20260004.pdf",
       sourceUrl: "https://www.fullgoal.com.cn/wbs-file/fund_report/20260422/CN_50100000_161005_FB030010_20260004.pdf",
@@ -126,8 +126,8 @@
     {
       id: "xq-herun", name: "兴全合润", org: "兴证全球 · 谢治宇", av: "XZ",
       market: "a", marketLabel: "A股", featuredSmartMoney: true, selectionOrder: 3,
-      aum: "基金净资产约 194.5 亿元", style: "长期竞争力 · 景气反转", q: "基金定期报告", stance: "科技与周期结合", sc: "caution",
-      performanceValue: "约 13.9% 年化", performanceDetail: "2010–2026Q1 · 累计 +694.17%（按公开累计值折算）",
+      aum: "基金净资产约 194.5 亿元", style: "长期竞争力 · 景气反转", q: "2026-09-30 三季报", stance: "科技与周期结合", sc: "caution",
+      performanceValue: "约 13.9% 年化", performanceDetail: "2010–2026Q3 · 累计 +694.17%（按公开累计值折算）",
       performanceBasis: "A份额公开净值；谢治宇自 2013-01-29 起任职，成立初期收益不属于其任期。",
       performanceSourceUrl: "https://pdf.dfcfw.com/pdf/H2_AN202604211821392842_1.pdf",
       sourceUrl: "https://pdf.dfcfw.com/pdf/H2_AN202604211821392842_1.pdf",

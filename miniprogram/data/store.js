@@ -43,6 +43,15 @@ function prepareSnapshot(snapshot) {
     return preparedValue;
   }
   const next = degradeStaleActions(snapshot);
+  if (
+    next
+    && next.us
+    && (!Array.isArray(next.us.sleeveQuotes) || !next.us.sleeveQuotes.length)
+    && Array.isArray(bundledSnapshot?.us?.sleeveQuotes)
+    && bundledSnapshot.us.sleeveQuotes.length
+  ) {
+    next.us = { ...next.us, sleeveQuotes: bundledSnapshot.us.sleeveQuotes };
+  }
   preparedRef = snapshot;
   preparedMinute = minute;
   preparedValue = next;

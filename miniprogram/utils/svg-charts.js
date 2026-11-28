@@ -239,10 +239,168 @@ function zoneSparklineSvg(values, { width = 340, height = 128, buyPrice = null, 
   return toDataUri(svg);
 }
 
+/**
+ * 5. 搜索栏矢量放大镜图标 (searchIconSvg)
+ * 替换原生字体偏基线的字符，保证各系统渲染锐利对齐。
+ */
+function searchIconSvg(color = "#1d5fd1") {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="${color}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.8" cy="10.8" r="6.8"/><line x1="15.9" y1="15.9" x2="20.6" y2="20.6"/></svg>`;
+  return toDataUri(svg);
+}
+
+/**
+ * 6. 首页三地代表卡片全宽极简走势曲线 (cleanSparkSvg)
+ * 极窄左右留白、统一金融蓝渐变，避免与单日涨跌红绿胶囊产生撞色冲突。
+ */
+function cleanSparkSvg(values, { width = 196, height = 56, color = "#2563eb" } = {}) {
+  const series = (Array.isArray(values) ? values : []).map(Number).filter(Number.isFinite);
+  if (series.length < 2) return "";
+  const low = Math.min(...series);
+  const high = Math.max(...series);
+  const span = Math.max(high - low, 1e-6);
+  const padX = 4;
+  const padTop = 7;
+  const padBottom = 6;
+  const plotH = height - padTop - padBottom;
+  const stepX = (width - padX * 2) / (series.length - 1);
+  const pts = series.map((v, i) => [padX + i * stepX, padTop + (1 - (v - low) / span) * plotH]);
+  let line = `M${f1(pts[0][0])} ${f1(pts[0][1])}`;
+  for (let i = 1; i < pts.length - 1; i += 1) {
+    line += `Q${f1(pts[i][0])} ${f1(pts[i][1])} ${f1((pts[i][0] + pts[i + 1][0]) / 2)} ${f1((pts[i][1] + pts[i + 1][1]) / 2)}`;
+  }
+  const end = pts[pts.length - 1];
+  line += `L${f1(end[0])} ${f1(end[1])}`;
+  const area = `${line}L${f1(end[0])} ${height}L${f1(pts[0][0])} ${height}Z`;
+  const baseLine = `<line x1="${padX}" y1="${f1(pts[0][1])}" x2="${width - padX}" y2="${f1(pts[0][1])}" stroke="#dbe4f0" stroke-width="1" stroke-dasharray="3 3"/>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">`
+    + `<defs><linearGradient id="cs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.20"/><stop offset="0.85" stop-color="${color}" stop-opacity="0.02"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>`
+    + baseLine
+    + `<path d="${area}" fill="url(#cs)"/>`
+    + `<path d="${line}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`
+    + `<circle cx="${f1(end[0])}" cy="${f1(end[1])}" r="6" fill="${color}" fill-opacity="0.16"/>`
+    + `<circle cx="${f1(end[0])}" cy="${f1(end[1])}" r="3.2" fill="${color}"/>`
+    + "</svg>";
+  return toDataUri(svg);
+}
+
+/**
+ * 7. 首页港股新股卡片等高矢量进度与锁仓条 (ipoTrackSvg)
+ * 让未上市无日线的新股卡片与美股、A股卡片拥有 100% 对称的视觉图形高度。
+ */
+function ipoTrackSvg({ stepIndex = 0, lockPercent = 28, width = 196, height = 56 } = {}) {
+  const step = Math.max(0, Math.min(3, Number(stepIndex) || 0));
+  const lock = Math.max(12, Math.min(92, Number(lockPercent) || 28));
+  const padX = 12;
+  const spanW = width - padX * 2;
+  const yTop = 19;
+  const xs = [0, 1, 2, 3].map((i) => padX + (spanW * i) / 3);
+  const activeX = xs[step];
+  const nodes = xs.map((x, idx) => {
+    if (idx < step) {
+      return `<circle cx="${f1(x)}" cy="${yTop}" r="4.2" fill="#2563eb"/>`;
+    }
+    if (idx === step) {
+      return `<circle cx="${f1(x)}" cy="${yTop}" r="8.5" fill="#2563eb" fill-opacity="0.16"/><circle cx="${f1(x)}" cy="${yTop}" r="4.8" fill="#2563eb"/>`;
+    }
+    return `<circle cx="${f1(x)}" cy="${yTop}" r="3.8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>`;
+  }).join("");
+  const yBar = 40;
+  const fillW = (spanW * lock) / 100;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">`
+    + `<line x1="${f1(xs[0])}" y1="${yTop}" x2="${f1(xs[3])}" y2="${yTop}" stroke="#e2e8f0" stroke-width="2.6" stroke-linecap="round"/>`
+    + (step > 0 ? `<line x1="${f1(xs[0])}" y1="${yTop}" x2="${f1(activeX)}" y2="${yTop}" stroke="#2563eb" stroke-width="2.6" stroke-linecap="round"/>` : "")
+    + nodes
+    + `<rect x="${padX}" y="${yBar}" width="${f1(spanW)}" height="6.5" rx="3.25" fill="#e8eef7"/>`
+    + `<rect x="${padX}" y="${yBar}" width="${f1(fillW)}" height="6.5" rx="3.25" fill="#0f9f6e"/>`
+    + "</svg>";
+  return toDataUri(svg);
+}
+
+/**
+ * 8. 五维基本面多边形雷达图 (pentagonSvg)
+ * 对标富途牛牛、东方财富、IBKR 基本面五维蛛网评分图，纯几何五边形无文字乱码。
+ */
+function pentagonSvg(scores, { size = 196, color = "#1d5fd1" } = {}) {
+  const vals = (Array.isArray(scores) ? scores : []).slice(0, 5).map((v) => Math.max(12, Math.min(100, Number(v) || 50)));
+  if (vals.length < 5) return "";
+  const cx = size / 2;
+  const cy = size / 2 + 4;
+  const maxR = size * 0.41;
+  const ptAt = (idx, ratio) => {
+    const rad = ((-90 + idx * 72) * Math.PI) / 180;
+    return [cx + maxR * ratio * Math.cos(rad), cy + maxR * ratio * Math.sin(rad)];
+  };
+  const polyPoints = (ratio) => [0, 1, 2, 3, 4].map((i) => {
+    const [x, y] = ptAt(i, ratio);
+    return `${f1(x)},${f1(y)}`;
+  }).join(" ");
+
+  const rings = [0.33, 0.66, 1].map((r, idx) => (
+    `<polygon points="${polyPoints(r)}" fill="${idx === 2 ? "#f8fafd" : "none"}" stroke="#dde5f0" stroke-width="${idx === 2 ? "1.4" : "1"}"/>`
+  )).join("");
+  const spokes = [0, 1, 2, 3, 4].map((i) => {
+    const [x, y] = ptAt(i, 1);
+    return `<line x1="${f1(cx)}" y1="${f1(cy)}" x2="${f1(x)}" y2="${f1(y)}" stroke="#e2e8f0" stroke-width="1"/>`;
+  }).join("");
+
+  const dataPts = vals.map((v, i) => ptAt(i, v / 100));
+  const dataPoly = dataPts.map(([x, y]) => `${f1(x)},${f1(y)}`).join(" ");
+  const dots = dataPts.map(([x, y]) => (
+    `<circle cx="${f1(x)}" cy="${f1(y)}" r="4" fill="#ffffff" stroke="${color}" stroke-width="2.4"/>`
+  )).join("");
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`
+    + `<polygon points="${polyPoints(1)}" fill="#f8fafd" stroke="#dce4f0" stroke-width="1.3"/>`
+    + `<polygon points="${polyPoints(0.66)}" fill="none" stroke="#e5ebf4" stroke-width="1"/>`
+    + `<polygon points="${polyPoints(0.33)}" fill="none" stroke="#edf1f7" stroke-width="1"/>`
+    + spokes
+    + `<polygon points="${dataPoly}" fill="${color}" fill-opacity="0.18" stroke="${color}" stroke-width="2.3" stroke-linejoin="round"/>`
+    + dots
+    + "</svg>";
+  return toDataUri(svg);
+}
+
+/**
+ * 9. 息记同款 12 个月派息热度柱状分布图 (monthDensitySvg)
+ * 直观呈现全年各月除息密集度，当前选中月份高亮为品牌蓝。
+ */
+function monthDensitySvg(counts12, { width = 340, height = 84, activeMonth = 0 } = {}) {
+  const counts = Array.from({ length: 12 }, (_, i) => Math.max(0, Number(counts12 && counts12[i]) || 0));
+  const maxC = Math.max(1, ...counts);
+  const padX = 8;
+  const padTop = 8;
+  const padBottom = 6;
+  const plotW = width - padX * 2;
+  const plotH = height - padTop - padBottom;
+  const slotW = plotW / 12;
+  const barW = Math.min(18, slotW * 0.62);
+
+  const bars = counts.map((c, idx) => {
+    const m = idx + 1;
+    const isSel = m === Number(activeMonth);
+    const h = c > 0 ? Math.max(8, (c / maxC) * plotH) : 4;
+    const x = padX + slotW * idx + (slotW - barW) / 2;
+    const y = padTop + plotH - h;
+    const fill = isSel ? "#1d5fd1" : (c >= 4 ? "#0f9f6e" : (c > 0 ? "#7da6eb" : "#e5eaf2"));
+    return `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(barW)}" height="${f1(h)}" rx="3.5" fill="${fill}"/>`;
+  }).join("");
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">`
+    + `<line x1="${padX}" y1="${padTop + plotH}" x2="${width - padX}" y2="${padTop + plotH}" stroke="#e2e8f0" stroke-width="1"/>`
+    + bars
+    + "</svg>";
+  return toDataUri(svg);
+}
+
 module.exports = {
   PALETTE,
   donutSvg,
   gaugeSvg,
   groupedBarsSvg,
   zoneSparklineSvg,
+  searchIconSvg,
+  cleanSparkSvg,
+  ipoTrackSvg,
+  pentagonSvg,
+  monthDensitySvg,
 };

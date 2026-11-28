@@ -140,6 +140,24 @@
         </view>
       </view>
     </view>
+
+    <view wx:if="{{item.kind == 'pentagon'}}" class="pentagon-chart-box">
+      <view class="pentagon-img-wrap">
+        <image wx:if="{{item.src}}" class="pentagon-img" src="{{item.src}}" mode="aspectFit" aria-hidden="true"></image>
+        <text wx:if="{{item.avgScoreText}}" class="pentagon-score-pill">综合 {{item.avgScoreText}}</text>
+      </view>
+      <view class="pentagon-dim-list">
+        <view wx:for="{{item.dims}}" wx:for-item="dim" wx:key="label" class="pentagon-dim-row">
+          <view class="pentagon-dim-head">
+            <text class="pentagon-dim-k">{{dim.label}}</text>
+            <text class="pentagon-dim-v">{{dim.valueText}}</text>
+          </view>
+          <view class="pentagon-dim-track">
+            <view class="pentagon-dim-fill" style="width: {{dim.score}}%;"></view>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -476,12 +494,18 @@
             <view class="div-calc-metric">
               <text class="div-calc-k">中1手回本涨幅</text>
               <text class="div-calc-v is-blue">{{hkIpoCalcView.breakevenText}}</text>
-              <text class="div-sub-tag">涨10% {{hkIpoCalcView.up10Text}} · 跌10% {{hkIpoCalcView.down10Text}}</text>
+              <text class="div-sub-tag">含交易规费与融资成本</text>
+            </view>
+          </view>
+          <view wx:if="{{hkIpoCalcView.scenarios && hkIpoCalcView.scenarios.length}}" class="ipo-scen-strip">
+            <view wx:for="{{hkIpoCalcView.scenarios}}" wx:key="key" class="ipo-scen-cell tone-{{item.tone}}">
+              <text class="ipo-scen-k">{{item.label}}</text>
+              <text class="ipo-scen-v">{{item.valText}}</text>
             </view>
           </view>
         </view>
 
-        <!-- 首屏核心图表直出（A股股息表盘与历年分红图 / 美股双柱财报与同业对比图 / 港股首日扇形图 / 大佬重仓环形饼图） -->
+        <!-- 首屏核心图表直出（五维雷达 / A股股息表盘与历年分红图 / 美股双柱财报与同业对比图 / 港股首日扇形图 / 大佬重仓环形饼图） -->
         <block wx:if="{{activeCharts.length}}">
           <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
         </block>
@@ -493,7 +517,7 @@
           </view>
         </view>
 
-        <view wx:if="{{view.overview.healthChecks && view.overview.healthChecks.length}}" class="health-bars-box">
+        <view wx:if="{{!view.hasPentagon && view.overview.healthChecks && view.overview.healthChecks.length}}" class="health-bars-box">
           <view wx:for="{{view.overview.healthChecks}}" wx:key="label" class="health-bar-row">
             <view class="health-bar-head">
               <text class="health-bar-k">{{item.label}}</text>
@@ -564,6 +588,9 @@
 
       <view wx:if="{{activeModule == 'dynamics' && view.market == 'us'}}" class="module-content">
         <text class="module-title">近期动态</text>
+        <block wx:if="{{activeCharts.length}}">
+          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
+        </block>
         <view wx:if="{{view.dynamics.eventVerified || !(view.dynamics.filingCards && view.dynamics.filingCards.length)}}" class="section-card">
           <text class="block-title">近期公司事件</text>
           <text class="analysis-body">{{view.dynamics.event}}</text>
@@ -594,10 +621,7 @@
           <text class="block-title">同期公开备案</text>
           <text class="analysis-body">{{view.dynamics.filings}}</text>
         </view>
-        <block wx:if="{{activeCharts.length}}">
-          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
-        </block>
-        <view wx:elif="{{!view.dynamics.filings}}" class="module-empty">近期没有足够的动态数据。</view>
+        <view wx:if="{{!activeCharts.length && !view.dynamics.filings}}" class="module-empty">近期没有足够的动态数据。</view>
       </view>
 
       <view wx:if="{{activeModule == 'dynamics' && view.market == 'gold'}}" class="module-content">
@@ -632,7 +656,6 @@
               <text class="div-calc-v is-sub">{{dividendCalcView.costText}}</text>
             </view>
           </view>
-          <text class="div-calc-note">按每股税前分红 {{dividendCalcView.dpsText}} 算术对照，纯历史口径，不预测未来分红。</text>
         </view>
         <view wx:if="{{view.recentDistributions && view.recentDistributions.length}}" class="section-card dist-log-card">
           <view class="div-calc-head">
@@ -674,10 +697,15 @@
             <view class="div-calc-metric">
               <text class="div-calc-k">中1手回本涨幅</text>
               <text class="div-calc-v is-blue">{{hkIpoCalcView.breakevenText}}</text>
-              <text class="div-sub-tag">涨10% {{hkIpoCalcView.up10Text}} · 跌10% {{hkIpoCalcView.down10Text}}</text>
+              <text class="div-sub-tag">含交易规费与融资成本</text>
             </view>
           </view>
-          <text class="div-calc-note">按公开招股入场费与常见券商费率算术试算，不预测上市涨跌。</text>
+          <view wx:if="{{hkIpoCalcView.scenarios && hkIpoCalcView.scenarios.length}}" class="ipo-scen-strip">
+            <view wx:for="{{hkIpoCalcView.scenarios}}" wx:key="key" class="ipo-scen-cell tone-{{item.tone}}">
+              <text class="ipo-scen-k">{{item.label}}</text>
+              <text class="ipo-scen-v">{{item.valText}}</text>
+            </view>
+          </view>
         </view>
         <block wx:if="{{activeCharts.length}}">
           <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />

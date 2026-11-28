@@ -4913,3 +4913,101 @@
   .answer-mask { justify-content: center; }
   .answer-sheet { max-width: 680px; padding: 20px 24px calc(20px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; }
 }
+
+/* ---------- 0.4.8 派息12月柱图 × 胜率微缩条 × 聪明钱拔河条 ---------- */
+
+.ibkr-cell-num.is-up,
+.ibkr-cell-num.is-worth { color: #0b7a48; }
+.ibkr-cell-num.is-down { color: #b45309; }
+
+.ibkr-mini-fill.is-up { background: linear-gradient(90deg, #f97316 0%, #dc2626 100%); }
+.ibkr-mini-fill.is-worth { background: linear-gradient(90deg, #34d399 0%, #0b7a48 100%); }
+.ibkr-mini-fill.is-down { background: #94a3b8; }
+
+.hk-ind-box .hk-crowd-c1 {
+  flex: 1.25;
+}
+
+.hk-ind-box .hk-crowd-c2 {
+  white-space: nowrap;
+}
+
+.hk-ind-box .hk-crowd-c2:last-child {
+  flex: 1.15;
+}
+
+.a-cal-density-box {
+  margin-top: 14rpx;
+  padding: 14rpx 16rpx 10rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid #e6ebf2;
+  background: #f8fafd;
+}
+
+.a-cal-density-head {
+  display: flex;
+  margin-bottom: 8rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+}
+
+.a-cal-density-title {
+  color: #1e293b;
+  font-size: 24rpx;
+  font-weight: 760;
+}
+
+.a-cal-density-tag {
+  color: #1d5fd1;
+  font-size: 24rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+}
+
+.a-cal-density-img {
+  display: block;
+  width: 100%;
+  height: 112rpx;
+}
+
+.guru-direction {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10rpx;
+}
+
+.guru-dir-top {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.guru-tug-track {
+  display: flex;
+  width: 100%;
+  height: 10rpx;
+  overflow: hidden;
+  gap: 4rpx;
+  border-radius: 999rpx;
+  background: #edf1f7;
+}
+
+.guru-tug-add {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #60a5fa 0%, #1d5fd1 100%);
+}
+
+.guru-tug-cut {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #fb923c 0%, #dc4c3e 100%);
+}
+
+@media (min-width: 700px) {
+  .a-cal-density-img { height: 76px; }
+  .a-cal-density-title, .a-cal-density-tag { font-size: 13px; }
+}

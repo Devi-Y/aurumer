@@ -60,15 +60,26 @@
         <text class="hk-stats-tile-label">暗盘首日同涨同跌</text>
       </view>
     </view>
-    <view class="hk-stats-bar-legend">
-      <text class="hk-stats-legend-item up">上涨 {{hkStatsVisual.firstDayUpCount}}</text>
-      <text wx:if="{{hkStatsVisual.firstDayFlatCount}}" class="hk-stats-legend-item flat">持平 {{hkStatsVisual.firstDayFlatCount}}</text>
-      <text class="hk-stats-legend-item down">下跌 {{hkStatsVisual.firstDayDownCount}}</text>
-    </view>
-    <view class="hk-stats-bar">
-      <view class="hk-stats-bar-seg up" style="width:{{hkStatsVisual.upPercent}}%"></view>
-      <view wx:if="{{hkStatsVisual.firstDayFlatCount}}" class="hk-stats-bar-seg flat" style="width:{{hkStatsVisual.flatPercent}}%"></view>
-      <view class="hk-stats-bar-seg down" style="width:{{hkStatsVisual.downPercent}}%"></view>
+    <view class="hk-stats-donut-row">
+      <view wx:if="{{hkStatsVisual.donutSrc}}" class="hk-list-donut-wrap" aria-hidden="true">
+        <image class="hk-list-donut-img" src="{{hkStatsVisual.donutSrc}}" mode="aspectFit"></image>
+        <view class="hk-list-donut-center">
+          <text class="hk-list-donut-v">{{hkStatsVisual.firstDayWinRate}}</text>
+          <text class="hk-list-donut-k">首日胜率</text>
+        </view>
+      </view>
+      <view class="hk-stats-right-col">
+        <view class="hk-stats-bar-legend">
+          <text class="hk-stats-legend-item up">上涨 {{hkStatsVisual.firstDayUpCount}}</text>
+          <text wx:if="{{hkStatsVisual.firstDayFlatCount}}" class="hk-stats-legend-item flat">持平 {{hkStatsVisual.firstDayFlatCount}}</text>
+          <text class="hk-stats-legend-item down">下跌 {{hkStatsVisual.firstDayDownCount}}</text>
+        </view>
+        <view class="hk-stats-bar">
+          <view class="hk-stats-bar-seg up" style="width:{{hkStatsVisual.upPercent}}%"></view>
+          <view wx:if="{{hkStatsVisual.firstDayFlatCount}}" class="hk-stats-bar-seg flat" style="width:{{hkStatsVisual.flatPercent}}%"></view>
+          <view class="hk-stats-bar-seg down" style="width:{{hkStatsVisual.downPercent}}%"></view>
+        </view>
+      </view>
     </view>
     <view class="hk-stats-extremes">
       <view class="hk-stats-extreme">

@@ -48,11 +48,10 @@
   background: #ffffff;
 }
 
-.home-search-icon {
+.home-search-svg {
   flex: none;
-  color: #1d5fd1;
-  font-size: 44rpx;
-  line-height: 1;
+  width: 38rpx;
+  height: 38rpx;
 }
 
 .home-search-input {
@@ -176,6 +175,7 @@
   display: flex;
   padding: 0 2rpx;
   align-items: center;
+  justify-content: space-between;
   gap: 12rpx;
 }
 
@@ -184,74 +184,74 @@
   border-radius: 10rpx;
   background: #eaf2ff;
   color: #1d5fd1;
-  font-size: 25rpx;
+  font-size: 24rpx;
   font-weight: 780;
 }
 
 .search-picks-sub {
-  color: #64748b;
-  font-size: 25rpx;
+  color: #94a3b8;
+  font-size: 24rpx;
   font-weight: 560;
+  font-variant-numeric: tabular-nums;
 }
 
 .search-picks-grid {
   display: flex;
   width: 100%;
-  gap: 12rpx;
+  gap: 14rpx;
 }
 
 .search-pick-card {
+  box-sizing: border-box;
+  overflow: hidden;
   display: flex;
   flex: 1;
   min-width: 0;
-  padding: 14rpx 10rpx 12rpx;
+  padding: 16rpx 14rpx 14rpx;
   flex-direction: column;
   align-items: stretch;
-  gap: 4rpx;
-  border: 1rpx solid #ebeef5;
-  border-radius: 20rpx;
-  background: #f8fafd;
-}
-
-.pick-top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4rpx;
+  gap: 6rpx;
+  border: 1rpx solid #e5ecf6;
+  border-radius: 22rpx;
+  background: linear-gradient(180deg, #fafcff 0%, #f4f8fd 100%);
 }
 
 .search-pick-name {
-  min-width: 0;
-  flex: 1;
+  display: block;
   overflow: hidden;
   color: #0f172a;
-  font-size: 27rpx;
-  font-weight: 780;
+  font-size: 29rpx;
+  font-weight: 800;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.pick-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  min-width: 0;
+}
+
 .pick-mkt-dot {
   flex: none;
-  padding: 2rpx 6rpx;
+  padding: 1rpx 8rpx;
   border-radius: 6rpx;
   background: #eaf2ff;
   color: #1d5fd1;
   font-size: 24rpx;
-  font-weight: 720;
+  font-weight: 740;
+  line-height: 1.25;
 }
-
-.pick-mkt-dot.mkt-a { background: #fdf1ef; color: #c2412d; }
-.pick-mkt-dot.mkt-hk { background: #eef6f2; color: #0d8a52; }
 
 .search-pick-code {
   overflow: hidden;
   color: #64748b;
   font-size: 24rpx;
-  font-weight: 640;
+  font-weight: 660;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1.15;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -259,57 +259,47 @@
 .pick-spark {
   display: block;
   width: 100%;
-  height: 46rpx;
-  margin: 6rpx 0 2rpx;
-}
-
-.pick-spark-placeholder {
-  display: flex;
-  height: 46rpx;
-  margin: 6rpx 0 2rpx;
-  align-items: center;
-}
-
-.pick-ipo-tag {
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  background: #eef4ff;
-  color: #1d5fd1;
-  font-size: 24rpx;
-  font-weight: 680;
-}
-
-.pick-fig-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4rpx;
+  height: 56rpx;
+  margin: 4rpx 0;
 }
 
 .pick-figure {
+  overflow: hidden;
   color: #0f172a;
-  font-size: 27rpx;
-  font-weight: 800;
+  font-size: 30rpx;
+  font-weight: 820;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.4rpx;
   line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.pick-figure.tone-up { color: #c2412d; }
-.pick-figure.tone-down { color: #0d8a52; }
+.pick-pill-row {
+  display: flex;
+  align-items: center;
+  margin-top: 2rpx;
+}
 
 .pick-delta {
-  flex: none;
-  padding: 2rpx 8rpx;
-  border-radius: 6rpx;
-  background: #edf1f7;
-  color: #475569;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 3rpx 12rpx;
+  border-radius: 999rpx;
+  background: #eaf2ff;
+  color: #1d5fd1;
   font-size: 24rpx;
   font-weight: 740;
   font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pick-delta.tone-up { background: #fdf1ef; color: #c2412d; }
 .pick-delta.tone-down { background: #ebfaf2; color: #0d8a52; }
+.pick-delta.tone-info { background: #eaf2ff; color: #1d5fd1; }
 
 .star-picks-bar {
   display: flex;
@@ -510,7 +500,7 @@
     border-radius: 22px;
   }
   .home-search-box { height: 54px; padding: 0 16px 0 18px; border-radius: 14px; }
-  .home-search-icon { font-size: 22px; }
+  .home-search-svg { width: 20px; height: 20px; }
   .home-search-input { height: 50px; font-size: 17px; }
   .home-search-placeholder { font-size: 16px; }
   .home-search-clear { padding: 6px 14px; font-size: 14px; border-radius: 10px; }

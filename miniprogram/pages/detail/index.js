@@ -22,7 +22,7 @@ const { getDividendStability } = require("../../utils/dividend-stability");
 // 的同口径字段就摆在快照里，把它算成「池内第 6/30」是零新增数据的一次密度提升。
 const { poolRankVisual } = require("../../utils/pool-rank");
 const { sparklineSvg, sampleSeries } = require("../../utils/sparkline");
-const { PALETTE, donutSvg, gaugeSvg, groupedBarsSvg, zoneSparklineSvg } = require("../../utils/svg-charts");
+const { PALETTE, donutSvg, gaugeSvg, groupedBarsSvg, zoneSparklineSvg, pentagonSvg } = require("../../utils/svg-charts");
 const { annualRank } = require("../../utils/smart-money");
 // 黄金四个报价之间唯一那条换算（1 金衡盎司 = 31.1035 克），栏目页和详情页共用。
 const { goldParity } = require("../../utils/gold-parity");
@@ -1428,12 +1428,12 @@ function buildUSView(base, item, snapshot) {
     cleanGm != null ? { label: "毛利率", value: clampBarPct(cleanGm), valueText: formatPercent(cleanGm) } : null,
     hasNumber(fund.profitMargin) ? { label: "利润率", value: clampBarPct(fund.profitMargin), valueText: formatPercent(fund.profitMargin) } : null,
     hasNumber(fund.roe) ? { label: "股东回报", value: clampBarPct(fund.roe), valueText: formatPercent(fund.roe) } : null,
-  ].filter(Boolean), "利润率对照", { hint: "同为百分比口径；极端公允价值波动或高回购会放大比率。" });
+  ].filter(Boolean), "利润率对照");
 
   const growthTiles = metricTilesVisual([
     ["营收增长", formatPercent(fund.revenueGrowth)],
     ["净利润", hasNumber(fund.netIncome) ? formatLarge(fund.netIncome) : null],
-  ].filter((row) => row[1] && !isSparseValue(row[1])), "成长与盈利额", "增长是百分比；净利润是金额，分开展示。");
+  ].filter((row) => row[1] && !isSparseValue(row[1])), "成长与盈利额");
 
   const absCapex = hasNumber(fund.capitalExpenditures) ? Math.abs(Number(fund.capitalExpenditures)) : null;
   const fcfValue = hasNumber(fund.freeCashFlow)
@@ -1443,20 +1443,20 @@ function buildUSView(base, item, snapshot) {
     ["经营现金流", ocfValue != null ? formatLarge(ocfValue) : null],
     ["资本开支", absCapex != null ? formatLarge(absCapex) : null],
     ["自由现金流", fcfValue != null ? formatLarge(fcfValue) : null],
-  ].filter((row) => row[1]), "期间现金流", `期间流量（${moneyUnitNote}），不与现金存量混排。`);
+  ].filter((row) => row[1]), "期间现金流");
 
   const stockTiles = metricTilesVisual([
     ["现金及等价物", hasNumber(fund.cashAndEquivalents) ? formatLarge(fund.cashAndEquivalents) : null],
     ["现金+短投", cashValue != null ? formatLarge(cashValue) : null],
     ["短期投资", hasNumber(fund.shortTermInvestments) ? formatLarge(fund.shortTermInvestments) : null],
-  ].filter((row) => row[1]), "现金存量", `时点存量（${moneyUnitNote}），不是当期流量。`);
+  ].filter((row) => row[1]), "现金存量");
 
   const sizeTiles = metricTilesVisual([
     ["市值", hasNumber(fund.marketCap) ? formatLarge(fund.marketCap) : "暂缺"],
     ["市盈率", hasNumber(fund.pe) ? `${Number(fund.pe).toFixed(1)} 倍` : "暂缺"],
     ["热度", hasNumber(raw.heatScore) ? `${Number(raw.heatScore)} 分` : "暂缺"],
     ["成交量比", hasNumber(raw.volumeRatio) ? `${Number(raw.volumeRatio).toFixed(2)} 倍` : "暂缺"],
-  ], "估值与热度", "市盈率：股价相对盈利贵不贵；热度高≠马上买。");
+  ], "估值与热度");
 
   // 池内分位：同一份快照里 30 只美股的同口径字段，横过来比一遍。
   // 只陈述"比它高的有几只"这个可以自己复算的事实，不含方向判断——所以市盈率
@@ -1603,6 +1603,43 @@ function buildUSView(base, item, snapshot) {
       })
     : null;
 
+  const clampRadar = (v) => Math.max(15, Math.min(96, Math.round(v)));
+  const usRadarDims = [
+    {
+      label: "估值性价比",
+      score: hasNumber(fund.pe) && fund.pe > 0 ? clampRadar(102 - (Number(fund.pe) - 12) * 1.35) : 48,
+      valueText: hasNumber(fund.pe) && fund.pe > 0 ? `${Number(fund.pe).toFixed(1)}倍` : "—",
+    },
+    {
+      label: "营收成长",
+      score: hasNumber(fund.revenueGrowth) ? clampRadar(46 + Number(fund.revenueGrowth) * 1.55) : 50,
+      valueText: hasNumber(fund.revenueGrowth) ? formatPercent(fund.revenueGrowth) : "—",
+    },
+    {
+      label: "盈利厚度",
+      score: hasNumber(fund.profitMargin) ? clampRadar(34 + Number(fund.profitMargin) * 1.75) : 50,
+      valueText: hasNumber(fund.profitMargin) ? formatPercent(fund.profitMargin) : "—",
+    },
+    {
+      label: "现金家底",
+      score: fcfValue != null ? (fcfValue > 0 ? clampRadar(58 + Math.log10(Math.max(1, fcfValue / 1e8)) * 11) : 24) : (cashValue > 0 ? 72 : 50),
+      valueText: fcfValue != null ? `$${formatLarge(fcfValue)}` : (cashValue != null ? `$${formatLarge(cashValue)}` : "—"),
+    },
+    {
+      label: "价格低位",
+      score: pricePosition != null ? clampRadar((1 - pricePosition) * 100) : 50,
+      valueText: pricePosition != null ? `${Math.round(pricePosition * 100)}%分位` : "—",
+    },
+  ];
+  const usPentagon = withChartMeta({
+    kind: "pentagon",
+    title: "五维基本面雷达",
+    src: pentagonSvg(usRadarDims.map((d) => d.score)),
+    avgScoreText: `${Math.round(usRadarDims.reduce((s, d) => s + d.score, 0) / 5)}分`,
+    dims: usRadarDims,
+  });
+  base.hasPentagon = Boolean(usPentagon);
+
   setCharts(
     base,
     chart,
@@ -1617,7 +1654,7 @@ function buildUSView(base, item, snapshot) {
     usDualFinVisual || revenueVisual,
     netIncomeVisual,
   );
-  base.overviewCharts = [usDualFinVisual || revenueVisual, usPeerBench || marginBars].filter(Boolean).slice(0, 2);
+  base.overviewCharts = [usPentagon, usDualFinVisual || revenueVisual, usPeerBench || marginBars].filter(Boolean).slice(0, 3);
 
   // 「价格」保留走势和扇形分位表盘，「动态」集中展示公告与近期营收/盈利趋势。
   base.trendCharts = [
@@ -1891,9 +1928,10 @@ function buildAShareView(base, item, snapshot) {
     )
     : null;
   const aPriceMeter = aHistory.length >= 10 && hasNumber(raw.currentPrice)
-    ? meterVisual(aHistory, Number(raw.currentPrice), "历史区间位置", (value) => money(value, "¥"), "按已收录历史收盘价计算的相对位置，不代表估值高低。")
+    ? meterVisual(aHistory, Number(raw.currentPrice), "历史区间位置", (value) => money(value, "¥"))
     : null;
   let aYieldBandMeter = null;
+  let aYieldRankPct = null;
   if (historical && hasNumber(historical.dividendPerShare) && Number(historical.dividendPerShare) > 0 && aHistory.length >= 20 && hasNumber(raw.currentPrice) && Number(raw.currentPrice) > 0) {
     const dpsNum = Number(historical.dividendPerShare);
     const dailyYields = aHistory.map((close) => (dpsNum / close) * 100);
@@ -1902,6 +1940,7 @@ function buildAShareView(base, item, snapshot) {
     const curY = (dpsNum / Number(raw.currentPrice)) * 100;
     if (maxY > minY) {
       const rankPct = Math.round((dailyYields.filter((y) => y <= curY).length / dailyYields.length) * 100);
+      aYieldRankPct = rankPct;
       const barPos = Math.max(0, Math.min(100, Math.round(((curY - minY) / (maxY - minY)) * 100)));
       aYieldBandMeter = withChartMeta({
         kind: "gauge",
@@ -1914,6 +1953,30 @@ function buildAShareView(base, item, snapshot) {
         highLabel: `高息 ${maxY.toFixed(2)}%`,
       });
     }
+  }
+  let aPentagon = null;
+  if (raw.assetType !== "fund" && historical) {
+    const clampR = (v) => Math.max(18, Math.min(98, Math.round(v)));
+    const yPct = Number(historical.yieldPercent) || 0;
+    const aDims = [
+      { label: "股息吸引", score: clampR(yPct * 16.5), valueText: yieldText },
+      { label: "分红稳定", score: stabilityInfo.score != null ? clampR(stabilityInfo.score) : 56, valueText: stabilityInfo.score != null ? `${stabilityInfo.score}分` : "待核" },
+      {
+        label: "现金覆盖",
+        score: hasNumber(financials.cashConversion) ? clampR(Number(financials.cashConversion) * 58) : (Number(financials.freeCashFlow) > 0 ? 76 : 48),
+        valueText: hasNumber(financials.cashConversion) ? `${Number(financials.cashConversion).toFixed(2)}倍` : (hasNumber(financials.freeCashFlow) ? formatLarge(financials.freeCashFlow) : "—"),
+      },
+      { label: "股东回报", score: hasNumber(financials.roe) ? clampR(Number(financials.roe) * 5.4) : 52, valueText: hasNumber(financials.roe) ? formatPercent(financials.roe) : "—" },
+      { label: "高息分位", score: aYieldRankPct != null ? clampR(aYieldRankPct) : 50, valueText: aYieldRankPct != null ? `高于${aYieldRankPct}%日` : "—" },
+    ];
+    aPentagon = withChartMeta({
+      kind: "pentagon",
+      title: "五维收息质量雷达",
+      src: pentagonSvg(aDims.map((d) => d.score), { color: "#0f9f6e" }),
+      avgScoreText: `${Math.round(aDims.reduce((s, d) => s + d.score, 0) / 5)}分`,
+      dims: aDims,
+    });
+    base.hasPentagon = true;
   }
   const allDists = (Array.isArray(financials.dividendHistory) ? financials.dividendHistory : [])
     .flatMap((yr) => (Array.isArray(yr && yr.distributions) ? yr.distributions : []))
@@ -1975,6 +2038,7 @@ function buildAShareView(base, item, snapshot) {
     ].filter((row) => row[1] && row[1] !== "暂缺"), "现金与质量"),
   ].filter(Boolean);
   base.overviewCharts = [
+    aPentagon,
     aYieldBandMeter,
     dividendHistoryVisual(raw, snapshot.updatedAt, "5"),
   ].filter(Boolean);
@@ -2383,13 +2447,27 @@ function buildGoldView(base, item) {
   // 新股/机构持仓同一套分装规则，不再靠标题正则猜归属（旧版这里用
   // setCharts 塞 10 张图再靠正则分类，超出上限的图会被无声丢弃，「驱动」
   // tab 因此空过）。
+  const intlGaugePct = internationalRange && hasNumber(international.price) && internationalRange.high > internationalRange.low
+    ? Math.max(0, Math.min(100, Math.round(((Number(international.price) - internationalRange.low) / (internationalRange.high - internationalRange.low)) * 100)))
+    : null;
+  const intlGoldGauge = intlGaugePct != null
+    ? withChartMeta({
+        kind: "gauge",
+        title: `近${internationalRange.count}日国际金分位表盘`,
+        src: gaugeSvg(intlGaugePct, { mode: "price" }),
+        badgeMain: `${intlGaugePct}% 分位`,
+        lowLabel: `低 $${internationalRange.low.toFixed(0)}`,
+        midLabel: `中位 $${internationalRange.median.toFixed(0)}`,
+        highLabel: `高 $${internationalRange.high.toFixed(0)}`,
+      })
+    : null;
+
   base.trendCharts = [
     goldCloseVisual(internationalHistory, "国际金", 0, "$"),
     goldCloseVisual(domesticHistory, "人民币金", 2, "¥"),
+    intlGoldGauge,
     parityTiles,
     meterVisual(intlHistory, international.price, "国际金位置", (value) => Number(value).toFixed(0)),
-    // 原来这里还有一张「半年位置 xx%」卡，用的是上游的百分位，和正上方位置条
-    // （按最高最低算）是两种算法、两个数，同一屏出两个「位置」，撤掉。
   ].filter(Boolean);
   base.dynamicsCharts = [
     solidVisual([
@@ -2408,7 +2486,7 @@ function buildGoldView(base, item) {
     ["上海金收盘", hasNumber(domestic.price) ? `¥${Number(domestic.price).toFixed(2)}/克` : null],
     ["美股黄金ETF", hasNumber(etf.price) ? `$${Number(etf.price).toFixed(1)}` : null],
   ].filter((r) => r[1]), "国内外金价对照");
-  base.overviewCharts = [parityTiles || fallbackGoldCompare].filter(Boolean).slice(0, 1);
+  base.overviewCharts = [parityTiles || fallbackGoldCompare, intlGoldGauge].filter(Boolean).slice(0, 2);
   base.evidenceCharts = [
     scoreMeter(internationalScore, "国际金观察分", action),
     scoreMeter(domesticScore, "人民币金观察分", "国内价格"),
@@ -4035,15 +4113,23 @@ Page({
     const principal = isMargin ? Math.ceil(fee1 * 10 * 0.1 + brokerFee) : Math.ceil(fee1 * lots);
     const breakevenPct = ((fee1 * 0.011 + extraCost) / fee1) * 100;
     const gain10 = Math.round(fee1 * 0.1 - extraCost);
+    const gain25 = Math.round(fee1 * 0.25 - extraCost);
     const loss10 = Math.round(fee1 * 0.1 + extraCost);
+    const fmtHkSigned = (val) => `${val >= 0 ? "+" : "-"}HK$${Math.abs(val).toLocaleString("en-US")}`;
     return {
       mode: m,
       lotsText: `${lots}手（每手${calc.lotSize}）`,
       principalText: `HK$${principal.toLocaleString("en-US")}`,
-      costNote: isMargin ? `约 HK$${extraCost}（含百元融资费+3天计息）` : "HK$0（现金申购免息）",
+      costNote: isMargin ? `约 HK$${extraCost} 融资利息` : "HK$0 现金免息",
       breakevenText: `约 +${breakevenPct.toFixed(1)}%`,
-      up10Text: `${gain10 >= 0 ? "+" : "-"}HK$${Math.abs(gain10).toLocaleString("en-US")}`,
+      up10Text: fmtHkSigned(gain10),
       down10Text: `-HK$${loss10.toLocaleString("en-US")}`,
+      scenarios: [
+        { key: "d10", label: "首日 -10%", valText: `-HK$${loss10.toLocaleString("en-US")}`, tone: "down" },
+        { key: "be", label: "打平回本", valText: `+${breakevenPct.toFixed(1)}%`, tone: "flat" },
+        { key: "u10", label: "首日 +10%", valText: fmtHkSigned(gain10), tone: "up" },
+        { key: "u25", label: "首日 +25%", valText: fmtHkSigned(gain25), tone: "up" },
+      ],
     };
   },
   selectHkCalcMode(event) {

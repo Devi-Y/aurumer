@@ -9,6 +9,7 @@ const { asOfText } = require("../../utils/dates");
 const { referenceDateText } = require("../../utils/historical-reference");
 const { openPage } = require("../../utils/nav");
 const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
+const { searchIconSvg, cleanSparkSvg, ipoTrackSvg } = require("../../utils/svg-charts");
 const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
 const { historicalGoldRows } = require("../../utils/gold-series");
 const { listQuickStars } = require("../../utils/quick-stars");
@@ -16,6 +17,11 @@ const { listQuickStars } = require("../../utils/quick-stars");
 const SERVICES = SERVICE_LINKS.filter((entry) => OFFERS.some((offer) =>
   entry.offerIds.includes(offer.id) && (offer.copy || offer.image || offer.pending)));
 const DIVIDEND_FUND_ID = "515180";
+const SHORT_MKT = {
+  hk: "港",
+  us: "美",
+  a: "A",
+};
 
 const MARKET_TAG = {
   hk: "港股",
@@ -309,16 +315,24 @@ function shortHotLabel(rawName) {
   return text.length > 4 ? text.slice(0, 4) : text;
 }
 
-function hotSparkFor(item) {
+function hotSparkFor(market, item) {
   const raw = (item && item.raw) || {};
-  const closes = (Array.isArray(raw.history) ? raw.history : [])
+  if (market === "hk") {
+    const rev = raw.historicalReview || {};
+    const stepIndex = item.group === "settled" ? 2 : (Number.isFinite(Number(rev.firstDayChange)) ? 3 : 0);
+    const csPct = Number(raw.cornerstonePercent);
+    const lockPercent = Number.isFinite(csPct) && csPct > 0 ? csPct : 32;
+    return {
+      sparkSrc: ipoTrackSvg({ stepIndex, lockPercent, width: 196, height: 56 }),
+    };
+  }
+  const closesAll = (Array.isArray(raw.history) ? raw.history : [])
     .map((entry) => positivePrice(entry && entry.close != null ? entry.close : entry))
     .filter((v) => v != null);
-  if (closes.length < 6) return { sparkSrc: "", figTone: "flat" };
-  const tone = toneOf(closes[closes.length - 1] - closes[0]);
+  const closes = closesAll.slice(-30);
+  if (closes.length < 6) return { sparkSrc: "" };
   return {
-    sparkSrc: sparklineSvg(sampleSeries(closes, 28), { width: 160, height: 48 }),
-    figTone: tone,
+    sparkSrc: cleanSparkSvg(sampleSeries(closes, 26), { width: 196, height: 56 }),
   };
 }
 
@@ -376,21 +390,22 @@ function buildHotPicks(snapshot) {
   const formatHotCode = (market, code, id) => {
     const rawCode = String(code || id || "").trim();
     if (!rawCode) return "";
-    if (market === "hk") return /\.HK$/i.test(rawCode) ? rawCode.toUpperCase() : `${rawCode}.HK`;
-    if (market === "a") {
-      if (/\.(SH|SZ)$/i.test(rawCode)) return rawCode.toUpperCase();
-      return /^6|^5/.test(rawCode) ? `${rawCode}.SH` : `${rawCode}.SZ`;
-    }
+    if (market === "hk") return rawCode.replace(/\.HK$/i, "").toUpperCase();
+    if (market === "a") return rawCode.replace(/\.(SH|SZ)$/i, "").toUpperCase();
     return rawCode.toUpperCase();
   };
 
   const formatHotFigure = (market, item) => {
     const raw = item.raw || {};
-    if (market === "us" && positivePrice(raw.price) != null) return `$${Number(raw.price).toFixed(1)}`;
+    if (market === "us" && positivePrice(raw.price) != null) return `$${Number(raw.price).toFixed(2)}`;
     if (market === "a" && positivePrice(raw.currentPrice) != null) return `¥${Number(raw.currentPrice).toFixed(2)}`;
     if (market === "hk") {
       const match = String(raw.offerPrice || "").match(/\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?/);
-      return match ? `HK$${match[0].replace(/\s+/g, "")}` : (item.badge || "新股");
+      if (match) {
+        const numText = match[0].replace(/\s+/g, "");
+        return /^\d+$/.test(numText) ? `HK$${Number(numText).toFixed(2)}` : `HK$${numText}`;
+      }
+      return item.badge || "新股";
     }
     return "";
   };
@@ -399,16 +414,31 @@ function buildHotPicks(snapshot) {
     const raw = item.raw || {};
     if (market === "us") {
       const ch = Number(raw.changePercent);
-      return Number.isFinite(ch) ? { deltaText: signedPct(ch, 1), deltaTone: toneOf(ch) } : { deltaText: "", deltaTone: "flat" };
+      return Number.isFinite(ch) ? { deltaText: `单日 ${signedPct(ch, 1)}`, deltaTone: toneOf(ch) } : { deltaText: "美股龙头", deltaTone: "info" };
     }
     if (market === "a") {
+      const yld = Number(raw.historicalDividendYield && raw.historicalDividendYield.yieldPercent);
+      if (Number.isFinite(yld) && yld > 0) {
+        return { deltaText: `股息 ${yld.toFixed(1)}%`, deltaTone: "info" };
+      }
       const ch = Number(raw.changePercent);
-      return Number.isFinite(ch) ? { deltaText: signedPct(ch, 1), deltaTone: toneOf(ch) } : { deltaText: "", deltaTone: "flat" };
+      return Number.isFinite(ch) ? { deltaText: `单日 ${signedPct(ch, 1)}`, deltaTone: toneOf(ch) } : { deltaText: "稳分红", deltaTone: "info" };
     }
     if (market === "hk") {
       const rev = raw.historicalReview || {};
       const fd = Number(rev.firstDayChange);
-      return Number.isFinite(fd) ? { deltaText: signedPct(fd, 0), deltaTone: toneOf(fd) } : { deltaText: "", deltaTone: "flat" };
+      if (Number.isFinite(fd)) return { deltaText: `首日 ${signedPct(fd, 0)}`, deltaTone: toneOf(fd) };
+      const deadline = String(raw.offerDeadline || raw.offerEnd || "").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (deadline) {
+        const target = new Date(Number(deadline[1]), Number(deadline[2]) - 1, Number(deadline[3]));
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const diff = Math.round((target.getTime() - start.getTime()) / 86400000);
+        if (diff >= 0) return { deltaText: diff === 0 ? "今日截止" : `招股剩${diff}天`, deltaTone: "info" };
+      }
+      const fee = Number(raw.entryFee);
+      if (Number.isFinite(fee) && fee > 0) return { deltaText: `一手$${Math.round(fee)}`, deltaTone: "info" };
+      return { deltaText: "新股关注", deltaTone: "info" };
     }
     return { deltaText: "", deltaTone: "flat" };
   };
@@ -423,12 +453,12 @@ function buildHotPicks(snapshot) {
     const label = shortHotLabel(item.name);
     if (!label) continue;
     used.add(key);
-    const { sparkSrc, figTone } = hotSparkFor(item);
+    const { sparkSrc } = hotSparkFor(market, item);
     const { deltaText, deltaTone } = formatHotDelta(market, item);
     picks.push({
       key,
       market,
-      marketTag: MARKET_TAG[market] || "",
+      marketTag: SHORT_MKT[market] || MARKET_TAG[market] || "",
       id: item.id,
       label,
       code: formatHotCode(market, item.code, item.id),
@@ -436,7 +466,6 @@ function buildHotPicks(snapshot) {
       deltaText,
       deltaTone,
       sparkSrc,
-      figTone,
     });
     if (picks.length >= 3) break;
   }
@@ -446,6 +475,7 @@ function buildHotPicks(snapshot) {
 Page({
   data: {
     entries: GRID_ENTRIES,
+    searchIconSrc: searchIconSvg("#1d5fd1"),
     trends: [],
     searchQuery: "",
     searchFocused: false,

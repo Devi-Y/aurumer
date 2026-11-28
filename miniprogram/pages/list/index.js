@@ -9,6 +9,7 @@ const { goldPlanView } = require("../../utils/market-lenses");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const strategyEvidence = require("../../data/strategy-evidence");
 const { buildHkHistoryStats, buildHkIndustryStats, buildHkSponsorStats } = require("../../utils/hk-history-stats");
+const { donutSvg } = require("../../utils/svg-charts");
 const { marketSources } = require("../../utils/sources");
 const { SMART_MONEY_PROFILES } = require("../../utils/smart-money");
 // 页头那句「数据截至 …」和新闻资讯页共用同一个写法：同一份快照在两个页面上
@@ -342,6 +343,11 @@ Page({
           firstDayUpCount: stats.firstDayUpCount,
           firstDayFlatCount: stats.firstDayFlatCount,
           firstDayDownCount: stats.firstDayDownCount,
+          donutSrc: donutSvg([
+            { value: stats.firstDayUpCount, color: "#dc4c3e" },
+            ...(stats.firstDayFlatCount > 0 ? [{ value: stats.firstDayFlatCount, color: "#94a3b8" }] : []),
+            { value: stats.firstDayDownCount, color: "#159960" },
+          ], { size: 148, strokeWidth: 18 }),
           upPercent: total ? Math.round((stats.firstDayUpCount / total) * 100) : 0,
           flatPercent: total ? Math.round((stats.firstDayFlatCount / total) * 100) : 0,
           downPercent: total ? Math.round((stats.firstDayDownCount / total) * 100) : 0,

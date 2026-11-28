@@ -256,11 +256,11 @@
     </block>
 
     <block wx:if="{{hkSubTab === 'sponsors'}}">
-      <!-- 对标捷利交易宝新股通：抢购热度三档规律 + 保荐人历史护盘胜率榜 -->
+      <!-- 对标捷利交易宝新股通：抢购热度三档规律 + 行业与保荐人历史护盘胜率条 -->
       <view wx:if="{{hkCrowdBuckets.length}}" class="hk-crowd-box">
-        <text class="hk-sub-box-title">抢购冷热与中签胜率规律（基于已收录真实样本）</text>
+        <text class="hk-sub-box-title">抢购热度与胜率对比</text>
         <view class="hk-crowd-head">
-          <text class="hk-crowd-c1">抢购热度分档</text>
+          <text class="hk-crowd-c1">热度分档</text>
           <text class="hk-crowd-c2">一手中签</text>
           <text class="hk-crowd-c2">首日胜率</text>
           <text class="hk-crowd-c2">首日均涨</text>
@@ -268,16 +268,19 @@
         <view wx:for="{{hkCrowdBuckets}}" wx:key="key" class="hk-crowd-row">
           <view class="hk-crowd-c1">
             <text class="hk-crowd-name">{{item.label}}</text>
-            <text class="hk-crowd-sub">样本 {{item.countText}}</text>
+            <text class="hk-crowd-sub">{{item.countText}}</text>
           </view>
           <text class="hk-crowd-c2">{{item.avgLotText}}</text>
-          <text class="hk-crowd-c2">{{item.winText}}</text>
+          <view class="hk-crowd-c2 ibkr-bar-cell">
+            <text class="ibkr-cell-num is-{{item.winTone}}">{{item.winText}}</text>
+            <view class="ibkr-mini-track"><view class="ibkr-mini-fill is-{{item.winTone}}" style="width: {{item.winPct}}%;"></view></view>
+          </view>
           <text class="hk-crowd-c2 is-{{item.fdTone}}">{{item.avgFdText}}</text>
         </view>
       </view>
 
       <view wx:if="{{hkIndustryRows.length}}" class="hk-crowd-box hk-ind-box">
-        <text class="hk-sub-box-title">热门行业新股首日表现（样本≥2只）</text>
+        <text class="hk-sub-box-title">行业首日战绩对比</text>
         <view class="hk-crowd-head">
           <text class="hk-crowd-c1">所属行业</text>
           <text class="hk-crowd-c2">首日胜率</text>
@@ -287,16 +290,19 @@
         <view wx:for="{{hkIndustryRows}}" wx:key="name" class="hk-crowd-row">
           <view class="hk-crowd-c1">
             <text class="hk-crowd-name">{{item.name}}</text>
-            <text class="hk-crowd-sub">样本 {{item.countText}}</text>
+            <text class="hk-crowd-sub">{{item.countText}}</text>
           </view>
-          <text class="hk-crowd-c2 is-{{item.winTone}}">{{item.winText}}</text>
+          <view class="hk-crowd-c2 ibkr-bar-cell">
+            <text class="ibkr-cell-num is-{{item.winTone}}">{{item.winText}}</text>
+            <view class="ibkr-mini-track"><view class="ibkr-mini-fill is-{{item.winTone}}" style="width: {{item.winPct}}%;"></view></view>
+          </view>
           <text class="hk-crowd-c2 is-{{item.fdTone}}">{{item.avgFdText}}</text>
           <text class="hk-crowd-c2 is-{{item.pnlTone}}">{{item.avgPnlText}}</text>
         </view>
       </view>
 
       <view wx:if="{{hkSponsorRows.length}}" class="hk-sponsor-box">
-        <text class="hk-sub-box-title">头部保荐机构历史首日战绩（保荐≥2只）</text>
+        <text class="hk-sub-box-title">保荐机构首日胜率榜</text>
         <view wx:for="{{hkSponsorRows}}" wx:key="name" class="hk-sp-row">
           <view class="hk-sp-top">
             <view class="hk-sp-left">
@@ -304,8 +310,8 @@
               <text class="code-pill">{{item.countText}}</text>
             </view>
             <view class="hk-sp-right">
-              <text class="hk-sp-win is-{{item.winTone}}">首日胜率 {{item.winText}}</text>
-              <text class="hk-sp-avg is-{{item.avgTone}}">均值 {{item.avgFdText}}</text>
+              <text class="hk-sp-win is-{{item.winTone}}">胜率 {{item.winText}}</text>
+              <text class="hk-sp-avg is-{{item.avgTone}}">均 {{item.avgFdText}}</text>
             </view>
           </view>
           <view class="hk-sp-bar-track">
@@ -316,7 +322,6 @@
             <text wx:if="{{item.bestNote}}">{{item.bestNote}}</text>
           </view>
         </view>
-        <text class="hk-sp-note">注：以上为已上市历史样本客观统计，过往保荐表现不代表后续新股必然上涨。</text>
       </view>
       <text wx:else class="hk-empty-text">保荐人统计样本待补充</text>
     </block>
@@ -409,7 +414,10 @@
               <text class="ibkr-sub">{{item.code}} · {{item.priceText}}</text>
             </view>
             <text class="ibkr-c-mid is-{{item.peTone}}">{{item.peText}}</text>
-            <text class="ibkr-c-mid">{{item.posText}}</text>
+            <view class="ibkr-c-mid ibkr-bar-cell">
+              <text class="ibkr-cell-num">{{item.posText}}</text>
+              <view wx:if="{{item.posBar}}" class="ibkr-mini-track"><view class="ibkr-mini-fill" style="width: {{item.posBar}}%;"></view></view>
+            </view>
             <text class="ibkr-c-end is-{{item.buyGapTone}}">{{item.buyGapText}}</text>
           </view>
         </view>
@@ -465,7 +473,10 @@
             </view>
             <text class="ibkr-c-mid">{{item.ocfText}}</text>
             <text class="ibkr-c-mid">{{item.capexText}}</text>
-            <text class="ibkr-c-end is-{{item.fcfTone}}">{{item.fcfText}}</text>
+            <view class="ibkr-c-end ibkr-bar-cell">
+              <text class="ibkr-cell-num is-{{item.fcfTone}}">{{item.fcfText}}</text>
+              <view wx:if="{{item.fcfBar}}" class="ibkr-mini-track"><view class="ibkr-mini-fill is-{{item.fcfTone}}" style="width: {{item.fcfBar}}%;"></view></view>
+            </view>
           </view>
         </view>
       </block>
@@ -752,7 +763,13 @@
     </view>
 
     <block wx:if="{{aSubTab === 'calendar'}}">
-      <text wx:if="{{aCalendarSummary}}" class="a-cal-summary">{{aCalendarSummary}}</text>
+      <view wx:if="{{aCalendarChartSrc}}" class="a-cal-density-box" aria-hidden="true">
+        <view class="a-cal-density-head">
+          <text class="a-cal-density-title">12个月除息热度分布</text>
+          <text wx:if="{{aCalendarSummary}}" class="a-cal-density-tag">{{aCalendarSummary}}</text>
+        </view>
+        <image class="a-cal-density-img" src="{{aCalendarChartSrc}}" mode="scaleToFill"></image>
+      </view>
       <view class="a-cal-grid" wx:if="{{aCalendarMonths.length}}">
         <view
           wx:for="{{aCalendarMonths}}"
@@ -1269,12 +1286,18 @@
           hover-class="{{item.linkId ? 'tap-active' : ''}}"
           aria-role="{{item.linkId ? 'button' : ''}}"
         >
-          <view class="code-name-line">
-            <text class="guru-hold-name">{{item.label}}</text>
-            <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
-            <text wx:if="{{item.linkId}}" class="guru-jump-tag">看估值 ›</text>
+          <view class="guru-dir-top">
+            <view class="code-name-line">
+              <text class="guru-hold-name">{{item.label}}</text>
+              <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
+              <text wx:if="{{item.linkId}}" class="guru-jump-tag">看估值 ›</text>
+            </view>
+            <text class="a-badge tone-{{item.tone}}">{{item.badge}}</text>
           </view>
-          <text class="a-badge tone-{{item.tone}}">{{item.badge}}</text>
+          <view class="guru-tug-track" aria-hidden="true">
+            <view wx:if="{{item.addWidth > 0}}" class="guru-tug-add" style="width: {{item.addWidth}}%;"></view>
+            <view wx:if="{{item.cutWidth > 0}}" class="guru-tug-cut" style="width: {{item.cutWidth}}%;"></view>
+          </view>
         </view>
       </view>
       <view class="a-empty" wx:else><text>{{guruTrendEmptyText}}</text></view>

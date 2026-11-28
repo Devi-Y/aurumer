@@ -640,3 +640,61 @@
   font-weight: 700;
   text-align: right;
 }
+
+.hk-stats-donut-row {
+  display: flex;
+  margin-top: 16rpx;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.hk-list-donut-wrap {
+  position: relative;
+  flex: none;
+  width: 170rpx;
+  height: 170rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hk-list-donut-img {
+  width: 170rpx;
+  height: 170rpx;
+}
+
+.hk-list-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hk-list-donut-v {
+  color: #c2412d;
+  font-size: 26rpx;
+  font-weight: 820;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.hk-list-donut-k {
+  margin-top: 2rpx;
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 640;
+}
+
+.hk-stats-right-col {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 700px) {
+  .hk-list-donut-wrap, .hk-list-donut-img { width: 92px; height: 92px; }
+  .hk-list-donut-v { font-size: 15px; }
+  .hk-list-donut-k { font-size: 12px; }
+}

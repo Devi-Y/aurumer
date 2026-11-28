@@ -2923,3 +2923,142 @@
   .snapshot-mask { justify-content: center; }
   .snapshot-sheet { max-width: 640px; padding: 20px 24px calc(20px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; }
 }
+
+/* ---------- 0.4.8 五维基本面雷达图 × 打新四档盈亏矩阵 ---------- */
+
+.pentagon-chart-box {
+  display: flex;
+  margin-top: 16rpx;
+  padding: 16rpx 14rpx;
+  align-items: center;
+  gap: 20rpx;
+  border-radius: 18rpx;
+  background: #f8fafd;
+}
+
+.pentagon-img-wrap {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pentagon-img {
+  width: 216rpx;
+  height: 216rpx;
+}
+
+.pentagon-score-pill {
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  background: #eaf2ff;
+  color: #1d5fd1;
+  font-size: 24rpx;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+}
+
+.pentagon-dim-list {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.pentagon-dim-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.pentagon-dim-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8rpx;
+}
+
+.pentagon-dim-k {
+  color: #475569;
+  font-size: 24rpx;
+  font-weight: 660;
+}
+
+.pentagon-dim-v {
+  color: #0f172a;
+  font-size: 24rpx;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pentagon-dim-track {
+  height: 10rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #e2e8f0;
+}
+
+.pentagon-dim-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #60a5fa 0%, #1d5fd1 100%);
+}
+
+.ipo-scen-strip {
+  display: flex;
+  margin: 12rpx 22rpx 0;
+  gap: 8rpx;
+}
+
+.ipo-scen-cell {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  padding: 12rpx 6rpx;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  border-radius: 14rpx;
+  background: #f4f7fc;
+  text-align: center;
+}
+
+.ipo-scen-cell.tone-up { background: #fdf2f0; }
+.ipo-scen-cell.tone-down { background: #ebfaf2; }
+
+.ipo-scen-k {
+  color: #64748b;
+  font-size: 24rpx;
+  font-weight: 640;
+  white-space: nowrap;
+}
+
+.ipo-scen-v {
+  color: #0f172a;
+  font-size: 24rpx;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ipo-scen-cell.tone-up .ipo-scen-v { color: #c2412d; }
+.ipo-scen-cell.tone-down .ipo-scen-v { color: #0d8a52; }
+
+@media (max-width: 340px) {
+  .pentagon-chart-box { flex-direction: column; gap: 14rpx; }
+  .pentagon-dim-list { width: 100%; }
+  .ipo-scen-strip { flex-wrap: wrap; }
+  .ipo-scen-cell { flex: 0 0 calc(50% - 4rpx); }
+}
+
+@media (min-width: 700px) {
+  .pentagon-chart-box { padding: 14px 18px; gap: 22px; border-radius: 14px; }
+  .pentagon-img { width: 144px; height: 144px; }
+  .pentagon-score-pill, .pentagon-dim-k, .pentagon-dim-v { font-size: 13px; }
+  .ipo-scen-cell { padding: 10px 8px; border-radius: 12px; }
+  .ipo-scen-k { font-size: 12px; }
+  .ipo-scen-v { font-size: 14px; }
+}

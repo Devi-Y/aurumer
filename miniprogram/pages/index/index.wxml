@@ -3,7 +3,7 @@
     <!-- 顶部一体化搜索与港美A热度代表股（带股票代码，左右边缘与九宫格严丝合缝） -->
     <view class="page-card home-search-wrap">
       <view class="home-search-box {{searchFocused ? 'is-focused' : ''}}">
-        <text class="home-search-icon" aria-hidden="true">⌕</text>
+        <image class="home-search-svg" src="{{searchIconSrc}}" mode="aspectFit" aria-hidden="true"></image>
         <input
           class="home-search-input"
           type="text"
@@ -43,8 +43,8 @@
 
       <view wx:if="{{hotPicks.length}}" class="search-picks-section">
         <view class="search-picks-head">
-          <text class="search-picks-badge">热度</text>
-          <text class="search-picks-sub">美 · A · 港代表走势直达</text>
+          <text class="search-picks-badge">三地风向</text>
+          <text class="search-picks-sub">点卡看详情 ›</text>
         </view>
         <view class="search-picks-grid">
           <view
@@ -58,18 +58,15 @@
             aria-role="button"
             aria-label="热门股票 {{item.label}} {{item.code}} {{item.figure}}"
           >
-            <view class="pick-top-row">
-              <text class="search-pick-name">{{item.label}}</text>
-              <text class="pick-mkt-dot mkt-{{item.market}}">{{item.marketTag}}</text>
+            <text class="search-pick-name">{{item.label}}</text>
+            <view class="pick-code-row">
+              <text class="pick-mkt-dot">{{item.marketTag}}</text>
+              <text class="search-pick-code">{{item.code}}</text>
             </view>
-            <text class="search-pick-code">{{item.code}}</text>
             <image wx:if="{{item.sparkSrc}}" class="pick-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
-            <view wx:else class="pick-spark-placeholder">
-              <text class="pick-ipo-tag">新股招股</text>
-            </view>
-            <view class="pick-fig-row">
-              <text wx:if="{{item.figure}}" class="pick-figure tone-{{item.figTone}}">{{item.figure}}</text>
-              <text wx:if="{{item.deltaText}}" class="pick-delta tone-{{item.deltaTone}}">{{item.deltaText}}</text>
+            <text wx:if="{{item.figure}}" class="pick-figure">{{item.figure}}</text>
+            <view wx:if="{{item.deltaText}}" class="pick-pill-row">
+              <text class="pick-delta tone-{{item.deltaTone}}">{{item.deltaText}}</text>
             </view>
           </view>
         </view>

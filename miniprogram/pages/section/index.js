@@ -36,7 +36,7 @@ const { asOfText } = require("../../utils/dates");
 const { marketReferenceAsOf, referenceDateText } = require("../../utils/historical-reference");
 const { historicalGoldSeries, domesticGoldClose } = require("../../utils/gold-series");
 const { goldParity } = require("../../utils/gold-parity");
-const { PALETTE, donutSvg } = require("../../utils/svg-charts");
+const { PALETTE, donutSvg, monthDensitySvg } = require("../../utils/svg-charts");
 
 const SHORT_TAG_MAP = {
   NVDA: "AI芯片",
@@ -507,7 +507,9 @@ function buildHkModule(snapshot) {
         key: b.key,
         label: b.label,
         countText: `${b.items.length}只`,
+        winPct,
         winText: `${winPct}%`,
+        winTone: winPct >= 60 ? "up" : (winPct <= 35 ? "down" : "flat"),
         avgLotText: avgLot,
         avgFdText: signedPct(avgFd, 1),
         fdTone: avgFd > 0 ? "up" : (avgFd < 0 ? "down" : "flat"),
@@ -525,6 +527,7 @@ function buildHkModule(snapshot) {
       return {
         name: entry.name.length > 6 ? entry.name.slice(0, 6) : entry.name,
         countText: `${entry.count}只`,
+        winPct,
         winText: `${winPct}%`,
         winTone: winPct >= 60 ? "up" : (winPct <= 35 ? "down" : "flat"),
         avgFdText: signedPct(avgFd, 1),
@@ -959,6 +962,7 @@ function usStockRow(item, sparkCache = null, guruMap = null) {
     revGTone: revG == null ? "flat" : (revG >= 15 ? "up" : (revG < 0 ? "down" : "flat")),
     ocfText: formatUsdLarge(ocf),
     capexText: absCapex != null ? formatUsdLarge(absCapex) : "—",
+    fcfNum: fcf,
     fcfText: fcf != null ? formatUsdLarge(fcf) : "—",
     fcfTone: fcf == null ? "flat" : (fcf > 0 ? "worth" : "down"),
     cashText: formatUsdLarge(cash),
@@ -996,6 +1000,7 @@ function buildUsSevenCompare(sevenRaw) {
     medGrowth != null ? { label: "中位营收增速", value: signedPct(medGrowth, 1) } : null,
   ].filter(Boolean);
 
+  const maxFcf = Math.max(1, ...sevenRaw.map((r) => (r.fcfNum != null ? Math.abs(r.fcfNum) : 0)));
   const rows = sevenRaw.map((r) => {
     const order = r.order;
     let buyGapText = "待更新";
@@ -1024,6 +1029,7 @@ function buildUsSevenCompare(sevenRaw) {
       peText: r.peNumText,
       peTone: peBetter ? "worth" : (r.sortPe != null && r.sortPe >= 80 ? "down" : "flat"),
       posText: r.sortPos60 != null ? `${r.sortPos60}%分位` : "—",
+      posBar: r.sortPos60 != null ? Math.max(6, Math.min(100, Math.round(r.sortPos60))) : 0,
       buyGapText,
       buyGapTone,
       verdictBadge: r.verdictBadge,
@@ -1037,6 +1043,7 @@ function buildUsSevenCompare(sevenRaw) {
       capexText: r.capexText,
       fcfText: r.fcfText,
       fcfTone: r.fcfTone,
+      fcfBar: r.fcfNum != null ? Math.max(8, Math.min(100, Math.round((Math.abs(r.fcfNum) / maxFcf) * 100))) : 0,
       cashText: r.cashText,
       mcapText: r.mcapText,
       guruText: r.guruCount > 0 ? `${r.guruCount}家大师` : "—",
@@ -1444,8 +1451,17 @@ function buildADividendCalendar(items) {
     const upcoming = months.find((x) => x.month > curMonth && x.count > 0) || months.find((x) => x.count > 0);
     if (upcoming) defaultMonth = upcoming.month;
   }
-  const summaryText = `覆盖全年 ${coveredMonths} 个派息月 · ${multiCount} 只一年多派`;
-  return { months, byMonth, defaultMonth, summaryText };
+  const counts12 = months.map((x) => x.count);
+  const summaryText = `全年 ${coveredMonths} 个派息月 · ${multiCount} 只一年多派`;
+  return {
+    months,
+    byMonth,
+    defaultMonth,
+    summaryText,
+    chartSrcFor(activeM) {
+      return monthDensitySvg(counts12, { activeMonth: activeM });
+    },
+  };
 }
 
 function formatCalendarRows(rows, wan = 1) {
@@ -2059,7 +2075,12 @@ function guruTrendRow(row, resolveLink) {
   const rawSym = String(row.symbol || "").trim().toUpperCase();
   const code = /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawSym) && label.toUpperCase() !== rawSym && !label.includes(rawSym) ? rawSym : "";
   const link = typeof resolveLink === "function" ? resolveLink(rawSym, label) : { linkMarket: "", linkId: "" };
-  return { key: row.symbol || row.name, label, code, tone, badge, ...link };
+  const addTotal = row.adders.length;
+  const cutTotal = row.cutters.length;
+  const moveSum = Math.max(1, addTotal + cutTotal);
+  const addWidth = Math.round((addTotal / moveSum) * 100);
+  const cutWidth = 100 - addWidth;
+  return { key: row.symbol || row.name, label, code, tone, badge, addWidth, cutWidth, ...link };
 }
 
 function guruTrendRowsFrom(trend, resolveLink) {
@@ -2915,6 +2936,7 @@ Page({
           patch.aCalendarMonths = cal.months;
           patch.aCalendarMonth = m;
           patch.aCalendarSummary = cal.summaryText;
+          patch.aCalendarChartSrc = cal.chartSrcFor(m);
           patch.aCalendarRows = formatCalendarRows(cal.byMonth.get(m) || [], wan);
         }
         if (this.data.aSubTab === "heatmap") patch.aHeatmap = buildAHeatmap(aModule.allList, this.data.aHeatMode);
@@ -3127,6 +3149,7 @@ Page({
       patch.aCalendarMonths = cal.months;
       patch.aCalendarMonth = m;
       patch.aCalendarSummary = cal.summaryText;
+      patch.aCalendarChartSrc = cal.chartSrcFor(m);
       patch.aCalendarRows = formatCalendarRows(cal.byMonth.get(m) || [], wan);
     }
     if (id === "heatmap" && mod) {
@@ -3147,6 +3170,7 @@ Page({
     const wan = this.data.aPrincipalWan || 1;
     this.setData({
       aCalendarMonth: m,
+      aCalendarChartSrc: cal.chartSrcFor(m),
       aCalendarRows: formatCalendarRows(cal.byMonth.get(m) || [], wan),
     });
     track("section_tab", { market: "a", tab: `cal_${m}` });

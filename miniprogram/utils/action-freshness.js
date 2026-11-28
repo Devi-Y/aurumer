@@ -98,8 +98,29 @@ function marketActionsFresh(snapshot, market, now = Date.now()) {
   return !rows || (rows.length > 0 && rows.every((raw) => isActionDataFresh(raw, now)));
 }
 
+const DEGRADE_CACHE = typeof WeakMap === "function" ? new WeakMap() : null;
+
 function degradeStaleActions(snapshot, now = Date.now()) {
   if (!snapshot || typeof snapshot !== "object") return snapshot;
+  const useCache = DEGRADE_CACHE && arguments.length < 2;
+  const minute = useCache ? Math.floor(now / 60000) : -1;
+  if (useCache) {
+    const hit = DEGRADE_CACHE.get(snapshot);
+    if (
+      hit
+      && hit.minute === minute
+      && hit.updatedAt === snapshot.updatedAt
+      && hit.revisionAt === snapshot.revisionAt
+      && hit.actionsFresh === snapshot.actionsFresh
+      && hit.usStocks === (snapshot.us && snapshot.us.stocks)
+      && hit.aQuotes === (snapshot.aShare && snapshot.aShare.quotes)
+      && hit.goldHistory === (snapshot.gold && snapshot.gold.history)
+      && hit.usEventFacts === (snapshot.us && snapshot.us.eventFacts)
+      && hit.usFilings === (snapshot.us && snapshot.us.filings)
+    ) {
+      return hit.result;
+    }
+  }
   const fresh = snapshot.actionsFresh !== false && isActionFresh(snapshot.updatedAt, now);
   const reason = snapshot.actionDegradeReason || describeStaleReason(snapshot.updatedAt, now);
   const next = {
@@ -206,6 +227,32 @@ function degradeStaleActions(snapshot, now = Date.now()) {
     };
   }
 
+  if (useCache) {
+    DEGRADE_CACHE.set(snapshot, {
+      minute,
+      updatedAt: snapshot.updatedAt,
+      revisionAt: snapshot.revisionAt,
+      actionsFresh: snapshot.actionsFresh,
+      usStocks: snapshot.us && snapshot.us.stocks,
+      aQuotes: snapshot.aShare && snapshot.aShare.quotes,
+      goldHistory: snapshot.gold && snapshot.gold.history,
+      usEventFacts: snapshot.us && snapshot.us.eventFacts,
+      usFilings: snapshot.us && snapshot.us.filings,
+      result: next,
+    });
+    DEGRADE_CACHE.set(next, {
+      minute,
+      updatedAt: next.updatedAt,
+      revisionAt: next.revisionAt,
+      actionsFresh: next.actionsFresh,
+      usStocks: next.us && next.us.stocks,
+      aQuotes: next.aShare && next.aShare.quotes,
+      goldHistory: next.gold && next.gold.history,
+      usEventFacts: next.us && next.us.eventFacts,
+      usFilings: next.us && next.us.filings,
+      result: next,
+    });
+  }
   return next;
 }
 

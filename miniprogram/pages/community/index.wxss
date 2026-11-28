@@ -1,19 +1,19 @@
 /* 会员群高价值收银台：原价现价鲜明对照、六大权益清晰有质感、一键直拉微信支付 */
 
 .community-shell {
-  padding-top: 22rpx;
+  padding-top: 14rpx;
   background: #f3f5f9;
 }
 
 .community-pay-hero {
   display: flex;
-  margin: 0 24rpx 22rpx;
-  padding: 32rpx 28rpx 30rpx;
+  margin: 0 24rpx 16rpx;
+  padding: 24rpx 24rpx 22rpx;
   flex-direction: column;
-  gap: 18rpx;
-  border-radius: 32rpx;
+  gap: 14rpx;
+  border-radius: 28rpx;
   background: #ffffff;
-  box-shadow: 0 12rpx 34rpx rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.05);
 }
 
 .cp-kicker-row {
@@ -60,11 +60,11 @@
 
 .cp-price-box {
   display: flex;
-  padding: 22rpx 24rpx;
+  padding: 16rpx 20rpx;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 8rpx;
   border: 2rpx solid #fde6c4;
-  border-radius: 24rpx;
+  border-radius: 22rpx;
   background: linear-gradient(135deg, #fffaf2 0%, #fff4e4 100%);
 }
 
@@ -101,7 +101,7 @@
 
 .cp-price-num {
   color: #b91c1c;
-  font-size: 74rpx;
+  font-size: 64rpx;
   font-weight: 880;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -179,20 +179,20 @@
 .wxpay-btn {
   display: flex;
   width: 100% !important;
-  min-height: 110rpx;
-  margin: 4rpx 0 0 !important;
-  padding: 0 28rpx !important;
+  min-height: 98rpx;
+  margin: 2rpx 0 0 !important;
+  padding: 0 24rpx !important;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 24rpx;
+  border-radius: 22rpx;
   background: linear-gradient(135deg, #09c765 0%, #06ad56 100%);
   color: #ffffff;
-  font-size: 34rpx;
+  font-size: 32rpx;
   font-weight: 800;
   line-height: 1.3;
-  box-shadow: 0 10rpx 26rpx rgba(7, 193, 96, 0.28);
+  box-shadow: 0 8rpx 22rpx rgba(7, 193, 96, 0.26);
 }
 
 .wxpay-btn::after {
@@ -215,16 +215,16 @@
   text-align: center;
 }
 
-/* 六大年度核心权益卡 */
+/* 六大年度核心权益卡（紧凑双列一屏排版） */
 .cp-perks-card {
   display: flex;
-  margin: 0 24rpx 22rpx;
-  padding: 30rpx 26rpx 28rpx;
+  margin: 0 24rpx 16rpx;
+  padding: 22rpx 22rpx 20rpx;
   flex-direction: column;
-  gap: 22rpx;
-  border-radius: 30rpx;
+  gap: 14rpx;
+  border-radius: 26rpx;
   background: #ffffff;
-  box-shadow: 0 8rpx 28rpx rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04);
 }
 
 .cp-perks-head {
@@ -236,71 +236,61 @@
 
 .cp-perks-title {
   color: #0f172a;
-  font-size: 35rpx;
+  font-size: 31rpx;
   font-weight: 820;
 }
 
 .cp-perks-sub {
   color: #1d5fd1;
-  font-size: 25rpx;
+  font-size: 24rpx;
   font-weight: 720;
 }
 
 .cp-perk-list {
   display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+  flex-wrap: wrap;
+  gap: 12rpx;
 }
 
 .cp-perk-item {
+  box-sizing: border-box;
   display: flex;
-  padding: 20rpx 20rpx;
-  align-items: flex-start;
-  gap: 18rpx;
-  border-radius: 20rpx;
+  width: calc(50% - 6rpx);
+  padding: 14rpx 14rpx;
+  align-items: center;
+  gap: 12rpx;
+  border-radius: 16rpx;
   background: #f7f9fc;
 }
 
 .cp-perk-no {
   display: flex;
-  width: 52rpx;
-  height: 52rpx;
+  width: 42rpx;
+  height: 42rpx;
   flex: none;
   align-items: center;
   justify-content: center;
-  border-radius: 14rpx;
+  border-radius: 10rpx;
   background: #eaf2ff;
   color: #1d5fd1;
-  font-size: 25rpx;
-  font-weight: 840;
+  font-size: 24rpx;
+  font-weight: 820;
   font-variant-numeric: tabular-nums;
 }
 
-.cp-perk-body {
-  display: flex;
+.cp-perk-name {
   flex: 1;
   min-width: 0;
-  flex-direction: column;
-  gap: 6rpx;
-}
-
-.cp-perk-name {
   color: #0f172a;
-  font-size: 30rpx;
-  font-weight: 760;
-  line-height: 1.35;
-}
-
-.cp-perk-desc {
-  color: #475569;
-  font-size: 25rpx;
-  line-height: 1.5;
+  font-size: 26rpx;
+  font-weight: 740;
+  line-height: 1.3;
 }
 
 .cp-guarantee-strip {
   display: flex;
-  padding: 18rpx 12rpx;
-  border-radius: 20rpx;
+  padding: 14rpx 10rpx;
+  border-radius: 18rpx;
   background: #f1f6ff;
 }
 
@@ -424,11 +414,11 @@
 
 .community-consult-card {
   display: flex;
-  margin: 0 24rpx 22rpx;
-  padding: 24rpx 26rpx;
+  margin: 0 24rpx 14rpx;
+  padding: 18rpx 22rpx;
   flex-direction: column;
-  gap: 14rpx;
-  border-radius: 26rpx;
+  gap: 10rpx;
+  border-radius: 24rpx;
   background: #ffffff;
 }
 

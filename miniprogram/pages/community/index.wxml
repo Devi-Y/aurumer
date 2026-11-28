@@ -7,7 +7,6 @@
     </view>
 
     <text class="community-title">港美A股 · 打新收息 · 全年陪伴会员群</text>
-    <text class="community-sub">省下天天翻公告、啃英文财报、自己踩坑摸索的时间</text>
 
     <view class="cp-price-box">
       <view class="cp-price-main-line">
@@ -80,10 +79,7 @@
     <view class="cp-perk-list">
       <view wx:for="{{perks}}" wx:key="no" class="cp-perk-item">
         <text class="cp-perk-no">{{item.no}}</text>
-        <view class="cp-perk-body">
-          <text class="cp-perk-name">{{item.title}}</text>
-          <text class="cp-perk-desc">{{item.desc}}</text>
-        </view>
+        <text class="cp-perk-name">{{item.title}}</text>
       </view>
     </view>
 

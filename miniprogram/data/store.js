@@ -21,6 +21,7 @@ const CURRENT_PUBLISH_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 const STALE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
 const STORAGE_CACHE_KEY = "aurum_snapshot_cache_v1";
+const STORAGE_META_KEY = "aurum_snapshot_meta_v1";
 
 let memorySnapshot = null;
 let memorySource = "离线备用数据";
@@ -64,12 +65,22 @@ function hydrateFromStorage() {
   memorySnapshot = prepareSnapshot(bundledSnapshot);
   if (typeof wx === "undefined" || !wx || typeof wx.getStorageSync !== "function") return;
   try {
+    // 先读百字节级元信息，若本地缓存不比随包快照更新，直接跳过数百 KB 大 JSON 同步反序列化。
+    const meta = wx.getStorageSync(STORAGE_META_KEY);
+    if (meta && meta.updatedAt && compareSnapshotVersions(meta, memorySnapshot) <= 0) {
+      return;
+    }
     const cached = wx.getStorageSync(STORAGE_CACHE_KEY);
-    if (cached && isUsableSnapshot(cached.snapshot) && isRemoteNewerOrEqual(cached.snapshot, memorySnapshot)) {
+    if (cached && isUsableSnapshot(cached.snapshot)) {
       if (compareSnapshotVersions(cached.snapshot, memorySnapshot) > 0) {
         memorySnapshot = prepareSnapshot(cached.snapshot);
         memorySource = cached.source || "自动更新";
         memoryWarning = cached.warning || "";
+      } else if (typeof wx.setStorage === "function") {
+        wx.setStorage({
+          key: STORAGE_META_KEY,
+          data: { updatedAt: cached.snapshot.updatedAt || "", revisionAt: cached.snapshot.revisionAt || "" },
+        });
       }
     }
   } catch (error) {
@@ -81,6 +92,10 @@ function persistToStorage(snapshot, source, warning) {
   if (typeof wx === "undefined" || !wx || typeof wx.setStorage !== "function") return;
   if (!isUsableSnapshot(snapshot)) return;
   try {
+    wx.setStorage({
+      key: STORAGE_META_KEY,
+      data: { updatedAt: snapshot.updatedAt || "", revisionAt: snapshot.revisionAt || "" },
+    });
     wx.setStorage({
       key: STORAGE_CACHE_KEY,
       data: { snapshot, source, warning: warning || "", savedAt: Date.now() },
@@ -203,7 +218,7 @@ function fetchLatest(force) {
   if (refreshPromise) return refreshPromise;
   const cdnUrl = runtimeConfig && runtimeConfig.snapshotCdnUrl;
   const canUseCdn = Boolean(cdnTransport && cdnTransport.isValidCdnUrl(cdnUrl));
-  const canUseCloud = Boolean(wx.cloud && typeof wx.cloud.callFunction === "function");
+  const canUseCloud = Boolean(typeof wx !== "undefined" && wx && wx.cloud && typeof wx.cloud.callFunction === "function");
   if (!canUseCdn && !canUseCloud) {
     return Promise.resolve(null);
   }
@@ -318,21 +333,33 @@ function loadSnapshot(onUpdate, onComplete, options = {}) {
       { warning: initialWarning, kind: initialKind, versionKey: deliveredKey },
     );
   }
-  fetchLatest(Boolean(options.force))
-    .then((latest) => {
-      if (!latest || latest.reused || !isUsableSnapshot(latest.snapshot)) return;
-      const nextKind = freshnessKind(latest.snapshot, latest.source, latest.warning);
-      const nextKey = snapshotVersionKey(latest.snapshot, nextKind);
-      if (latest.unchanged && nextKey === deliveredKey && !options.force) return;
-      onUpdate(
-        latest.snapshot,
-        sourceLabel(latest.snapshot, latest.source, latest.warning),
-        { warning: latest.warning || "", kind: nextKind, versionKey: nextKey },
-      );
-    })
-    .finally(() => {
-      if (typeof onComplete === "function") onComplete();
-    });
+  const force = Boolean(options.force);
+  if (!force && deliveredKey && fetchedAt && Date.now() - fetchedAt < fetchTtlMs) {
+    if (typeof onComplete === "function") onComplete();
+    return;
+  }
+  const runRemote = () => {
+    fetchLatest(force)
+      .then((latest) => {
+        if (!latest || latest.reused || !isUsableSnapshot(latest.snapshot)) return;
+        const nextKind = freshnessKind(latest.snapshot, latest.source, latest.warning);
+        const nextKey = snapshotVersionKey(latest.snapshot, nextKind);
+        if (latest.unchanged && nextKey === deliveredKey && !force) return;
+        onUpdate(
+          latest.snapshot,
+          sourceLabel(latest.snapshot, latest.source, latest.warning),
+          { warning: latest.warning || "", kind: nextKind, versionKey: nextKey },
+        );
+      })
+      .finally(() => {
+        if (typeof onComplete === "function") onComplete();
+      });
+  };
+  if (!force && deliveredKey && typeof wx !== "undefined" && wx && typeof wx.canIUse === "function" && typeof setTimeout === "function") {
+    setTimeout(runRemote, 48);
+  } else {
+    runRemote();
+  }
 }
 
 module.exports = {

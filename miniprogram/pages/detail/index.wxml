@@ -193,8 +193,9 @@
       <view wx:if="{{view.heroFigure}}" class="hero-price-row">
         <text class="hero-big-figure">{{view.heroFigure}}</text>
         <text wx:if="{{view.heroDelta}}" class="hero-delta-pill tone-{{view.heroTone}}">{{view.heroDelta}}</text>
+        <text class="hero-asof">{{dataAsOf || '读取历史资料'}}</text>
       </view>
-      <text class="hero-asof">{{dataAsOf || '读取历史资料'}}</text>
+      <text wx:else class="hero-asof">{{dataAsOf || '读取历史资料'}}</text>
 
       <!-- Robinhood 同款首屏价格走势曲线（叠加高低参考虚线） -->
       <image wx:if="{{view.heroSpark}}" class="hero-spark-img" src="{{view.heroSpark}}" mode="scaleToFill" aria-hidden="true"></image>
@@ -405,7 +406,7 @@
         </view>
       </view>
 
-      <!-- 对标 Robinhood × 富途 × 息记：参考区间明白卡 + 多周期涨跌色块 + 强弱进度条 + 双列核心数据 -->
+      <!-- 对标 Robinhood × 富途 × 息记：首屏只留参考区间 + 四格核心指标 + 1张代表主图，告别跨标签重复长页 -->
       <view wx:if="{{activeModule == 'overview' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
         <view wx:if="{{view.overview.orderPlan}}" class="section-card ref-plan-card">
           <view class="ref-plan-head">
@@ -423,17 +424,111 @@
           </view>
         </view>
 
-        <template wx:if="{{!view.heroSpark && view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
+        <view wx:if="{{view.keyStats && view.keyStats.length}}" class="apple-stats-grid">
+          <view wx:for="{{view.keyStats}}" wx:key="*this" class="apple-stat-cell">
+            <text class="apple-stat-k">{{item[0]}}</text>
+            <text class="apple-stat-v">{{item[1]}}</text>
+          </view>
+        </view>
 
+        <template wx:if="{{!view.heroSpark && view.overview.priceCard && !activeCharts.length}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
+
+        <block wx:if="{{activeCharts.length}}">
+          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
+        </block>
+
+        <view wx:if="{{!view.hasPentagon && !activeCharts.length && view.overview.healthChecks && view.overview.healthChecks.length}}" class="health-bars-box">
+          <view wx:for="{{view.overview.healthChecks}}" wx:key="label" class="health-bar-row">
+            <view class="health-bar-head">
+              <text class="health-bar-k">{{item.label}}</text>
+              <text class="health-bar-v tone-{{item.tone}}">{{item.valueText}}</text>
+            </view>
+            <view class="health-bar-track">
+              <view class="health-bar-fill tone-{{item.tone}}" style="width: {{item.percent}}%;"></view>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{view.market == 'us' && view.holdings && view.holdings.length}}" class="guru-inline-strip">
+          <text class="guru-inline-label">大师持仓：</text>
+          <text
+            wx:for="{{view.holdings}}"
+            wx:key="name"
+            class="guru-inline-pill"
+            data-id="{{item.investorId}}"
+            bindtap="openGuruInvestor"
+            aria-role="{{item.investorId ? 'button' : ''}}"
+          >{{item.name}} ›</text>
+        </view>
+      </view>
+
+      <view wx:if="{{activeModule == 'trend' && (view.market == 'us' || view.market == 'a' || view.market == 'gold')}}" class="module-content">
+        <text class="module-title">价格与位置</text>
         <view wx:if="{{view.overview.periodReturns && view.overview.periodReturns.length}}" class="period-strip">
           <view wx:for="{{view.overview.periodReturns}}" wx:key="label" class="period-cell tone-{{item.tone}}">
             <text class="period-label">{{item.label}}</text>
             <text class="period-val">{{item.valueText}}</text>
           </view>
         </view>
+        <block wx:if="{{activeChartsShown.length}}">
+          <template wx:for="{{activeChartsShown}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
+        </block>
+        <view wx:else class="module-empty">当前没有足够数据形成价格图表。</view>
+        <view wx:if="{{moreChartsCount > 0}}" class="more-charts-toggle" bindtap="toggleMoreCharts" hover-class="tap-active" aria-role="button">
+          <text>{{moreChartsExpanded ? '收起其余图表 ▴' : '展开其余 ' + moreChartsCount + ' 张价格对比图 ▾'}}</text>
+        </view>
+      </view>
 
-        <!-- A股收息首屏分红与复投试算器：点股数+年限看年度分红、生活映射与成本摊薄（对标息记） -->
-        <view wx:if="{{view.market == 'a' && dividendCalcView}}" class="section-card div-calc-card">
+      <view wx:if="{{activeModule == 'dynamics' && view.market == 'us'}}" class="module-content">
+        <text class="module-title">近期动态</text>
+        <block wx:if="{{activeCharts.length}}">
+          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
+        </block>
+        <view wx:if="{{view.dynamics.eventVerified || !(view.dynamics.filingCards && view.dynamics.filingCards.length)}}" class="section-card">
+          <text class="block-title">近期公司事件</text>
+          <text class="analysis-body">{{view.dynamics.event}}</text>
+          <text wx:if="{{view.dynamics.eventVerified}}" class="collapsed-hint">官方原文见来源；同期发生不代表涨跌原因。</text>
+        </view>
+        <text wx:if="{{view.dynamics.heat}}" class="module-answer">{{view.dynamics.heat}}</text>
+        <view class="section-card" wx:if="{{view.dynamics.filingCards && view.dynamics.filingCards.length}}">
+          <text class="block-title">同期公开公告原文</text>
+          <view
+            wx:for="{{view.dynamics.filingCards}}"
+            wx:key="key"
+            class="filing-card-row"
+            data-url="{{item.sourceUrl}}"
+            bindtap="copySourceLink"
+            hover-class="{{item.sourceUrl ? 'tap-active' : ''}}"
+            aria-role="button"
+          >
+            <view class="filing-card-top">
+              <text class="filing-form-pill">{{item.form}}</text>
+              <text class="filing-date">{{item.date}}</text>
+              <text wx:if="{{item.sourceUrl}}" class="source-link-action">复制原文</text>
+            </view>
+            <text class="filing-summary">{{item.summary}}</text>
+          </view>
+          <text class="collapsed-hint">公告与股价同期发生，不代表涨跌原因。</text>
+        </view>
+        <view class="section-card" wx:elif="{{view.dynamics.filings}}">
+          <text class="block-title">同期公开备案</text>
+          <text class="analysis-body">{{view.dynamics.filings}}</text>
+        </view>
+        <view wx:if="{{!activeCharts.length && !view.dynamics.filings}}" class="module-empty">近期没有足够的动态数据。</view>
+      </view>
+
+      <view wx:if="{{activeModule == 'dynamics' && view.market == 'gold'}}" class="module-content">
+        <text class="module-title">驱动与近期变化</text>
+        <block wx:if="{{activeCharts.length}}">
+          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
+        </block>
+        <view wx:else class="module-empty">当前没有足够的驱动数据。</view>
+      </view>
+
+      <view wx:if="{{activeModule == 'dividend' && view.market == 'a'}}" class="module-content">
+        <text class="module-title">分红与现金质量</text>
+        <!-- 对标息记：持股分红与复投试算统一收归「分红」专属标签，不在「怎么看」重复堆叠 -->
+        <view wx:if="{{dividendCalcView}}" class="section-card div-calc-card">
           <view class="div-calc-head">
             <text class="block-title">持股分红与复投试算</text>
             <text class="div-calc-year">{{dividendCalcView.year}}年度已实施</text>
@@ -497,178 +592,11 @@
             </view>
           </view>
         </view>
-
-        <!-- 港股打新首屏本金与回本试算器（对标富途牛牛打新计算器） -->
-        <view wx:if="{{view.market == 'hk' && hkIpoCalcView}}" class="section-card div-calc-card hk-calc-card">
-          <view class="div-calc-head">
-            <text class="block-title">打新本金与回本算账</text>
-            <text class="div-calc-year">{{hkIpoCalcView.lotsText}}</text>
-          </view>
-          <view class="div-calc-pills hk-calc-pills">
-            <text class="div-calc-pill {{hkCalcMode === 'cash1' ? 'is-active' : ''}}" data-mode="cash1" bindtap="selectHkCalcMode" aria-role="button">现金1手(0息)</text>
-            <text class="div-calc-pill {{hkCalcMode === 'cash5' ? 'is-active' : ''}}" data-mode="cash5" bindtap="selectHkCalcMode" aria-role="button">现金5手</text>
-            <text class="div-calc-pill {{hkCalcMode === 'margin10' ? 'is-active' : ''}}" data-mode="margin10" bindtap="selectHkCalcMode" aria-role="button">10倍融资10手</text>
-          </view>
-          <view class="div-calc-result">
-            <view class="div-calc-metric">
-              <text class="div-calc-k">需准备本金</text>
-              <text class="div-calc-v is-sub">{{hkIpoCalcView.principalText}}</text>
-              <text class="div-sub-tag">{{hkIpoCalcView.costNote}}</text>
-            </view>
-            <view class="div-calc-metric">
-              <text class="div-calc-k">中1手回本涨幅</text>
-              <text class="div-calc-v is-blue">{{hkIpoCalcView.breakevenText}}</text>
-              <text class="div-sub-tag">含交易规费与融资成本</text>
-            </view>
-          </view>
-          <view wx:if="{{hkIpoCalcView.scenarios && hkIpoCalcView.scenarios.length}}" class="ipo-scen-strip">
-            <view wx:for="{{hkIpoCalcView.scenarios}}" wx:key="key" class="ipo-scen-cell tone-{{item.tone}}">
-              <text class="ipo-scen-k">{{item.label}}</text>
-              <text class="ipo-scen-v">{{item.valText}}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 首屏核心图表直出（五维雷达 / A股股息表盘与历年分红图 / 美股双柱财报与同业对比图 / 港股首日扇形图 / 大佬重仓环形饼图） -->
-        <block wx:if="{{activeCharts.length}}">
-          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
+        <block wx:if="{{activeChartsShown.length}}">
+          <template wx:for="{{activeChartsShown}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
         </block>
-
-        <view wx:if="{{view.keyStats && view.keyStats.length}}" class="apple-stats-grid">
-          <view wx:for="{{view.keyStats}}" wx:key="*this" class="apple-stat-cell">
-            <text class="apple-stat-k">{{item[0]}}</text>
-            <text class="apple-stat-v">{{item[1]}}</text>
-          </view>
-        </view>
-
-        <view wx:if="{{!view.hasPentagon && view.overview.healthChecks && view.overview.healthChecks.length}}" class="health-bars-box">
-          <view wx:for="{{view.overview.healthChecks}}" wx:key="label" class="health-bar-row">
-            <view class="health-bar-head">
-              <text class="health-bar-k">{{item.label}}</text>
-              <text class="health-bar-v tone-{{item.tone}}">{{item.valueText}}</text>
-            </view>
-            <view class="health-bar-track">
-              <view class="health-bar-fill tone-{{item.tone}}" style="width: {{item.percent}}%;"></view>
-            </view>
-          </view>
-        </view>
-
-        <!-- 对标富途牛牛：明星大师持仓联动背书卡（美股七姐妹等机构重仓股首屏直出） -->
-        <view wx:if="{{view.market == 'us' && view.holdings && view.holdings.length}}" class="section-card guru-endorse-card">
-          <view class="div-calc-head">
-            <text class="block-title">聪明钱大师持仓追踪</text>
-            <text class="div-calc-year">{{view.holdings.length}}家机构披露持有</text>
-          </view>
-          <view
-            wx:for="{{view.holdings}}"
-            wx:key="name"
-            class="guru-endorse-row"
-            data-id="{{item.investorId}}"
-            bindtap="openGuruInvestor"
-            hover-class="{{item.investorId ? 'tap-active' : ''}}"
-            aria-role="{{item.investorId ? 'button' : ''}}"
-          >
-            <text class="guru-endorse-name">{{item.name}}</text>
-            <text class="guru-endorse-val">{{item.value}}{{item.investorId ? ' ›' : ''}}</text>
-          </view>
-        </view>
-
-        <!-- 对标 IBKR × 东方财富：同池可比龙头一键横向切换 -->
-        <view wx:if="{{peerCompare && peerCompare.length}}" class="section-card peer-cmp-card">
-          <view class="div-calc-head">
-            <text class="block-title">{{view.market == 'us' ? '同池巨头横向对照' : '同板块收息股对照'}}</text>
-            <text class="div-calc-year">点击秒切</text>
-          </view>
-          <view class="peer-cmp-grid">
-            <view class="peer-cmp-cell" wx:for="{{peerCompare}}" wx:key="id" data-id="{{item.id}}" bindtap="switchPeer" hover-class="tap-active" aria-role="button">
-              <text class="peer-cmp-name">{{item.name}}</text>
-              <text class="peer-cmp-m1">{{item.metric1}}</text>
-              <text wx:if="{{item.metric2}}" class="peer-cmp-m2">{{item.metric2}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <view wx:if="{{activeModule == 'trend' && (view.market == 'us' || view.market == 'a' || view.market == 'gold')}}" class="module-content">
-        <text class="module-title">价格与位置</text>
-        <block wx:if="{{activeCharts.length}}">
-          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
-        </block>
-        <view wx:else class="module-empty">当前没有足够数据形成价格图表。</view>
-      </view>
-
-      <view wx:if="{{activeModule == 'dynamics' && view.market == 'us'}}" class="module-content">
-        <text class="module-title">近期动态</text>
-        <block wx:if="{{activeCharts.length}}">
-          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
-        </block>
-        <view wx:if="{{view.dynamics.eventVerified || !(view.dynamics.filingCards && view.dynamics.filingCards.length)}}" class="section-card">
-          <text class="block-title">近期公司事件</text>
-          <text class="analysis-body">{{view.dynamics.event}}</text>
-          <text wx:if="{{view.dynamics.eventVerified}}" class="collapsed-hint">官方原文见来源；同期发生不代表涨跌原因。</text>
-        </view>
-        <text wx:if="{{view.dynamics.heat}}" class="module-answer">{{view.dynamics.heat}}</text>
-        <view class="section-card" wx:if="{{view.dynamics.filingCards && view.dynamics.filingCards.length}}">
-          <text class="block-title">同期公开公告原文</text>
-          <view
-            wx:for="{{view.dynamics.filingCards}}"
-            wx:key="key"
-            class="filing-card-row"
-            data-url="{{item.sourceUrl}}"
-            bindtap="copySourceLink"
-            hover-class="{{item.sourceUrl ? 'tap-active' : ''}}"
-            aria-role="button"
-          >
-            <view class="filing-card-top">
-              <text class="filing-form-pill">{{item.form}}</text>
-              <text class="filing-date">{{item.date}}</text>
-              <text wx:if="{{item.sourceUrl}}" class="source-link-action">复制原文</text>
-            </view>
-            <text class="filing-summary">{{item.summary}}</text>
-          </view>
-          <text class="collapsed-hint">公告与股价同期发生，不代表涨跌原因。</text>
-        </view>
-        <view class="section-card" wx:elif="{{view.dynamics.filings}}">
-          <text class="block-title">同期公开备案</text>
-          <text class="analysis-body">{{view.dynamics.filings}}</text>
-        </view>
-        <view wx:if="{{!activeCharts.length && !view.dynamics.filings}}" class="module-empty">近期没有足够的动态数据。</view>
-      </view>
-
-      <view wx:if="{{activeModule == 'dynamics' && view.market == 'gold'}}" class="module-content">
-        <text class="module-title">驱动与近期变化</text>
-        <block wx:if="{{activeCharts.length}}">
-          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
-        </block>
-        <view wx:else class="module-empty">当前没有足够的驱动数据。</view>
-      </view>
-
-      <view wx:if="{{activeModule == 'dividend' && view.market == 'a'}}" class="module-content">
-        <text class="module-title">分红与现金质量</text>
-        <!-- 借鉴 Stock Events：按持股股数纯算历史已实施税前分红，不预测未来。 -->
-        <view wx:if="{{dividendCalcView}}" class="section-card div-calc-card">
-          <view class="div-calc-head">
-            <text class="block-title">按股数历史分红对照</text>
-            <text class="div-calc-year">{{dividendCalcView.year}}年度已实施</text>
-          </view>
-          <view class="div-calc-pills">
-            <text class="div-calc-pill {{dividendShares === 100 ? 'is-active' : ''}}" data-shares="100" bindtap="selectDividendShares" aria-role="button">100股</text>
-            <text class="div-calc-pill {{dividendShares === 1000 ? 'is-active' : ''}}" data-shares="1000" bindtap="selectDividendShares" aria-role="button">1000股</text>
-            <text class="div-calc-pill {{dividendShares === 5000 ? 'is-active' : ''}}" data-shares="5000" bindtap="selectDividendShares" aria-role="button">5000股</text>
-            <text class="div-calc-pill {{dividendShares === 10000 ? 'is-active' : ''}}" data-shares="10000" bindtap="selectDividendShares" aria-role="button">1万股</text>
-          </view>
-          <view class="div-calc-result">
-            <view class="div-calc-metric">
-              <text class="div-calc-k">历史税前分红</text>
-              <text class="div-calc-v">{{dividendCalcView.cashText}}</text>
-            </view>
-            <view class="div-calc-metric">
-              <text class="div-calc-k">{{dividendCalcView.priceAsOf}} 对应市值</text>
-              <text class="div-calc-v is-sub">{{dividendCalcView.costText}}</text>
-            </view>
-          </view>
-        </view>
-        <view wx:if="{{view.recentDistributions && view.recentDistributions.length}}" class="section-card dist-log-card">
+        <view wx:else class="module-empty">当前没有足够的分红数据。</view>
+        <view wx:if="{{moreChartsExpanded && view.recentDistributions && view.recentDistributions.length}}" class="section-card dist-log-card">
           <view class="div-calc-head">
             <text class="block-title">近期历次除息派现记录</text>
             <text class="div-calc-year">官方分红方案</text>
@@ -681,10 +609,9 @@
             <text class="dist-log-plan">{{item.planText}}</text>
           </view>
         </view>
-        <block wx:if="{{activeCharts.length}}">
-          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
-        </block>
-        <view wx:else class="module-empty">当前没有足够的分红数据。</view>
+        <view wx:if="{{moreChartsCount > 0 || (view.recentDistributions && view.recentDistributions.length)}}" class="more-charts-toggle" bindtap="toggleMoreCharts" hover-class="tap-active" aria-role="button">
+          <text>{{moreChartsExpanded ? '收起除息记录与财务图 ▴' : '展开除息记录与财务图表 ▾'}}</text>
+        </view>
       </view>
 
       <view wx:if="{{activeModule == 'subscribe' && view.market == 'hk'}}" class="module-content">
@@ -785,9 +712,12 @@
            旧标签的内容，美股/A股/港股新股/机构持仓/黄金共用同一个 tab，不再分多页翻。 -->
       <view wx:if="{{activeModule == 'evidence' && (view.market == 'us' || view.market == 'a' || view.market == 'hk' || view.market == 'guru' || view.market == 'gold')}}" class="module-content">
         <text class="module-title">依据</text>
-        <block wx:if="{{activeCharts.length}}">
-          <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
+        <block wx:if="{{activeChartsShown.length}}">
+          <template wx:for="{{activeChartsShown}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
         </block>
+        <view wx:if="{{moreChartsCount > 0}}" class="more-charts-toggle" bindtap="toggleMoreCharts" hover-class="tap-active" aria-role="button">
+          <text>{{moreChartsExpanded ? '收起其余图表 ▴' : '展开其余 ' + moreChartsCount + ' 张依据图 ▾'}}</text>
+        </view>
 
         <view wx:if="{{view.metrics.length}}" class="metric-panel">
           <text class="block-title">{{view.metricsTitle || '关键数据'}}</text>

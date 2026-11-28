@@ -114,27 +114,47 @@ async function purchase(planId, legalConsent) {
   };
 }
 
+let _wsCache = null;
+let _wsCacheAt = 0;
+let _wsPromise = null;
+const WS_CACHE_TTL_MS = 60 * 1000;
+
 function loadWorkspace() {
   if (!runtime.cloudEnv || !wx.cloud) return Promise.resolve(previewWorkspace());
-  return callBackend("workspace").then((workspace) => ({
-    ...workspace,
-    backendReady: true,
-  }));
+  if (_wsCache && Date.now() - _wsCacheAt < WS_CACHE_TTL_MS) {
+    return Promise.resolve(_wsCache);
+  }
+  if (_wsPromise) return _wsPromise;
+  _wsPromise = callBackend("workspace").then((workspace) => {
+    const next = { ...workspace, backendReady: true };
+    _wsCache = next;
+    _wsCacheAt = Date.now();
+    return next;
+  }).finally(() => {
+    _wsPromise = null;
+  });
+  return _wsPromise;
 }
 
 function refreshSentinel() {
   if (!runtime.cloudEnv || !wx.cloud) return Promise.resolve(previewWorkspace());
-  return callBackend("refreshSentinel").then((workspace) => ({
-    ...workspace,
-    backendReady: true,
-  }));
+  _wsCache = null;
+  return callBackend("refreshSentinel").then((workspace) => {
+    const next = { ...workspace, backendReady: true };
+    _wsCache = next;
+    _wsCacheAt = Date.now();
+    return next;
+  });
 }
 
 function workspaceAction(action, data) {
-  return callBackend(action, data).then((workspace) => ({
-    ...workspace,
-    backendReady: true,
-  }));
+  _wsCache = null;
+  return callBackend(action, data).then((workspace) => {
+    const next = { ...workspace, backendReady: true };
+    _wsCache = next;
+    _wsCacheAt = Date.now();
+    return next;
+  });
 }
 
 function saveWatchItem(data) {

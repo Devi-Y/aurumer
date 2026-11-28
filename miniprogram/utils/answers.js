@@ -783,11 +783,11 @@ function aShareDividendStability(raw = {}) {
   return getDividendStability(raw).score;
 }
 
-function aShareItems(snapshot) {
+function buildAShareStockPool(snapshot) {
   const fundamentals = new Map((snapshot.aShare && snapshot.aShare.fundamentals ? snapshot.aShare.fundamentals : []).map((item) => [item.code, item]));
-  const quotes = [...(snapshot.aShare && snapshot.aShare.quotes ? snapshot.aShare.quotes : [])];
+  const quotes = snapshot.aShare && snapshot.aShare.quotes ? snapshot.aShare.quotes : [];
 
-  const makeStockItem = (item) => {
+  return quotes.map((item) => {
     const financials = fundamentals.get(item.code) || {};
     const raw = { ...item, financials };
     raw.historicalDividendYield = getHistoricalDividendYield(raw);
@@ -815,7 +815,6 @@ function aShareItems(snapshot) {
     const historical = raw.historicalDividendYield;
     const yieldText = historical ? `历史股息率 ${historical.yieldPercent.toFixed(2)}%` : "历史股息率暂缺";
     const scoreText = score != null ? `观察分 ${score}` : null;
-    // 稳定性榜是按这个数排的，行里就得看得见，否则读的人没法核对排序凭什么。
     const stability = aShareDividendStability(raw);
     const stabilityText = stability != null ? `分红稳定性 ${stability}` : null;
 
@@ -827,6 +826,7 @@ function aShareItems(snapshot) {
       code: item.code,
       badge,
       score,
+      _stability: stability,
       rank: null,
       scoreText: scoreText || badge,
       rankText: yieldText,
@@ -835,7 +835,15 @@ function aShareItems(snapshot) {
     };
     row.lenses = aShareLenses(row);
     return row;
-  };
+  });
+}
+
+function allAShareStockItems(snapshot) {
+  return buildAShareStockPool(degradeStaleActions(snapshot));
+}
+
+function aShareItems(snapshot) {
+  const stockItems = buildAShareStockPool(snapshot);
 
   const makeFundItem = (source = {}) => {
     const raw = {
@@ -874,10 +882,7 @@ function aShareItems(snapshot) {
     };
   };
 
-  const stockItems = quotes.map(makeStockItem);
   // 两榜分别按实际数据覆盖决定资格，缺数据不以旧估计值补齐。
-  // 名次跟着 lens 一起记下来：列表页给行标了 01–05 的序号，那个序号必须就是
-  // 这个榜单的名次，否则页头写着「前五」、行里却按样本顺序编号，等于编了个假名次。
   const markTop5 = (pool, score, lens) => [...pool]
     .sort((left, right) => score(right) - score(left) || String(left.code).localeCompare(String(right.code)))
     .slice(0, 5)
@@ -885,8 +890,8 @@ function aShareItems(snapshot) {
       item.lenses = [...(item.lenses || []), lens];
       item.lensRank = { ...(item.lensRank || {}), [lens]: index + 1 };
     });
-  markTop5(stockItems.filter((item) => aShareDividendStability(item.raw) !== null),
-    (item) => aShareDividendStability(item.raw), "stable5");
+  markTop5(stockItems.filter((item) => item._stability !== null),
+    (item) => item._stability, "stable5");
   markTop5(stockItems.filter((item) => item.raw.historicalDividendYield),
     (item) => item.raw.historicalDividendYield.yieldPercent, "yield5");
   const stockByCode = new Map(stockItems.map((item) => [item.code, item]));
@@ -1045,6 +1050,7 @@ module.exports = {
   tickerZhLabel,
   tickerShortZh,
   allItems,
+  allAShareStockItems,
   findItem,
   usPoolItems,
   groupDefinitions,

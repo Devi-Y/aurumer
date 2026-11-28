@@ -27,14 +27,10 @@ test("historical quote dates never borrow a newer processing timestamp", () => {
   assert.equal(referenceDateText(["2026-10-22", "2026-10-23"]), "报价 2026-10-22—2026-10-23");
 });
 
-test("a newer independent gold quote cannot overwrite a historical close in either chart", () => {
+test("a newer independent gold quote cannot overwrite a historical close in gold module", () => {
   const history = Array.from({ length: 12 }, (_, index) => ({ date: `2026-10-${String(index + 1).padStart(2, "0")}`, close: 100 + index }));
   const snapshot = { gold: { history: { international: history }, quotes: { international: { price: 999, asOf: "2026-10-13" } } } };
   const original = JSON.stringify(snapshot);
-  const { buildHomeTrends } = pageFunctions("miniprogram/pages/index/index.js", ["buildHomeTrends"]);
-  const home = buildHomeTrends(snapshot).find((card) => card.id === "gold");
-  assert.equal(home.value, "$111");
-  assert.equal(home.asOf, "2026-10-01—10-12");
   const { buildGoldModule } = pageFunctions("miniprogram/pages/section/index.js", ["buildGoldModule"]);
   const module = buildGoldModule(snapshot);
   assert.equal(module.perCurrency.usd.chartsByPeriod.all.latestLabel, "期末 111");
@@ -43,40 +39,40 @@ test("a newer independent gold quote cannot overwrite a historical close in eith
   assert.equal(JSON.stringify(snapshot), original);
 });
 
-test("home ETF card uses dated prices and opens the fund while the A-share tile opens the section", () => {
+test("home search index formats ETF price and opens the fund while the A-share tile opens the section", () => {
   const history = Array.from({ length: 10 }, (_, index) => ({
     date: `2026-${String(index + 1).padStart(2, "0")}-15`, close: 1 + index / 10,
   })).reverse();
-  history.unshift({ date: "2026-10-31", close: null });
-  const fund = { code: "515180.SH", shortName: "红利ETF", history };
-  const snapshot = { aShare: { funds: [{ code: "000001.SH", history }, fund] } };
+  const fund = { code: "515180.SH", shortName: "红利ETF", currentPrice: 1.9, history };
+  const snapshot = { aShare: { funds: [fund], quotes: [] } };
   let page;
   const targets = [];
-  const { buildHomeTrends } = pageFunctions("miniprogram/pages/index/index.js", ["buildHomeTrends"], {
-    Page(definition) { page = definition; },
+  const { buildSearchIndex } = pageFunctions("miniprogram/pages/index/index.js", ["buildSearchIndex"], {
+    Page(definition) { page = definition; page.setData = (patch) => Object.assign(page.data, patch); },
     wx: { navigateTo({ url }) { targets.push(url); } },
   });
-  const card = buildHomeTrends(snapshot).find((item) => item.id === "a");
-  assert.equal(card.title, "红利ETF");
-  assert.equal(card.asOf, "2026-01-15—10-15");
-  assert.equal(card.value, "¥1.900");
-  assert.equal(card.sub, "+90.0%");
-  assert.equal(findItem(snapshot, "a", card.detailId).raw.assetType, "fund");
-  page.openTrend({ currentTarget: { dataset: { market: card.market, detailId: card.detailId } } });
+  const row = buildSearchIndex(snapshot).find((item) => item.id === "515180");
+  assert.ok(row);
+  assert.equal(row.figure, "¥1.900");
+  assert.equal(findItem(snapshot, "a", row.id).raw.assetType, "fund");
+  page.openSearchResult({ currentTarget: { dataset: { market: row.market, id: row.id } } });
   page.openGridEntry({ currentTarget: { dataset: { id: "a" } } });
   assert.deepEqual(targets, ["/pages/detail/index?market=a&id=515180", "/pages/section/index?market=a"]);
 });
 
-test("home compares companies over equal numbers of trading sessions", () => {
-  const { buildHomeTrends } = pageFunctions("miniprogram/pages/index/index.js", ["buildHomeTrends"]);
-  const snapshot = { us: { stocks: [
-    { symbol: "NVDA", asOf: "2026-10-23", history: [1, 20, ...Array(8).fill(15), 10] },
-    { symbol: "MSFT", asOf: "2026-10-23", history: [1, ...Array(9).fill(2)] },
-    { symbol: "AAPL", asOf: "2026-10-23", history: [1, ...Array(9).fill(3)] },
-  ] } };
-  const card = buildHomeTrends(snapshot).find((item) => item.id === "us");
-  assert.equal(card.value, "2只涨");
-  assert.equal(card.sub, "共3只 · 10个交易日");
+test("home hot picks interleave US, A-share and HK items with sparklines", () => {
+  const { buildHotPicks } = pageFunctions("miniprogram/pages/index/index.js", ["buildHotPicks"]);
+  const snapshot = {
+    us: { stocks: [{ symbol: "NVDA", name: "英伟达", price: 185.5, changePercent: 2.3, heatScore: 80, history: Array.from({ length: 12 }, (_, i) => 170 + i) }] },
+    aShare: { quotes: [{ code: "600900.SH", name: "长江电力", currentPrice: 28.1, changePercent: 0.5, historicalDividendYield: { yieldPercent: 3.4 }, history: Array.from({ length: 12 }, (_, i) => 27 + i * 0.1) }] },
+    hk: { listings: [{ code: "03364.HK", name: "袁记食品", offerPrice: "28.00", isLive: true, cornerstonePercent: 40 }] },
+  };
+  const picks = buildHotPicks(snapshot);
+  assert.equal(picks.length, 3);
+  assert.equal(picks.map((p) => p.market).join(","), "us,a,hk");
+  assert.equal(picks[0].figure, "$185.50");
+  assert.equal(picks[1].figure, "¥28.10");
+  assert.ok(picks[0].sparkSrc.startsWith("data:image/svg+xml"));
 });
 
 test("fresh snapshots expose plain-language verdict badges and reference ranges while stale snapshots degrade cleanly", () => {

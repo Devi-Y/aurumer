@@ -22,7 +22,7 @@ button {
   box-sizing: border-box;
   width: 100%;
   min-height: 100vh;
-  padding: 0 0 calc(36rpx + env(safe-area-inset-bottom));
+  padding: 0 0 calc(20rpx + env(safe-area-inset-bottom));
   background: #f6f7fa;
 }
 
@@ -65,22 +65,22 @@ button {
    对主要用户群不够好按，所以在正文流末尾再给一组大按钮。 */
 .page-nav {
   display: flex;
-  padding: 28rpx;
-  gap: 16rpx;
+  padding: 16rpx 20rpx 8rpx;
+  gap: 14rpx;
 }
 
 .page-nav-button {
   display: flex;
-  min-height: 92rpx;
+  min-height: 74rpx;
   flex: 1;
   align-items: center;
   justify-content: center;
   gap: 8rpx;
   border: 1rpx solid rgba(15, 23, 42, 0.1);
-  border-radius: 20rpx;
+  border-radius: 18rpx;
   background: #ffffff;
   color: #334155;
-  font-size: 29rpx;
+  font-size: 27rpx;
   font-weight: 620;
   box-shadow: 0 2rpx 10rpx rgba(15, 23, 42, 0.03);
   transition: transform 0.12s ease, background-color 0.12s ease;

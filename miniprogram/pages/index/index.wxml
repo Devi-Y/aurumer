@@ -42,10 +42,6 @@
       </view>
 
       <view wx:if="{{hotPicks.length}}" class="search-picks-section">
-        <view class="search-picks-head">
-          <text class="search-picks-badge">三地风向</text>
-          <text class="search-picks-sub">点卡看详情 ›</text>
-        </view>
         <view class="search-picks-grid">
           <view
             wx:for="{{hotPicks}}"

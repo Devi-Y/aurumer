@@ -144,6 +144,7 @@ function rowFact(item, market, shown) {
   return parts
     .filter((part) => {
       if (shown.badge && part === shown.badge) return false;
+      if (part === "热度≠买入信号") return false;
       // 右上角写的是「今日 +3.2%」时，one 里那个 +3.21% 是同一件事的另一个小数位。
       if (shown.dropChange && /^[+-]\d/.test(part)) return false;
       // 右上角那句本身就原样出现在 one 里（港股已结束那条的「首日 -1.87%」
@@ -181,6 +182,9 @@ Page({
     groups: [],
     filters: [],
     items: [],
+    itemsShown: [],
+    showAllItems: false,
+    sourcesOpen: false,
     source: "正在读取同步数据",
     freshness: freshnessBanner("正在读取同步数据", "fresh"),
     disclaimer: RESEARCH_DISCLAIMER,
@@ -197,7 +201,9 @@ Page({
   onLoad(options) {
     const market = MARKET_META[options.market] ? options.market : "hk";
     const defaultGroup = market === "a" ? "prime" : market === "gold" ? "track" : market === "us" ? "seven" : "worth";
-    this.setData({ market, group: options.group || defaultGroup, meta: MARKET_META[market] });
+    this.data.market = market;
+    this.data.group = options.group || defaultGroup;
+    this.data.meta = MARKET_META[market];
     this.refresh();
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
@@ -274,7 +280,8 @@ Page({
         const rawBadge = market === "a" && item.raw?.assetType !== "fund"
           ? ""
           : (String(item.badge || "").trim() === groupTitle ? "" : item.badge);
-        const dedupBadge = rawBadge && showMetric && String(rawBadge).trim() === String(metricLabel).trim()
+        const dedupBadge = (rawBadge && showMetric && String(rawBadge).trim() === String(metricLabel).trim())
+          || /^热度第\d+$/.test(String(rawBadge || "").trim())
           ? ""
           : rawBadge;
         const overlapZh = market === "guru" && item.group === "overlap"
@@ -290,7 +297,7 @@ Page({
           ? item.raw.history.map((e) => Number(e?.close ?? e)).filter((v) => Number.isFinite(v) && v > 0)
           : [];
         const sparkSrc = (market === "us" || market === "a") && rawHist.length >= 10
-          ? cleanSparkSvg(sampleSeries(rawHist, 36), { width: 136, height: 38 })
+          ? cleanSparkSvg(sampleSeries(rawHist, 24), { width: 136, height: 38 })
           : "";
 
         return {
@@ -365,73 +372,14 @@ Page({
           minFirstDayLabel: stats.minFirstDay ? stats.minFirstDay.label : "—",
           minFirstDayName: stats.minFirstDay ? stats.minFirstDay.name : "",
         };
-      } else if (activeGroup === "hot10") {
-        statsBanner = {
-          title: "热度观察榜算法",
-          body: "按公开热度分从高到低排序。",
-        };
-      } else if (activeGroup === "value") {
-        statsBanner = {
-          title: "性价比观察指数",
-          body: "盈利质量 50% · 估值 30% · 热度 15% · 近一周涨跌 5%。",
-        };
-      } else if (activeGroup === "overlap") {
-        statsBanner = {
-          title: "交叉重叠研究工具",
-          body: `${SMART_MONEY_PROFILES.length} 个公开组合里至少 2 家同时持有的标的。`,
-        };
-      } else if (activeGroup === "cheap7") {
-        statsBanner = {
-          title: "低估七姐妹",
-          body: "质量达标，市盈率不高于七姐妹中位数，股价也不在近60日高处。",
-        };
-      } else if (activeGroup === "risk7") {
-        statsBanner = {
-          title: "风险七姐妹",
-          body: "估值过高、股价贴近近60日最高，或盈利质量与价格冲突。",
-        };
-      } else if (activeGroup === "hold7") {
-        statsBanner = {
-          title: "长期观察七姐妹",
-          body: "营收、利润率、股东回报或经营现金流等质量达标，且没有触发重大风险。",
-        };
-      } else if (activeGroup === "industry") {
-        statsBanner = {
-          title: "行业公司观察",
-          body: "从非七姐妹样本里筛质量与研究观察分同时过关的公司。",
-        };
-      } else if (activeGroup === "core") {
-        statsBanner = {
-          title: "底仓长期",
-          body: "水电、银行、通信、家电、红利ETF 等现金流角色，适合作为收息底仓样本。",
-        };
-      } else if (activeGroup === "cycle") {
-        statsBanner = {
-          title: "周期短持",
-          body: "煤炭、油气、钢铁、建材、火电等景气敏感样本，只作短持观察。",
-        };
-      } else if (activeGroup === "add") {
-        statsBanner = {
-          title: "加大观察",
-          body: "按当前每股分红回推到更高股息率后的价格区；现价已进入该区才出现在本列表。",
-        };
-      } else if (activeGroup === "trim") {
-        statsBanner = {
-          title: "兑现观察",
-          body: "价格上涨把股息率压到可持续股息之下时，进入兑现观察。",
-        };
-      } else if (activeGroup === "leverage") {
-        statsBanner = {
-          title: "高杠杆观察",
-          body: "仅值得打、研究分≥80、认购拥挤度不高且一手资料齐全时出现。",
-        };
       }
+      const showAll = Boolean(this.data.showAllItems);
+      this._fullItems = items;
       this.setData({
+        market: this.data.market,
+        meta: this.data.meta,
         group: activeGroup,
         groups: definitions,
-        // 页头下面那条可横滑的分组筛选条，抄新闻资讯页。
-        // 机构那几个分组的标题里本来就带着数量（"港股 · 3 个"），再补一个数字会
-        // 变成"港股 · 3 个 3"，所以标题里已经有这个数就不重复写。
         filters: definitions.map((entry) => ({
           id: entry.id,
           label: String(entry.title).indexOf(String(entry.count)) >= 0
@@ -442,11 +390,10 @@ Page({
         groupHelp,
         statsBanner,
         hkStatsVisual,
-        items,
+        items: items.map(({ sparkSrc: _spark, ...rest }) => rest),
+        itemsShown: showAll ? items : items.slice(0, 5),
         source,
         freshness: freshnessBanner(source, meta.kind),
-        // 这一屏罗列的是别人家的公开数据，得让人能一路查到底。新闻资讯页每条都挂
-        // 了官方出处，栏目页也补上了，明细页不该是中间那段查不了的断点。
         sourceLinks: marketSources(snapshot, this.data.market),
         dataAsOf: asOfText(snapshot && snapshot.updatedAt, meta.kind),
       });
@@ -460,10 +407,21 @@ Page({
     const id = String(event.currentTarget.dataset.id || "");
     if (!id || id === this.data.group) return;
     track("list_group_switch", { market: String(this.data.market || ""), group: id });
-    this.setData({ group: id }, () => {
-      this.refresh();
-      wx.pageScrollTo({ scrollTop: 0, duration: 200 });
+    this.data.group = id;
+    this.data.showAllItems = false;
+    this.refresh();
+    wx.pageScrollTo({ scrollTop: 0, duration: 150 });
+  },
+  toggleAllItems() {
+    const next = !this.data.showAllItems;
+    const all = this._fullItems || this.data.items || [];
+    this.setData({
+      showAllItems: next,
+      itemsShown: next ? all : all.slice(0, 5),
     });
+  },
+  toggleSources() {
+    this.setData({ sourcesOpen: !this.data.sourcesOpen });
   },
   openItem(event) {
     const id = event.currentTarget.dataset.id;

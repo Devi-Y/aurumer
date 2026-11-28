@@ -1,6 +1,6 @@
 const { loadSnapshot, snapshotVersionKey } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { allItems, findItem, groupDefinitions, shortCompanyName, shortOrgList, money, aShareDividendStability, tickerZhLabel, tickerShortZh, usPoolItems, usQualityEligibility } = require("../../utils/answers");
+const { allItems, allAShareStockItems, findItem, groupDefinitions, shortCompanyName, shortOrgList, money, aShareDividendStability, tickerZhLabel, tickerShortZh, usPoolItems, usQualityEligibility } = require("../../utils/answers");
 const { getDividendStability } = require("../../utils/dividend-stability");
 const PRODUCT = require("../../config/product");
 const {
@@ -471,7 +471,7 @@ function buildHkModule(snapshot) {
       pnlTone: pnl == null ? "flat" : (pnl > 0 ? "up" : (pnl < 0 ? "down" : "flat")),
     };
   });
-  const historyRows = historyRowsAll.slice(0, 12);
+  const historyRows = historyRowsAll.slice(0, 6);
   const statsSummary = buildHkHistoryStats(snapshot);
   const avgOneLot = oneLotValues.length
     ? `${(oneLotValues.reduce((s, v) => s + v, 0) / oneLotValues.length).toFixed(1)}%`
@@ -486,7 +486,7 @@ function buildHkModule(snapshot) {
   const sponsorRows = [...sponsorAgg.values()]
     .filter((entry) => entry.count >= 2)
     .sort((a, b) => (b.count - a.count) || ((b.up / b.count) - (a.up / a.count)))
-    .slice(0, 10)
+    .slice(0, 6)
     .map((entry) => {
       const winPct = Math.round((entry.up / entry.count) * 100);
       const avgFd = entry.sumFd / entry.count;
@@ -527,7 +527,7 @@ function buildHkModule(snapshot) {
   const industryRows = [...industryAgg.values()]
     .filter((entry) => entry.count >= 2)
     .sort((a, b) => (b.count - a.count) || ((b.up / b.count) - (a.up / a.count)))
-    .slice(0, 8)
+    .slice(0, 5)
     .map((entry) => {
       const winPct = Math.round((entry.up / entry.count) * 100);
       const avgFd = entry.sumFd / entry.count;
@@ -795,7 +795,7 @@ function usOrderFields(item, signal) {
   }
   const refRangeText = order.noBuy
     ? `暂不设低接位 · 警戒位 $${order.stop.toFixed(1)}`
-    : `参考区间 $${order.buy.toFixed(1)} – $${order.sell.toFixed(1)}${order.state === "buy" ? "（已在低位区）" : (order.buyGapPct > 0 ? `（距低位 ${order.buyGapPct.toFixed(1)}%）` : "")}`;
+    : `参考区间 $${order.buy.toFixed(1)}–$${order.sell.toFixed(1)}${order.state === "buy" ? " · 已在低位" : (order.buyGapPct > 0 ? ` · 距低${Math.round(order.buyGapPct)}%` : "")}`;
   return {
     order,
     hasOrder: true,
@@ -1015,7 +1015,6 @@ function usStockRow(item, sparkCache = null, guruMap = null) {
     tone: usTone(signal.tone),
     reason: signal.action,
     asOfText: referenceDateText([raw.asOf]),
-    factChips: usFactChips(item, spark),
     isSeven: MAGNIFICENT_SEVEN.includes(symUpper),
     sortPe: pe,
     sortMargin: gm,
@@ -1386,8 +1385,6 @@ function aRankedList(items, lens, fresh = true) {
       const dataChips = [];
       if (lens === "stable5" && historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
       if (lens !== "stable5" && stability != null) dataChips.push(`稳定度 ${stability}分`);
-      if (pbVal != null && pbVal > 0) dataChips.push(`市净 ${pbVal.toFixed(2)}倍`);
-      if (curPrice != null) dataChips.push(`一手 ¥${Math.round(curPrice * 100).toLocaleString("en-US")}`);
       const spark = historySpark(item, US_SPARK_SIZE);
       return {
         id: item.id,
@@ -1602,15 +1599,9 @@ function aFullStockPool(snapshot) {
       byId.set(String(item.id), item);
     }
   }
-  for (const quote of (snapshot && snapshot.aShare && snapshot.aShare.quotes) || []) {
-    const cleanId = String((quote && quote.code) || "").replace(/\.(SH|SZ)$/i, "");
-    if (!cleanId || byId.has(cleanId)) continue;
-    const resolved = findItem(snapshot, "a", quote.code);
-    if (resolved) {
-      if (resolved.raw && !resolved.raw.historicalDividendYield) {
-        resolved.raw.historicalDividendYield = getHistoricalDividendYield(resolved.raw);
-      }
-      byId.set(cleanId, resolved);
+  for (const item of allAShareStockItems(snapshot)) {
+    if (item && item.id && !byId.has(String(item.id))) {
+      byId.set(String(item.id), item);
     }
   }
   return [...byId.values()];
@@ -1724,7 +1715,6 @@ function aAllModule(items, fresh) {
       if (historicalYield) dataChips.push(`股息 ${historicalYield.yieldPercent.toFixed(2)}%`);
       if (pbVal != null && pbVal > 0) dataChips.push(`市净 ${pbVal.toFixed(2)}倍`);
       else if (peVal != null && peVal > 0) dataChips.push(`市盈 ${peVal.toFixed(1)}倍`);
-      if (price != null) dataChips.push(`一手 ¥${Math.round(price * 100).toLocaleString("en-US")}`);
       const spark = historySpark(item, US_SPARK_SIZE);
       return {
         order,
@@ -2524,7 +2514,7 @@ function buildGuruModule(snapshot) {
   const overlapSorted = [...overlapMap.values()]
     .filter((entry) => entry.count >= 2)
     .sort((a, b) => b.count - a.count)
-    .slice(0, 6);
+    .slice(0, 4);
   const maxOverlap = Math.max(...overlapSorted.map((r) => r.count), 1);
   const overlapRows = overlapSorted.map((entry) => ({
     ...entry,
@@ -2848,6 +2838,8 @@ Page({
     usAllFilter: "all",
     usAllSort: "default",
     usAllList: [],
+    usAllShown: [],
+    usShowAllPool: false,
     usEtfList: [],
     usSectorDonut: null,
     usTriggerTiles: [],
@@ -2871,6 +2863,8 @@ Page({
     aAllFilter: "all",
     aAllSort: "default",
     aAllList: [],
+    aAllShown: [],
+    aShowAllPool: false,
     aTriggerTiles: [],
     aStableList: [],
     aYieldList: [],
@@ -2943,15 +2937,14 @@ Page({
         sourceNote: item.sourceNote,
       }))
       : [];
-    this.setData({ market, meta: META[market], playbooks,
-      nextLink: market === "guru" && !PRODUCT.showPaidCommunity ? null : (NEXT_LINKS[market] || null) });
+    const nextLink = market === "guru" && !PRODUCT.showPaidCommunity ? null : (NEXT_LINKS[market] || null);
+    this.data.market = market;
+    this.data.meta = META[market];
+    this.data.playbooks = playbooks;
+    this.data.nextLink = nextLink;
     wx.setNavigationBarTitle({ title: META[market].title });
     track("section_open", { market: String(market), from: "direct" });
-    if (typeof wx !== "undefined" && typeof wx.nextTick === "function") {
-      wx.nextTick(() => this.refresh());
-    } else {
-      this.refresh();
-    }
+    this.refresh();
   },
   onPullDownRefresh() {
     this.refresh(() => wx.stopPullDownRefresh(), true);
@@ -3057,15 +3050,18 @@ Page({
         .map((item) => ({ ...item, icon: tileIcon(item.id) }));
 
       const cached = getCachedSectionData(snapshot, market, versionKey);
+      this._cachedSources = cached.sourceLinks || [];
       const patch = {
+        market,
+        meta: this.data.meta,
+        nextLink: this.data.nextLink,
         overview: cached.overview,
-        // 聪明钱「本季他们在加/减什么」两张卡和下面「本季共同方向」那张条形图
-        // 是同一批票、同一个家数，上下印两遍；2026-09-29 按产品要求只留下面那张。
         answers: this.data.market === "guru" ? [] : answers,
         source,
         freshness: freshnessBanner(source, meta.kind),
         dataAsOf: marketReferenceAsOf(snapshot, market, meta.kind),
       };
+      if (market === "guru") patch.playbooks = this.data.playbooks;
       if (!isDedicated) {
         patch.groups = groups;
         patch.deepLinks = deepLinks;
@@ -3074,52 +3070,53 @@ Page({
       if (market === "hk" && cached.hkModule) {
         const hkModule = cached.hkModule;
         this._hkModule = hkModule;
-        const hkExitList = hkModule.exitList;
-        this._hkExitList = hkExitList;
-        const hkSelection = resolveHkExitSelection(hkExitList, this.data.hkExitSelectedId);
-        const showAll = Boolean(this.data.hkShowAllHistory);
-        const sortedHist = sortHkHistoryRows(hkModule.historyRowsAll || hkModule.historyRows || [], this.data.hkHistorySort);
+        this._hkExitList = hkModule.exitList;
         Object.assign(patch, {
           sectionAnswerBar: hkModule.answerBar || "",
           hkApplyList: hkModule.applyList,
           hkApplyShown: this.data.hkShowStaleApply ? hkModule.applyList : (hkModule.freshApplyList || hkModule.applyList),
           hkStaleApplyCount: hkModule.staleApplyCount || 0,
-          hkApplyTiles: hkModule.applyTiles,
           hkFirstDayChart: hkModule.firstDayChart,
-          hkStageCompare: hkModule.stageCompare || [],
-          hkExitOptions: hkExitList.map((item) => ({ id: item.id, text: item.text })),
-          hkExitIndex: hkSelection.index,
-          hkExitSelectedId: hkSelection.id,
-          hkExitView: hkSelection.view,
-          hkExitChart: hkModule.exitChart,
-          hkHistorySummary: hkModule.historySummary || [],
-          hkHistoryRows: showAll ? sortedHist : sortedHist.slice(0, 12),
-          hkHistoryTotal: hkModule.historyTotal || sortedHist.length,
-          hkSponsorRows: hkModule.sponsorRows || [],
-          hkCrowdBuckets: hkModule.crowdBuckets || [],
-          hkIndustryRows: hkModule.industryRows || [],
         });
+        if (this.data.hkSubTab === "exit") {
+          const hkSelection = resolveHkExitSelection(hkModule.exitList, this.data.hkExitSelectedId);
+          const sortedHist = sortHkHistoryRows(hkModule.historyRowsAll || hkModule.historyRows || [], this.data.hkHistorySort);
+          Object.assign(patch, {
+            hkStageCompare: hkModule.stageCompare || [],
+            hkExitOptions: hkModule.exitList.map((item) => ({ id: item.id, text: item.text })),
+            hkExitIndex: hkSelection.index,
+            hkExitSelectedId: hkSelection.id,
+            hkExitView: hkSelection.view,
+            hkExitChart: hkModule.exitChart,
+            hkHistorySummary: hkModule.historySummary || [],
+            hkHistoryRows: this.data.hkShowAllHistory ? sortedHist : sortedHist.slice(0, 6),
+            hkHistoryTotal: hkModule.historyTotal || sortedHist.length,
+          });
+        } else if (this.data.hkSubTab === "sponsors") {
+          Object.assign(patch, {
+            hkSponsorRows: hkModule.sponsorRows || [],
+            hkCrowdBuckets: hkModule.crowdBuckets || [],
+            hkIndustryRows: hkModule.industryRows || [],
+          });
+        }
       } else if (market === "us" && cached.usModule) {
         const usModule = cached.usModule;
         Object.assign(patch, {
           sectionAnswerBar: usModule.answerBar || "",
-          usTriggerTiles: usModule.triggerTiles,
           usSevenList: usModule.sevenList,
-          usSevenCompare: usModule.sevenCompare || null,
-          usSevenHeatmap: usModule.sevenHeatmap || [],
-          usSevenHint: usModule.sevenHint,
-          usSevenMix: usModule.sevenMix,
-          usHotHint: usModule.hotHint,
           usEtfList: usModule.etfList || [],
         });
-        // 按激活子 tab 懒下发列表（含 SVG Base64），首屏只算并只传七家大公司 7 条。
-        if (this.data.usSubTab === "hot") patch.usHotList = usModule.hotList;
-        if (this.data.usSubTab === "filings" || (this.data.usSubTab === "compare" && this.data.usCompareDim === "filings")) {
-          patch.usFilingsList = usModule.filingsFeed || [];
+        if (this.data.usSubTab === "compare") {
+          patch.usSevenCompare = usModule.sevenCompare || null;
+          if (this.data.usCompareDim === "filings") patch.usFilingsList = usModule.filingsFeed || [];
         }
+        if (this.data.usSubTab === "hot") patch.usHotList = usModule.hotList;
+        if (this.data.usSubTab === "filings") patch.usFilingsList = usModule.filingsFeed || [];
         if (this.data.usSubTab === "heatmap") patch.usHeatmap = buildUsHeatmap(usModule.allList, this.data.usHeatMode);
         if (this.data.usSubTab === "all") {
-          patch.usAllList = this.applyUsView(usModule.allList, this.data.usAllFilter, this.data.usAllSort);
+          const fullUs = this.applyUsView(usModule.allList, this.data.usAllFilter, this.data.usAllSort);
+          patch.usAllList = fullUs;
+          patch.usAllShown = this.data.usShowAllPool ? fullUs : fullUs.slice(0, 8);
           patch.usSectorDonut = usModule.sectorDonut || null;
         }
         this._usModule = usModule;
@@ -3129,7 +3126,6 @@ Page({
         const wan = this.data.aPrincipalWan || 1;
         Object.assign(patch, {
           sectionAnswerBar: aModule.answerBar || "",
-          aSectorDonut: aModule.sectorDonut || null,
           aStableList: withPrincipalWan(aModule.stableList, wan),
           aLifeSummary: buildLifeSummaryLine(aModule.stableList, wan),
         });
@@ -3150,7 +3146,10 @@ Page({
         }
         if (this.data.aSubTab === "heatmap") patch.aHeatmap = buildAHeatmap(aModule.allList, this.data.aHeatMode);
         if (this.data.aSubTab === "all") {
-          patch.aAllList = withPrincipalWan(this.applyAView(aModule.allList, this.data.aAllFilter, this.data.aAllSort), wan);
+          const fullA = withPrincipalWan(this.applyAView(aModule.allList, this.data.aAllFilter, this.data.aAllSort), wan);
+          patch.aSectorDonut = aModule.sectorDonut || null;
+          patch.aAllList = fullA;
+          patch.aAllShown = this.data.aShowAllPool ? fullA : fullA.slice(0, 8);
           patch.aLifeSummary = buildLifeSummaryLine(aModule.allList, wan);
           patch.aFund = aModule.fund;
         }
@@ -3161,11 +3160,7 @@ Page({
         Object.assign(patch, {
           sectionAnswerBar: goldModule.answerBar || "",
           goldQuotes: goldModule.quotes,
-          goldParityLine: goldModule.parityLine || "",
-          goldCompareTiles: goldModule.compareTiles || [],
           goldSpreadBadge: goldModule.spreadBadge || "",
-          goldReturnPills: goldModule.returnPills || [],
-          goldGauge: goldModule.goldGauge || null,
           goldPeriod: goldView.period,
           goldZoneTone: goldView.zoneTone,
           goldCurrencyLabel: goldView.currencyLabel,
@@ -3180,15 +3175,8 @@ Page({
         const guruSelection = resolveGuruInstitution(guruModule, this.data.guruInstitutionId || guruModule.defaultId);
         Object.assign(patch, {
           sectionAnswerBar: guruModule.answerBar || "",
-          sourceLinks: cached.sourceLinks,
-          guruTrendRows: guruModule.trendRows,
-          guruOverlapRows: guruModule.overlapRows || [],
-          guruActionDonut: guruModule.actionDonut || null,
-          guruTrendTitle: guruModule.trendTitle,
-          guruTrendHint: guruModule.trendHint,
-          guruTrendEmptyText: guruModule.trendEmptyText,
+          sourceLinks: this.data.guruMoreOpen ? cached.sourceLinks : [],
           guruInstitutionList: guruModule.institutionList,
-          guruInstitutionListShown: institutionListShown(guruModule.institutionList, this.data.guruInstitutionExpanded),
           guruInstitutionIndex: guruSelection.index,
           guruInstitutionId: guruSelection.id,
           guruInstitutionName: guruSelection.name,
@@ -3200,11 +3188,24 @@ Page({
           guruHoldingsHint: guruSelection.holdings.hint,
           guruHoldingStats: guruSelection.holdings.stats,
           guruIsLive: guruSelection.holdings.isLive,
-          guruHistoryChart: guruSelection.holdings.historyChart,
-          guruHistoryRowsData: guruSelection.holdings.historyRowsData,
-          guruHistoryHint: guruSelection.holdings.historyHint,
-          guruHistoryChartEmptyText: guruSelection.holdings.historyChartEmptyText,
         });
+        if (this.data.guruSubTab === "trend") {
+          Object.assign(patch, {
+            guruTrendRows: guruModule.trendRows,
+            guruOverlapRows: guruModule.overlapRows || [],
+            guruActionDonut: guruModule.actionDonut || null,
+            guruTrendTitle: guruModule.trendTitle,
+            guruTrendHint: guruModule.trendHint,
+            guruTrendEmptyText: guruModule.trendEmptyText,
+          });
+        } else if (this.data.guruSubTab === "history") {
+          Object.assign(patch, {
+            guruHistoryChart: guruSelection.holdings.historyChart,
+            guruHistoryRowsData: (guruSelection.holdings.historyRowsData || []).slice(0, 5),
+            guruHistoryHint: guruSelection.holdings.historyHint,
+            guruHistoryChartEmptyText: guruSelection.holdings.historyChartEmptyText,
+          });
+        }
       }
 
       this.setData(patch, () => {
@@ -3215,7 +3216,30 @@ Page({
   switchHkSubTab(event) {
     const id = event.currentTarget.dataset.id;
     if (!id || id === this.data.hkSubTab) return;
-    this.setData({ hkSubTab: id });
+    const patch = { hkSubTab: id };
+    const mod = this._hkModule;
+    if (id === "exit" && mod && !this.data.hkHistoryRows.length) {
+      const hkSelection = resolveHkExitSelection(mod.exitList, this.data.hkExitSelectedId);
+      const sortedHist = sortHkHistoryRows(mod.historyRowsAll || mod.historyRows || [], this.data.hkHistorySort);
+      Object.assign(patch, {
+        hkStageCompare: mod.stageCompare || [],
+        hkExitOptions: mod.exitList.map((item) => ({ id: item.id, text: item.text })),
+        hkExitIndex: hkSelection.index,
+        hkExitSelectedId: hkSelection.id,
+        hkExitView: hkSelection.view,
+        hkExitChart: mod.exitChart,
+        hkHistorySummary: mod.historySummary || [],
+        hkHistoryRows: this.data.hkShowAllHistory ? sortedHist : sortedHist.slice(0, 6),
+        hkHistoryTotal: mod.historyTotal || sortedHist.length,
+      });
+    } else if (id === "sponsors" && mod && !this.data.hkSponsorRows.length) {
+      Object.assign(patch, {
+        hkSponsorRows: mod.sponsorRows || [],
+        hkCrowdBuckets: mod.crowdBuckets || [],
+        hkIndustryRows: mod.industryRows || [],
+      });
+    }
+    this.setData(patch);
     track("section_tab", { market: "hk", tab: String(id) });
   },
   selectHkExit(event) {
@@ -3249,7 +3273,7 @@ Page({
     const sortedHist = sortHkHistoryRows(rawHist, this.data.hkHistorySort);
     this.setData({
       hkShowAllHistory: next,
-      hkHistoryRows: next ? sortedHist : sortedHist.slice(0, 12),
+      hkHistoryRows: next ? sortedHist : sortedHist.slice(0, 6),
     });
   },
   sortHkHistory(event) {
@@ -3259,7 +3283,7 @@ Page({
     const sortedHist = sortHkHistoryRows(rawHist, sortId);
     this.setData({
       hkHistorySort: sortId,
-      hkHistoryRows: this.data.hkShowAllHistory ? sortedHist : sortedHist.slice(0, 12),
+      hkHistoryRows: this.data.hkShowAllHistory ? sortedHist : sortedHist.slice(0, 6),
     });
     track("section_tab", { market: "hk", tab: `hist_${sortId}` });
   },
@@ -3268,6 +3292,9 @@ Page({
     if (!id || id === this.data.usSubTab) return;
     const patch = { usSubTab: id };
     const mod = this._usModule;
+    if (id === "compare" && mod && !this.data.usSevenCompare) {
+      patch.usSevenCompare = mod.sevenCompare || null;
+    }
     if (id === "hot" && !this.data.usHotList.length && mod) {
       patch.usHotList = mod.hotList;
     }
@@ -3278,7 +3305,9 @@ Page({
       patch.usHeatmap = buildUsHeatmap(mod.allList, this.data.usHeatMode);
     }
     if (id === "all" && mod) {
-      patch.usAllList = this.applyUsView(mod.allList, this.data.usAllFilter, this.data.usAllSort);
+      const fullUs = this.applyUsView(mod.allList, this.data.usAllFilter, this.data.usAllSort);
+      patch.usAllList = fullUs;
+      patch.usAllShown = this.data.usShowAllPool ? fullUs : fullUs.slice(0, 8);
       patch.usSectorDonut = mod.sectorDonut || null;
     }
     this.setData(patch);
@@ -3329,9 +3358,11 @@ Page({
     const filterId = String(event.currentTarget.dataset.filter || "all");
     if (filterId === this.data.usAllFilter) return;
     const all = (this._usModule && this._usModule.allList) || this.data.usAllList;
+    const fullUs = this.applyUsView(all, filterId, this.data.usAllSort);
     this.setData({
       usAllFilter: filterId,
-      usAllList: this.applyUsView(all, filterId, this.data.usAllSort),
+      usAllList: fullUs,
+      usAllShown: this.data.usShowAllPool ? fullUs : fullUs.slice(0, 8),
     });
     track("section_tab", { market: "us", tab: `filter_${filterId}` });
   },
@@ -3339,11 +3370,21 @@ Page({
     const sortId = String(event.currentTarget.dataset.sort || "default");
     if (sortId === this.data.usAllSort) return;
     const all = (this._usModule && this._usModule.allList) || this.data.usAllList;
+    const fullUs = this.applyUsView(all, this.data.usAllFilter, sortId);
     this.setData({
       usAllSort: sortId,
-      usAllList: this.applyUsView(all, this.data.usAllFilter, sortId),
+      usAllList: fullUs,
+      usAllShown: this.data.usShowAllPool ? fullUs : fullUs.slice(0, 8),
     });
     track("section_tab", { market: "us", tab: `sort_${sortId}` });
+  },
+  toggleUsAllPool() {
+    const next = !this.data.usShowAllPool;
+    const fullUs = this.data.usAllList || [];
+    this.setData({
+      usShowAllPool: next,
+      usAllShown: next ? fullUs : fullUs.slice(0, 8),
+    });
   },
   openUsDetail(event) {
     const id = event.currentTarget.dataset.id;
@@ -3377,7 +3418,10 @@ Page({
       patch.aHeatmap = buildAHeatmap(mod.allList, this.data.aHeatMode);
     }
     if (id === "all" && mod) {
-      patch.aAllList = withPrincipalWan(this.applyAView(mod.allList, this.data.aAllFilter, this.data.aAllSort), wan);
+      const fullA = withPrincipalWan(this.applyAView(mod.allList, this.data.aAllFilter, this.data.aAllSort), wan);
+      patch.aSectorDonut = mod.sectorDonut || null;
+      patch.aAllList = fullA;
+      patch.aAllShown = this.data.aShowAllPool ? fullA : fullA.slice(0, 8);
       patch.aLifeSummary = buildLifeSummaryLine(mod.allList, wan);
       patch.aFund = mod.fund || null;
     }
@@ -3411,7 +3455,9 @@ Page({
         patch.aYieldList = withPrincipalWan(mod.yieldList, wan);
       }
       if (this.data.aAllList.length || this.data.aSubTab === "all") {
-        patch.aAllList = withPrincipalWan(this.applyAView(mod.allList, this.data.aAllFilter, this.data.aAllSort), wan);
+        const fullA = withPrincipalWan(this.applyAView(mod.allList, this.data.aAllFilter, this.data.aAllSort), wan);
+        patch.aAllList = fullA;
+        patch.aAllShown = this.data.aShowAllPool ? fullA : fullA.slice(0, 8);
       }
       if (this.data.aCalendarMonths.length || this.data.aSubTab === "calendar") {
         const cal = mod.calendar;
@@ -3458,9 +3504,12 @@ Page({
     const filterId = String(event.currentTarget.dataset.filter || "all");
     if (filterId === this.data.aAllFilter) return;
     const all = (this._aModule && this._aModule.allList) || this.data.aAllList;
+    const wan = this.data.aPrincipalWan || 1;
+    const fullA = withPrincipalWan(this.applyAView(all, filterId, this.data.aAllSort), wan);
     this.setData({
       aAllFilter: filterId,
-      aAllList: this.applyAView(all, filterId, this.data.aAllSort),
+      aAllList: fullA,
+      aAllShown: this.data.aShowAllPool ? fullA : fullA.slice(0, 8),
     });
     track("section_tab", { market: "a", tab: `filter_${filterId}` });
   },
@@ -3469,11 +3518,21 @@ Page({
     if (sortId === this.data.aAllSort) return;
     const all = (this._aModule && this._aModule.allList) || this.data.aAllList;
     const wan = this.data.aPrincipalWan || 1;
+    const fullA = withPrincipalWan(this.applyAView(all, this.data.aAllFilter, sortId), wan);
     this.setData({
       aAllSort: sortId,
-      aAllList: withPrincipalWan(this.applyAView(all, this.data.aAllFilter, sortId), wan),
+      aAllList: fullA,
+      aAllShown: this.data.aShowAllPool ? fullA : fullA.slice(0, 8),
     });
     track("section_tab", { market: "a", tab: `sort_${sortId}` });
+  },
+  toggleAAllPool() {
+    const next = !this.data.aShowAllPool;
+    const fullA = this.data.aAllList || [];
+    this.setData({
+      aShowAllPool: next,
+      aAllShown: next ? fullA : fullA.slice(0, 8),
+    });
   },
   openADetail(event) {
     const id = event.currentTarget.dataset.id;
@@ -3543,18 +3602,37 @@ Page({
   switchGuruSubTab(event) {
     const id = event.currentTarget.dataset.id;
     if (!id || id === this.data.guruSubTab) return;
-    this.setData({ guruSubTab: id });
+    const patch = { guruSubTab: id };
+    const mod = this._guruModule;
+    if (id === "trend" && mod && !this.data.guruTrendRows.length) {
+      Object.assign(patch, {
+        guruTrendRows: mod.trendRows,
+        guruOverlapRows: mod.overlapRows || [],
+        guruActionDonut: mod.actionDonut || null,
+        guruTrendTitle: mod.trendTitle,
+        guruTrendHint: mod.trendHint,
+        guruTrendEmptyText: mod.trendEmptyText,
+      });
+    } else if (id === "history" && mod && !this.data.guruHistoryRowsData.length) {
+      const sel = resolveGuruInstitution(mod, this.data.guruInstitutionId || mod.defaultId);
+      Object.assign(patch, {
+        guruHistoryChart: sel.holdings.historyChart,
+        guruHistoryRowsData: (sel.holdings.historyRowsData || []).slice(0, 5),
+        guruHistoryHint: sel.holdings.historyHint,
+        guruHistoryChartEmptyText: sel.holdings.historyChartEmptyText,
+      });
+    }
+    this.setData(patch);
     track("section_tab", { market: "guru", tab: String(id) });
   },
   applyGuruInstitution(id) {
     const selection = resolveGuruInstitution(this._guruModule, id);
-    this.setData({
+    const patch = {
       guruInstitutionIndex: selection.index,
       guruInstitutionId: selection.id,
       guruInstitutionName: selection.name,
       guruInstitutionOrg: selection.org,
       guruHoldingsRows: selection.holdings.rows,
-      // 切换机构时收起「展开」，避免上一家展开到10条的状态带到下一家。
       guruHoldingsExpanded: false,
       guruHoldingsRowsShown: holdingsRowsShown(selection.holdings.rows, false),
       guruSoldPills: selection.holdings.soldPills || [],
@@ -3562,11 +3640,14 @@ Page({
       guruHoldingsHint: selection.holdings.hint,
       guruHoldingStats: selection.holdings.stats,
       guruIsLive: selection.holdings.isLive,
-      guruHistoryChart: selection.holdings.historyChart,
-      guruHistoryRowsData: selection.holdings.historyRowsData,
-      guruHistoryHint: selection.holdings.historyHint,
-      guruHistoryChartEmptyText: selection.holdings.historyChartEmptyText,
-    });
+    };
+    if (this.data.guruSubTab === "history" || this.data.guruHistoryRowsData.length) {
+      patch.guruHistoryChart = selection.holdings.historyChart;
+      patch.guruHistoryRowsData = (selection.holdings.historyRowsData || []).slice(0, 5);
+      patch.guruHistoryHint = selection.holdings.historyHint;
+      patch.guruHistoryChartEmptyText = selection.holdings.historyChartEmptyText;
+    }
+    this.setData(patch);
     track("section_guru_institution_select", { id: String(selection.id || "") });
   },
   // 「跟着谁看」点一行：和原型一样，直接切到「机构持仓」视图看这家的持仓，
@@ -3603,7 +3684,12 @@ Page({
     });
   },
   toggleGuruMore() {
-    this.setData({ guruMoreOpen: !this.data.guruMoreOpen });
+    const next = !this.data.guruMoreOpen;
+    const patch = { guruMoreOpen: next };
+    if (next && !this.data.sourceLinks.length && this._cachedSources) {
+      patch.sourceLinks = this._cachedSources;
+    }
+    this.setData(patch);
   },
   toggleGuruInstitutionMore() {
     const expanded = !this.data.guruInstitutionExpanded;

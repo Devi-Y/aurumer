@@ -14,15 +14,59 @@ const publicSnapshot = sanitizeSnapshot(snapshot);
 
 function slimForMiniProgram(data) {
   const next = structuredClone(data);
-  // us.stocks 的 history 曾经在这里被抽到 24 点，注释写的是「只喂走势小图」——
-  // 但 pages/detail/index.js 的 meterVisual/historyStats/stockRange 直接拿
-  // raw.history 算「近 60 日位置」「近 60 日中位数」「样本交易日」，抽样后的
-  // 24 点既不等于真实 60 日高低（抽样点未必落在真正的最高/最低那天），也让
-  // 「样本交易日」显示成 24 个而非 60 个——用展示点数代替了真实样本量，是
-  // 一个真实存在过的计算用抽样数据的 bug（NVDA 实测：真实 60 日位置 83%，
-  // 抽样后算出 87%）。priceVisual 自己已经会按最多 36 列再抽一遍做柱状展示，
-  // 不依赖这里传入的数组长度，所以这里不再抽稀，直接把完整历史交给计算函数；
-  // 30 只美股 × 60 点、20 只 A 股 × 近 250 日（约 1 年）及 30–50 只港股历史样本全量保留，不抽稀。
+  // 保留全量交易日收盘点数（美股 60 日、A 股近 250 日、港股全量历史），不抽稀任何样本点；
+  // 仅将 A 股日线 {date, close} 对象数组压为与美股一致的纯收盘价数值数组（首尾日期单存 historyRange），
+  // 并裁去 2014 年以前的远古分红流水与小程序未读取的冗余文本字段，显著降低包体积与反序列化耗时。
+  if (next.aShare && Array.isArray(next.aShare.quotes)) {
+    next.aShare.quotes = next.aShare.quotes.map((quote) => {
+      if (!quote || typeof quote !== "object") return quote;
+      const {
+        quoteNote,
+        actionPriceNote,
+        sustainableDividendYield,
+        annualDividendPer100k,
+        ...rest
+      } = quote;
+      if (Array.isArray(rest.history) && rest.history.length && typeof rest.history[0] === "object") {
+        const validRows = rest.history.filter((r) => r && Number.isFinite(Number(r.close)) && Number(r.close) > 0);
+        if (validRows.length) {
+          rest.historyRange = [String(validRows[0].date || ""), String(validRows[validRows.length - 1].date || "")];
+          rest.history = validRows.map((r) => Number(r.close));
+        }
+      }
+      return rest;
+    });
+  }
+  if (next.aShare && Array.isArray(next.aShare.fundamentals)) {
+    next.aShare.fundamentals = next.aShare.fundamentals.map((fund) => {
+      if (!fund || typeof fund !== "object" || !Array.isArray(fund.dividendHistory)) return fund;
+      const trimmedHistory = fund.dividendHistory
+        .filter((yr) => {
+          const yNum = Number(yr && yr.year);
+          return !Number.isFinite(yNum) || yNum >= 2014;
+        })
+        .map((yr) => ({
+          year: yr.year,
+          distributions: Array.isArray(yr.distributions)
+            ? yr.distributions.map((d) => {
+                if (!d || typeof d !== "object") return d;
+                const slimDist = {
+                  reportBasis: d.reportBasis,
+                  exDividendDate: d.exDividendDate,
+                  perTenSharesRmb: d.perTenSharesRmb,
+                  plan: d.plan,
+                };
+                if (d.status) slimDist.status = d.status;
+                if (d.implementationStatus) slimDist.implementationStatus = d.implementationStatus;
+                if (d.dividendType) slimDist.dividendType = d.dividendType;
+                if (d.noticeDate) slimDist.noticeDate = d.noticeDate;
+                return slimDist;
+              })
+            : [],
+        }));
+      return { ...fund, dividendHistory: trimmedHistory };
+    });
+  }
   return next;
 }
 
@@ -46,7 +90,18 @@ try {
   // 打包只读已发布批次与已保存资料，不再临时抓取盘中行情。
   const sleeve = JSON.parse(await readFile(path.join(root, "data/sleeve-quotes.json"), "utf8"));
   if (sleeve.quotes.length) {
-    slimSnapshot.us = { ...slimSnapshot.us, sleeveQuotes: sleeve.quotes };
+    const slimSleeves = sleeve.quotes.map((q) => ({
+      symbol: q.symbol,
+      name: q.name,
+      price: q.price,
+      changePercent: q.changePercent,
+      dividendYield: q.dividendYield,
+      asOf: q.asOf,
+      history: Array.isArray(q.history)
+        ? q.history.map((h) => Number(h?.close ?? h)).filter((v) => Number.isFinite(v) && v > 0)
+        : [],
+    }));
+    slimSnapshot.us = { ...slimSnapshot.us, sleeveQuotes: slimSleeves };
     console.log(`底仓 ETF 行情已并入小程序：${sleeve.quotes.map((item) => `${item.symbol} $${Number(item.price).toFixed(2)}`).join(" · ")}`);
   }
 } catch (error) {

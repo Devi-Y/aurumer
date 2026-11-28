@@ -11,7 +11,22 @@ function finite(value) {
   return Number.isFinite(amount) ? amount : null;
 }
 
+const DAYS_IN_MONTH = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+function isValidIsoDay(text) {
+  if (typeof text !== "string" || text.length !== 10 || text[4] !== "-" || text[7] !== "-") return false;
+  const y = Number(text.slice(0, 4));
+  const m = Number(text.slice(5, 7));
+  const d = Number(text.slice(8, 10));
+  if (!(y >= 1900 && y <= 2100 && m >= 1 && m <= 12 && d >= 1)) return false;
+  const leap = m === 2 && ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0) ? 1 : 0;
+  return d <= DAYS_IN_MONTH[m] + leap;
+}
+
 function dayOf(value) {
+  if (typeof value === "string" && value.length === 10) {
+    return isValidIsoDay(value) ? value : null;
+  }
   if (value instanceof Date || typeof value === "number") {
     const stamp = value instanceof Date ? value.getTime() : value;
     if (!Number.isFinite(stamp)) return null;
@@ -20,10 +35,7 @@ function dayOf(value) {
     value = date.toISOString();
   }
   const text = String(value || "");
-  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-    const stamp = Date.parse(`${text}T00:00:00Z`);
-    return Number.isFinite(stamp) && new Date(stamp).toISOString().slice(0, 10) === text ? text : null;
-  }
+  if (isValidIsoDay(text)) return text;
   const stamp = Date.parse(text);
   if (!Number.isFinite(stamp)) return null;
   // A-share dates use the China market calendar, including around New Year.

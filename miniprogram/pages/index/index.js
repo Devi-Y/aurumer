@@ -6,17 +6,13 @@ const { allItems, usPoolItems } = require("../../utils/answers");
 const OFFERS = require("../../config/offers");
 const SERVICE_LINKS = require("../../config/services");
 const { asOfText } = require("../../utils/dates");
-const { referenceDateText } = require("../../utils/historical-reference");
 const { openPage } = require("../../utils/nav");
-const { toneOf, sampleSeries, sparklineSvg, zeroAxisBars } = require("../../utils/sparkline");
+const { toneOf, sampleSeries } = require("../../utils/sparkline");
 const { searchIconSvg, cleanSparkSvg, ipoTrackSvg } = require("../../utils/svg-charts");
-const { hkFirstDaySeries } = require("../../utils/hk-history-stats");
-const { historicalGoldRows } = require("../../utils/gold-series");
 const { listQuickStars } = require("../../utils/quick-stars");
 
 const SERVICES = SERVICE_LINKS.filter((entry) => OFFERS.some((offer) =>
   entry.offerIds.includes(offer.id) && (offer.copy || offer.image || offer.pending)));
-const DIVIDEND_FUND_ID = "515180";
 const SHORT_MKT = {
   hk: "港",
   us: "美",
@@ -36,6 +32,7 @@ const MARKET_TAG = {
 const CORE_ENTRIES = [
   {
     id: "hk",
+    market: "hk",
     action: "section",
     icon: "/assets/home/hk.svg",
     title: "港股打新",
@@ -43,6 +40,7 @@ const CORE_ENTRIES = [
   },
   {
     id: "us",
+    market: "us",
     action: "section",
     icon: "/assets/home/us.svg",
     title: "美股投资",
@@ -50,6 +48,7 @@ const CORE_ENTRIES = [
   },
   {
     id: "a",
+    market: "a",
     action: "section",
     icon: "/assets/home/a.svg",
     title: "A股收息",
@@ -57,6 +56,7 @@ const CORE_ENTRIES = [
   },
   {
     id: "gold",
+    market: "gold",
     action: "section",
     icon: "/assets/home/gold.svg",
     title: "黄金追踪",
@@ -64,6 +64,7 @@ const CORE_ENTRIES = [
   },
   {
     id: "guru",
+    market: "guru",
     action: "section",
     icon: "/assets/home/guru.svg",
     title: "聪明钱跟踪",
@@ -77,8 +78,6 @@ const GRID_ENTRIES = [
   ...SERVICES.map((item) => ({ ...item, action: "page" })),
 ];
 
-// ---------- 首页走势卡 + 韭圈儿综合温度计：100% 基于真实快照序列计算 ----------
-
 function signedPct(value, digits = 1) {
   if (!Number.isFinite(value)) return "";
   return `${value > 0 ? "+" : ""}${value.toFixed(digits)}%`;
@@ -87,130 +86,6 @@ function signedPct(value, digits = 1) {
 function positivePrice(raw) {
   return (typeof raw === "number" || typeof raw === "string") && Number.isFinite(Number(raw)) && Number(raw) > 0
     ? Number(raw) : null;
-}
-
-function lineMood(values, change) {
-  const low = Math.min(...values);
-  const high = Math.max(...values);
-  const last = values[values.length - 1];
-  const pos = high > low ? (last - low) / (high - low) : 0.5;
-  const temp = Math.max(5, Math.min(95, Math.round(pos * 100)));
-  if (pos >= 0.8) return { mood: "靠近区间高位", moodTone: "warn", tempScore: temp };
-  if (pos <= 0.2) return { mood: "靠近区间低位", moodTone: "cool", tempScore: temp };
-  if (change >= 4) return { mood: "区间走强", moodTone: "up", tempScore: temp };
-  if (change <= -4) return { mood: "区间回落", moodTone: "down", tempScore: temp };
-  return { mood: "区间震荡", moodTone: "flat", tempScore: temp };
-}
-
-function lineTrend({ id, market, title, history, digits, prefix, detailId = "" }) {
-  const closesByDate = new Map();
-  for (const row of history || []) {
-    const date = String(row?.date || "");
-    const time = Date.parse(`${date}T00:00:00Z`);
-    const close = positivePrice(row?.close);
-    if (close !== null && Number.isFinite(time) && new Date(time).toISOString().slice(0, 10) === date) {
-      closesByDate.set(date, close);
-    }
-  }
-  const dates = [...closesByDate.keys()].sort();
-  if (dates.length < 10) return null;
-  const firstDate = dates[0];
-  const lastDate = dates[dates.length - 1];
-  const endLabel = firstDate.slice(0, 4) === lastDate.slice(0, 4) ? lastDate.slice(5) : lastDate;
-  const values = dates.map((date) => closesByDate.get(date));
-  const lastClose = values[values.length - 1];
-  const change = (lastClose / values[0] - 1) * 100;
-  return {
-    id,
-    market,
-    title,
-    detailId,
-    kind: "line",
-    asOf: `${firstDate}—${endLabel}`,
-    value: `${prefix}${lastClose.toFixed(digits)}`,
-    sub: signedPct(change),
-    tone: toneOf(change),
-    ...lineMood(values, change),
-    src: sparklineSvg(sampleSeries(values), { width: 300, height: 104 }),
-  };
-}
-
-function buildHomeTrends(snapshot) {
-  const cards = [];
-
-  const ipos = hkFirstDaySeries(snapshot);
-  if (ipos.length >= 3) {
-    const changes = ipos.map((item) => item.change);
-    const upCount = changes.filter((value) => value > 0).length;
-    const upRatio = upCount / changes.length;
-    cards.push({
-      id: "hk",
-      market: "hk",
-      title: "港股新股首日",
-      asOf: referenceDateText([ipos[ipos.length - 1].date], "上市至"),
-      kind: "bars",
-      value: `${upCount}只涨`,
-      sub: `共${changes.length}只`,
-      tone: "flat",
-      tempScore: Math.max(5, Math.min(95, Math.round(upRatio * 100))),
-      mood: upRatio >= 0.6 ? "首日偏暖" : (upRatio <= 0.4 ? "破发偏多" : "冷热分化"),
-      moodTone: upRatio >= 0.6 ? "up" : (upRatio <= 0.4 ? "down" : "flat"),
-      ...zeroAxisBars(changes),
-    });
-  }
-
-  const stocks = (snapshot.us && snapshot.us.stocks) || [];
-  const seven = MAGNIFICENT_SEVEN
-    .map((symbol) => stocks.find((item) => item.symbol === symbol))
-    .filter((item) => item && Array.isArray(item.history) && item.history.length >= 10)
-    .map((item) => ({ history: item.history.map(positivePrice), asOf: item.asOf }))
-    .filter((item) => item.history.every((close) => close !== null));
-  if (seven.length >= 3) {
-    const sampleCount = Math.min(...seven.map((item) => item.history.length));
-    const changes = seven.map(({ history }) => (history[history.length - 1] / history[history.length - sampleCount] - 1) * 100);
-    const upCount = changes.filter((value) => value > 0).length;
-    const upRatio = upCount / changes.length;
-    cards.push({
-      id: "us",
-      market: "us",
-      title: "美股七姐妹",
-      asOf: referenceDateText(seven.map((item) => item.asOf)),
-      kind: "bars",
-      value: `${upCount}只涨`,
-      sub: `共${changes.length}只 · ${sampleCount}个交易日`,
-      tone: "flat",
-      tempScore: Math.max(5, Math.min(95, Math.round(upRatio * 100))),
-      mood: upRatio >= 0.65 ? "多数收涨" : (upRatio <= 0.35 ? "多数回调" : "涨跌互现"),
-      moodTone: upRatio >= 0.65 ? "up" : (upRatio <= 0.35 ? "down" : "flat"),
-      ...zeroAxisBars(changes),
-    });
-  }
-
-  const fund = ((snapshot.aShare && snapshot.aShare.funds) || [])
-    .find((item) => String(item?.code || "").replace(/\.(SH|SZ)$/i, "") === DIVIDEND_FUND_ID);
-  const fundCard = fund && lineTrend({
-    id: "a",
-    market: "a",
-    title: fund.shortName || "红利ETF",
-    history: fund.history,
-    detailId: DIVIDEND_FUND_ID,
-    digits: 3,
-    prefix: "¥",
-  });
-  if (fundCard) cards.push(fundCard);
-
-  const goldBars = historicalGoldRows(snapshot);
-  const goldCard = lineTrend({
-    id: "gold",
-    market: "gold",
-    title: "国际金价",
-    history: goldBars,
-    digits: 0,
-    prefix: "$",
-  });
-  if (goldCard) cards.push(goldCard);
-
-  return cards;
 }
 
 const SEARCH_ALIASES = {
@@ -476,12 +351,10 @@ Page({
   data: {
     entries: GRID_ENTRIES,
     searchIconSrc: searchIconSvg("#1d5fd1"),
-    trends: [],
     searchQuery: "",
     searchFocused: false,
     searchResults: [],
     hotPicks: [],
-    quickPicks: [],
     starPicks: [],
     dataAsOf: "",
     freshnessKind: "offline",
@@ -493,12 +366,8 @@ Page({
     this._searchIndex = null;
     this._trendsDataKey = "";
     this._loadedOnce = true;
-    const boot = () => {
-      this.syncStarPicks();
-      this.refreshAnswers();
-    };
-    if (typeof wx !== "undefined" && typeof wx.nextTick === "function") wx.nextTick(boot);
-    else boot();
+    this.syncStarPicks();
+    this.refreshAnswers();
   },
   onShow() {
     this.syncStarPicks();
@@ -535,9 +404,7 @@ Page({
         if (force || !this._trendsDataKey || dataKey !== this._trendsDataKey) {
           this._trendsDataKey = dataKey;
           this._searchIndex = null;
-          const hotPicks = buildHotPicks(data);
-          patch.hotPicks = hotPicks;
-          patch.quickPicks = hotPicks;
+          patch.hotPicks = buildHotPicks(data);
         }
         if (Object.keys(patch).length) this.setData(patch);
       },
@@ -606,17 +473,6 @@ Page({
       wx.navigateTo({ url: `/pages/section/index?market=${entry.id}` });
       return;
     }
-  },
-  openTrend(event) {
-    const { market, detailId } = event.currentTarget.dataset;
-    if (!market) return;
-    if (market === "a" && detailId === DIVIDEND_FUND_ID) {
-      track("detail_open", { market, from: "home_trend" });
-      wx.navigateTo({ url: `/pages/detail/index?market=a&id=${DIVIDEND_FUND_ID}` });
-      return;
-    }
-    track("section_open", { market, from: "home_trend" });
-    wx.navigateTo({ url: `/pages/section/index?market=${market}` });
   },
   openLegal() {
     openPage("/pages/legal/index");

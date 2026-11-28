@@ -5,7 +5,7 @@ const { RESEARCH_DISCLAIMER, RISK_LABEL } = require("../../utils/disclaimer");
 const { loadSnapshot, snapshotVersionKey } = require("../../data/store");
 const { plainLabel, simpleHighlights } = require("../../utils/plain-reading");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { allItems, findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction, usHeatDriver, tickerZhLabel, tickerShortZh, usPoolItems } = require("../../utils/answers");
+const { allItems, allAShareStockItems, findItem, money, INVESTOR_NAMES, formatRange, shortCompanyName, shortOrgList, normalizeHkAction, usHeatDriver, tickerZhLabel, tickerShortZh, usPoolItems } = require("../../utils/answers");
 const { scoreForItem } = require("../../utils/strategy-score");
 const { buildStrategySignal } = require("../../utils/strategy-signals");
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
@@ -1332,7 +1332,7 @@ function buildHKView(base, item, snapshot) {
   ].filter(Boolean);
   base.overviewCharts = [
     ended ? performanceCurve : (hkStructureDonut || hkWinDonut || exitTierBars || hkCohortVisual(strategyEvidence)),
-  ].filter(Boolean).slice(0, 2);
+  ].filter(Boolean).slice(0, 1);
 
   base.facts = compactFacts([
     ["公司全称", item.name],
@@ -1702,7 +1702,7 @@ function buildUSView(base, item, snapshot) {
       })
     : null;
 
-  base.overviewCharts = [usPentagon, usVsVooVisual, usDualFinVisual || usPeerBench || marginBars].filter(Boolean).slice(0, 3);
+  base.overviewCharts = [usPentagon || usVsVooVisual || usDualFinVisual || usPeerBench || marginBars].filter(Boolean).slice(0, 1);
 
   // 「价格」保留走势和扇形分位表盘，「动态」集中展示公告与近期营收/盈利趋势。
   base.trendCharts = [
@@ -1979,9 +1979,11 @@ function buildAShareView(base, item, snapshot) {
   const aHistory = (Array.isArray(raw.history) ? raw.history : [])
     .map((entry) => Number(entry && entry.close != null ? entry.close : entry))
     .filter((value) => Number.isFinite(value) && value > 0);
-  const aHistoryDates = (Array.isArray(raw.history) ? raw.history : [])
-    .map((entry) => String(entry && entry.date || ""))
-    .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date));
+  const aHistoryDates = Array.isArray(raw.historyRange) && raw.historyRange.length >= 2
+    ? raw.historyRange.filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(String(date || "")))
+    : (Array.isArray(raw.history) ? raw.history : [])
+      .map((entry) => String(entry && entry.date || ""))
+      .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date));
   const aPriceLine = aHistory.length >= 10
     ? priceVisual(
       aHistory,
@@ -2179,10 +2181,8 @@ function buildAShareView(base, item, snapshot) {
     cashQualityTiles,
   ].filter(Boolean);
   base.overviewCharts = [
-    aPentagon,
-    aVsEtfVisual || aYieldBandMeter,
-    aPayoutDonut || aDualFinVisual || dividendHistoryVisual(raw, snapshot.updatedAt, "5"),
-  ].filter(Boolean).slice(0, 3);
+    aPentagon || aYieldBandMeter || aPayoutDonut,
+  ].filter(Boolean).slice(0, 1);
   base.evidenceCharts = [
     aDualFinVisual,
     solidVisual([
@@ -2406,7 +2406,7 @@ function buildGuruView(base, item, snapshot) {
     })), "持仓权重"),
     changeBars,
   ].filter(Boolean);
-  base.overviewCharts = [guruDonutVisual, changeBars].filter(Boolean);
+  base.overviewCharts = [guruDonutVisual || changeBars].filter(Boolean).slice(0, 1);
   base.evidenceCharts = [
     // 这里原来把表观年化 ×3 截到 100 当成分数画进 0–100 刻度条，格子里还写着
     // 「研究分 23」——聪明人持仓根本没有研究分，这个 3 倍也没有任何口径依据。
@@ -2684,7 +2684,7 @@ function buildGoldView(base, item) {
     ["上海金收盘", hasNumber(domestic.price) ? `¥${Number(domestic.price).toFixed(2)}/克` : null],
     ["美股黄金ETF", hasNumber(etf.price) ? `$${Number(etf.price).toFixed(1)}` : null],
   ].filter((r) => r[1]), "国内外金价对照");
-  base.overviewCharts = [intlGoldGauge, goldDualLine || goldMacroBars, parityTiles || fallbackGoldCompare].filter(Boolean).slice(0, 3);
+  base.overviewCharts = [intlGoldGauge || goldDualLine || parityTiles || fallbackGoldCompare].filter(Boolean).slice(0, 1);
   base.evidenceCharts = [
     scoreMeter(internationalScore, "国际金观察分", action),
     scoreMeter(domesticScore, "人民币金观察分", "国内价格"),
@@ -3072,84 +3072,6 @@ function buildOverview(base, item) {
     if (seriesCloses.length >= 85) pushWindow(seriesCloses.length, `近${seriesCloses.length}日`);
   }
 
-  // 借鉴 Perplexity Finance：把最核心的 3 个决策疑问直接答成零术语白话卡片（纯基于已核验字段）。
-  const qaCards = [];
-  if (item.market === "a" && raw.assetType !== "fund") {
-    const fin = raw.financials || {};
-    const stab = getDividendStability(raw, { asOf: raw.snapshotUpdatedAt || raw.priceAsOf || raw.asOf });
-    if (Array.isArray(stab.years) && stab.years.length > 0) {
-      qaCards.push({
-        q: "分红连续性稳不稳？",
-        a: `已收录 ${stab.years.length} 个年度分红记录${stab.decreaseCount != null ? `，近5个完整所属年度出现 ${stab.decreaseCount} 次减息` : "，部分年度记录待补齐"}。`,
-      });
-    }
-    if (!isABankCode(raw) && hasNumber(fin.operatingCashFlow) && hasNumber(fin.freeCashFlow)) {
-      qaCards.push({
-        q: "真金白银现金流够不够？",
-        a: `经营现金流 ${formatLarge(fin.operatingCashFlow)}，自由现金流 ${formatLarge(fin.freeCashFlow)}${hasNumber(fin.cashConversion) ? `，现金利润覆盖 ${Number(fin.cashConversion).toFixed(2)} 倍` : ""}。`,
-      });
-    }
-    if (raw.historicalDividendYield) {
-      const hy = raw.historicalDividendYield;
-      qaCards.push({
-        q: "税前历史股息率怎么算出来的？",
-        a: `按 ${hy.year} 年度已实施税前每股分红 ${Number(hy.dividendPerShare).toFixed(4)} 元 ÷ ${hy.priceAsOf} 报价，算得 ${Number(hy.yieldPercent).toFixed(2)}%（过去分红不代表未来）。`,
-      });
-    }
-  } else if (item.market === "us") {
-    const fin = raw.fund || {};
-    const qaGm = cleanUsGrossMargin(raw.symbol || item.code, fin.grossMargin);
-    if (qaGm != null) {
-      qaCards.push({
-        q: "生意赚钱能力厚不厚？",
-        a: `毛利率 ${Number(qaGm).toFixed(1)}%${hasNumber(fin.profitMargin) ? `，净利率 ${Number(fin.profitMargin).toFixed(1)}%` : ""}${hasNumber(fin.roe) ? `，股东回报率 ${Number(fin.roe).toFixed(1)}%` : ""}。`,
-      });
-    }
-    if (hasNumber(fin.revenueGrowth) || hasNumber(fin.netIncome)) {
-      qaCards.push({
-        q: "最近一期增长还在不在？",
-        a: `${hasNumber(fin.revenueGrowth) ? `公开财报期营收同比 ${formatPercent(fin.revenueGrowth)}` : "营收增速待核"}${hasNumber(fin.netIncome) ? `，净利润 ${formatLarge(fin.netIncome)}` : ""}。`,
-      });
-    }
-    if (hasNumber(fin.pe) || seriesCloses.length >= 10) {
-      const lo = seriesCloses.length >= 10 ? Math.min(...seriesCloses) : null;
-      const hi = seriesCloses.length >= 10 ? Math.max(...seriesCloses) : null;
-      const pos = (lo != null && hi != null && hi > lo && hasNumber(raw.price))
-        ? Math.max(0, Math.min(100, Math.round(((Number(raw.price) - lo) / (hi - lo)) * 100)))
-        : null;
-      qaCards.push({
-        q: "估值与近期位置在哪？",
-        a: `${hasNumber(fin.pe) && Number(fin.pe) > 0 ? `市盈率 ${Number(fin.pe).toFixed(1)} 倍；` : ""}${pos != null ? `该次历史报价位于近 ${seriesCloses.length} 个交易日的 ${pos}% 分位。` : "请结合财报期综合对照。"}`,
-      });
-    }
-  } else if (item.market === "hk") {
-    qaCards.push({
-      q: "参与一手需要准备多少资金？",
-      a: `${hasNumber(raw.entryFee) ? `一手入场约 ${Number(raw.entryFee).toFixed(0)} 港元` : "入场金额见招股书"}${hasNumber(raw.oneLotRate) ? `，一手中签率 ${Number(raw.oneLotRate).toFixed(1)}%` : ""}。`,
-    });
-    if (hasNumber(raw.cornerstonePercent) || raw.sponsor) {
-      qaCards.push({
-        q: "基石与保荐人阵容如何？",
-        a: `${hasNumber(raw.cornerstonePercent) ? `基石认购占比 ${Number(raw.cornerstonePercent).toFixed(1)}%` : "基石占比待披露"}${raw.industry ? `，所属行业为${raw.industry}` : ""}。`,
-      });
-    }
-  } else if (item.market === "gold") {
-    if (seriesCloses.length >= 10) {
-      const lo = Math.min(...seriesCloses);
-      const hi = Math.max(...seriesCloses);
-      const pos = hi > lo ? Math.round(((seriesCloses[seriesCloses.length - 1] - lo) / (hi - lo)) * 100) : 50;
-      qaCards.push({
-        q: "金价在近期历史中处于什么位置？",
-        a: `国际金最新收录收盘价处于近 ${seriesCloses.length} 个交易日的 ${pos}% 分位，分位仅反映过去高低，不预测明日方向。`,
-      });
-    }
-  } else if (item.market === "guru") {
-    qaCards.push({
-      q: "普通人读机构持仓最该注意什么？",
-      a: "法定持仓披露仅含多头且有时间滞后，适合学习长线选股方向，切忌把几个月前的持仓当成今天买卖信号照抄。",
-    });
-  }
-
   base.overview = {
     orderPlan: base.orderPlan || null,
     priceCard,
@@ -3158,8 +3080,6 @@ function buildOverview(base, item) {
     badges: badges.slice(0, 3),
     yearDots,
     periodReturns: periodReturns.slice(0, 4),
-    qaCards: qaCards.slice(0, 3),
-    radar: radarAxes.length >= 3 ? { canvasId: "overview-health-radar", axes: radarAxes.slice(0, 5) } : null,
     healthChecks: healthChecks.slice(0, 3),
     filingCount,
     keyFacts: keyFacts.slice(0, 2),
@@ -3750,7 +3670,7 @@ function buildHeroVisualMeta(base, item, snapshot) {
     heroVerdict = "公开重仓披露";
   }
 
-  return { displayCode, heroTags: heroTags.slice(0, 4), heroRange, heroStages, heroVerdict };
+  return { displayCode, heroTags: heroTags.slice(0, 3), heroRange, heroStages, heroVerdict };
 }
 
 function detailModules(market) {
@@ -3856,28 +3776,45 @@ function chartsForModule(view, moduleId) {
   return chartMap[moduleId] || [];
 }
 
+const PEER_POOL_CACHE = typeof WeakMap === "function" ? new WeakMap() : null;
+
+function getPeerPoolForMarket(snapshot, item) {
+  let byKey = PEER_POOL_CACHE ? PEER_POOL_CACHE.get(snapshot) : null;
+  if (!byKey) {
+    byKey = {};
+    if (PEER_POOL_CACHE) PEER_POOL_CACHE.set(snapshot, byKey);
+  }
+  if (item.market === "us") {
+    if (!byKey.usItems) byKey.usItems = allItems(snapshot, "us");
+    const seven = byKey.usItems.filter((row) => row.group === "seven");
+    if (seven.some((row) => row.id === item.id)) return seven;
+    if (!byKey.usPool) byKey.usPool = usPoolItems(snapshot);
+    return byKey.usPool;
+  }
+  if (item.market === "a") {
+    if (item.raw?.assetType === "fund") return [];
+    if (!byKey.aPool) {
+      const stocks = allAShareStockItems(snapshot);
+      byKey.aPool = stocks.length ? stocks : allItems(snapshot, "a").filter((row) => row.raw?.assetType !== "fund");
+    }
+    return byKey.aPool;
+  }
+  if (item.market === "guru") {
+    if (!byKey.guruPool) byKey.guruPool = allItems(snapshot, "guru").filter((row) => row.group !== "overlap");
+    return byKey.guruPool;
+  }
+  if (item.market === "hk") {
+    if (!byKey.hkItems) byKey.hkItems = allItems(snapshot, "hk");
+    const live = byKey.hkItems.filter((row) => (row.lenses || []).some((l) => l === "live" || l === "date-pending"));
+    return live.some((row) => row.id === item.id) ? live : byKey.hkItems.filter((row) => row.group === item.group);
+  }
+  return [];
+}
+
 // 借鉴抖音连刷体验：自动构建同市场有序队列，详情页内无缝切上一只/下一只，零页面栈堆积。
 function buildPeerNav(snapshot, item) {
   if (!snapshot || !item || item.market === "gold") return null;
-  let pool = [];
-  if (item.market === "us") {
-    const items = allItems(snapshot, "us");
-    const seven = items.filter((row) => row.group === "seven");
-    if (seven.some((row) => row.id === item.id)) pool = seven;
-    else pool = usPoolItems(snapshot);
-  } else if (item.market === "a") {
-    if (item.raw?.assetType === "fund") return null;
-    pool = ((snapshot.aShare && snapshot.aShare.quotes) || [])
-      .map((q) => findItem(snapshot, "a", q.code))
-      .filter(Boolean);
-    if (!pool.length) pool = allItems(snapshot, "a").filter((row) => row.raw?.assetType !== "fund");
-  } else if (item.market === "guru") {
-    pool = allItems(snapshot, "guru").filter((row) => row.group !== "overlap");
-  } else if (item.market === "hk") {
-    const items = allItems(snapshot, "hk");
-    const live = items.filter((row) => (row.lenses || []).some((l) => l === "live" || l === "date-pending"));
-    pool = live.some((row) => row.id === item.id) ? live : items.filter((row) => row.group === item.group);
-  }
+  const pool = getPeerPoolForMarket(snapshot, item);
   const seen = new Set();
   const unique = pool.filter((row) => {
     if (!row || !row.id || seen.has(row.id)) return false;
@@ -3962,7 +3899,7 @@ function buildShareCardText(view, dataAsOf) {
   return lines.filter(Boolean).join("\n");
 }
 
-function slimViewForSetData(view) {
+function slimViewForSetData(view, activeModule = "overview") {
   if (!view || typeof view !== "object") return {};
   const {
     charts,
@@ -3979,6 +3916,15 @@ function slimViewForSetData(view) {
     researchCharts,
     ...slim
   } = view;
+  const needsEvidence = ["evidence", "finance", "research", "source", "risk", "summary"].includes(activeModule);
+  if (!needsEvidence) {
+    slim.facts = [];
+    slim.metrics = [];
+    slim.analysis = [];
+    slim.riskItems = [];
+    slim.sourceLinks = [];
+    slim.visual = null;
+  }
   return slim;
 }
 
@@ -3994,9 +3940,12 @@ Page({
     loadError: "",
     detailsExpanded: false,
     moreEvidenceExpanded: false,
+    moreChartsExpanded: false,
     strategyExpanded: false,
     activeModule: "summary",
     activeCharts: [],
+    activeChartsShown: [],
+    moreChartsCount: 0,
     peerNav: null,
     view: {},
     source: "正在读取同步数据",
@@ -4033,22 +3982,19 @@ Page({
   onLoad(options) {
     this._detailItem = null;
     this._latestSnapshot = null;
-    this.setData({
-      market: options.market || "hk",
-      id: decodeURIComponent(options.id || ""),
-      loading: true,
-      ready: false,
-      loadError: "",
-      snapshotReviewAt: addDaysLabel(todayLabelLocal(), 14),
-    });
-    track("detail_open", { market: String(options.market || "hk") });
-    if (typeof wx !== "undefined" && typeof wx.nextTick === "function") {
-      wx.nextTick(() => this.refresh());
-    } else {
-      this.refresh();
-    }
+    this._skipFirstShow = true;
+    this.data.market = options.market || "hk";
+    this.data.id = decodeURIComponent(options.id || "");
+    this.data.loadError = "";
+    this.data.snapshotReviewAt = addDaysLabel(todayLabelLocal(), 14);
+    track("detail_open", { market: String(this.data.market) });
+    this.refresh();
   },
   onShow() {
+    if (this._skipFirstShow) {
+      this._skipFirstShow = false;
+      return;
+    }
     if (PRODUCT.memberToolsEnabled) this.refreshMemberLink();
   },
   onPullDownRefresh() { this.refresh(() => wx.stopPullDownRefresh(), true); },
@@ -4089,7 +4035,6 @@ Page({
   },
   refresh(done, force = false) {
     // 先渲染快照，会员态异步补齐，避免云函数卡住时一直「资料暂不可用」。
-    if (!this.data.ready) this.setData({ loading: true, loadError: "" });
     let rendered = false;
     loadSnapshot((snapshot, source, meta = {}) => {
       rendered = true;
@@ -4103,6 +4048,8 @@ Page({
         const item = findItem(snapshot, this.data.market, this.data.id);
         if (!item) {
           this.setData({
+            market: this.data.market,
+            id: this.data.id,
             ready: false,
             loading: false,
             loadError: "未找到该标的，请返回列表重试",
@@ -4121,18 +4068,25 @@ Page({
         const activeModule = this.data.ready && (view.modules || []).some((m) => m.id === this.data.activeModule)
           ? this.data.activeModule
           : firstModuleId;
+        const fullCharts = chartsForModule(view, activeModule);
+        const capCharts = activeModule !== "overview";
         this.setData({
+          market: item.market,
+          id: this.data.id,
+          snapshotReviewAt: this.data.snapshotReviewAt,
           ready: true,
           loading: false,
           loadError: "",
-          view: slimViewForSetData(view),
+          view: slimViewForSetData(view, activeModule),
           peerNav: buildPeerNav(snapshot, item),
-          peerCompare: buildPeerCompare(snapshot, item),
           starred: isQuickStarred(item.market, item.id),
-          dividendCalcView: this.formatDividendCalc(view.dividendCalc, this.data.dividendShares, this.data.dividendYears, this.data.dividendCostMode),
-          hkIpoCalcView: this.formatHkIpoCalc(view.hkIpoCalc, this.data.hkCalcMode),
+          dividendCalcView: view.dividendCalc ? this.formatDividendCalc(view.dividendCalc, this.data.dividendShares, this.data.dividendYears, this.data.dividendCostMode) : null,
+          hkIpoCalcView: view.hkIpoCalc ? this.formatHkIpoCalc(view.hkIpoCalc, this.data.hkCalcMode) : null,
           activeModule,
-          activeCharts: chartsForModule(view, activeModule),
+          moreChartsExpanded: false,
+          activeCharts: fullCharts,
+          activeChartsShown: capCharts ? fullCharts.slice(0, 1) : fullCharts,
+          moreChartsCount: capCharts ? Math.max(0, fullCharts.length - 1) : 0,
           group: item.group || "",
           source,
           freshness,
@@ -4176,9 +4130,15 @@ Page({
     this._fullView.dividendCharts = nextDividendCharts;
     this._fullView.overviewCharts = nextOverviewCharts;
     if (this.data.activeModule === "dividend") {
-      this.setData({ activeCharts: nextDividendCharts });
+      this.setData({
+        activeCharts: nextDividendCharts,
+        activeChartsShown: this.data.moreChartsExpanded ? nextDividendCharts : nextDividendCharts.slice(0, 1),
+      });
     } else if (this.data.activeModule === "overview") {
-      this.setData({ activeCharts: nextOverviewCharts });
+      this.setData({
+        activeCharts: nextOverviewCharts,
+        activeChartsShown: nextOverviewCharts,
+      });
     }
   },
   // 抖音式连刷：原地切换上一只/下一只标的，不堆积微信页面栈。
@@ -4187,16 +4147,13 @@ Page({
     if (!nextId || nextId === this.data.id) return;
     track("detail_open", { market: this.data.market, from: "peer_nav" });
     this._renderedKey = "";
-    this.setData({
-      id: nextId,
-      overviewMoreOpen: false,
-      pricePlanOpen: false,
-      detailsExpanded: false,
-      moreEvidenceExpanded: false,
-    }, () => {
-      this.refresh();
-      if (typeof wx.pageScrollTo === "function") wx.pageScrollTo({ scrollTop: 0, duration: 150 });
-    });
+    this.data.id = nextId;
+    this.data.overviewMoreOpen = false;
+    this.data.pricePlanOpen = false;
+    this.data.detailsExpanded = false;
+    this.data.moreEvidenceExpanded = false;
+    this.refresh();
+    if (typeof wx.pageScrollTo === "function") wx.pageScrollTo({ scrollTop: 0, duration: 150 });
   },
   toggleStar() {
     const item = this._detailItem;
@@ -4434,6 +4391,16 @@ Page({
   toggleMoreEvidence() {
     this.setData({ moreEvidenceExpanded: !this.data.moreEvidenceExpanded });
   },
+  toggleMoreCharts() {
+    const next = !this.data.moreChartsExpanded;
+    const all = this.data.activeCharts || [];
+    this.setData({
+      moreChartsExpanded: next,
+      activeChartsShown: next ? all : all.slice(0, 1),
+    }, () => {
+      if (next) this.drawActiveLineCharts();
+    });
+  },
   toggleStrategy() {
     this.setData({ strategyExpanded: !this.data.strategyExpanded });
   },
@@ -4442,12 +4409,21 @@ Page({
     const view = this._fullView || this.data.view || {};
     if (!(view.modules || []).some((item) => item.id === moduleId)) return;
     track("detail_module_switch", { market: this.data.market, module: moduleId });
-    this.setData({
+    const fullCharts = chartsForModule(view, moduleId);
+    const capCharts = moduleId !== "overview";
+    const patch = {
       activeModule: moduleId,
-      activeCharts: chartsForModule(view, moduleId),
+      moreChartsExpanded: false,
+      activeCharts: fullCharts,
+      activeChartsShown: capCharts ? fullCharts.slice(0, 1) : fullCharts,
+      moreChartsCount: capCharts ? Math.max(0, fullCharts.length - 1) : 0,
       detailsExpanded: moduleId === "research" ? this.data.detailsExpanded : false,
       moreEvidenceExpanded: moduleId === "evidence" ? this.data.moreEvidenceExpanded : false,
-    }, () => this.drawActiveLineCharts());
+    };
+    if (this._fullView && ["evidence", "finance", "research", "source", "risk", "summary"].includes(moduleId) && (!this.data.view.facts || !this.data.view.facts.length)) {
+      patch.view = slimViewForSetData(this._fullView, moduleId);
+    }
+    this.setData(patch, () => this.drawActiveLineCharts());
   },
   // 方法名留着没改（调用点还叫 drawActiveLineCharts）。折线已经是 SVG 图片，
   // 这里只剩 radar/scatter 两种 canvas 图表，共用同一套节点探测与重试逻辑。

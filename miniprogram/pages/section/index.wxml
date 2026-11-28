@@ -24,11 +24,6 @@
     <text wx:if="{{freshness.tip}}" class="freshness-tip">{{freshness.tip}}</text>
   </view>
 
-  <view wx:if="{{sectionAnswerBar}}" class="section-answer-strip">
-    <text class="section-answer-dot">●</text>
-    <text class="section-answer-text">{{sectionAnswerBar}}</text>
-  </view>
-
   <!-- 港股打新按原型忠实复刻：只有「近期申购」「中签后」两个视图，不是
        其余四栏共用的「今日答案/分组浏览/策略摘要/数据出处」多 tab 框架。 -->
   <view wx:if="{{market === 'hk'}}" class="page-card hk-card">
@@ -129,8 +124,6 @@
               <text class="hk-stat-value">{{stat.value}}</text>
             </view>
           </view>
-          <text wx:if="{{item.scheduleLine}}" class="hk-schedule-line">{{item.scheduleLine}}</text>
-          <text wx:if="{{item.cornerstoneLine}}" class="hk-cs-line">{{item.cornerstoneLine}}</text>
           <view class="hk-row-meta">
             <view class="hk-deadline-wrap">
               <text>{{item.deadlineLabel}}</text>
@@ -275,7 +268,7 @@
           <text class="hk-sb-col-pnl is-{{item.pnlTone}}">{{item.pnlText}}</text>
         </view>
         <view
-          wx:if="{{hkHistoryTotal > 12}}"
+          wx:if="{{hkHistoryTotal > 6}}"
           class="hk-sb-more"
           bindtap="toggleHkHistoryAll"
           hover-class="tap-active"
@@ -605,25 +598,14 @@
           </view>
         </view>
       </view>
-      <view wx:if="{{usEtfList.length}}" class="us-etf-strip">
-        <view wx:for="{{usEtfList}}" wx:key="symbol" class="us-etf-chip">
-          <view class="us-etf-chip-top">
-            <text class="us-etf-sym">{{item.symbol}}</text>
-            <text class="us-etf-chg is-{{item.changeTone}}">{{item.changeText}}</text>
-          </view>
-          <image wx:if="{{item.sparkSrc}}" class="us-etf-mini-spark" src="{{item.sparkSrc}}" mode="scaleToFill" aria-hidden="true"></image>
-          <text class="us-etf-prc">{{item.priceText}}</text>
-          <text class="us-etf-tag">{{item.yieldText || item.zhName}}</text>
-        </view>
-      </view>
       <view class="sort-bar">
         <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">按性价比</text>
         <text class="sort-pill {{usAllSort === 'perf60' ? 'is-active' : ''}}" data-sort="perf60" bindtap="sortUsAll" aria-role="button">近3月涨幅</text>
         <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">市盈率低</text>
       </view>
-      <view class="us-stock-list" wx:if="{{usAllList.length}}">
+      <view class="us-stock-list" wx:if="{{usAllShown.length}}">
         <view
-          wx:for="{{usAllList}}"
+          wx:for="{{usAllShown}}"
           wx:key="id"
           class="us-stock-row has-event"
           data-id="{{item.id}}"
@@ -656,31 +638,23 @@
               <view class="us-range-dot" style="left: {{item.pos60Pct}}%;"></view>
             </view>
             <text class="us-range-num">{{item.hi60Text}}</text>
-            <text wx:if="{{item.posChip}}" class="data-chip is-{{item.posTone}}">{{item.posChip}}</text>
             <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
-            <text wx:if="{{item.capChip}}" class="data-chip">{{item.capChip}}</text>
           </view>
+        </view>
+        <view
+          wx:if="{{usAllList.length > 8}}"
+          class="hk-sb-more"
+          bindtap="toggleUsAllPool"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text>{{usShowAllPool ? '收起列表 ▴' : '展开全部 ' + usAllList.length + ' 只美股 ▾'}}</text>
         </view>
       </view>
       <view class="us-empty" wx:else><text>美股数据暂不足以显示，请稍后刷新。</text></view>
     </block>
 
     <block wx:if="{{usSubTab === 'seven'}}">
-      <!-- 富途/东方财富同款：七巨头首屏涨跌热力色块矩阵 -->
-      <view wx:if="{{usSevenHeatmap.length}}" class="seven-heat-strip">
-        <view
-          wx:for="{{usSevenHeatmap}}"
-          wx:key="id"
-          class="heat-tile is-compact tone-{{item.tileTone}}"
-          data-id="{{item.id}}"
-          bindtap="openUsDetail"
-          hover-class="tap-active"
-          aria-role="button"
-        >
-          <text class="heat-tile-name">{{item.shortName}}</text>
-          <text class="heat-tile-val">{{item.valText}}</text>
-        </view>
-      </view>
       <view class="us-stock-list" wx:if="{{usSevenList.length}}">
         <view
           wx:for="{{usSevenList}}"
@@ -708,18 +682,6 @@
           <view class="verdict-range-bar">
             <text class="verdict-stamp tone-{{item.verdictTone}}">{{item.verdictBadge}}</text>
             <text wx:if="{{item.refRangeText}}" class="verdict-range-text">{{item.refRangeText}}</text>
-          </view>
-          <view wx:if="{{item.hasRangeBar}}" class="us-range-bar-row" aria-hidden="true">
-            <text class="us-range-num">{{item.lo60Text}}</text>
-            <view class="us-range-track">
-              <view class="us-range-fill" style="width: {{item.pos60Pct}}%;"></view>
-              <view class="us-range-dot" style="left: {{item.pos60Pct}}%;"></view>
-            </view>
-            <text class="us-range-num">{{item.hi60Text}}</text>
-            <text wx:if="{{item.posChip}}" class="data-chip is-{{item.posTone}}">{{item.posChip}}</text>
-            <text wx:if="{{item.peChip}}" class="data-chip">{{item.peChip}}</text>
-            <text wx:if="{{item.capChip}}" class="data-chip">{{item.capChip}}</text>
-            <text wx:if="{{item.guruChip}}" class="data-chip is-income">{{item.guruChip}}</text>
           </view>
           <text wx:if="{{item.event}}" class="us-event-line">{{item.eventDate}} {{item.event}}</text>
         </view>
@@ -831,7 +793,7 @@
       </view>
     </view>
     <text wx:if="{{aSubTab !== 'heatmap' && aSubTab !== 'calendar' && aLifeSummary}}" class="a-life-strip">{{aLifeSummary}}</text>
-    <view wx:if="{{(aSubTab === 'stable' || aSubTab === 'all') && aSectorDonut}}" class="a-sector-strip" aria-hidden="true">
+    <view wx:if="{{aSubTab === 'all' && aSectorDonut}}" class="a-sector-strip" aria-hidden="true">
       <view class="a-sector-donut-wrap">
         <image class="a-sector-donut-img" src="{{aSectorDonut.src}}" mode="aspectFit"></image>
         <text class="a-sector-donut-center">{{aSectorDonut.centerMain}}</text>
@@ -945,9 +907,9 @@
         <text class="sort-pill {{aAllSort === 'stable' ? 'is-active' : ''}}" data-sort="stable" bindtap="sortAAll" aria-role="button">分红更稳</text>
         <text class="sort-pill {{aAllSort === 'pb' ? 'is-active' : ''}}" data-sort="pb" bindtap="sortAAll" aria-role="button">市净率低</text>
       </view>
-      <view class="a-rows" wx:if="{{aAllList.length}}">
+      <view class="a-rows" wx:if="{{aAllShown.length}}">
         <view
-          wx:for="{{aAllList}}"
+          wx:for="{{aAllShown}}"
           wx:key="id"
           class="a-row"
           data-id="{{item.id}}"
@@ -978,6 +940,15 @@
             <text class="verdict-stamp tone-{{item.verdictTone}}">{{item.verdictBadge}}</text>
             <text wx:if="{{item.refRangeText}}" class="verdict-range-text">{{item.refRangeText}}</text>
           </view>
+        </view>
+        <view
+          wx:if="{{aAllList.length > 8}}"
+          class="hk-sb-more"
+          bindtap="toggleAAllPool"
+          hover-class="tap-active"
+          aria-role="button"
+        >
+          <text>{{aShowAllPool ? '收起列表 ▴' : '展开全部 ' + aAllList.length + ' 只收息股 ▾'}}</text>
         </view>
       </view>
       <view class="a-empty" wx:else><text>分红数据暂不足以显示。</text></view>
@@ -1108,21 +1079,8 @@
         <text class="gold-quote-unit">{{item.asOfText}}</text>
       </view>
     </view>
-    <view wx:if="{{goldCompareTiles.length}}" class="gold-compare-grid">
-      <view wx:for="{{goldCompareTiles}}" wx:key="key" class="gold-compare-cell">
-        <text class="gold-compare-k">{{item.label}}</text>
-        <text class="gold-compare-v">{{item.value}}</text>
-        <text wx:if="{{item.sub}}" class="gold-compare-sub">{{item.sub}}</text>
-      </view>
-    </view>
-    <view wx:if="{{goldSpreadBadge || goldReturnPills.length}}" class="gold-extra-strip">
-      <text wx:if="{{goldSpreadBadge}}" class="gold-spread-pill">{{goldSpreadBadge}}</text>
-      <view wx:if="{{goldReturnPills.length}}" class="gold-ret-row">
-        <view wx:for="{{goldReturnPills}}" wx:key="label" class="gold-ret-cell is-{{item.tone}}">
-          <text class="gold-ret-k">{{item.label}}</text>
-          <text class="gold-ret-v">{{item.valueText}}</text>
-        </view>
-      </view>
+    <view wx:if="{{goldSpreadBadge}}" class="gold-extra-strip">
+      <text class="gold-spread-pill">{{goldSpreadBadge}}</text>
     </view>
 
     <view class="gold-panel">
@@ -1528,6 +1486,7 @@
             <text class="guru-institution-more-text">展开其余 {{guruHoldingsRows.length - guruHoldingsRowsShown.length}} 项</text>
           </view>
         </view>
+        <view class="a-empty" wx:else><text>暂无持仓披露</text></view>
         <view wx:if="{{guruSoldPills.length}}" class="guru-sold-box">
           <text class="guru-sold-label">本期披露清仓退出</text>
           <view class="guru-sold-pills">
@@ -1541,7 +1500,6 @@
             >{{item.name}}</text>
           </view>
         </view>
-        <view class="a-empty" wx:else><text>暂无持仓披露</text></view>
         <view
           wx:if="{{guruInstitutionId}}"
           class="more-list-link"

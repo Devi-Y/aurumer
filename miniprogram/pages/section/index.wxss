@@ -5268,3 +5268,297 @@
   height: 36rpx;
   margin: 4rpx 0 2rpx;
 }
+
+/* ---------- 0.5.1 一屏高密度排版：压缩留白与行距，告别长滚 ---------- */
+
+.section-shell {
+  padding: 8rpx 18rpx calc(16rpx + env(safe-area-inset-bottom));
+}
+
+.section-hero {
+  padding: 6rpx 12rpx 2rpx !important;
+}
+
+.hk-card,
+.us-card,
+.a-card,
+.gold-card,
+.guru-card {
+  padding: 16rpx 18rpx 18rpx;
+}
+
+.hk-tabs,
+.us-tabs,
+.a-tabs {
+  padding: 4rpx;
+  gap: 4rpx;
+}
+
+.hk-tab,
+.us-tab,
+.a-tab {
+  min-height: 60rpx;
+  padding: 8rpx 4rpx;
+  font-size: 25rpx;
+  line-height: 36rpx;
+}
+
+.hk-fd {
+  margin-top: 12rpx;
+  padding: 14rpx 16rpx 12rpx;
+}
+
+.hk-fd-visual-row {
+  margin-top: 10rpx;
+  gap: 14rpx;
+}
+
+.hk-fd-donut-wrap,
+.hk-fd-donut-img {
+  width: 124rpx;
+  height: 124rpx;
+}
+
+.hk-fd-visual-row .hk-fd-bars {
+  height: 96rpx;
+}
+
+.hk-fd-foot {
+  margin-top: 8rpx;
+  padding-top: 8rpx;
+}
+
+.hk-stock-list {
+  margin-top: 12rpx;
+  gap: 12rpx;
+}
+
+.hk-stock-row,
+.hk-stock-row:last-child {
+  padding: 16rpx 16rpx 14rpx;
+}
+
+.hk-stage-track {
+  margin-top: 10rpx;
+  padding: 6rpx 10rpx;
+}
+
+.hk-stats {
+  margin-top: 10rpx;
+  gap: 6rpx;
+}
+
+.hk-stat {
+  padding: 8rpx 0 6rpx;
+  gap: 2rpx;
+}
+
+.hk-row-meta {
+  margin-top: 10rpx;
+}
+
+.us-stock-row {
+  padding: 12rpx 0;
+  gap: 12rpx;
+}
+
+.us-stock-row.has-order,
+.us-stock-row.has-event {
+  row-gap: 6rpx;
+}
+
+.us-stock-name,
+.a-stock-name,
+.hk-stock-name {
+  font-size: 30rpx;
+}
+
+.us-row-tags {
+  margin-top: 2rpx;
+}
+
+.us-spark {
+  flex: 0 0 116rpx;
+  width: 116rpx;
+  height: 44rpx;
+}
+
+.us-price {
+  font-size: 30rpx;
+}
+
+.us-change {
+  min-width: 118rpx;
+  height: 46rpx;
+  font-size: 24rpx;
+}
+
+.verdict-range-bar {
+  margin-top: 4rpx;
+  padding: 5rpx 10rpx;
+  flex-wrap: nowrap;
+  gap: 8rpx;
+}
+
+.verdict-range-text {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 24rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.verdict-range-bar.is-a-bar {
+  margin-top: 6rpx;
+}
+
+.us-event-line {
+  font-size: 24rpx;
+  line-height: 1.35;
+}
+
+.a-calc-strip {
+  margin-top: 10rpx;
+  padding: 8rpx 12rpx;
+}
+
+.a-life-strip {
+  margin-top: 8rpx;
+  padding: 8rpx 14rpx;
+}
+
+.a-row {
+  padding: 14rpx 2rpx 12rpx;
+}
+
+.div-dots-row,
+.a-chip-row,
+.mini-tag-row {
+  margin-top: 4rpx;
+}
+
+.gold-quote-button {
+  padding: 14rpx 14rpx;
+}
+
+.gold-quote-price {
+  margin-top: 4rpx;
+  font-size: 40rpx;
+}
+
+.gold-extra-strip {
+  margin-top: 8rpx;
+}
+
+.gold-panel {
+  margin-top: 12rpx;
+  padding-top: 12rpx;
+}
+
+.gold-chart {
+  margin-top: 10rpx;
+}
+
+.gold-chart-canvas {
+  height: 160rpx;
+}
+
+.gold-pos-bar {
+  margin-top: 8rpx;
+}
+
+.gold-chart-caption {
+  margin-top: 6rpx;
+}
+
+.gold-ladder {
+  margin-top: 14rpx;
+}
+
+.gold-ladder-axis {
+  padding-top: 34rpx;
+}
+
+.gold-ladder-legend {
+  margin-top: 12rpx;
+}
+
+.gold-detail-link {
+  margin-top: 10rpx;
+  padding: 14rpx;
+}
+
+.guru-pills {
+  margin-top: 10rpx;
+}
+
+.guru-pill {
+  padding: 8rpx 16rpx;
+  font-size: 25rpx;
+}
+
+.guru-stats {
+  margin-top: 10rpx;
+  gap: 8rpx;
+}
+
+.guru-stat {
+  padding: 10rpx 4rpx;
+}
+
+.guru-conc-box {
+  margin-top: 10rpx;
+  padding: 12rpx 14rpx;
+}
+
+.guru-conc-visual {
+  margin-top: 8rpx;
+  gap: 14rpx;
+}
+
+.guru-conc-donut-wrap,
+.guru-conc-donut-img {
+  width: 124rpx;
+  height: 124rpx;
+}
+
+.guru-holds {
+  margin-top: 12rpx;
+}
+
+.guru-hold {
+  padding: 10rpx 0;
+}
+
+.guru-hold-track {
+  height: 8rpx;
+  margin-top: 6rpx;
+}
+
+.guru-sold-box {
+  margin-top: 10rpx;
+  padding: 12rpx 14rpx;
+}
+
+.more-list-link {
+  margin-top: 8rpx;
+  padding: 14rpx 12rpx 4rpx;
+}
+
+.guru-more-panel {
+  margin-top: 10rpx;
+}
+
+.guru-more-toggle {
+  min-height: 60rpx;
+}
+
+.next-link {
+  min-height: 68rpx;
+  margin-top: 10rpx;
+  padding: 0 20rpx;
+}
+
+.page-note {
+  padding: 10rpx 8rpx 0;
+}

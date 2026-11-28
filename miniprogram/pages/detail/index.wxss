@@ -1,5 +1,5 @@
 .detail-shell {
-  padding: 20rpx 20rpx calc(40rpx + env(safe-area-inset-bottom));
+  padding: 14rpx 20rpx calc(28rpx + env(safe-area-inset-bottom));
   background: #f6f7fa;
 }
 
@@ -28,7 +28,7 @@
 
 /* 对标 Robinhood × Apple 股市：通透纯白大字头部卡片，告别沉闷深黑横幅 */
 .detail-hero-card {
-  padding: 26rpx 26rpx 24rpx;
+  padding: 20rpx 22rpx 18rpx;
   background: #ffffff;
 }
 
@@ -86,7 +86,7 @@
 
 .hero-name-row {
   display: flex;
-  margin-top: 16rpx;
+  margin-top: 10rpx;
   align-items: baseline;
   gap: 12rpx;
 }
@@ -111,9 +111,9 @@
 
 .hero-price-row {
   display: flex;
-  margin-top: 14rpx;
+  margin-top: 10rpx;
   align-items: center;
-  gap: 16rpx;
+  gap: 12rpx;
   flex-wrap: wrap;
 }
 
@@ -143,8 +143,7 @@
 .hero-delta-pill.tone-flat { background: #f1f4f9; color: #475569; }
 
 .hero-asof {
-  display: block;
-  margin-top: 12rpx;
+  margin-left: auto;
   color: #94a3b8;
   font-size: 24rpx;
   font-variant-numeric: tabular-nums;
@@ -154,16 +153,16 @@
 .apple-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: 28rpx;
-  margin-top: 18rpx;
-  padding: 6rpx 4rpx;
+  column-gap: 24rpx;
+  margin-top: 12rpx;
+  padding: 2rpx 4rpx;
   border-top: 1rpx solid #edf0f5;
   border-bottom: 1rpx solid #edf0f5;
 }
 
 .apple-stat-cell {
   display: flex;
-  padding: 16rpx 0;
+  padding: 12rpx 0;
   align-items: baseline;
   justify-content: space-between;
   gap: 10rpx;
@@ -295,8 +294,8 @@
 .module-panel {
   box-sizing: border-box;
   width: 100%;
-  margin-top: 16rpx;
-  padding: 24rpx 22rpx 26rpx;
+  margin-top: 12rpx;
+  padding: 18rpx 20rpx 20rpx;
   overflow: hidden;
   border: 1rpx solid rgba(15, 23, 42, 0.06);
   border-radius: 24rpx;
@@ -2001,29 +2000,29 @@
 }
 
 .hero-title {
-  font-size: 46rpx;
+  font-size: 40rpx;
 }
 
 .hero-code-pill {
   flex: none;
-  padding: 5rpx 16rpx;
+  padding: 4rpx 14rpx;
   border-radius: 10rpx;
   background: #eaf2ff;
   color: #1d5fd1;
-  font-size: 26rpx;
+  font-size: 25rpx;
   font-weight: 760;
   font-variant-numeric: tabular-nums;
 }
 
 .hero-pills-row {
   display: flex;
-  margin-top: 12rpx;
+  margin-top: 8rpx;
   flex-wrap: wrap;
-  gap: 10rpx;
+  gap: 8rpx;
 }
 
 .hero-meta-pill {
-  padding: 6rpx 16rpx;
+  padding: 4rpx 14rpx;
   border-radius: 10rpx;
   background: #f2f5fa;
   color: #334155;
@@ -2033,12 +2032,12 @@
 }
 
 .hero-big-figure {
-  font-size: 64rpx;
+  font-size: 54rpx;
 }
 
 .hero-delta-pill {
-  font-size: 27rpx;
-  padding: 10rpx 20rpx;
+  font-size: 26rpx;
+  padding: 8rpx 16rpx;
 }
 
 .hero-asof {
@@ -2049,26 +2048,26 @@
 .hero-spark-img {
   display: block;
   width: 100%;
-  height: 190rpx;
-  margin-top: 16rpx;
-  border-radius: 16rpx;
+  height: 128rpx;
+  margin-top: 10rpx;
+  border-radius: 14rpx;
   background: #f8fafd;
 }
 
 .hero-range-box {
-  margin-top: 18rpx;
-  padding: 16rpx 18rpx 14rpx;
-  border-radius: 18rpx;
+  margin-top: 10rpx;
+  padding: 10rpx 14rpx 10rpx;
+  border-radius: 14rpx;
   background: #f6f9fe;
 }
 
 .hero-stage-track {
   display: flex;
-  margin-top: 18rpx;
-  padding: 16rpx 12rpx;
+  margin-top: 10rpx;
+  padding: 12rpx 10rpx;
   align-items: center;
   justify-content: space-between;
-  border-radius: 18rpx;
+  border-radius: 14rpx;
   background: #f6f9fe;
 }
 
@@ -2198,18 +2197,18 @@
 }
 
 .detail-tabs {
-  height: 90rpx;
-  margin-top: 16rpx;
+  height: 76rpx;
+  margin-top: 12rpx;
 }
 
 .detail-tabs-inner {
-  height: 90rpx;
+  height: 76rpx;
 }
 
 .detail-tab {
-  height: 74rpx;
-  padding: 0 28rpx;
-  font-size: 30rpx;
+  height: 60rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
   font-weight: 680;
 }
 
@@ -2252,9 +2251,9 @@
 }
 
 .ref-plan-card {
-  margin-bottom: 18rpx;
-  padding: 24rpx 24rpx 20rpx;
-  border-radius: 24rpx;
+  margin-bottom: 12rpx;
+  padding: 18rpx 20rpx 16rpx;
+  border-radius: 22rpx;
   border: 1rpx solid #dbe6f7;
   background: linear-gradient(180deg, #f7faff 0%, #ffffff 100%);
 }
@@ -2264,7 +2263,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12rpx;
-  margin-bottom: 14rpx;
+  margin-bottom: 10rpx;
 }
 
 .verdict-stamp {
@@ -2301,17 +2300,43 @@
 .ref-plan-rows {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 8rpx;
 }
 
 .ref-plan-row {
   display: flex;
-  padding: 14rpx 16rpx;
+  padding: 10rpx 14rpx;
   align-items: center;
   justify-content: space-between;
   gap: 12rpx;
+  border-radius: 14rpx;
+  background: #f5f8fd;
+}
+
+.guru-inline-strip {
+  display: flex;
+  margin-top: 12rpx;
+  padding: 12rpx 16rpx;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10rpx;
   border-radius: 16rpx;
   background: #f5f8fd;
+}
+
+.guru-inline-label {
+  color: #475569;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.guru-inline-pill {
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: #eaf2ff;
+  color: #1d5fd1;
+  font-size: 24rpx;
+  font-weight: 720;
 }
 
 .ref-plan-k {
@@ -3128,5 +3153,151 @@
 .dualline-img {
   display: block;
   width: 100%;
-  height: 228rpx;
+  height: 196rpx;
+}
+
+/* ---------- 0.5.1 一屏紧凑呈现：横向参考格 × 紧凑雷达与复投卡 × 按需展开深层图 ---------- */
+
+.detail-shell {
+  padding: 10rpx 18rpx calc(16rpx + env(safe-area-inset-bottom)) !important;
+}
+
+.detail-hero-card {
+  padding: 18rpx 20rpx 16rpx !important;
+}
+
+.hero-big-figure {
+  font-size: 50rpx !important;
+}
+
+.hero-spark-img {
+  height: 112rpx !important;
+  margin-top: 8rpx !important;
+}
+
+.hero-spark-legend {
+  margin-top: 6rpx !important;
+}
+
+.hero-range-box {
+  margin-top: 8rpx !important;
+  padding: 10rpx 14rpx !important;
+}
+
+.detail-tabs,
+.detail-tabs-inner {
+  height: 68rpx !important;
+  margin-top: 10rpx !important;
+}
+
+.detail-tab {
+  height: 56rpx !important;
+  padding: 0 24rpx !important;
+  font-size: 26rpx !important;
+  line-height: 56rpx !important;
+}
+
+.module-panel {
+  margin-top: 10rpx !important;
+  padding: 16rpx 18rpx !important;
+}
+
+.ref-plan-card {
+  padding: 14rpx 16rpx !important;
+}
+
+.ref-plan-rows {
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 8rpx;
+}
+
+.ref-plan-row {
+  flex: 1 1 28%;
+  min-width: 152rpx;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  padding: 10rpx 8rpx !important;
+  gap: 2rpx !important;
+}
+
+.ref-plan-k {
+  font-size: 24rpx !important;
+  color: #64748b !important;
+}
+
+.ref-plan-right {
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+
+.ref-plan-v {
+  font-size: 24rpx !important;
+  letter-spacing: -0.4rpx;
+}
+
+.ref-plan-note {
+  font-size: 24rpx !important;
+}
+
+.apple-stats-grid {
+  margin-top: 8rpx !important;
+}
+
+.apple-stat-cell {
+  padding: 10rpx 8rpx !important;
+}
+
+.visual-card {
+  margin-top: 12rpx !important;
+  padding: 16rpx 16rpx 14rpx !important;
+}
+
+.pentagon-chart-box {
+  margin-top: 10rpx !important;
+  padding: 12rpx 12rpx !important;
+  gap: 16rpx !important;
+}
+
+.pentagon-img {
+  width: 172rpx !important;
+  height: 172rpx !important;
+}
+
+.pentagon-dim-list {
+  gap: 6rpx !important;
+}
+
+.more-charts-toggle {
+  margin-top: 12rpx;
+  padding: 16rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid #dbe6f7;
+  background: #f5f9ff;
+  color: #1d5fd1;
+  font-size: 25rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.peer-nav-bar {
+  margin-top: 10rpx !important;
+  padding: 12rpx 16rpx !important;
+}
+
+.share-lite-bar {
+  margin-top: 8rpx !important;
+  padding: 6rpx 0 !important;
+}
+
+.us-start-link {
+  min-height: 66rpx !important;
+  margin-top: 8rpx !important;
+  padding: 0 18rpx !important;
+}
+
+.disclaimer {
+  margin-top: 10rpx !important;
 }

@@ -1,7 +1,7 @@
 .list-shell {
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 20rpx 20rpx calc(28rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 18rpx calc(18rpx + env(safe-area-inset-bottom));
   background: #f6f7fa;
 }.freshness-banner {
   margin-top: 16rpx;
@@ -42,7 +42,7 @@
 
 /* 轻盈浅色页头：和全站长桥/苹果股市呼吸感统一 */
 .list-hero {
-  padding: 12rpx 4rpx 20rpx;
+  padding: 8rpx 4rpx 12rpx;
   background: transparent;
 }
 
@@ -276,12 +276,26 @@
 }
 
 .item-panel,
-.empty { margin-top: 16rpx; }
+.empty { margin-top: 10rpx; }
 
 /* 一行的节奏和新闻资讯页的条目一致：头行 / 标题 / 正文 / 脚行，四段。
    原来是并排两列再在右列里竖着堆六块，看不出哪句是结论、哪句是数据。 */
 .item-row {
-  padding: 22rpx 24rpx;
+  padding: 12rpx 18rpx;
+}
+
+.list-more-btn {
+  padding: 14rpx;
+  border-top: 1rpx solid #edeef0;
+  color: #1d5fd1;
+  font-size: 25rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.source-toggle-head {
+  padding: 18rpx 24rpx !important;
+  align-items: center !important;
 }
 
 .item-row + .item-row { border-top: 1rpx solid #edeef0; }
@@ -380,7 +394,7 @@
 
 .item-title-row {
   display: flex;
-  margin-top: 12rpx;
+  margin-top: 6rpx;
   align-items: baseline;
   gap: 10rpx;
 }
@@ -396,9 +410,9 @@
   min-width: 0;
   overflow: hidden;
   color: #1a1d22;
-  font-size: 30rpx;
+  font-size: 29rpx;
   font-weight: 650;
-  line-height: 1.4;
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -412,15 +426,15 @@
 
 .item-fact {
   display: block;
-  margin-top: 8rpx;
+  margin-top: 4rpx;
   color: #595d65;
   font-size: 24rpx;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .item-foot {
   display: flex;
-  margin-top: 12rpx;
+  margin-top: 6rpx;
   align-items: center;
   gap: 10rpx;
 }

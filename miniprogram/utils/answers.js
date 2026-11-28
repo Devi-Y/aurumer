@@ -7,6 +7,7 @@ const { SMART_MONEY_PROFILES, annualRank } = require("./smart-money");
 const { usScore } = require("./strategy-score");
 const {
   MAGNIFICENT_SEVEN,
+  cleanUsGrossMargin,
   mag7Context,
   mag7Lenses,
   hkLeverageEligible,
@@ -47,30 +48,38 @@ const US_NAMES = {
   STM: "意法半导体", LSCC: "莱迪思半导体", LRCX: "泛林集团", CSCO: "思科", ASX: "日月光",
   CRWV: "CoreWeave", WFC: "富国银行", BABA: "阿里巴巴", USB: "美国合众银行", SNDK: "闪迪",
   MU: "美光科技", YPF: "阿根廷YPF",
+  STX: "希捷科技", BE: "Bloom能源", NBIS: "Nebius算力", TEM: "Tempus医疗",
+  NTRA: "Natera基因", INSM: "Insmed生物", CPNG: "Coupang", COUP: "Coupang",
+  VST: "Vistra电力", CEG: "星座能源", TWST: "Twist生物", ROKU: "Roku",
+  RBLX: "Roblox", TEVA: "梯瓦制药", MELI: "美客多", NU: "Nu数字银行",
+  CORZ: "Core算力", IREN: "IREN算力", WMT: "沃尔玛",
   // 三只都跟踪标普500，同一家同时持有两只时（达利欧：SPY 增持、IVV 增持）只写「标普500ETF」会读成同一只，按发行商分开。
   SPY: "SPDR标普500ETF", IVV: "安硕标普500ETF", VOO: "先锋标普500ETF", RSP: "标普500等权ETF",
-  EWZ: "巴西ETF", EWY: "韩国ETF", SMH: "半导体ETF",
+  IWM: "罗素2000ETF", IEMG: "新兴市场ETF", EWZ: "巴西ETF", EWY: "韩国ETF", SMH: "半导体ETF",
 };
 
 // 港股、A 股、台股基金的月报里没有代码，只有英文公司名（「Tencent Holdings Ltd」）。
 // 按去掉公司后缀后的名字对中文名；对不上就原样显示。
 const COMPANY_NAMES = {
   "tencent": "腾讯控股", "alibaba": "阿里巴巴", "alibaba group": "阿里巴巴",
-  "pdd": "拼多多", "contemporary amperex technology": "宁德时代",
-  "ping an insurance h": "中国平安", "netease": "网易", "zhongji innolight": "中际旭创",
-  "taiwan semiconductor": "台积电", "taiwan semiconductor manufacturing": "台积电",
+  "pdd": "拼多多", "pinduoduo": "拼多多", "contemporary amperex technology": "宁德时代",
+  "ping an insurance h": "中国平安", "ping an insurance": "中国平安", "netease": "网易", "zhongji innolight": "中际旭创",
+  "tsmc": "台积电", "taiwan semiconductor": "台积电", "taiwan semiconductor manufacturing": "台积电",
   "china merchants bank": "招商银行", "kweichow moutai": "贵州茅台", "douyin": "抖音",
-  "china res ld": "华润置地", "elite material": "台光电子", "zijin mining": "紫金矿业",
+  "china res ld": "华润置地", "china resources land": "华润置地", "elite material": "台光电子", "zijin mining": "紫金矿业",
   "zijin mining group": "紫金矿业", "mediatek": "联发科", "taiwan union technology": "台燿科技",
   "wiwynn": "纬颖", "delta electronics": "台达电子", "honeywell international": "霍尼韦尔",
-  "bruker": "布鲁克",
+  "bruker": "布鲁克", "seagate technology": "希捷科技", "fox": "福克斯",
+  "bloom energy": "Bloom能源", "nebius": "Nebius算力", "tempus ai": "Tempus医疗",
+  "natera": "Natera基因", "twist bioscience": "Twist生物", "space exploration technologies": "SpaceX",
+  "meituan": "美团", "xiaomi": "小米集团", "byd": "比亚迪", "jd": "京东集团", "trip com": "携程集团",
 };
 
 function companyZhName(name) {
   const key = String(name || "")
     .toLowerCase()
     .replace(/[.,]/g, " ")
-    .replace(/\b(holdings?|group|co|corp|corporation|inc|ltd|limited|plc)\b/g, " ")
+    .replace(/\b(holdings?|hldngs?|group|co|corp|corporation|inc|ltd|limited|plc|pl|n\s*v|sa|ag)\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
   return COMPANY_NAMES[key] || COMPANY_NAMES[key.replace(/ group$/, "")] || "";
@@ -84,7 +93,7 @@ function companyZhName(name) {
 // 真实的循环依赖（answers → market-lenses → strategy-signals → guru-changes）。
 // 13F 发行人全称（「NATERA INC」「10X GENOMICS INC」）去掉公司后缀、全大写改首字母大写，
 // 查不到中文名时给读者看公司名而不是裸代码——富途对没有通行中文名的小盘股也是这么写。
-const ISSUER_SUFFIX_RE = /\b(holdings?|group|co|corp|corporation|inc|ltd|limited|plc|n\.? ?v|ag|sa|new)\b\.?/giu;
+const ISSUER_SUFFIX_RE = /\b(holdings?|hldngs?|group|co|corp|corporation|inc|ltd|limited|plc|pl|n\.? ?v|ag|sa|new)\b\.?/giu;
 const ISSUER_ABBR = { entmt: "entertainment", svcs: "services" };
 function issuerShortName(issuer) {
   const raw = String(issuer || "");
@@ -427,7 +436,10 @@ function usStocks(snapshot) {
   snapshot = degradeStaleActions(snapshot);
   const fundamentals = new Map((snapshot.us && snapshot.us.fundamentals ? snapshot.us.fundamentals : []).map((item) => [item.symbol, item]));
   return (snapshot.us && snapshot.us.stocks ? snapshot.us.stocks : []).map((stock) => {
-    const fund = fundamentals.get(stock.symbol) || {};
+    const rawFund = fundamentals.get(stock.symbol) || {};
+    const fund = rawFund.grossMargin !== undefined
+      ? { ...rawFund, grossMargin: cleanUsGrossMargin(stock.symbol, rawFund.grossMargin) }
+      : rawFund;
     return { ...stock, fund, id: stock.symbol };
   });
 }
@@ -553,10 +565,19 @@ function usItems(snapshot) {
   return [...seven, ...hot, ...hot10, ...value, ...industry];
 }
 
+function fallbackHoldingChangeLabel(live, profile) {
+  const src = `${(live && live.source) || ""} ${(profile && profile.report) || ""} ${(profile && profile.sourceName) || ""}`;
+  if (/月度|月报|Factsheet/i.test(src)) return "月报持有";
+  if (/半年报/i.test(src)) return "半年报持有";
+  if (/季报|定期报告/i.test(src)) return "季报持有";
+  return live && live.isLive ? "变化待核验" : "公开持有";
+}
+
 function smartMoneyItems(snapshot) {
   const liveById = new Map((snapshot.investors || []).map((item) => [item.id, item]));
   return SMART_MONEY_PROFILES.map((profile) => {
     const live = liveById.get(profile.id);
+    const defaultChange = fallbackHoldingChangeLabel(live, profile);
     const holdings = live && Array.isArray(live.holdings)
       ? live.holdings.slice(0, 10).map((holding) => ({
           ticker: holding.ticker,
@@ -564,7 +585,7 @@ function smartMoneyItems(snapshot) {
           // 结论句里点名用的短名（NTRA → Natera、TSM → 台积电）；strategy-signals 不能 require 本文件。
           shortName: tickerShortZh(holding.ticker, holding.issuer),
           weight: holding.weight,
-          changeLabel: readableChangeLabel(holding.changeLabel) || "变化待核验",
+          changeLabel: readableChangeLabel(holding.changeLabel) || defaultChange,
           interpretation: "报告有滞后，只能当学习样本，不能当明天的买卖单。",
           putCall: holding.putCall || null,
         }))
@@ -652,6 +673,19 @@ function goldItems(snapshot) {
   }));
 }
 
+function effectiveAShareYields(raw = {}) {
+  const verified = Number(raw.historicalDividendYield && raw.historicalDividendYield.yieldPercent);
+  const rawCurrent = Number(raw.currentDividendYield);
+  const rawSustain = Number(raw.sustainableDividendYield);
+  if (Number.isFinite(verified) && verified > 0) {
+    const ratio = Number.isFinite(rawCurrent) && rawCurrent > 0 && Number.isFinite(rawSustain) && rawSustain > 0
+      ? Math.min(1, Math.max(0.7, rawSustain / rawCurrent))
+      : 0.9;
+    return { yieldNow: verified, yieldSustain: verified * ratio };
+  }
+  return { yieldNow: rawCurrent, yieldSustain: rawSustain };
+}
+
 function aShareDetailFallback(snapshot, id) {
   const normalize = (value) => String(value || "")
     .toUpperCase()
@@ -664,8 +698,7 @@ function aShareDetailFallback(snapshot, id) {
   const raw = { ...quote, financials };
   raw.historicalDividendYield = getHistoricalDividendYield(raw);
   const score = aShareObserveScore(raw);
-  const yieldNow = Number(raw.currentDividendYield);
-  const yieldSustain = Number(raw.sustainableDividendYield);
+  const { yieldNow, yieldSustain } = effectiveAShareYields(raw);
   const fcf = Number(financials.freeCashFlow);
   const cashOk = Number.isFinite(fcf) ? fcf > 0 : true;
   const coverOk = Number.isFinite(yieldNow) && Number.isFinite(yieldSustain)
@@ -699,8 +732,7 @@ function aShareDetailFallback(snapshot, id) {
 // 观察分里「分红能不能持续」那几项。抽出来是因为分红稳定性排序要用同一套口径，
 // 不该另立一份权重；每项返回 { score, weight }，权重就是观察分里原本的那个。
 function aShareCoverTerm(raw) {
-  const yieldNow = Number(raw.currentDividendYield);
-  const yieldSustain = Number(raw.sustainableDividendYield);
+  const { yieldNow, yieldSustain } = effectiveAShareYields(raw);
   if (!Number.isFinite(yieldNow) || !Number.isFinite(yieldSustain) || yieldNow <= 0) return null;
   return { score: Math.min(1.2, Math.max(0, yieldSustain / yieldNow)) * 85, weight: 0.14 };
 }
@@ -734,8 +766,7 @@ function weightedScore(terms) {
 
 function aShareObserveScore(raw = {}) {
   const financials = raw.financials || {};
-  const yieldNow = Number(raw.currentDividendYield);
-  const yieldSustain = Number(raw.sustainableDividendYield);
+  const { yieldNow, yieldSustain } = effectiveAShareYields(raw);
   return weightedScore([
     Number.isFinite(yieldSustain) ? { score: Math.min(100, yieldSustain * 11), weight: 0.22 } : null,
     Number.isFinite(yieldNow) ? { score: Math.min(100, yieldNow * 10), weight: 0.16 } : null,
@@ -761,8 +792,7 @@ function aShareItems(snapshot) {
     const raw = { ...item, financials };
     raw.historicalDividendYield = getHistoricalDividendYield(raw);
     const score = aShareObserveScore(raw);
-    const yieldNow = Number(item.currentDividendYield);
-    const yieldSustain = Number(item.sustainableDividendYield);
+    const { yieldNow, yieldSustain } = effectiveAShareYields(raw);
     const fcf = Number(financials.freeCashFlow);
     const hasYield = Number.isFinite(yieldNow);
     const hasSustain = Number.isFinite(yieldSustain);

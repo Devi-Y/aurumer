@@ -8,7 +8,7 @@ const {
   aOrderState, aOrderLine, compareAOrder, A_TRIGGERS, goldLevelNotes,
 } = require("../../utils/order-plan");
 // 结论行要按「低估 / 风险」这两个透镜选人，和今日答案用同一个判断。
-const { parseOfferPrice, yieldImpliedPlan, goldZoneForPrice, goldPlanView, MAGNIFICENT_SEVEN } = require("../../utils/market-lenses");
+const { parseOfferPrice, yieldImpliedPlan, goldZoneForPrice, goldPlanView, MAGNIFICENT_SEVEN, cleanUsGrossMargin } = require("../../utils/market-lenses");
 // 港股打新「中签后」每只股票自己的观察分位——已经是详情页在用的同一份
 // 真实数据计算，这里原样复用，不重新写一遍价格逻辑。
 const { buildHkExitPlan, buildHkExitBands, HK_HOT_OVERSUBSCRIPTION } = require("../../utils/hk-exit-plan");
@@ -36,6 +36,7 @@ const { asOfText } = require("../../utils/dates");
 const { marketReferenceAsOf, referenceDateText } = require("../../utils/historical-reference");
 const { historicalGoldSeries, domesticGoldClose } = require("../../utils/gold-series");
 const { goldParity } = require("../../utils/gold-parity");
+const { PALETTE, donutSvg } = require("../../utils/svg-charts");
 
 const SHORT_TAG_MAP = {
   NVDA: "AI芯片",
@@ -319,8 +320,13 @@ function buildHkModule(snapshot) {
     if (raw.offerStart && deadline && deadlineOffset != null) {
       scheduleParts.push(`招股 ${String(raw.offerStart).slice(5, 10)} 至 ${String(deadline).slice(5, 10)}`);
     }
+    const listingOffset = hkDeadlineOffset(raw.listingDate);
     if (raw.listingDate && deadlineOffset != null) {
-      scheduleParts.push(`预计上市 ${String(raw.listingDate).slice(5, 10)}`);
+      if (listingOffset != null && listingOffset < 0) {
+        scheduleParts.push(`原定上市 ${String(raw.listingDate).slice(5, 10)}（待核结果）`);
+      } else {
+        scheduleParts.push(`预计上市 ${String(raw.listingDate).slice(5, 10)}`);
+      }
     }
     const countdownPill = !closed && deadlineOffset != null
       ? (deadlineOffset === 0 ? "今日截止" : `剩 ${deadlineOffset} 天`)
@@ -348,8 +354,13 @@ function buildHkModule(snapshot) {
       ],
     };
   });
-  // 招股中的排前面；已过截止日、还没出配发结果的排后面，每行底下的截止日写明哪只已截止。
-  applyList.sort((left, right) => Number(left.closed) - Number(right.closed));
+  // 真正招股中的排最前，日期待核次之，已过截止日的排最后。
+  const applyOrder = (row) => {
+    if (row.closed) return 2;
+    if (row.deadlineOffset == null) return 1;
+    return 0;
+  };
+  applyList.sort((left, right) => applyOrder(left) - applyOrder(right));
 
   const exitList = exitItems.map((item) => {
     const plan = buildHkExitPlan(item, { evidence: strategyEvidence, snapshot });
@@ -523,15 +534,15 @@ function buildHkModule(snapshot) {
       };
     });
 
-  const openApply = applyList.filter((r) => !r.closed);
+  const openApply = applyList.filter((r) => !r.closed && r.deadlineOffset != null && r.deadlineOffset >= 0);
   const worthApply = openApply.filter((r) => r.tone === "worth");
   const answerBar = snapshot.actionsFresh === false
-    ? "数据待更新 · 招股状态与申购建议请核对港交所最新公告"
+    ? "数据待更新 · 招股状态请核对港交所公告"
     : (openApply.length
       ? (worthApply.length
-        ? `当前 ${openApply.length} 只招股中 · 值得申购 ${worthApply.length} 只：${worthApply.slice(0, 3).map((r) => r.name).join("、")}`
-        : `当前 ${openApply.length} 只招股中 · 暂无高性价比标的，建议谨慎参与`)
-      : `当前暂无招股中新股 · 近 ${statsSummary.sampleCount || historyRowsAll.length} 只上市首日上涨率 ${statsSummary.firstDayWinRate || "—"}`);
+        ? `招股中 ${openApply.length} 只 · 值得申购：${worthApply.slice(0, 3).map((r) => r.name).join("、")}`
+        : `招股中 ${openApply.length} 只 · 暂无高性价比标的`)
+      : `暂无在招新股 · 近 ${statsSummary.sampleCount || historyRowsAll.length} 只首日胜率 ${statsSummary.firstDayWinRate || "—"}`);
 
   return {
     answerBar,
@@ -556,15 +567,24 @@ function hkFirstDayChart(snapshot) {
   const series = hkFirstDaySeries(snapshot);
   const changes = series.map((item) => item.change);
   if (changes.length < 3) return null;
-  // 不写「5/12 收涨 +0.0% 中位」：斜杠像日期，「中位」是统计词。直接数只数。
   const up = changes.filter((value) => value > 0).length;
+  const flat = changes.filter((value) => value === 0).length;
+  const down = changes.filter((value) => value < 0).length;
+  const winPct = Math.round((up / changes.length) * 100);
   const maxVal = Math.max(...changes);
   const minVal = Math.min(...changes);
+  const donutSrc = donutSvg([
+    { value: up, color: "#dc4c3e" },
+    ...(flat > 0 ? [{ value: flat, color: "#94a3b8" }] : []),
+    { value: down, color: "#159960" },
+  ], { size: 140, strokeWidth: 18 });
   return {
     count: changes.length,
     lastDate: series[series.length - 1].date,
+    winPctText: `${winPct}%`,
+    donutSrc,
     upText: `${up}只涨`,
-    flatDownText: `${changes.length - up}只没涨`,
+    flatDownText: `${changes.length - up}只平/跌`,
     rangeText: `最高 ${signedPct(maxVal, 1)} · 最低 ${signedPct(minVal, 1)}`,
     ...zeroAxisBars(changes),
   };
@@ -751,7 +771,7 @@ function usFactChips(item, spark) {
   const chips = [];
   const pe = finiteOrNull(fund.pe);
   const revG = finiteOrNull(fund.revenueGrowth);
-  if (pe != null && pe > 0) chips.push({ label: `回本约${pe.toFixed(0)}年`, tone: "plain" });
+  if (pe != null && pe > 0) chips.push({ label: `市盈 ${pe.toFixed(0)}倍`, tone: "plain" });
   if (revG != null) chips.push({ label: `营收 ${signedPct(revG, 1)}`, tone: revG >= 0 ? "up" : "down" });
   if (spark && spark.hasSpark && spark.sparkChangeText) {
     chips.push({ label: `${spark.sparkDays}日 ${spark.sparkChangeText}`, tone: spark.sparkTone || "plain" });
@@ -905,7 +925,7 @@ function usStockRow(item, sparkCache = null, guruMap = null) {
   const guruChip = guruCount >= 2 ? `${guruCount}家大师重仓` : (guruCount === 1 ? "大师重仓" : "");
   const shortTag = shortTagFor("us", item.id, item.code);
   const hasRangeBar = lo60 != null && hi60 != null && sortPos60 != null;
-  const gm = finiteOrNull(fund.grossMargin);
+  const gm = cleanUsGrossMargin(symUpper, fund.grossMargin);
   const pm = finiteOrNull(fund.profitMargin);
   const roe = finiteOrNull(fund.roe);
   const revG = finiteOrNull(fund.revenueGrowth);
@@ -929,7 +949,7 @@ function usStockRow(item, sparkCache = null, guruMap = null) {
     pos60Pct: sortPos60 != null ? sortPos60 : 50,
     posChip: sortPos60 != null ? (sortPos60 <= 25 ? "近3月偏便宜" : (sortPos60 >= 75 ? "近3月偏贵" : "近3月适中")) : "",
     posTone: sortPos60 != null ? (sortPos60 <= 25 ? "cool" : (sortPos60 >= 75 ? "warn" : "plain")) : "plain",
-    peChip: pe != null && pe > 0 ? `回本约${pe.toFixed(0)}年` : "",
+    peChip: pe != null && pe > 0 ? `市盈 ${pe.toFixed(0)}倍` : "",
     capChip,
     gmText: gm != null ? `${gm.toFixed(1)}%` : "—",
     gmBar: gm != null ? Math.max(8, Math.min(100, Math.round(gm))) : 0,
@@ -943,7 +963,7 @@ function usStockRow(item, sparkCache = null, guruMap = null) {
     fcfTone: fcf == null ? "flat" : (fcf > 0 ? "worth" : "down"),
     cashText: formatUsdLarge(cash),
     mcapText: formatUsdLarge(mcap),
-    peNumText: pe != null && pe > 0 ? `${pe.toFixed(1)}年` : "—",
+    peNumText: pe != null && pe > 0 ? `${pe.toFixed(1)}倍` : "—",
     badgeText: plainLabel(signal.label),
     tone: usTone(signal.tone),
     reason: signal.action,
@@ -971,7 +991,7 @@ function buildUsSevenCompare(sevenRaw) {
   const totalMcap = sevenRaw.reduce((sum, r) => sum + (r.sortMcap > 0 ? r.sortMcap : 0), 0);
   const benchPills = [
     totalMcap > 0 ? { label: "七巨头总市值", value: formatUsdLarge(totalMcap) } : null,
-    medPe != null ? { label: "中位回本年数", value: `${medPe.toFixed(1)}年` } : null,
+    medPe != null ? { label: "中位市盈率", value: `${medPe.toFixed(1)}倍` } : null,
     medGm != null ? { label: "中位毛利率", value: `${medGm.toFixed(1)}%` } : null,
     medGrowth != null ? { label: "中位营收增速", value: signedPct(medGrowth, 1) } : null,
   ].filter(Boolean);
@@ -1309,7 +1329,7 @@ function buildLifeSummaryLine(list, wan = 1) {
   const avgY = yields.reduce((s, v) => s + v, 0) / yields.length;
   const annual = Math.round(avgY * 100 * wan);
   const life = lifeExpenseHint(annual);
-  return `息覆生活 · 投${wan}万按榜内均值年领约 ¥${annual.toLocaleString("en-US")}${life ? `（${life}）` : ""}`;
+  return `投${wan}万均领 ¥${annual.toLocaleString("en-US")}/年${life ? ` · ${life}` : ""}`;
 }
 
 function formatPrincipalIncome(yieldPct, wan = 1) {
@@ -1343,10 +1363,17 @@ function extractRecentAnnualDistributions(raw) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(exDate) || !(perTen > 0)) continue;
       const stamp = Date.parse(`${exDate}T00:00:00Z`);
       if (!Number.isFinite(stamp)) continue;
+      const basis = String((d && d.reportBasis) || "");
+      const periodKind = /-12-31$/.test(basis)
+        ? "final"
+        : (/-06-30$/.test(basis)
+          ? "interim"
+          : (/-09-30$/.test(basis) ? "q3" : (/-03-31$/.test(basis) ? "q1" : `m${Number(exDate.slice(5, 7))}`)));
       all.push({
         exDate,
         stamp,
         month: Number(exDate.slice(5, 7)),
+        periodKind,
         perTen,
         plan: String((d && d.plan) || `10派${perTen.toFixed(2)}元`).replace(/\(.*?\)|（.*?）/g, "").trim(),
       });
@@ -1355,11 +1382,14 @@ function extractRecentAnnualDistributions(raw) {
   if (!all.length) return [];
   all.sort((a, b) => b.stamp - a.stamp);
   const maxStamp = all[0].stamp;
-  const cutoff = maxStamp - 385 * 86400000;
+  const cutoff = maxStamp - 365 * 86400000;
   const byMonth = new Map();
+  const seenKind = new Set();
   for (const entry of all) {
     if (entry.stamp < cutoff) break;
-    if (!byMonth.has(entry.month)) byMonth.set(entry.month, entry);
+    if (seenKind.has(entry.periodKind) || byMonth.has(entry.month)) continue;
+    seenKind.add(entry.periodKind);
+    byMonth.set(entry.month, entry);
   }
   return [...byMonth.values()].sort((a, b) => a.month - b.month);
 }
@@ -1414,7 +1444,7 @@ function buildADividendCalendar(items) {
     const upcoming = months.find((x) => x.month > curMonth && x.count > 0) || months.find((x) => x.count > 0);
     if (upcoming) defaultMonth = upcoming.month;
   }
-  const summaryText = `已覆盖全年 ${coveredMonths} 个派息月 · ${multiCount} 只支持一年多派，错峰搭配可月月领息`;
+  const summaryText = `覆盖全年 ${coveredMonths} 个派息月 · ${multiCount} 只一年多派`;
   return { months, byMonth, defaultMonth, summaryText };
 }
 
@@ -1483,6 +1513,24 @@ function buildAModule(snapshot) {
     if (!_calendar) _calendar = buildADividendCalendar(fullStocks);
     return _calendar;
   };
+  const sectorBuckets = [
+    { key: "bank", label: "银行金融", re: /银行|金融/u, color: "#1d5fd1", count: 0 },
+    { key: "util", label: "公用交通", re: /水电|电力|火电|通信|高速|铁路|公用/u, color: "#0f9f6e", count: 0 },
+    { key: "res", label: "能源材料", re: /煤炭|油气|石油|石化|钢铁|建材|水泥|能源/u, color: "#d97706", count: 0 },
+    { key: "mfg", label: "家电制造", re: /家电|制造|白电/u, color: "#6366f1", count: 0 },
+  ];
+  for (const st of fullStocks) {
+    const ind = String(st?.raw?.industry || st?.raw?.financials?.industry || "");
+    const hit = sectorBuckets.find((b) => b.re.test(ind)) || sectorBuckets[1];
+    hit.count += 1;
+  }
+  const activeSectors = sectorBuckets.filter((b) => b.count > 0);
+  const sectorDonut = activeSectors.length >= 2 ? {
+    src: donutSvg(activeSectors.map((b) => ({ value: b.count, color: b.color })), { size: 120, strokeWidth: 22 }),
+    centerMain: `${fullStocks.length}只`,
+    legend: activeSectors.map((b) => ({ key: b.key, label: b.label, countText: `${b.count}只`, color: b.color })),
+  } : null;
+
   const cheapNames = fresh
     ? fullStocks
       .filter((it) => {
@@ -1494,10 +1542,11 @@ function buildAModule(snapshot) {
   const answerBar = !fresh
     ? "数据待更新 · 暂不展示参考区间"
     : (cheapNames.length
-      ? `${fullStocks.length} 只收息股中 ${cheapNames.length} 只处于偏便宜高息区：${cheapNames.slice(0, 3).join("、")}`
-      : `${fullStocks.length} 只收息股均已算出分红回推区间，优选 5 年连续稳分红标的`);
+      ? `20 只收息股 · 高息偏便宜 ${cheapNames.length} 只：${cheapNames.slice(0, 3).join("、")}`
+      : `${fullStocks.length} 只收息股 · 优选 5 年连续稳分红`);
   return {
     answerBar,
+    sectorDonut,
     stableList,
     get yieldList() {
       if (!_yieldList) _yieldList = withMetricBars(aRankedList(items, "yield5", fresh), "yield5");
@@ -1833,7 +1882,7 @@ function buildGoldModule(snapshot) {
     {
       id: "usd",
       label: "国际金价",
-      code: "伦敦现货",
+      code: "纽约期金",
       priceText: hasNumber(international.price) ? Number(international.price).toFixed(0) : "待更新",
       unit: "美元 / 盎司",
       asOfText: referenceDateText([international.asOf]),
@@ -2165,10 +2214,13 @@ function buildGuruModule(snapshot) {
     let concentration = null;
     if (top5Rows.length >= 2 && top5Sum > 0) {
       const denom = Math.max(100, top5Sum);
+      const toneColors = ["#1d5fd1", "#0f9f6e", "#d97706", "#6366f1", "#ec4899"];
       const segs = top5Rows.map((r, idx) => ({
         key: `seg-${idx}`,
         tone: `c${idx + 1}`,
+        color: toneColors[idx % toneColors.length],
         name: String(r.name || "").slice(0, 5),
+        value: r.weightNum,
         pctText: `${r.weightNum.toFixed(1)}%`,
         width: Math.max(3, Math.round((r.weightNum / denom) * 1000) / 10),
       }));
@@ -2176,13 +2228,17 @@ function buildGuruModule(snapshot) {
         segs.push({
           key: "seg-rest",
           tone: "rest",
+          color: "#cbd5e1",
           name: "其余仓位",
+          value: denom - top5Sum,
           pctText: `${(denom - top5Sum).toFixed(1)}%`,
           width: Math.max(2, Math.round(((denom - top5Sum) / denom) * 1000) / 10),
         });
       }
       concentration = {
-        topSumText: `前${top5Rows.length}大重仓合计 ${top5Sum.toFixed(1)}%`,
+        topSumText: `前${top5Rows.length}重仓 ${top5Sum.toFixed(1)}%`,
+        centerMain: `${top5Sum.toFixed(0)}%`,
+        donutSrc: donutSvg(segs, { size: 148, strokeWidth: 20 }),
         segments: segs,
         legend: segs,
       };
@@ -2190,16 +2246,29 @@ function buildGuruModule(snapshot) {
     const currency = item.group === "a" ? "¥" : "$";
     const history = Array.isArray(item.raw?.history) ? item.raw.history : [];
     const isLive = Boolean(item.raw?.isLive);
+    const rawSrcText = `${item.raw?.source || ""} ${item.raw?.profile?.report || ""} ${item.raw?.profile?.sourceName || ""}`;
+    const sourceShort = isLive
+      ? "美国证监会"
+      : (/月度|月报|Factsheet/i.test(rawSrcText)
+        ? "基金月报"
+        : (/半年报/i.test(rawSrcText) ? "基金半年报" : "基金季报"));
     const trackingScore = Number.isFinite(Number(item.raw?.trackingScore)) ? Number(item.raw.trackingScore) : null;
-    const shortDate = (value) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value || "")) ? String(value).slice(2) : "—");
+    const shortDate = (value) => {
+      const m = String(value || "").match(/(\d{4}-\d{2}-\d{2})/);
+      return m ? m[1].slice(2) : "—";
+    };
+    const refTime = Date.parse(snapshot.updatedAt || "") || Date.now();
+    const repMatch = String(item.raw?.reportDate || "").match(/(\d{4}-\d{2}-\d{2})/);
+    const repAgeDays = repMatch ? Math.round((refTime - Date.parse(`${repMatch[1]}T00:00:00Z`)) / 86400000) : 0;
+    const reportValue = repAgeDays > 190 ? `${shortDate(item.raw?.reportDate)}·旧期` : shortDate(item.raw?.reportDate);
     const built = {
       rows,
       concentration,
       hint: rows.length ? `重仓前 ${rows.length}` : "暂无持仓披露",
       stats: [
-        { label: "报告期", value: shortDate(item.raw?.reportDate) },
+        { label: "报告期", value: reportValue },
         { label: "披露日", value: shortDate(item.raw?.filingDate) },
-        { label: "来源", value: isLive ? "美国证监会" : "基金季报" },
+        { label: "来源", value: sourceShort },
         { label: "披露完整度", value: trackingScore != null ? `${trackingScore}分` : "—" },
       ],
       isLive,
@@ -2219,29 +2288,49 @@ function buildGuruModule(snapshot) {
       return typeof prop === "string" ? buildOneHolding(prop) : undefined;
     },
   });
-  // 跨机构共同重仓统计：看哪几只股票被 2 家以上大师同时持有（对标富途机构共识榜）。
+  // 跨机构共同重仓统计：跨美/港/A三市场归一识别同一家公司（腾讯/阿里/台积电/拼多多/宁德时代/谷歌等）。
+  const canonicalGuruEntity = (h) => {
+    const rawSym = String((h && (h.ticker || h.code)) || "").trim().replace(/\.(HK|SH|SZ|US)$/i, "").toUpperCase();
+    const disp = guruHoldingName(h);
+    const probe = `${rawSym} ${disp} ${(h && (h.issuer || h.name)) || ""}`;
+    if (/\b0?700\b|TENCENT|腾讯控股/i.test(probe)) return { key: "0700.HK", name: "腾讯控股", code: "0700.HK" };
+    if (/\b9988\b|\bBABA\b|ALIBABA|阿里巴巴/i.test(probe)) return { key: "BABA", name: "阿里巴巴", code: "BABA" };
+    if (/\bTSMC?\b|TAIWAN\s+SEMICONDUCTOR|台积电/i.test(probe)) return { key: "TSM", name: "台积电", code: "TSM" };
+    if (/\bPDD\b|PINDUODUO|拼多多/i.test(probe)) return { key: "PDD", name: "拼多多", code: "PDD" };
+    if (/\b9999\b|\bNTES\b|NETEASE|网易/i.test(probe)) return { key: "9999.HK", name: "网易", code: "9999.HK" };
+    if (/\b2899\b|ZIJIN\s+MINING|紫金矿业/i.test(probe)) return { key: "2899.HK", name: "紫金矿业", code: "2899.HK" };
+    if (/\b300750\b|\bCATL\b|CONTEMPORARY\s+AMPEREX|宁德时代/i.test(probe)) return { key: "300750", name: "宁德时代", code: "300750" };
+    if (/\b2318\b|PING\s+AN|中国平安/i.test(probe)) return { key: "2318.HK", name: "中国平安", code: "2318.HK" };
+    if (/\b600036\b|\b3968\b|CHINA\s+MERCHANTS\s+BANK|招商银行/i.test(probe)) return { key: "600036", name: "招商银行", code: "600036" };
+    if (/\b300308\b|ZHONGJI\s+INNOLIGHT|中际旭创/i.test(probe)) return { key: "300308", name: "中际旭创", code: "300308" };
+    if (/^(GOOG|GOOGL)$/.test(rawSym) || /ALPHABET/i.test(probe)) return { key: "GOOGL", name: "谷歌", code: "GOOGL" };
+    if (!rawSym) return null;
+    return {
+      key: rawSym,
+      name: disp,
+      code: /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawSym) && disp.toUpperCase() !== rawSym ? rawSym : "",
+    };
+  };
   const overlapMap = new Map();
   for (const prof of profiles) {
     const holds = Array.isArray(prof.raw?.holdings) ? prof.raw.holdings : [];
     const seenInProf = new Set();
     for (const h of holds.slice(0, 10)) {
       if (h && h.putCall) continue;
-      const sym = String(h.ticker || h.code || "").trim().toUpperCase();
-      if (!sym || seenInProf.has(sym)) continue;
-      seenInProf.add(sym);
-      const disp = guruHoldingName(h);
-      const cur = overlapMap.get(sym) || {
-        key: sym,
-        name: disp,
-        code: /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(sym) ? sym : "",
-        ...resolveStockLink(sym, disp),
+      const ent = canonicalGuruEntity(h);
+      if (!ent || !ent.key || seenInProf.has(ent.key)) continue;
+      seenInProf.add(ent.key);
+      const cur = overlapMap.get(ent.key) || {
+        key: ent.key,
+        name: ent.name,
+        code: ent.code,
+        ...resolveStockLink(ent.key, ent.name),
         count: 0,
         holders: [],
       };
-      if (cur.name === cur.code) cur.code = "";
       cur.count += 1;
       cur.holders.push(shortGuruPersonName(prof.name));
-      overlapMap.set(sym, cur);
+      overlapMap.set(ent.key, cur);
     }
   }
   const overlapSorted = [...overlapMap.values()]
@@ -2810,6 +2899,7 @@ Page({
         const wan = this.data.aPrincipalWan || 1;
         Object.assign(patch, {
           sectionAnswerBar: aModule.answerBar || "",
+          aSectorDonut: aModule.sectorDonut || null,
           aStableList: withPrincipalWan(aModule.stableList, wan),
           aLifeSummary: buildLifeSummaryLine(aModule.stableList, wan),
         });

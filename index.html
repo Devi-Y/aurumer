@@ -556,9 +556,11 @@ footer{margin-top:36px;text-align:center;font-size:11.5px;color:var(--ink3);line
   .doors .door{margin-bottom:0;min-height:220px}
 }
 @media(min-width:1280px){
-  #app{max-width:1160px;padding-left:24px;padding-right:24px}
+  #app{max-width:1200px;padding-left:28px;padding-right:28px}
+  .grid2{gap:18px}
 }
 @media(max-width:820px){
+  table.hist{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
   body{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
   #app{padding-bottom:24px}
   .desktop-nav{display:none}
@@ -833,7 +835,7 @@ const INVESTORS = [
  ['2025-11','sell','清仓 花旗集团 C','银行股整体收缩，仅保留美国银行核心仓位']],
  pros:['60 年年化约 20% 的复利纪录，穿越无数周期','熊市中的防御性与抄底能力无出其右','「新进」标的历史上 12 个月平均跑赢标普 8%'],
  cons:['体量过大，只能买超大盘股，灵活性差','系统性错过科技成长股（英伟达、谷歌早期）','交棒阿贝尔后的决策风格存在不确定性'],
- advice:'跟踪其「新进」名单价值最高（如本季 UNH），减持苹果更多是仓位管理而非看空信号，不必恐慌跟卖。其现金储备水位是最好的市场温度计——当前 3,800 亿美元的现金意味着他认为整体市场偏贵。'},
+ advice:'跟踪其季度「新建仓」与增减持方向价值最高，单季减持核心重仓更多是仓位再平衡而非看空信号，不必机械跟卖；同时结合伯克希尔现金与短债水位观察其对整体美股估值的审慎程度。'},
 {id:'leopold',name:'Leopold Aschenbrenner',org:'Situational Awareness LP',av:'LA',aum:'等待 SEC 最新披露',style:'AI 基础设施 · 高集中度',q:'等待 SEC 最新披露',
  stance:'跟踪 AI 资本开支',sc:'caution',
  one:'以 SEC 13F 为事实底座，重点观察其算力、先进制程、电力和基础设施持仓变化。',
@@ -1928,10 +1930,19 @@ function applyLiveData(payload){
     LIVE.usMarketNote=`行情截至 ${fmtDate(latest)}`;
   }
   if(payload.us?.fundamentals?.length){
+    const noGmSet=new Set(['JPM','BAC','WFC','USB','EWBC','SLM','BRK.B','COIN','MA','V','AXP','CB','ICE','SPGI','MCO','HOOD']);
     const bySymbol=new Map(payload.us.fundamentals.map(row=>[row.symbol,row]));
     US_STOCKS.forEach(stock=>{
-      const data=bySymbol.get(stock.t);
-      if(!data)return;
+      const rawData=bySymbol.get(stock.t);
+      if(!rawData)return;
+      const cleanGm=(noGmSet.has(stock.t)&&Number(rawData.grossMargin)>=99.5)?null:rawData.grossMargin;
+      const bogusTarget=(stock.t==='BRK.B'&&Number(rawData.targetPrice)>=10000);
+      const data={
+        ...rawData,
+        grossMargin:cleanGm,
+        targetPrice:bogusTarget?null:rawData.targetPrice,
+        targetUpside:bogusTarget?null:rawData.targetUpside,
+      };
       stock.score=data.finalScore;
       stock.valueScore=data.valueScore;
       stock.growthScore=data.growthScore;
@@ -2036,11 +2047,50 @@ function applyLiveData(payload){
     LIVE.aShareMarketNote=latest?`行情截至 ${fmtDate(latest)} · ${source}`:`资料整理于 ${fmtDate(LIVE.updatedAt)} · ${source}`;
   }
   if(payload.aShare?.fundamentals?.length){
-    const byCode=new Map(payload.aShare.fundamentals.map(row=>[String(row.symbol||''),row]));
+    const byCode=new Map(payload.aShare.fundamentals.map(row=>[
+      String(row.code||row.symbol||'').replace(/\.(SH|SZ)$/i,''),
+      row,
+    ]));
     A_SHARES.forEach(item=>{
       const code=String(item.code||'').replace(/\.(SH|SZ)$/i,'');
       const data=byCode.get(code);
-      if(data)item.financials=data;
+      if(!data)return;
+      item.financials=data;
+      const histYears=Array.isArray(data.dividendHistory)?data.dividendHistory:[];
+      const byFy=new Map();
+      const fyFinal=new Set();
+      histYears.forEach(yr=>{(yr?.distributions||[]).forEach(d=>{
+        const basis=String(d?.reportBasis||'');
+        const fy=basis.slice(0,4);
+        if(/^\d{4}$/.test(fy)&&Number(d?.perTenSharesRmb)>0){
+          byFy.set(fy,(byFy.get(fy)||0)+Number(d.perTenSharesRmb)/10);
+          if(/-12-31$/.test(basis))fyFinal.add(fy);
+        }
+      })});
+      const doneFys=[...fyFinal].sort((a,b)=>Number(b)-Number(a));
+      const completeYears=histYears
+        .filter(yr=>yr&&yr.complete!==false&&Number(yr.perTenSharesRmb)>0)
+        .sort((a,b)=>Number(b.year||0)-Number(a.year||0));
+      const latestDps=doneFys.length?byFy.get(doneFys[0]):(completeYears.length?Number(completeYears[0].perTenSharesRmb)/10:NaN);
+      if(Number.isFinite(latestDps)&&latestDps>0&&Number.isFinite(Number(item.currentPrice))&&Number(item.currentPrice)>0){
+        const realYield=(latestDps/Number(item.currentPrice))*100;
+        item.currentDividendYield=Number(realYield.toFixed(2));
+        item.sustainableDividendYield=Number((realYield*0.92).toFixed(2));
+        item.annualDividendPer100k=Math.round(realYield*1000);
+        item.monthlyDividendPer100k=Math.round((realYield*1000)/12);
+      }
+      if(!item.dividendStability){
+        item.dividendStability=completeYears.length>=5?'连续5年派息':(completeYears.length>=3?'历年持续派息':'公开观察');
+      }
+      if(!item.dividendCoverage){
+        item.dividendCoverage=Number.isFinite(data.freeCashFlow)?(data.freeCashFlow>0?'自由现金流为正':'现金流波动'):(Number.isFinite(data.operatingCashFlow)&&data.operatingCashFlow>0?'经营现金流为正':'按财报核对');
+      }
+      if(!item.dividendRisk){
+        item.dividendRisk=/煤炭|油气|石油|钢铁|建材|火电/.test(String(item.industry||''))?'中（留意周期）':'中低';
+      }
+      if(!item.dividendReinvestment){
+        item.dividendReinvestment='长期分红再投入可摊薄持仓成本，以实际除权派息公告为准';
+      }
     });
   }
 
@@ -2052,9 +2102,11 @@ function applyLiveData(payload){
       const target=INVESTORS.find(item=>item.id===manager.id);
       if(!target)return;
       const interpretations=new Map(target.holds.map(holding=>[holding[0],holding[4]]));
-      target.aum=`披露持仓 ${fmtMoney(manager.portfolioValue)}`;
-      target.q=`${manager.reportDate} 13F · ${manager.filingDate}披露`;
-      target.sourceUrl=manager.sourceUrl;
+      const isSec13F=Boolean(manager.isLive);
+      const reportKind=isSec13F?'13F':(/月度|月报|Factsheet/i.test(String(manager.source||''))?'月报':'定期报告');
+      target.aum=Number.isFinite(Number(manager.portfolioValue))?`披露持仓 ${fmtMoney(manager.portfolioValue)}`:(target.aum||'公开持仓样本');
+      target.q=manager.filingDate&&manager.filingDate!==manager.reportDate?`${manager.reportDate} ${reportKind} · ${manager.filingDate}披露`:`${manager.reportDate} ${reportKind}`;
+      target.sourceUrl=manager.sourceUrl||target.sourceUrl;
       target.trackingScore=Number.isFinite(manager.trackingScore)?manager.trackingScore:0;
       target.trackingSummary=manager.trackingSummary||'公开资料有限，只适合做方向参考。';
       target.stance='最新披露已更新';
@@ -2062,28 +2114,30 @@ function applyLiveData(payload){
       const instrumentName=holding=>holding.putCall
         ?`${holding.ticker} ${holding.putCall==='Put'?'看跌期权':'看涨期权'}`
         :holding.ticker;
-      const positionChange=holding=>holding.putCall
-        ?`${holding.changeLabel} · ${holding.putCall==='Put'?'看跌期权':'看涨期权'}`
-        :holding.changeLabel;
-      target.one=`SEC 13F 显示前五大申报敞口为 ${manager.holdings.slice(0,5).map(instrumentName).join('、')}。13F 有时间滞后，不能代表当前仓位。`;
+      const fallbackChange=reportKind==='月报'?'月报持有':(isSec13F?'持仓披露':'季报持有');
+      const positionChange=holding=>{
+        const chg=holding.changeLabel||fallbackChange;
+        return holding.putCall?`${chg} · ${holding.putCall==='Put'?'看跌期权':'看涨期权'}`:chg;
+      };
+      target.one=`${isSec13F?'SEC 13F':reportKind}显示前五大重仓为 ${manager.holdings.slice(0,5).map(instrumentName).join('、')}。公开报告有时间滞后，不能代表当前实时仓位。`;
       target.holds=manager.holdings.slice(0,5).map(holding=>[
         instrumentName(holding),
-        holding.issuer,
-        `${holding.weight.toFixed(1)}%`,
+        holding.issuer||holding.ticker,
+        Number.isFinite(Number(holding.weight))?`${Number(holding.weight).toFixed(1)}%`:'—',
         positionChange(holding),
         interpretations.get(holding.ticker)||'暂无可验证的公开买卖理由，先只把它视为组合变化。'
       ]);
-      const changed=manager.holdings.filter(h=>h.changeType!=='same').slice(0,5).map(h=>[
-        manager.filingDate,
+      const changed=manager.holdings.filter(h=>h.changeLabel&&h.changeType&&h.changeType!=='same').slice(0,5).map(h=>[
+        manager.filingDate||manager.reportDate,
         h.changeType==='down'?'sell':'buy',
         `${h.changeLabel} ${instrumentName(h)}`,
-        `对比 ${manager.previousReportDate||'上一期'} 与 ${manager.reportDate} 的 13F 持股数量`
+        `对比 ${manager.previousReportDate||'上一期'} 与 ${manager.reportDate} 的公开持股数量`
       ]);
       const sold=(manager.sold||[]).slice(0,2).map(h=>[
-        manager.filingDate,
+        manager.filingDate||manager.reportDate,
         'sell',
         `退出披露 ${h.ticker}`,
-        `本期 13F 未再出现；不等同于实时清仓日期`
+        `本期报告未再出现；不等同于实时清仓日期`
       ]);
       target.moves=[...changed,...sold];
       target.isLive=true;
@@ -3138,17 +3192,25 @@ function aShareFinancialRows(item){
   return rows.map(([label,value])=>`<tr><td>${label}</td><td>${value}</td></tr>`).join('');
 }
 function renderAShare(x){
-  const annualPer100k=fmtCNY(x.annualDividendPer100k);
-  const monthlyPer100k=fmtCNY(x.monthlyDividendPer100k);
+  const annualVal=Number.isFinite(Number(x.annualDividendPer100k))?Number(x.annualDividendPer100k):(Number.isFinite(Number(x.currentDividendYield))?Math.round(Number(x.currentDividendYield)*1000):NaN);
+  const monthlyVal=Number.isFinite(Number(x.monthlyDividendPer100k))?Number(x.monthlyDividendPer100k):(Number.isFinite(annualVal)?Math.round(annualVal/12):NaN);
+  const annualPer100k=fmtCNY(annualVal);
+  const monthlyPer100k=fmtCNY(monthlyVal);
   const calcId=x.code.replace(/\W/g,'');
   const initialYears=3;
   const currentPriceText=Number.isFinite(x.currentPrice)?x.currentPrice.toFixed(2):'暂无可靠数据';
-  const currentYieldText=fmtPct(x.currentDividendYield);
-  const sustainableYieldText=fmtPct(x.sustainableDividendYield);
+  const currentYieldText=Number.isFinite(Number(x.currentDividendYield))&&x.currentDividendYield!==null?`${Number(x.currentDividendYield).toFixed(2)}%`:'暂无可靠数据';
+  const sustainableYieldText=Number.isFinite(Number(x.sustainableDividendYield))&&x.sustainableDividendYield!==null?`${Number(x.sustainableDividendYield).toFixed(2)}%`:'暂无可靠数据';
   const rating=aShareRating(x);
-  const recommendText=x.recommendPrice||aShareBuyZoneText(x);
-  const buyText=x.buyPrice||'待确认';
-  const safeText=x.safeMarginPrice||'待确认';
+  const recommendText=x.recommendPrice||aShareBuyZoneText(x)||'按股息率区间对照';
+  const buyText=x.buyPrice||'按高息分位对照';
+  const safeText=x.safeMarginPrice||'按历史低位对照';
+  const stabilityText=x.dividendStability||'公开记录核对';
+  const coverageText=x.dividendCoverage||'按财报现金流核对';
+  const riskText=x.dividendRisk||'中等波动';
+  const adviceText=x.currentAdvice||'历史参考';
+  const reinvestText=x.dividendReinvestment||'分红复投效果取决于买入股息率与分红连续性';
+  const summaryText=x.summary||`${x.industry||'A股收息'}公开样本，结合历年派息与现金流对照观察。`;
   const scoreProfile=aShareScoreProfile(x);
   const rankInfo=aShareRankInfo(x);
   const cashFlow=aShareCashFlowFacts(x);
@@ -3177,7 +3239,7 @@ function renderAShare(x){
         <div class="share-item"><span>观察低位</span><b>${buyText}</b></div>
         <div class="share-item"><span>高安全边际</span><b>${safeText}</b></div>
       </div>
-      <div class="share-risk"><b>一句话：</b>${x.summary}</div>
+      <div class="share-risk"><b>一句话：</b>${summaryText}</div>
       <div class="share-foot"><span>仅供研究，不构成投资建议</span><button class="copy-btn" onclick="shareCurrentPage(this)">转发答案</button></div>
     </div>
     <div class="d-sec"><h4>评分与排名</h4><div class="card">
@@ -3191,8 +3253,8 @@ function renderAShare(x){
     </div></div>
     <div class="d-sec"><h4>分红与价格事实</h4><div class="card">
       <div class="evidence-grid">
-        <div class="evidence-item"><span>分红稳定性</span><b>${x.dividendStability}</b><small>先确认连续性，再看表面股息率</small></div>
-        <div class="evidence-item"><span>分红覆盖</span><b>${x.dividendCoverage}</b><small>现金流能否覆盖分红决定可持续性</small></div>
+        <div class="evidence-item"><span>分红稳定性</span><b>${stabilityText}</b><small>先确认连续性，再看表面股息率</small></div>
+        <div class="evidence-item"><span>分红覆盖</span><b>${coverageText}</b><small>现金流能否覆盖分红决定可持续性</small></div>
         <div class="evidence-item"><span>可持续股息率</span><b>${sustainableYieldText}</b><small>当前显示股息率 ${currentYieldText}</small></div>
         <div class="evidence-item"><span>价格位置</span><b>${pricePosition}</b><small>观察低位 ${buyText} · 风险下沿 ${safeText}</small></div>
         <div class="evidence-item"><span>自由现金流</span><b>${cashFlow.label}</b><small>${cashFlow.detail}</small></div>
@@ -3226,31 +3288,31 @@ function renderAShare(x){
         <div class="price-cell"><span>观察低位</span><b>${buyText}</b><small>更适合分红收益</small></div>
       </div>
       <div class="stats g3">
-        <div class="stat"><b class="num">${x.dividendStability}</b><span>分红稳定性</span></div>
-        <div class="stat"><b class="num">${x.dividendCoverage}</b><span>分红覆盖</span></div>
-        <div class="stat"><b class="num">${x.dividendRisk}</b><span>分红下降风险</span></div>
+        <div class="stat"><b class="num">${stabilityText}</b><span>分红稳定性</span></div>
+        <div class="stat"><b class="num">${coverageText}</b><span>分红覆盖</span></div>
+        <div class="stat"><b class="num">${riskText}</b><span>分红下降风险</span></div>
       </div>
       <div class="stats g3" style="margin-top:8px">
         <div class="stat"><b class="num">${annualPer100k}</b><span>每10万元年分红</span></div>
         <div class="stat"><b class="num">${monthlyPer100k}</b><span>每10万元月均分红</span></div>
-        <div class="stat"><b class="num">${x.currentAdvice}</b><span>资料观察</span></div>
+        <div class="stat"><b class="num">${adviceText}</b><span>资料观察</span></div>
       </div>
-      <div class="t2" style="margin-top:10px">分红再投资：${x.dividendReinvestment}</div>
+      <div class="t2" style="margin-top:10px">分红再投资：${reinvestText}</div>
       <div class="source-line">价格来源：${x.priceSource||'公开资料'} · ${x.priceAsOf?`行情截至 ${fmtDate(x.priceAsOf)}`:'资料时间待确认'}</div>
     </div></div>
     <div class="d-sec"><h4>具体资料</h4><div class="card facts-card"><table class="kv">
       <tr><td>股票名称</td><td>${x.name}</td></tr>
       <tr><td>股票代码</td><td class="num">${x.code}</td></tr>
-      <tr><td>所属行业</td><td>${x.industry}</td></tr>
+      <tr><td>所属行业</td><td>${x.industry||'待确认'}</td></tr>
       <tr><td>历史记录价</td><td class="num">${Number.isFinite(x.currentPrice)?`${x.currentPrice.toFixed(2)} 元`:'待确认'}</td></tr>
       <tr><td>历史股息率</td><td class="num">${currentYieldText}</td></tr>
       <tr><td>可持续股息率</td><td class="num">${sustainableYieldText}</td></tr>
-      <tr><td>推荐关注价格</td><td>${x.recommendPrice}</td></tr>
-      <tr><td>观察低位参考</td><td>${x.buyPrice}</td></tr>
-      <tr><td>高安全边际价</td><td>${x.safeMarginPrice}</td></tr>
+      <tr><td>推荐关注价格</td><td>${recommendText}</td></tr>
+      <tr><td>观察低位参考</td><td>${buyText}</td></tr>
+      <tr><td>高安全边际价</td><td>${safeText}</td></tr>
       <tr><td>每10万元年分红</td><td>${annualPer100k}</td></tr>
       <tr><td>每10万元月均分红</td><td>${monthlyPer100k}</td></tr>
-      <tr><td>分红风险</td><td>${x.dividendRisk}</td></tr>
+      <tr><td>分红风险</td><td>${riskText}</td></tr>
       ${aShareFinancialRows(x)}
     </table></div></div>
     <div class="d-sec"><h4>优缺点分析</h4><div class="card">
@@ -3642,20 +3704,19 @@ function renderStock(x){
       <div class="analysis-source">页面只展示最终分数、组内排名、价格参考、公开资料和风险。</div>
     </div></div>
     <div class="d-sec"><h4>基本面好不好</h4><div class="card">
-      ${x.fundamentals?`<div class="stats">
+      ${x.fundamentals?(()=>{const fScale=x.fundamentals.amountUnit==='USD'?1:1000;const gmVal=Number.isFinite(x.fundamentals.grossMargin)?fmtPct(x.fundamentals.grossMargin):'不适用';const liqVal=Number.isFinite(x.fundamentals.liquidAssets)?fmtMoney(x.fundamentals.liquidAssets*fScale):'暂未披露';const ocfVal=Number.isFinite(x.fundamentals.operatingCashFlow)?fmtMoney(x.fundamentals.operatingCashFlow*fScale):'暂未披露';const revArr=Array.isArray(x.fundamentals.revenueHistory)?x.fundamentals.revenueHistory.map(v=>Number.isFinite(v)?v*fScale:v).reverse():[];return `<div class="stats">
         <div class="stat"><b class="num">${fmtPct(x.fundamentals.revenueGrowth)}</b><span>收入增长</span></div>
-        <div class="stat"><b class="num">${fmtPct(x.fundamentals.grossMargin)}</b><span>毛利率</span></div>
+        <div class="stat"><b class="num">${gmVal}</b><span>毛利率</span></div>
         <div class="stat"><b class="num">${fmtPct(x.fundamentals.profitMargin)}</b><span>净利率</span></div>
-        <div class="stat"><b class="num">${fmtMoney(Number.isFinite(x.fundamentals.liquidAssets)?x.fundamentals.liquidAssets*1000:NaN)}</b><span>现金及短期投资</span></div>
+        <div class="stat"><b class="num">${liqVal}</b><span>现金及短期投资</span></div>
       </div>
-    <div style="margin-top:14px">${sparkSVG(x.fundamentals.revenueHistory.slice().reverse(),600,70,'var(--accent)')}</div>
-    <div class="t2" style="text-align:center">近四个财年收入趋势 · 最近财年 ${x.fundamentals.period}</div>
+    ${revArr.length>=2?`<div style="margin-top:14px">${sparkSVG(revArr,600,70,'var(--accent)')}</div><div class="t2" style="text-align:center">近四个财年收入趋势 · 最近财年 ${x.fundamentals.period||'—'}</div>`:''}
       <table class="kv" style="margin-top:12px">
-        <tr><td>经营现金流</td><td>${fmtMoney((x.fundamentals.operatingCashFlow||0)*1000)}</td></tr>
-        <tr><td>估值参考</td><td>${Number.isFinite(x.fundamentals.pe)?`${x.fundamentals.pe} 倍市盈率`:'暂不适用'}</td></tr>
-        <tr><td>分析师目标价</td><td>${Number.isFinite(x.fundamentals.targetPrice)?`$${x.fundamentals.targetPrice} · 潜在空间 ${fmtPct(x.fundamentals.targetUpside)}`:'暂无一致目标价'}</td></tr>
+        <tr><td>经营现金流</td><td>${ocfVal}</td></tr>
+        <tr><td>估值参考</td><td>${Number.isFinite(x.fundamentals.pe)&&x.fundamentals.pe>0?`${x.fundamentals.pe} 倍市盈率`:'暂不适用'}</td></tr>
+        ${Number.isFinite(x.fundamentals.targetPrice)?`<tr><td>分析师目标价</td><td>$${x.fundamentals.targetPrice} · 潜在空间 ${fmtPct(x.fundamentals.targetUpside)}</td></tr>`:''}
       </table>
-      <div class="source-line">来源：Nasdaq 公司财务数据；金额按原始报表口径展示</div>`:''}
+      <div class="source-line">来源：Nasdaq 公司财务数据；金额已统一换算为美元口径</div>`})():''}
     </div></div>
     ${holders.length?`<div class="d-sec"><h4>聪明人持仓追踪</h4><div class="card"><div class="hold-chips">${holders.map(h=>`<span class="chip acc" style="cursor:pointer" onclick="go('#/investor/${h[2]}')">${h[0]} · ${h[1]} ›</span>`).join('')}</div></div></div>`:''}
     <div class="d-sec"><h4>具体资料</h4><div class="card facts-card"><table class="kv">
@@ -3892,8 +3953,15 @@ function renderAShareAnalysis(x){
     ['每年增长 5%',cumulativeCash(baseAnnualCash,.05),'只用于观察温和增长情景'],
     ['先下调 20%',cumulativeCash(Number.isFinite(baseAnnualCash)?baseAnnualCash*.8:null,0),'压力情景，不假设后续恢复'],
   ];
+  const stabVal=x.dividendStability||'公开记录核对';
+  const covVal=x.dividendCoverage||'按财报现金流核对';
+  const riskVal=x.dividendRisk||'中等波动';
+  const advVal=x.currentAdvice||'历史参考';
+  const reinvVal=x.dividendReinvestment||'分红复投效果取决于买入股息率与分红连续性';
+  const curYieldStr=Number.isFinite(Number(x.currentDividendYield))&&x.currentDividendYield!==null?`${Number(x.currentDividendYield).toFixed(2)}%`:'暂无可靠数据';
+  const susYieldStr=Number.isFinite(Number(x.sustainableDividendYield))&&x.sustainableDividendYield!==null?`${Number(x.sustainableDividendYield).toFixed(2)}%`:'暂无可靠数据';
   const nextChecks=[
-    ['分红公告',`当前分红稳定性为${x.dividendStability}，下一次先核对每股分红是否下调`,'每年确认'],
+    ['分红公告',`当前分红稳定性为${stabVal}，下一次先核对每股分红是否下调`,'每年确认'],
     ['经营现金流',cashFlow.available?`当前${cashFlow.label}，若经营现金流或自由现金流转负就降低评级`:'等待完整现金流资料，不用表面股息率代替现金流核验','不能恶化'],
     ['价格研究参考',`观察低位 ${x.buyPrice||'待确认'}，风险下沿 ${x.safeMarginPrice||'待确认'}`,'不追高'],
     ['行业风险',x.cons?.[0]||'关注行业政策、盈利周期和资本开支变化','触发后重评'],
@@ -3903,7 +3971,7 @@ function renderAShareAnalysis(x){
     backRoute:`#/a-share/${x.code.replace(/\.(SH|SZ)$/i,'')}`,
     title:`${x.name} · 收息深度分析`,
     subtitle:'把分红稳定性、可持续股息率、观察价格与分红下调风险一起看。',
-    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${scoreProfile.overall}</b><span>综合评分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}组内排名</span></div><div class="stat"><b>${aShareRating(x)}</b><span>收息评级</span></div><div class="stat"><b>${x.currentAdvice}</b><span>历史观察</span></div></div>${insightMeters([['收息质量',scoreProfile.overall,`${rankInfo.label}组第 ${rankInfo.rank}/${rankInfo.total} 名`]])}<div class="analysis-source">页面只展示最终分数、组内排名、公开资料和风险，不公开内部计算过程。</div></div></div>
+    body:`<div class="d-sec"><h4>最终答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${scoreProfile.overall}</b><span>综合评分</span></div><div class="stat"><b class="num">第 ${rankInfo.rank}/${rankInfo.total} 名</b><span>${rankInfo.label}组内排名</span></div><div class="stat"><b>${aShareRating(x)}</b><span>收息评级</span></div><div class="stat"><b>${advVal}</b><span>历史观察</span></div></div>${insightMeters([['收息质量',scoreProfile.overall,`${rankInfo.label}组第 ${rankInfo.rank}/${rankInfo.total} 名`]])}<div class="analysis-source">页面只展示最终分数、组内排名、公开资料和风险，不公开内部计算过程。</div></div></div>
     <div class="d-sec"><h4>资金成本答案</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b class="num">${Number.isFinite(fundingCostCeiling)?`${fundingCostCeiling.toFixed(1)}% 以下`:'待确认'}</b><span>资金成本参考上限</span></div><div class="stat"><b class="num">${Number.isFinite(currentYield)?`${currentYield.toFixed(1)}%`:'—'}</b><span>可持续股息率</span></div><div class="stat"><b class="num">${Number.isFinite(staticPaybackYears)?`${staticPaybackYears.toFixed(1)} 年`:'—'}</b><span>静态分红回本年限</span></div></div><div class="analysis-source">资金成本上限是保守研究参考，未计税费、股价变化和未来分红调整。</div></div></div>
     <div class="d-sec"><h4>现金流质量</h4><div class="card"><div class="stats g3" style="margin-top:0"><div class="stat"><b>${cashFlow.label}</b><span>自由现金流结论</span></div><div class="stat"><b class="num">${Number.isFinite(financials.operatingCashFlow)?fmtCNY(financials.operatingCashFlow):'待核验'}</b><span>经营现金流</span></div><div class="stat"><b class="num">${Number.isFinite(financials.freeCashFlow)?fmtCNY(financials.freeCashFlow):'待核验'}</b><span>自由现金流</span></div><div class="stat"><b class="num">${Number.isFinite(financials.cashConversion)?`${financials.cashConversion.toFixed(2)} 倍`:'待核验'}</b><span>现金利润比</span></div></div><div class="analysis-source">${cashFlow.detail} · ${cashFlow.source}。自由现金流用于检查分红可持续性，不单独构成买入结论。</div></div></div>
     <div class="d-sec"><h4>收息与现金流总榜</h4><div class="card">${incomeRanking.map((item,index)=>{const itemCashFlow=aShareCashFlowFacts(item);return `<a class="scenario-row ranking-row ${item.code===x.code?'current':''}" href="#/a-share/${item.code.replace(/\.(SH|SZ)$/i,'')}"><b><span class="num">${index+1}</span> · ${item.name}</b><span>${itemCashFlow.label} · 可持续股息率 ${rateOrDash(item.sustainableDividendYield)}</span><strong>${aShareScoreProfile(item).overall} 分</strong></a>`}).join('')}<div class="analysis-source">按最终收息质量分横向排序，并同时展示自由现金流结论；分数只用于比较，不代表未来收益。</div></div></div>
@@ -3911,9 +3979,9 @@ function renderAShareAnalysis(x){
     <div class="d-sec"><h4>10万元分红压力测试</h4><div class="card">${stressRows.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>估算股息率 ${Number(row[1]).toFixed(1)}%</span><strong>${fmtCNY(row[2])}/年</strong></div>`).join('')}<div class="analysis-note"><b>压力测试用途：</b>先确认即使分红下降，现金流是否仍满足你的资金成本和持有期限。</div></div></div>
     <div class="d-sec"><h4>10万元五年累计分红</h4><div class="card">${fiveYearRows.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[2]}</span><strong>${fmtCNY(row[1])}</strong></div>`).join('')}<div class="analysis-source">未计股价变化、税费和分红再投资；用于比较现金流韧性，不代表未来承诺。</div></div></div>
     <div class="d-sec"><h4>接下来只看四个变化</h4><div class="card">${nextChecks.map(row=>`<div class="scenario-row"><b>${row[0]}</b><span>${row[1]}</span><strong>${row[2]}</strong></div>`).join('')}<div class="analysis-source">分红、现金流或价格任一明显恶化，都应重新评估，而不是只看历史股息率。</div></div></div>
-    <div class="d-sec"><h4>同类收息标的</h4><div class="peer-grid">${peers.map(item=>`<a class="peer-card" href="#/a-share/${item.code.replace(/\.(SH|SZ)$/i,'')}"><div class="peer-top"><b>${item.name}</b><strong>${aShareScoreProfile(item).overall} 分</strong></div><span>${item.currentAdvice} · 股息率 ${fmtPct(item.currentDividendYield)}</span><small>${item.industry} · ${item.buyPrice||'观察低位待确认'}</small></a>`).join('')}</div><div class="analysis-source">用于比较分红质量和价格位置，不构成买卖建议。</div></div>
+    <div class="d-sec"><h4>同类收息标的</h4><div class="peer-grid">${peers.map(item=>`<a class="peer-card" href="#/a-share/${item.code.replace(/\.(SH|SZ)$/i,'')}"><div class="peer-top"><b>${item.name}</b><strong>${aShareScoreProfile(item).overall} 分</strong></div><span>${item.currentAdvice||'历史参考'} · 股息率 ${rateOrDash(item.currentDividendYield,2)}</span><small>${item.industry||'A股'} · ${item.buyPrice||'观察低位待确认'}</small></a>`).join('')}</div><div class="analysis-source">用于比较分红质量和价格位置，不构成买卖建议。</div></div>
     <div class="d-sec"><h4>优点与风险</h4><div class="analysis-grid"><div class="analysis-card"><h4>为什么可以看</h4><ul class="list pro">${x.pros.map(item=>`<li>${item}</li>`).join('')}</ul></div><div class="analysis-card"><h4>主要风险</h4><ul class="list con">${x.cons.map(item=>`<li>${item}</li>`).join('')}</ul></div></div></div>
-    <div class="d-sec"><h4>关键资料</h4><div class="card facts-card"><table class="kv"><tr><td>分红稳定性</td><td>${x.dividendStability}</td></tr><tr><td>分红覆盖</td><td>${x.dividendCoverage}</td></tr><tr><td>分红下降风险</td><td>${x.dividendRisk}</td></tr><tr><td>历史股息率</td><td>${fmtPct(x.currentDividendYield)}</td></tr><tr><td>可持续股息率</td><td>${fmtPct(x.sustainableDividendYield)}</td></tr><tr><td>分红再投资</td><td>${x.dividendReinvestment}</td></tr>${aShareFinancialRows(x)}</table></div></div>`,
+    <div class="d-sec"><h4>关键资料</h4><div class="card facts-card"><table class="kv"><tr><td>分红稳定性</td><td>${stabVal}</td></tr><tr><td>分红覆盖</td><td>${covVal}</td></tr><tr><td>分红下降风险</td><td>${riskVal}</td></tr><tr><td>历史股息率</td><td>${curYieldStr}</td></tr><tr><td>可持续股息率</td><td>${susYieldStr}</td></tr><tr><td>分红再投资</td><td>${reinvVal}</td></tr>${aShareFinancialRows(x)}</table></div></div>`,
     disclaimer:'A股分红、股息率和压力测试基于当前公开数据估算，过往分红不代表未来承诺。',
   });
 }

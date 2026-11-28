@@ -8,8 +8,21 @@ const { buildStrategySignal } = require("./strategy-signals");
 
 const MAGNIFICENT_SEVEN = ["NVDA", "MSFT", "AAPL", "GOOGL", "AMZN", "META", "TSLA"];
 const US_CYCLICAL = new Set(["JPM", "COIN", "MSTR", "SMCI", "AMD", "AVGO", "TSM", "ASML", "UBER"]);
+const US_NO_GROSS_MARGIN = new Set([
+  "JPM", "BAC", "WFC", "USB", "EWBC", "SLM", "BRK.B",
+  "COIN", "MA", "V", "AXP", "CB", "ICE", "SPGI", "MCO", "HOOD",
+]);
 const A_CORE_INDUSTRY = /水电|公用事业|银行|通信|高速|铁路|家电|现金牛/u;
 const A_CYCLE_INDUSTRY = /能源|煤炭|油气|炼化|钢铁|建材|火电/u;
+
+function cleanUsGrossMargin(symbol, grossMargin) {
+  if (!hasNumber(grossMargin)) return null;
+  const gm = Number(grossMargin);
+  const sym = String(symbol || "").trim().toUpperCase();
+  if (US_NO_GROSS_MARGIN.has(sym) && gm >= 99.5) return null;
+  if (gm < -200 || gm > 100) return null;
+  return gm;
+}
 
 function hasNumber(value) {
   return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
@@ -143,23 +156,91 @@ function aShareRole(item) {
   return null;
 }
 
+function resolveVerifiedDps(raw = {}) {
+  const direct = number(raw.historicalDividendYield && raw.historicalDividendYield.dividendPerShare);
+  if (direct !== null && direct > 0) return direct;
+  const hist = Array.isArray(raw.financials && raw.financials.dividendHistory)
+    ? raw.financials.dividendHistory
+    : [];
+  const byFiscalYear = new Map();
+  const hasFinal = new Set();
+  for (const yr of hist) {
+    for (const d of (yr && yr.distributions) || []) {
+      const basis = String((d && d.reportBasis) || "");
+      const fy = /^(\d{4})-\d{2}-\d{2}$/.exec(basis)?.[1];
+      const perTen = number(d && d.perTenSharesRmb);
+      if (!fy || perTen === null || perTen <= 0) continue;
+      byFiscalYear.set(fy, (byFiscalYear.get(fy) || 0) + perTen / 10);
+      if (/-12-31$/.test(basis)) hasFinal.add(fy);
+    }
+  }
+  const completedYears = [...hasFinal].sort((a, b) => Number(b) - Number(a));
+  if (completedYears.length) return byFiscalYear.get(completedYears[0]) || null;
+  const complete = hist
+    .filter((yr) => yr && yr.complete !== false && hasNumber(yr.perTenSharesRmb) && Number(yr.perTenSharesRmb) > 0)
+    .sort((a, b) => Number(b.year || 0) - Number(a.year || 0));
+  return complete.length ? Number(complete[0].perTenSharesRmb) / 10 : null;
+}
+
 function yieldImpliedPlan(raw = {}) {
   if (!isActionDataFresh(raw)) return null;
   const price = number(raw.currentPrice);
+  if (price === null || price <= 0) return null;
+
+  const verifiedDps = resolveVerifiedDps(raw);
+
+  if (verifiedDps !== null && verifiedDps > 0) {
+    const closes = (Array.isArray(raw.history) ? raw.history : [])
+      .map((entry) => number(entry && entry.close != null ? entry.close : entry))
+      .filter((value) => value !== null && value > 0);
+    let addYield = null;
+    let trimYield = null;
+    if (closes.length >= 20) {
+      const dailyYields = closes.map((close) => (verifiedDps / close) * 100);
+      const p25 = percentile(dailyYields, 0.25);
+      const p50 = percentile(dailyYields, 0.50);
+      const p75 = percentile(dailyYields, 0.75);
+      if (p25 !== null && p50 !== null && p75 !== null && p50 > 0) {
+        addYield = Math.max(p75, p50 * 1.08, p50 + 0.25);
+        trimYield = Math.max(0.2, Math.min(p25, p50 * 0.92, p50 - 0.20));
+      }
+    }
+    if (addYield === null || trimYield === null || addYield <= trimYield) {
+      const liveYield = (verifiedDps / price) * 100;
+      addYield = Math.max(liveYield * 1.12, liveYield + 0.35);
+      trimYield = Math.max(0.2, Math.min(liveYield * 0.88, liveYield - 0.25));
+    }
+    if (trimYield <= 0 || addYield <= trimYield) return null;
+    const addPrice = (verifiedDps / addYield) * 100;
+    const trimPrice = (verifiedDps / trimYield) * 100;
+    const zone = price <= addPrice ? "add" : (price >= trimPrice ? "trim" : "hold");
+    return {
+      dps: verifiedDps,
+      addPrice,
+      trimPrice,
+      addYield,
+      trimYield,
+      price,
+      zone,
+    };
+  }
+
   const currentYield = number(raw.currentDividendYield);
   const sustainable = number(raw.sustainableDividendYield);
-  if (price === null || currentYield === null || sustainable === null || currentYield <= 0 || sustainable <= 0) {
+  if (currentYield === null || sustainable === null || currentYield <= 0 || sustainable <= 0) {
     return null;
   }
   const dps = price * currentYield / 100;
   const addYield = Math.max(sustainable * 1.12, sustainable + 0.4);
   const trimYield = Math.max(0.2, Math.min(sustainable * 0.88, sustainable - 0.3));
   if (trimYield <= 0 || addYield <= trimYield) return null;
-  const zone = currentYield >= addYield ? "add" : (currentYield <= trimYield ? "trim" : "hold");
+  const addPrice = dps / addYield * 100;
+  const trimPrice = dps / trimYield * 100;
+  const zone = price <= addPrice ? "add" : (price >= trimPrice ? "trim" : "hold");
   return {
     dps,
-    addPrice: dps / addYield * 100,
-    trimPrice: dps / trimYield * 100,
+    addPrice,
+    trimPrice,
     addYield,
     trimYield,
     price,
@@ -333,6 +414,8 @@ function matchesGroup(item, groupId) {
 module.exports = {
   MAGNIFICENT_SEVEN,
   US_CYCLICAL,
+  US_NO_GROSS_MARGIN,
+  cleanUsGrossMargin,
   hasNumber,
   number,
   parseOfferPrice,

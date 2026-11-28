@@ -479,7 +479,8 @@
 .text-area { min-height: 96rpx; line-height: 1.6; }
 .decision-area { min-height: 170rpx; }
 .primary-button {
-  width: calc(100vw - 80rpx) !important;
+  box-sizing: border-box;
+  width: 100% !important;
   min-height: 84rpx;
   margin: 18rpx 0 0;
   padding: 15rpx 20rpx;
@@ -542,7 +543,7 @@
 }
 .delete-all-button { border-top: 1rpx solid #edeef0; color: #b44431; }
 .export-button,
-.delete-all-button { width: calc(100vw - 40rpx) !important; margin-right: 0; margin-left: 0; }
+.delete-all-button { box-sizing: border-box; width: 100% !important; margin-right: 0; margin-left: 0; }
 .export-button text:last-child,
 .delete-all-button text:last-child { color: #aeb1b6; font-size: 38rpx; font-weight: 300; }
 .privacy-note,
@@ -562,20 +563,26 @@
   .picker-field text:first-child,
   .input-row > text,
   .textarea-row > text { width: 70rpx; }
-  .primary-button { width: calc(100vw - 58rpx) !important; }
+  .primary-button { width: 100% !important; }
   .export-button,
-  .delete-all-button { width: calc(100vw - 30rpx) !important; }
+  .delete-all-button { width: 100% !important; }
 }
 
 @media (min-width: 700px) {
   .workspace-shell { padding: 24px 32px calc(42px + env(safe-area-inset-bottom)); }
+  .workspace-status-card,
+  .workspace-tabs,
+  .tab-content,
+  .management-panel,
+  .privacy-note,
+  .disclaimer { max-width: 880px; margin-right: auto; margin-left: auto; }
   .tab-content { display: flex; align-items: flex-start; gap: 18px; }
   .form-panel { width: 46%; flex: none; }
   .record-panel,
   .empty-card { min-width: 0; flex: 1; margin-top: 0; }
-  .primary-button { width: calc(46vw - 78px) !important; }
+  .primary-button { width: 100% !important; font-size: 15px; min-height: 44px; }
   .export-button,
-  .delete-all-button { width: calc(100vw - 64px) !important; }
+  .delete-all-button { width: 100% !important; font-size: 15px; min-height: 48px; }
 }
 
 /* 「对比当时与现在」展开层：版式与 section/list/detail 页的正文抽屉一致

@@ -93,9 +93,16 @@ function buildGuruTrend(snapshot) {
       if (ADD_TYPES.has(type)) row.adders.push({ id: investor.id, who, type, weight: Number(holding.weight) });
       else if (CUT_TYPES.has(type)) row.cutters.push({ id: investor.id, who, type, weight: Number(holding.weight) });
     }
+    // 如果机构只是把正股换成了同标的看涨期权（如 Leopold 换仓 Call），仍持有做多敞口，不能误判成清仓看空。
+    const activeLongUnderlying = new Set(
+      (investor.holdings || [])
+        .filter((h) => h && String(h.putCall || "").toLowerCase() !== "put")
+        .map((h) => normalizeSymbol(h.ticker))
+        .filter(Boolean),
+    );
     for (const gone of investor.sold || []) {
       const key = normalizeSymbol(gone.ticker);
-      if (!key || seen.has(key)) continue;
+      if (!key || seen.has(key) || activeLongUnderlying.has(key)) continue;
       if (!Object.prototype.hasOwnProperty.call(gone, "putCall")) { unverifiedExitCount += 1; continue; }
       if (!isKnownStock(gone)) continue;
       seen.add(key);

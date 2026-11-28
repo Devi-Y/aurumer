@@ -84,8 +84,11 @@ function formatFilingLine(filings, max = 2) {
     const day = filingDay(filing);
     if (!label || !day) continue;
     const last = groups[groups.length - 1];
-    if (last && last.label === label) last.days.push(day);
-    else groups.push({ label, days: [day] });
+    if (last && last.label === label) {
+      if (!last.days.includes(day)) last.days.push(day);
+    } else {
+      groups.push({ label, days: [day] });
+    }
   }
   return groups.map((group) => `${group.days.join("、")} ${group.label}`).join(" · ");
 }

@@ -1,3 +1,10 @@
 .research-ad {
   margin: 20rpx;
 }
+
+@media (min-width: 700px) {
+  .research-ad {
+    max-width: 880px;
+    margin: 14px auto;
+  }
+}

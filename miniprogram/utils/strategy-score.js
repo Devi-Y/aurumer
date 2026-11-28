@@ -102,10 +102,15 @@ function usScoreRows(item) {
 function aScore(item) {
   const raw = item?.raw || {};
   const financials = raw.financials || {};
-  const yieldNow = hasNumber(raw.currentDividendYield) ? Number(raw.currentDividendYield) : null;
-  const yieldSustain = hasNumber(raw.sustainableDividendYield)
-    ? Number(raw.sustainableDividendYield)
+  const verifiedY = hasNumber(raw.historicalDividendYield?.yieldPercent)
+    ? Number(raw.historicalDividendYield.yieldPercent)
     : null;
+  const rawCurY = hasNumber(raw.currentDividendYield) ? Number(raw.currentDividendYield) : null;
+  const rawSusY = hasNumber(raw.sustainableDividendYield) ? Number(raw.sustainableDividendYield) : null;
+  const yieldNow = verifiedY != null && verifiedY > 0 ? verifiedY : rawCurY;
+  const yieldSustain = verifiedY != null && verifiedY > 0
+    ? verifiedY * (rawCurY > 0 && rawSusY > 0 ? Math.min(1, Math.max(0.7, rawSusY / rawCurY)) : 0.9)
+    : rawSusY;
   const fcf = hasNumber(financials.freeCashFlow) ? Number(financials.freeCashFlow) : null;
   const ocf = hasNumber(financials.operatingCashFlow) ? Number(financials.operatingCashFlow) : null;
   const conversion = hasNumber(financials.cashConversion) ? Number(financials.cashConversion) : null;
@@ -159,18 +164,7 @@ function aScore(item) {
 function goldScore(item) {
   const gold = item?.raw || {};
   const answer = gold.answer || {};
-  const international = gold.quotes?.international || {};
-  let score = hasNumber(answer.score) ? Number(answer.score) : null;
-  const percentile = hasNumber(international.percentile180)
-    ? Number(international.percentile180)
-    : null;
-  if (score != null && percentile != null) {
-    if (percentile <= 35) score += 8;
-    else if (percentile >= 80) score -= 8;
-    score = clamp(score);
-  } else if (score != null) {
-    score = clamp(score);
-  }
+  const score = hasNumber(answer.score) ? clamp(Number(answer.score)) : null;
   if (score == null) return { score: null, label: "综合观察分", basis: "综合观察分暂缺" };
   return {
     score,

@@ -1,9 +1,30 @@
 const { SMART_MONEY_PROFILES } = require("./smart-money");
 
-function normalizeSymbol(ticker) {
-  const raw = String(ticker || "").trim().toUpperCase();
-  if (!raw || raw === "现金") return "";
-  return raw.replace(/\.HK$/, "");
+const CANONICAL_OVERLAP = [
+  [/^(0?700|TENCENT(\s+HOLDINGS?(\s+LTD)?)?|腾讯控股)$/i, "0700.HK", "腾讯控股"],
+  [/^(9988|BABA|ALIBABA(\s+GROUP(\s+HOLDING\s+LTD)?)?|阿里巴巴(-W)?)$/i, "BABA", "阿里巴巴"],
+  [/^(TSM|TSMC|TAIWAN\s+SEMICONDUCTOR(\s+MANUFACTURING(\s+CO\s+LTD)?)?|台积电)$/i, "TSM", "台积电"],
+  [/^(PDD|PINDUODUO|PDD\s+HOLDINGS(\s+INC)?|拼多多)$/i, "PDD", "拼多多"],
+  [/^(9999|NTES|NETEASE(\s+INC)?|网易(-S)?)$/i, "9999.HK", "网易"],
+  [/^(2899|ZIJIN\s+MINING(\s+GROUP(\s+CO\s+LTD)?)?|紫金矿业)$/i, "2899.HK", "紫金矿业"],
+  [/^(300750|CATL|CONTEMPORARY\s+AMPEREX(\s+TECHNOLOGY)?|宁德时代)$/i, "300750", "宁德时代"],
+  [/^(2318|PING\s+AN\s+INSURANCE(\s+H)?|中国平安)$/i, "2318.HK", "中国平安"],
+  [/^(600036|3968|CHINA\s+MERCHANTS\s+BANK|招商银行)$/i, "600036", "招商银行"],
+  [/^(300308|ZHONGJI\s+INNOLIGHT|中际旭创)$/i, "300308", "中际旭创"],
+  [/^(GOOG|GOOGL|ALPHABET(\s+INC)?)$/i, "GOOGL", "谷歌"],
+];
+
+function canonicalEntity(ticker, name) {
+  const raw = String(ticker || "").trim().replace(/\.(HK|SH|SZ|US)$/i, "");
+  if (!raw || raw === "现金") return null;
+  const upper = raw.toUpperCase();
+  const cleanName = String(name || "").trim().replace(/[.,]/g, "").replace(/\s+/g, " ");
+  for (const [pattern, code, zhName] of CANONICAL_OVERLAP) {
+    if (pattern.test(upper) || (cleanName && pattern.test(cleanName))) {
+      return { key: code.replace(/\.HK$/i, ""), name: zhName };
+    }
+  }
+  return { key: upper, name: name || upper };
 }
 
 function profileHoldings(profile, snapshot) {
@@ -25,17 +46,19 @@ function profileHoldings(profile, snapshot) {
 function buildGuruOverlapRows(snapshot) {
   const buckets = new Map();
   for (const profile of SMART_MONEY_PROFILES) {
+    const seenInProfile = new Set();
     for (const holding of profileHoldings(profile, snapshot)) {
-      const key = normalizeSymbol(holding.ticker);
-      if (!key) continue;
-      if (!buckets.has(key)) {
-        buckets.set(key, {
-          symbol: key,
-          name: holding.name || key,
+      const entity = canonicalEntity(holding.ticker, holding.name);
+      if (!entity || !entity.key || seenInProfile.has(entity.key)) continue;
+      seenInProfile.add(entity.key);
+      if (!buckets.has(entity.key)) {
+        buckets.set(entity.key, {
+          symbol: entity.key,
+          name: entity.name,
           holders: [],
         });
       }
-      buckets.get(key).holders.push({
+      buckets.get(entity.key).holders.push({
         id: profile.id,
         name: profile.name,
         market: profile.marketLabel,

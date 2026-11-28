@@ -73,10 +73,19 @@
             <text class="hk-fd-value is-down">{{hkFirstDayChart.flatDownText}}</text>
           </view>
         </view>
-        <view class="hk-fd-bars" aria-hidden="true">
-          <view class="hk-fd-zero" style="{{hkFirstDayChart.zeroStyle}}"></view>
-          <view wx:for="{{hkFirstDayChart.bars}}" wx:for-item="bar" wx:key="key" class="hk-fd-slot">
-            <view class="hk-fd-bar {{bar.tone}}" style="{{bar.style}}"></view>
+        <view class="hk-fd-visual-row" aria-hidden="true">
+          <view wx:if="{{hkFirstDayChart.donutSrc}}" class="hk-fd-donut-wrap">
+            <image class="hk-fd-donut-img" src="{{hkFirstDayChart.donutSrc}}" mode="aspectFit"></image>
+            <view class="hk-fd-donut-center">
+              <text class="hk-fd-donut-v">{{hkFirstDayChart.winPctText}}</text>
+              <text class="hk-fd-donut-k">首日胜率</text>
+            </view>
+          </view>
+          <view class="hk-fd-bars">
+            <view class="hk-fd-zero" style="{{hkFirstDayChart.zeroStyle}}"></view>
+            <view wx:for="{{hkFirstDayChart.bars}}" wx:for-item="bar" wx:key="key" class="hk-fd-slot">
+              <view class="hk-fd-bar {{bar.tone}}" style="{{bar.style}}"></view>
+            </view>
           </view>
         </view>
         <view class="hk-fd-foot">
@@ -382,7 +391,7 @@
         <view wx:if="{{usCompareDim === 'val'}}" class="ibkr-table">
           <view class="ibkr-th">
             <text class="ibkr-c-name">公司</text>
-            <text class="ibkr-c-mid">回本年数</text>
+            <text class="ibkr-c-mid">市盈率</text>
             <text class="ibkr-c-mid">近3月位置</text>
             <text class="ibkr-c-end">距低接区</text>
           </view>
@@ -459,7 +468,6 @@
             <text class="ibkr-c-end is-{{item.fcfTone}}">{{item.fcfText}}</text>
           </view>
         </view>
-        <text class="ibkr-foot-note">点任意一行可进入个股详情查看近 4 财年营收/净利柱图与完整依据。</text>
       </block>
 
       <block wx:if="{{usCompareDim === 'filings'}}">
@@ -517,7 +525,7 @@
       <view class="sort-bar">
         <text class="sort-pill {{usAllSort === 'default' ? 'is-active' : ''}}" data-sort="default" bindtap="sortUsAll" aria-role="button">按性价比</text>
         <text class="sort-pill {{usAllSort === 'perf60' ? 'is-active' : ''}}" data-sort="perf60" bindtap="sortUsAll" aria-role="button">近3月涨幅</text>
-        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">回本年数短</text>
+        <text class="sort-pill {{usAllSort === 'pe' ? 'is-active' : ''}}" data-sort="pe" bindtap="sortUsAll" aria-role="button">市盈率低</text>
       </view>
       <view class="us-stock-list" wx:if="{{usAllList.length}}">
         <view
@@ -626,7 +634,7 @@
     </block>
 
     <block wx:if="{{usSubTab === 'hot'}}">
-      <text class="reading-hint">按成交与波动计算，热度不代表涨跌方向或投资价值。</text>
+      <text class="reading-hint">成交波动热度 · 热度不代表涨跌方向或投资价值</text>
       <view class="us-stock-list" wx:if="{{usHotList.length}}">
         <view
           wx:for="{{usHotList}}"
@@ -729,6 +737,19 @@
       </view>
     </view>
     <text wx:if="{{aSubTab !== 'heatmap' && aSubTab !== 'calendar' && aLifeSummary}}" class="a-life-strip">{{aLifeSummary}}</text>
+    <view wx:if="{{(aSubTab === 'stable' || aSubTab === 'all') && aSectorDonut}}" class="a-sector-strip" aria-hidden="true">
+      <view class="a-sector-donut-wrap">
+        <image class="a-sector-donut-img" src="{{aSectorDonut.src}}" mode="aspectFit"></image>
+        <text class="a-sector-donut-center">{{aSectorDonut.centerMain}}</text>
+      </view>
+      <view class="a-sector-legend">
+        <view wx:for="{{aSectorDonut.legend}}" wx:key="key" class="a-sector-key">
+          <view class="a-sector-dot" style="background: {{item.color}};"></view>
+          <text class="a-sector-name">{{item.label}}</text>
+          <text class="a-sector-cnt">{{item.countText}}</text>
+        </view>
+      </view>
+    </view>
 
     <block wx:if="{{aSubTab === 'calendar'}}">
       <text wx:if="{{aCalendarSummary}}" class="a-cal-summary">{{aCalendarSummary}}</text>
@@ -1288,20 +1309,26 @@
           </view>
         </view>
 
-        <!-- 模仿富途「持仓分布」：前五大重仓彩色分段条，仓位集中度一眼看清 -->
+        <!-- 模仿富途「持仓分布」：前五大重仓环形扇形图 + 仓位图例，集中度一眼看清 -->
         <view wx:if="{{guruConcentration}}" class="guru-conc-box" aria-hidden="true">
           <view class="guru-conc-head">
             <text class="guru-conc-title">重仓分布</text>
             <text class="guru-conc-sum">{{guruConcentration.topSumText}}</text>
           </view>
-          <view class="guru-conc-bar">
-            <view wx:for="{{guruConcentration.segments}}" wx:key="key" class="guru-conc-seg is-{{item.tone}}" style="width: {{item.width}}%;"></view>
-          </view>
-          <view class="guru-conc-legend">
-            <view wx:for="{{guruConcentration.legend}}" wx:key="key" class="guru-conc-key">
-              <view class="guru-conc-dot is-{{item.tone}}"></view>
-              <text class="guru-conc-name">{{item.name}}</text>
-              <text class="guru-conc-pct">{{item.pctText}}</text>
+          <view class="guru-conc-visual">
+            <view wx:if="{{guruConcentration.donutSrc}}" class="guru-conc-donut-wrap">
+              <image class="guru-conc-donut-img" src="{{guruConcentration.donutSrc}}" mode="aspectFit"></image>
+              <view class="guru-conc-donut-center">
+                <text class="guru-conc-donut-v">{{guruConcentration.centerMain}}</text>
+                <text class="guru-conc-donut-k">前5占比</text>
+              </view>
+            </view>
+            <view class="guru-conc-legend">
+              <view wx:for="{{guruConcentration.legend}}" wx:key="key" class="guru-conc-key">
+                <view class="guru-conc-dot" style="background: {{item.color}};"></view>
+                <text class="guru-conc-name">{{item.name}}</text>
+                <text class="guru-conc-pct">{{item.pctText}}</text>
+              </view>
             </view>
           </view>
         </view>

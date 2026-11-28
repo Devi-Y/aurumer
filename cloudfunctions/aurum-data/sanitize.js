@@ -124,6 +124,20 @@ function scaleHistoryThousands(values) {
   return values.map((value) => (hasNumber(value) ? Number(value) * 1000 : value));
 }
 
+const US_NO_GROSS_MARGIN = new Set([
+  "JPM", "BAC", "WFC", "USB", "EWBC", "SLM", "BRK.B",
+  "COIN", "MA", "V", "AXP", "CB", "ICE", "SPGI", "MCO", "HOOD",
+]);
+
+function cleanUsGrossMargin(symbol, value) {
+  if (!hasNumber(value)) return null;
+  const gm = Number(value);
+  const sym = String(symbol || "").trim().toUpperCase();
+  if (US_NO_GROSS_MARGIN.has(sym) && gm >= 99.5) return null;
+  if (gm < -200 || gm > 100) return null;
+  return gm;
+}
+
 function sanitizeUSFundamental(item = {}) {
   const {
     targetPrice,
@@ -138,14 +152,16 @@ function sanitizeUSFundamental(item = {}) {
     modelValidation,
     ...rest
   } = item;
+  const grossMargin = cleanUsGrossMargin(item.symbol, item.grossMargin);
   const qualityView = typeof item.qualityEligible === "boolean"
     ? { state: item.qualityEligible ? "passed" : "failed", reportPeriod: item.period || null }
     : item.qualityView || { state: "unknown", reportPeriod: item.period || null };
   if (item.amountUnit === "USD") {
-    return { ...rest, qualityView, amountUnit: "USD", currency: item.currency || "USD" };
+    return { ...rest, grossMargin, qualityView, amountUnit: "USD", currency: item.currency || "USD" };
   }
   return {
     ...rest,
+    grossMargin,
     qualityView,
     operatingCashFlow: scaleUsdThousands(item.operatingCashFlow),
     capitalExpenditures: scaleUsdThousands(item.capitalExpenditures),
@@ -211,8 +227,12 @@ function sanitizeAShareQuote(item = {}, financials = {}) {
     buyPrice,
     safeMarginPrice,
     summary,
+    fallbackReason,
     ...rest
   } = item;
+  const keepFallbackReason = item.dataStatus && item.dataStatus !== "live" && fallbackReason
+    ? { fallbackReason }
+    : {};
   // 保留经过校验的近 250 个交易日（约 1 年）真实日线收盘序列，四舍五入至两位小数并拒绝无效点。
   const cleanHistory = Array.isArray(item.history)
     ? item.history
@@ -226,6 +246,7 @@ function sanitizeAShareQuote(item = {}, financials = {}) {
   // 买入/推荐/安全边际价来自静态 HTML，不是公告驱动自动化；公开链路一律剥离。
   return {
     ...rest,
+    ...keepFallbackReason,
     ...(cleanHistory && cleanHistory.length >= 2 ? { history: cleanHistory } : {}),
     researchView: aShareResearchView(item, financials),
   };
@@ -254,14 +275,48 @@ function sanitizePriceRange(range) {
   };
 }
 
+function alignDomesticGoldMeta(goldRest = {}) {
+  const domRows = goldRest.history && Array.isArray(goldRest.history.domestic) ? goldRest.history.domestic : null;
+  const domMeta = goldRest.historyMeta && goldRest.historyMeta.domestic ? goldRest.historyMeta.domestic : null;
+  if (!domRows || domRows.length < 2 || !domMeta || domMeta.symbol !== "Au99.99") return goldRest;
+  const valid = domRows.every((row, idx) => (
+    row
+    && typeof row.date === "string"
+    && /^\d{4}-\d{2}-\d{2}$/.test(row.date)
+    && hasNumber(row.close)
+    && Number(row.close) > 0
+    && (idx === 0 || row.date > domRows[idx - 1].date)
+  ));
+  if (!valid) return goldRest;
+  const firstDate = domRows[0].date;
+  const lastDate = domRows[domRows.length - 1].date;
+  const reqStart = domMeta.requestedStart && domMeta.requestedStart <= firstDate ? domMeta.requestedStart : firstDate;
+  const reqEnd = domMeta.requestedEnd && domMeta.requestedEnd >= lastDate ? domMeta.requestedEnd : lastDate;
+  return {
+    ...goldRest,
+    historyMeta: {
+      ...(goldRest.historyMeta || {}),
+      domestic: {
+        ...domMeta,
+        sessions: domRows.length,
+        firstDate,
+        lastDate,
+        requestedStart: reqStart,
+        requestedEnd: reqEnd,
+      },
+    },
+  };
+}
+
 function sanitizeGold(gold = {}) {
   const {
     internalAssessment,
     strategyAssessment,
     modelEstimate,
     modelValidation,
-    ...goldRest
+    ...rawGoldRest
   } = gold;
+  const goldRest = alignDomesticGoldMeta(rawGoldRest);
   const answer = gold.answer || {};
   const {
     strategyAssessment: _answerStrategy,

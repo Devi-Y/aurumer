@@ -485,10 +485,28 @@
   .item-strategy-label { max-width: 140rpx; }
 }
 
+@media (min-width: 540px) {
+  .list-hero, .list-filters, .item-panel, .source-panel, .empty, .page-note {
+    max-width: 780px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+}
+
 @media (min-width: 700px) {
   .list-shell { padding-right: 32px; padding-left: 32px; }
+  .list-hero, .list-filters, .item-panel, .source-panel, .empty, .page-note {
+    box-sizing: border-box;
+    max-width: 860px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+  .list-hero-title { font-size: 24px; }
   .item-panel,
   .empty { border-radius: 20px; }
+  .item-row { padding: 14px 20px; }
+  .item-name { font-size: 17px; }
+  .item-code, .item-kind, .item-meta, .item-strategy-label { font-size: 13px; }
 }
 
 /* 数据出处。与栏目页、详情页「资料」tab 同一套：地址摆出来，点一下复制走。 */

@@ -77,3 +77,23 @@
   font-size: 24rpx;
   line-height: 1.45;
 }
+
+@media (min-width: 540px) {
+  .partner-stack {
+    max-width: 780px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 700px) {
+  .partner-stack {
+    max-width: 880px;
+    margin-right: auto;
+    margin-left: auto;
+    gap: 10px;
+  }
+  .partner-card { padding: 12px 16px; border-radius: 14px; }
+  .partner-title { font-size: 15px; }
+  .partner-badge, .partner-go, .partner-tagline, .partner-disclosure { font-size: 13px; }
+}

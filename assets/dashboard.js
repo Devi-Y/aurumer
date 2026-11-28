@@ -113,7 +113,7 @@ function deriveHoldingView(holding, maps) {
             ? `继续观察：记录价 ${formatNumber(current)}，加大观察 ${formatNumber(plan.addPrice)}`
             : (item.summary || item.actionPriceNote || '收息观察价待公告核验');
     const tone = !item ? 'wait' : plan?.zone === 'add' ? 'good' : plan?.zone === 'trim' ? 'risk' : 'wait';
-    return { name:item?.name || code, current, change:Number(item?.changePercent), action:{text:'历史价格与分红对照',tone:'wait'}, detail:'index.html#/a-shares', shares, cost, source:item?.priceAsOf ? `${item.priceSource || '公开行情'} · ${formatDateTime(item.priceAsOf)}` : '数据待核验' };
+    return { name:item?.name || code, current, change:Number(item?.changePercent), action:{text,tone}, detail:'index.html#/a-shares', shares, cost, source:item?.priceAsOf ? `${item.priceSource || '公开行情'} · ${formatDateTime(item.priceAsOf)}` : '数据待核验' };
   }
   if (market === 'GOLD') {
     const gold = state.data?.gold || {};
@@ -132,7 +132,7 @@ function deriveHoldingView(holding, maps) {
           ? `进入卖出观察区：记录价 ${formatNumber(current, 1)}`
           : `继续观察：记录价 ${formatNumber(current, 1)}`;
     const tone = Number.isFinite(high) && current >= high ? 'risk' : Number.isFinite(low) && current <= low ? 'good' : 'wait';
-    return { name:useUSD ? '美元金' : '人民币金', current, change:Number(quote?.changePercent), action:{text:'历史价格与分红对照',tone:'wait'}, detail:'index.html#/gold', shares, cost, source:quote?.asOf ? `${quote.currency || '公开行情'} · ${formatDateTime(quote.asOf)}` : '数据待核验' };
+    return { name:useUSD ? '国际纽约期金' : '上海金', current, change:Number(quote?.changePercent), action:{text,tone}, detail:'index.html#/gold', shares, cost, source:quote?.asOf ? `${quote.currency || '公开行情'} · ${formatDateTime(quote.asOf)}` : '数据待核验' };
   }
   const item = maps.hk.get(code);
   const assessment = item?.publicAnswer || {};

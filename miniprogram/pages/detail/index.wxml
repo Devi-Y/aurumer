@@ -81,6 +81,65 @@
         <text>{{tile.valueText}}</text>
       </view>
     </view>
+
+    <view wx:if="{{item.kind == 'donut'}}" class="donut-chart-box">
+      <view class="donut-ring-wrap">
+        <image wx:if="{{item.src}}" class="donut-ring-img" src="{{item.src}}" mode="aspectFit" aria-hidden="true"></image>
+        <view class="donut-ring-center">
+          <text class="donut-center-v">{{item.centerMain}}</text>
+          <text wx:if="{{item.centerSub}}" class="donut-center-k">{{item.centerSub}}</text>
+        </view>
+      </view>
+      <view class="donut-legend-list">
+        <view wx:for="{{item.legend}}" wx:for-item="seg" wx:key="label" class="donut-legend-row">
+          <view class="donut-legend-dot" style="background: {{seg.color}};"></view>
+          <text class="donut-legend-name">{{seg.label}}</text>
+          <text class="donut-legend-pct">{{seg.pctText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{item.kind == 'gauge'}}" class="gauge-chart-box">
+      <image wx:if="{{item.src}}" class="gauge-img" src="{{item.src}}" mode="aspectFit" aria-hidden="true"></image>
+      <text wx:if="{{item.badgeMain}}" class="gauge-main-pill">{{item.badgeMain}}</text>
+      <view class="meter-labels gauge-labels">
+        <text>{{item.lowLabel}}</text>
+        <text>{{item.midLabel}}</text>
+        <text>{{item.highLabel}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{item.kind == 'dualbars'}}" class="dual-chart-box">
+      <view class="dual-legend-row">
+        <view class="dual-legend-item"><view class="dual-dot is-a"></view><text>{{item.legendA}}</text></view>
+        <view class="dual-legend-item"><view class="dual-dot is-b"></view><text>{{item.legendB}}</text></view>
+      </view>
+      <image wx:if="{{item.src}}" class="dual-bars-img" src="{{item.src}}" mode="scaleToFill" aria-hidden="true"></image>
+      <view class="dual-x-grid">
+        <view wx:for="{{item.items}}" wx:for-item="col" wx:key="id" class="dual-x-col">
+          <text class="dual-x-lbl">{{col.label}}</text>
+          <text class="dual-x-a">{{col.aText}}</text>
+          <text class="dual-x-b is-{{col.bTone}}">{{col.bText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{item.kind == 'compare'}}" class="cmp-chart-box">
+      <view class="dual-legend-row">
+        <view class="dual-legend-item"><view class="dual-dot is-a"></view><text>{{item.selfLegend}}</text></view>
+        <view class="dual-legend-item"><view class="dual-dot is-peer"></view><text>{{item.peerLegend}}</text></view>
+      </view>
+      <view wx:for="{{item.items}}" wx:for-item="row" wx:key="id" class="cmp-row">
+        <view class="cmp-row-head">
+          <text class="cmp-row-label">{{row.label}}</text>
+          <text class="cmp-row-vals"><text class="cmp-self-v tone-{{row.tone}}">{{row.selfText}}</text> · {{row.peerText}}</text>
+        </view>
+        <view class="cmp-dual-tracks">
+          <view class="cmp-track"><view class="cmp-fill is-self tone-{{row.tone}}" style="width: {{row.selfWidth}}%;"></view></view>
+          <view class="cmp-track"><view class="cmp-fill is-peer" style="width: {{row.peerWidth}}%;"></view></view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -108,8 +167,14 @@
       </view>
       <text class="hero-asof">{{dataAsOf || '读取历史资料'}}</text>
 
-      <!-- Robinhood 同款首屏价格走势曲线：直接嵌在价格下方，告别重复标题框 -->
+      <!-- Robinhood 同款首屏价格走势曲线（叠加高低参考虚线） -->
       <image wx:if="{{view.heroSpark}}" class="hero-spark-img" src="{{view.heroSpark}}" mode="scaleToFill" aria-hidden="true"></image>
+      <view wx:if="{{view.heroSparkLegend && view.heroSparkLegend.length}}" class="hero-spark-legend" aria-hidden="true">
+        <view wx:for="{{view.heroSparkLegend}}" wx:key="text" class="hero-spark-key">
+          <view class="hero-spark-dash is-{{item.tone}}"></view>
+          <text>{{item.text}}</text>
+        </view>
+      </view>
 
       <!-- 可视化高低区间尺（美股/A股/黄金）或 4 步进度条（港股新股） -->
       <view wx:if="{{view.heroRange}}" class="hero-range-box" aria-hidden="true">
@@ -314,7 +379,6 @@
               </view>
             </view>
           </view>
-          <text wx:if="{{view.overview.orderPlan.summary}}" class="ref-plan-summary">{{view.overview.orderPlan.summary}}</text>
         </view>
 
         <template wx:if="{{!view.heroSpark && view.overview.priceCard}}" is="chart-visual" data="{{item: view.overview.priceCard}}" />
@@ -372,18 +436,21 @@
                 <text class="drip-pill {{dividendYears === 10 ? 'is-active' : ''}}" data-years="10" bindtap="selectDividendYears" aria-role="button">10年</text>
               </view>
             </view>
-            <view class="drip-stats">
-              <view class="drip-stat">
-                <text class="drip-k">{{dividendYears}}年后攒股</text>
-                <text class="drip-v">{{dividendCalcView.dripSharesText}}</text>
-              </view>
-              <view class="drip-stat">
-                <text class="drip-k">届时年领</text>
-                <text class="drip-v is-green">{{dividendCalcView.dripCashText}}</text>
-              </view>
-              <view class="drip-stat">
-                <text class="drip-k">相对本金息率</text>
-                <text class="drip-v is-blue">{{dividendCalcView.yocText}}</text>
+            <view class="drip-visual-row">
+              <image wx:if="{{dividendCalcView.dripDonutSrc}}" class="drip-donut-img" src="{{dividendCalcView.dripDonutSrc}}" mode="aspectFit" aria-hidden="true"></image>
+              <view class="drip-stats">
+                <view class="drip-stat">
+                  <text class="drip-k">{{dividendYears}}年后攒股</text>
+                  <text class="drip-v">{{dividendCalcView.dripSharesText}}</text>
+                </view>
+                <view class="drip-stat">
+                  <text class="drip-k">届时年领</text>
+                  <text class="drip-v is-green">{{dividendCalcView.dripCashText}}</text>
+                </view>
+                <view class="drip-stat">
+                  <text class="drip-k">相对本金息率</text>
+                  <text class="drip-v is-blue">{{dividendCalcView.yocText}}</text>
+                </view>
               </view>
             </view>
           </view>
@@ -412,10 +479,9 @@
               <text class="div-sub-tag">涨10% {{hkIpoCalcView.up10Text}} · 跌10% {{hkIpoCalcView.down10Text}}</text>
             </view>
           </view>
-          <text class="div-calc-note">按公开招股入场费与常见券商费率算术试算，不预测上市涨跌。</text>
         </view>
 
-        <!-- 首屏核心图表直出（A股历年分红柱图 / 美股利润率与营收图 / 港股样本涨跌图 / 大佬重仓权重图） -->
+        <!-- 首屏核心图表直出（A股股息表盘与历年分红图 / 美股双柱财报与同业对比图 / 港股首日扇形图 / 大佬重仓环形饼图） -->
         <block wx:if="{{activeCharts.length}}">
           <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
         </block>
@@ -438,8 +504,6 @@
             </view>
           </view>
         </view>
-
-        <text wx:if="{{view.overview.reason}}" class="module-answer">{{view.overview.reason}}</text>
 
         <!-- 对标富途牛牛：明星大师持仓联动背书卡（美股七姐妹等机构重仓股首屏直出） -->
         <view wx:if="{{view.market == 'us' && view.holdings && view.holdings.length}}" class="section-card guru-endorse-card">

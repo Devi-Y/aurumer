@@ -238,8 +238,13 @@ function aShareSignal(item) {
     };
   }
   const financials = raw.financials || {};
-  const current = number(raw.currentDividendYield);
-  const sustainable = number(raw.sustainableDividendYield);
+  const verifiedY = number(raw.historicalDividendYield && raw.historicalDividendYield.yieldPercent);
+  const rawCurrent = number(raw.currentDividendYield);
+  const rawSustain = number(raw.sustainableDividendYield);
+  const current = verifiedY !== null && verifiedY > 0 ? verifiedY : rawCurrent;
+  const sustainable = verifiedY !== null && verifiedY > 0
+    ? verifiedY * (rawCurrent > 0 && rawSustain > 0 ? Math.min(1, Math.max(0.7, rawSustain / rawCurrent)) : 0.9)
+    : rawSustain;
   const fcf = number(financials.freeCashFlow);
   const conversion = number(financials.cashConversion);
   const profitGrowth = number(financials.netProfitGrowth);

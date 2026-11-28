@@ -22,19 +22,20 @@ test("A-share Xiji benchmark: full 20-stock pool, 12-month calendar, cost-yield 
   const aMod = secApi.buildAModule(snapshot);
   assert.equal(aMod.allList.length, 20, "all-20 tab genuinely covers all 20 A-share dividend stocks");
   assert.match(aMod.answerBar, /^20 只收息股/, "answerBar reflects all 20 A-share stocks");
+  assert.ok(aMod.sectorDonut && aMod.sectorDonut.src.startsWith("data:image/svg+xml;base64,"), "A-share section exposes sector allocation donut SVG");
   const cal = aMod.calendar;
   assert.equal(cal.months.length, 12);
   assert.ok(cal.months.filter((m) => m.count > 0).length >= 6, "calendar covers multiple payout months");
   const julyRows = formatRowsHelper(secApi.formatCalendarRows, cal.byMonth.get(7) || [], 10);
   assert.ok(julyRows.length >= 2);
   assert.match(julyRows[0].cashNote, /投10万单次约领 ¥/);
-  assert.match(secApi.buildLifeSummaryLine(aMod.stableList, 10), /息覆生活/);
+  assert.match(secApi.buildLifeSummaryLine(aMod.stableList, 10), /投10万均领 ¥.*约抵/);
 
   const { api: detApi, page: detPage } = loadPageExports("miniprogram/pages/detail/index.js", ["detailView", "buildPeerNav"]);
   for (const code of ["600900.SH", "601398.SH"]) {
     const item = findItem(snapshot, "a", code);
     const view = detApi.detailView(item, snapshot);
-    assert.ok(view.dividendCharts.some((c) => /股息率分位/.test(c.title)), `${code} exposes 1-year yield percentile meter`);
+    assert.ok(view.dividendCharts.some((c) => c.kind === "gauge" && /股息率.*(分位|表盘)/.test(c.title)), `${code} exposes 1-year yield percentile gauge`);
     assert.ok(Array.isArray(view.recentDistributions) && view.recentDistributions.length >= 1, `${code} exposes real ex-dividend log`);
     const spotCalc = detPage.formatDividendCalc(view.dividendCalc, 1000, 10, "spot");
     const dipCalc = detPage.formatDividendCalc(view.dividendCalc, 1000, 10, "dip12");
@@ -91,8 +92,9 @@ test("US Mag7 & Smart-Money Futu/Eastmoney/IBKR benchmark: FCF vs CapEx matrix, 
 
   const { api: detApi } = loadPageExports("miniprogram/pages/detail/index.js", ["detailView"]);
   const nvda = detApi.detailView(findItem(snapshot, "us", "NVDA"), snapshot);
-  assert.ok(nvda.dynamicsCharts.some((c) => c.kind === "solid" && c.title.includes("近4财年营收阶梯")));
-  assert.ok(nvda.evidenceCharts.some((c) => c.title.includes("同业基准对照")));
+  assert.ok(nvda.dynamicsCharts.some((c) => c.kind === "dualbars" && c.title.includes("近4财年营收与净利润对比")));
+  assert.ok(nvda.evidenceCharts.some((c) => c.kind === "compare" && c.title.includes("七巨头中位")));
+  assert.ok(nvda.trendCharts.some((c) => c.kind === "gauge" && c.title.includes("价格分位表盘")));
   assert.ok(nvda.holdings.length >= 1 && nvda.holdings[0].investorId, "surfaces clickable institutional guru holdings on Mag7");
 
   const { api: homeApi } = loadPageExports("miniprogram/pages/index/index.js", ["buildSearchIndex"]);

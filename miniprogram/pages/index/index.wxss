@@ -461,19 +461,73 @@
   .card-title {
     font-size: 27rpx;
   }
+  .search-picks-grid {
+    gap: 8rpx;
+  }
+  .search-pick-card {
+    padding: 12rpx 8rpx 10rpx;
+  }
+  .pick-fig-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4rpx;
+  }
+}
+
+@media (min-width: 540px) {
+  .home-main,
+  .page-footer {
+    width: 100%;
+    max-width: 760px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+  .home-search-box { height: 56px; padding: 0 16px 0 18px; border-radius: 14px; }
+  .home-search-input { height: 52px; font-size: 17px; }
+  .home-search-placeholder { font-size: 16px; }
+  .pick-spark, .pick-spark-placeholder { height: 32px; }
+  .grid-card { min-height: 124px; gap: 10px; padding: 12px 8px; }
+  .entry-icon-chip { width: 58px; height: 58px; border-radius: 16px; }
+  .entry-icon { width: 28px; height: 28px; }
+  .card-title { font-size: 16px; }
 }
 
 @media (min-width: 700px) {
   .home-shell {
-    padding-right: 32px;
-    padding-left: 32px;
+    padding: 20px 32px calc(24px + env(safe-area-inset-bottom));
   }
-  .entry-icon-chip {
-    width: 56px;
-    height: 56px;
+  .home-main,
+  .page-footer {
+    width: 100%;
+    max-width: 860px;
+    margin-right: auto;
+    margin-left: auto;
+    gap: 16px;
   }
-  .entry-icon {
-    width: 28px;
-    height: 28px;
+  .home-search-wrap,
+  .home-panel {
+    padding: 18px 20px;
+    border-radius: 22px;
   }
+  .home-search-box { height: 54px; padding: 0 16px 0 18px; border-radius: 14px; }
+  .home-search-icon { font-size: 22px; }
+  .home-search-input { height: 50px; font-size: 17px; }
+  .home-search-placeholder { font-size: 16px; }
+  .home-search-clear { padding: 6px 14px; font-size: 14px; border-radius: 10px; }
+  .search-dropdown { top: 82px; border-radius: 16px; }
+  .search-result-row { min-height: 52px; padding: 10px 16px; }
+  .search-result-name { font-size: 16px; }
+  .search-result-code, .search-tag { font-size: 13px; }
+  .search-result-fig { font-size: 15px; }
+  .search-picks-badge, .search-picks-sub, .star-picks-label, .star-pick-pill { font-size: 13px; }
+  .search-picks-grid { gap: 12px; }
+  .search-pick-card { padding: 12px 14px; border-radius: 14px; }
+  .search-pick-name, .pick-figure { font-size: 16px; }
+  .search-pick-code, .pick-mkt-dot, .pick-delta, .pick-ipo-tag { font-size: 12px; }
+  .pick-spark, .pick-spark-placeholder { height: 34px; }
+  .grid-card { min-height: 128px; gap: 10px; padding: 14px 10px; border-radius: 14px; }
+  .entry-icon-chip { width: 58px; height: 58px; border-radius: 16px; }
+  .entry-icon { width: 28px; height: 28px; }
+  .card-title { font-size: 16px; }
+  .footer-note { max-width: 640px; font-size: 13px; }
 }

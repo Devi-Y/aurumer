@@ -1003,6 +1003,7 @@ function investorHoldings(snapshot, symbol) {
       const holding = (investor.holdings || []).find((entry) => entry.ticker === symbol);
       if (!holding) return null;
       return {
+        investorId: investor.id || "",
         name: INVESTOR_NAMES[investor.id] || investor.name,
         // 这只票自己的详情页也会读到这份持仓：不标出期权，读的人会以为
         // 这家机构是在买正股，而实际可能是一张方向相反的看跌/看涨期权。
@@ -1010,6 +1011,25 @@ function investorHoldings(snapshot, symbol) {
       };
     })
     .filter(Boolean);
+}
+
+function resolveDetailStockLink(snapshot, rawTicker, rawName) {
+  if (!snapshot) return { linkMarket: "", linkId: "" };
+  const sym = String(rawTicker || "").trim().toUpperCase().replace(/\.(SH|SZ|US)$/i, "");
+  const usStocks = (snapshot.us && snapshot.us.stocks) || [];
+  if (sym && usStocks.some((s) => String(s.symbol || "").toUpperCase() === sym)) {
+    return { linkMarket: "us", linkId: sym };
+  }
+  if (sym === "GOOG" && usStocks.some((s) => String(s.symbol || "").toUpperCase() === "GOOGL")) {
+    return { linkMarket: "us", linkId: "GOOGL" };
+  }
+  const aQuotes = (snapshot.aShare && snapshot.aShare.quotes) || [];
+  for (const q of aQuotes) {
+    const cleanCode = String((q && q.code) || "").replace(/\.(SH|SZ)$/i, "").toUpperCase();
+    if (sym && cleanCode === sym) return { linkMarket: "a", linkId: cleanCode };
+    if (rawName && q && q.name && String(rawName).includes(q.name)) return { linkMarket: "a", linkId: cleanCode };
+  }
+  return { linkMarket: "", linkId: "" };
 }
 
 function baseView(item) {
@@ -1369,9 +1389,14 @@ function buildUSView(base, item, snapshot) {
     ["净利润", hasNumber(fund.netIncome) ? formatLarge(fund.netIncome) : null],
   ].filter((row) => row[1] && !isSparseValue(row[1])), "成长与盈利额", "增长是百分比；净利润是金额，分开展示。");
 
+  const absCapex = hasNumber(fund.capitalExpenditures) ? Math.abs(Number(fund.capitalExpenditures)) : null;
+  const fcfValue = hasNumber(fund.freeCashFlow)
+    ? Number(fund.freeCashFlow)
+    : (ocfValue != null && absCapex != null ? ocfValue - absCapex : null);
   const flowTiles = metricTilesVisual([
     ["经营现金流", ocfValue != null ? formatLarge(ocfValue) : null],
-    ["资本开支", hasNumber(fund.capitalExpenditures) ? formatLarge(Math.abs(Number(fund.capitalExpenditures))) : null],
+    ["资本开支", absCapex != null ? formatLarge(absCapex) : null],
+    ["自由现金流", fcfValue != null ? formatLarge(fcfValue) : null],
   ].filter((row) => row[1]), "期间现金流", `期间流量（${moneyUnitNote}），不与现金存量混排。`);
 
   const stockTiles = metricTilesVisual([
@@ -1887,19 +1912,24 @@ function buildAShareView(base, item, snapshot) {
   base.riskItems = buildAShareRiskItems(raw, financials);
   base.risk = base.riskItems.map((entry) => `${entry.title}：${entry.body}`).join(" ");
   base.sourceNote = `${raw.priceSource || raw.source || "公开行情"} · ${financials.source || "公开财务资料"}`;
-  // 借鉴 Stock Events：仅在具备真实历史分红与对应股价时提供按股数纯算对照，不回退旧估算字段。
+  // 借鉴息记与 Stock Events：仅在具备真实历史分红与对应股价时提供按股数与成本视角纯算对照，不回退旧估算字段。
+  const impliedPlan = snapshot && snapshot.actionsFresh !== false ? yieldImpliedPlan(raw) : null;
+  const addPriceCandidate = impliedPlan && hasNumber(impliedPlan.addPrice) && Number(impliedPlan.addPrice) > 0
+    ? Number(impliedPlan.addPrice)
+    : null;
   base.dividendCalc = historical && hasNumber(historical.dividendPerShare) && hasNumber(historical.price)
     ? {
         year: historical.year,
         dps: Number(historical.dividendPerShare),
         price: Number(historical.price),
+        addPrice: addPriceCandidate,
         priceAsOf: historical.priceAsOf,
         yieldPercent: Number(historical.yieldPercent),
       }
     : null;
 }
 
-function buildGuruView(base, item) {
+function buildGuruView(base, item, snapshot) {
   const raw = item.raw || {};
   const profile = raw.profile || {};
   const annual = annualRank(profile);
@@ -1971,9 +2001,13 @@ function buildGuruView(base, item) {
     const label = shortZh && rawSym && /^[A-Z]{1,5}(\.[A-Z])?$/.test(rawSym) && shortZh.toUpperCase() !== rawSym
       ? `${shortZh}（${rawSym}）`
       : (shortZh || tickerZhLabel(holding.ticker, holding.issuer || holding.name));
+    const link = holding && holding.putCall
+      ? { linkMarket: "", linkId: "" }
+      : resolveDetailStockLink(snapshot, rawSym, shortZh || holding.name);
     return {
       name: `${label}${instrumentSuffix(holding.putCall)}`,
       value: `${formatNumber(holding.weight, "%")} · ${holding.changeLabel || "变化待核"}`,
+      ...link,
     };
   });
 
@@ -2775,6 +2809,11 @@ function buildDetailReferencePlan(base, item, snapshot) {
       return `比现价${pct >= 0 ? "高" : "低"} ${Math.abs(pct).toFixed(1)}%`;
     };
     const sells = plan.sell.slice(0, 2);
+    const fmtSell = (v) => {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return money(v);
+      return sells.length > 1 && n >= 100 ? `$${n.toFixed(1)}` : money(n);
+    };
     return {
       stale: false,
       title: "能不能买 · 参考区间",
@@ -2788,7 +2827,7 @@ function buildDetailReferencePlan(base, item, snapshot) {
         {
           key: "sell",
           label: "参考高位区",
-          value: sells.map((v) => money(v)).join(" / "),
+          value: sells.map(fmtSell).join(" / "),
           note: price >= sells[0] ? "已进高位区" : `比现价高 ${Math.abs(((sells[0] - price) / price) * 100).toFixed(1)}%`,
         },
         { key: "stop", label: "风险警戒位", value: money(plan.stop), note: gap(plan.stop) },
@@ -2879,7 +2918,7 @@ function detailView(item, snapshot) {
   else if (item.market === "us") buildUSView(base, item, snapshot);
   else if (item.market === "a") buildAShareView(base, item, snapshot);
   else if (item.market === "gold") buildGoldView(base, item);
-  else buildGuruView(base, item);
+  else buildGuruView(base, item, snapshot);
 
   base.sourceLinks = buildSourceLinks(item, snapshot);
   const showStrategy = item.market !== "us" && !(item.market === "a" && item.raw?.assetType !== "fund");
@@ -3335,8 +3374,11 @@ function buildPeerNav(snapshot, item) {
     if (seven.some((row) => row.id === item.id)) pool = seven;
     else pool = usPoolItems(snapshot);
   } else if (item.market === "a") {
-    pool = allItems(snapshot, "a").filter((row) => row.raw?.assetType !== "fund");
     if (item.raw?.assetType === "fund") return null;
+    pool = ((snapshot.aShare && snapshot.aShare.quotes) || [])
+      .map((q) => findItem(snapshot, "a", q.code))
+      .filter(Boolean);
+    if (!pool.length) pool = allItems(snapshot, "a").filter((row) => row.raw?.assetType !== "fund");
   } else if (item.market === "guru") {
     pool = allItems(snapshot, "guru").filter((row) => row.group !== "overlap");
   } else if (item.market === "hk") {
@@ -3365,7 +3407,11 @@ function buildPeerCompare(snapshot, item) {
   if (!snapshot || !item) return [];
   if (item.market === "a" && item.raw?.assetType !== "fund") {
     const curInd = String(item.raw?.industry || "").split("/")[0].trim();
-    const peers = allItems(snapshot, "a")
+    const fullQuotes = ((snapshot.aShare && snapshot.aShare.quotes) || [])
+      .map((q) => findItem(snapshot, "a", q.code))
+      .filter(Boolean);
+    const sourcePool = fullQuotes.length ? fullQuotes : allItems(snapshot, "a");
+    const peers = sourcePool
       .filter((row) => row && row.id !== item.id && row.raw?.assetType !== "fund");
     peers.sort((a, b) => {
       const aSame = curInd && String(a.raw?.industry || "").includes(curInd) ? 1 : 0;
@@ -3481,6 +3527,7 @@ Page({
     writable: false,
     dividendShares: 1000,
     dividendYears: 5,
+    dividendCostMode: "spot",
     dividendCalcView: null,
     hkCalcMode: "cash1",
     hkIpoCalcView: null,
@@ -3589,7 +3636,7 @@ Page({
           peerNav: buildPeerNav(snapshot, item),
           peerCompare: buildPeerCompare(snapshot, item),
           starred: isQuickStarred(item.market, item.id),
-          dividendCalcView: this.formatDividendCalc(view.dividendCalc, this.data.dividendShares, this.data.dividendYears),
+          dividendCalcView: this.formatDividendCalc(view.dividendCalc, this.data.dividendShares, this.data.dividendYears, this.data.dividendCostMode),
           hkIpoCalcView: this.formatHkIpoCalc(view.hkIpoCalc, this.data.hkCalcMode),
           activeModule,
           activeCharts: chartsForModule(view, activeModule),
@@ -3675,35 +3722,54 @@ Page({
       track("holding_delete", { market: String(item.market), from: "quick_star" });
     }
     if (typeof wx.showToast === "function") {
-      wx.showToast({ title: result.starred ? "已星标（首页搜索框可直达）" : "已取消星标", icon: "none" });
+      wx.showToast({ title: result.starred ? "已收藏 · 首页直达" : "已取消收藏", icon: "none" });
     }
   },
-  formatDividendCalc(calc, shares, years = 5) {
+  formatDividendCalc(calc, shares, years = 5, costMode = "spot") {
     if (!calc || !hasNumber(calc.dps) || !hasNumber(calc.price)) return null;
     const count = Number(shares) || 1000;
     const yrs = Number(years) >= 0 ? Number(years) : 5;
     const dps = Number(calc.dps);
-    const price = Number(calc.price);
+    const spotPrice = Number(calc.price);
+    const hasLowTarget = hasNumber(calc.addPrice) && Number(calc.addPrice) > 0 && Number(calc.addPrice) < spotPrice * 0.985;
+    const lowPrice = hasLowTarget ? Number(calc.addPrice) : spotPrice * 0.94;
+    const dip12Price = spotPrice * 0.88;
+    const costModes = [
+      { id: "spot", label: "按报价买" },
+      { id: "low", label: hasLowTarget ? "低位区买" : "跌6%买" },
+      { id: "dip12", label: "跌12%买" },
+    ];
+    const activeMode = costModes.some((m) => m.id === costMode) ? costMode : "spot";
+    const entryPrice = activeMode === "low" ? lowPrice : (activeMode === "dip12" ? dip12Price : spotPrice);
     const annualCash = dps * count;
-    const initCost = price * count;
+    const initCost = entryPrice * count;
+    const spotCost = spotPrice * count;
+    const savedCost = Math.max(0, Math.round(spotCost - initCost));
+    const entryYieldPct = entryPrice > 0 ? (dps / entryPrice) * 100 : 0;
     let lifeTag = "约抵半年手机话费";
     if (annualCash >= 15000) lifeTag = `月均领 ¥${Math.round(annualCash / 12).toLocaleString("en-US")} 零花`;
     else if (annualCash >= 6000) lifeTag = "约抵全家年度旅行";
     else if (annualCash >= 3000) lifeTag = "约抵全年小区物业费";
     else if (annualCash >= 1200) lifeTag = "约抵全年水电燃气费";
     else if (annualCash >= 500) lifeTag = "约抵全年手机话费";
-    const rate = price > 0 ? dps / price : 0;
+    const rate = entryPrice > 0 ? dps / entryPrice : 0;
     const dripShares = yrs > 0 ? Math.floor(count * Math.pow(1 + rate, yrs)) : count;
     const dripGainShares = Math.max(0, dripShares - count);
     const dripAnnualCash = dps * dripShares;
     const yocPct = initCost > 0 ? (dripAnnualCash / initCost) * 100 : 0;
-    const dilutedPerShare = Math.max(0, price - dps * (yrs || 1));
+    const dilutedPerShare = Math.max(0, entryPrice - dps * (yrs || 1));
     return {
       shares: count,
       years: yrs,
+      costMode: activeMode,
+      costModes,
       year: calc.year,
       dpsText: `¥${dps.toFixed(4)}`,
       cashText: `¥${annualCash.toFixed(2)}`,
+      entryPriceText: `¥${entryPrice.toFixed(2)}`,
+      entryYieldText: `${entryYieldPct.toFixed(2)}%`,
+      costLabel: activeMode === "spot" ? `${calc.priceAsOf} 对应市值` : `按 ¥${entryPrice.toFixed(2)} 买入本金`,
+      costDiffText: savedCost > 0 ? `比现价少掏 ¥${savedCost.toLocaleString("en-US")}` : `买入息率 ${entryYieldPct.toFixed(2)}%`,
       lifeTag,
       costText: `¥${Math.round(initCost).toLocaleString("en-US")}`,
       priceAsOf: calc.priceAsOf,
@@ -3720,7 +3786,7 @@ Page({
     if (!calc) return;
     this.setData({
       dividendShares: shares,
-      dividendCalcView: this.formatDividendCalc(calc, shares, this.data.dividendYears),
+      dividendCalcView: this.formatDividendCalc(calc, shares, this.data.dividendYears, this.data.dividendCostMode),
     });
   },
   selectDividendYears(event) {
@@ -3730,8 +3796,30 @@ Page({
     if (!calc) return;
     this.setData({
       dividendYears: years,
-      dividendCalcView: this.formatDividendCalc(calc, this.data.dividendShares, years),
+      dividendCalcView: this.formatDividendCalc(calc, this.data.dividendShares, years, this.data.dividendCostMode),
     });
+  },
+  selectDividendCostMode(event) {
+    const mode = String(event.currentTarget.dataset.mode || "spot");
+    if (mode === this.data.dividendCostMode) return;
+    const calc = this._fullView && this._fullView.dividendCalc;
+    if (!calc) return;
+    this.setData({
+      dividendCostMode: mode,
+      dividendCalcView: this.formatDividendCalc(calc, this.data.dividendShares, this.data.dividendYears, mode),
+    });
+  },
+  openGuruInvestor(event) {
+    const id = String(event.currentTarget.dataset.id || "");
+    if (!id) return;
+    track("detail_open", { market: "guru", from: "us_detail_guru" });
+    wx.navigateTo({ url: `/pages/detail/index?market=guru&id=${encodeURIComponent(id)}` });
+  },
+  openHoldingStock(event) {
+    const { market, id } = event.currentTarget.dataset;
+    if (!market || !id) return;
+    track("detail_open", { market: String(market), from: "guru_detail_holding" });
+    wx.navigateTo({ url: `/pages/detail/index?market=${encodeURIComponent(market)}&id=${encodeURIComponent(id)}` });
   },
   formatHkIpoCalc(calc, mode = "cash1") {
     if (!calc || !hasNumber(calc.entryFee) || !(Number(calc.entryFee) > 0)) return null;

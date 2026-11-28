@@ -20,6 +20,8 @@
     wx:if="{{filters.length > 1}}"
     class="list-filters"
     scroll-x="true"
+    scroll-into-view="filter-{{group}}"
+    scroll-with-animation="true"
     enable-flex="true"
     show-scrollbar="false"
     enhanced="true"
@@ -28,6 +30,7 @@
       <text
         wx:for="{{filters}}"
         wx:key="id"
+        id="filter-{{item.id}}"
         class="list-filter {{group === item.id ? 'active' : ''}}"
         data-id="{{item.id}}"
         bindtap="selectGroup"

@@ -158,6 +158,7 @@ function formatRange(range, digits = 1) {
 /** 长公司名压成简称，方便老人/小白一眼看懂。 */
 function shortCompanyName(value, fallback = "—", max = 8) {
   let name = String(value || "")
+    .replace(/\s*-\s*(?:B|W|SW|S)$/iu, "")
     .replace(/股份有限公司$/u, "")
     .replace(/有限责任公司$/u, "")
     .replace(/有限公司$/u, "")
@@ -392,8 +393,8 @@ function usHeatDriver(stock) {
   if (Number.isFinite(ratio) && ratio > 0) {
     if (ratio >= 2) bits.push(`成交是平时的 ${ratio.toFixed(1)} 倍`);
     else if (ratio >= 1.5) bits.push(`成交放大到 ${ratio.toFixed(1)} 倍`);
-    else if (ratio >= 1.2) bits.push(`成交略放大（量比 ${ratio.toFixed(2)}）`);
-    else bits.push(`成交没放大（量比 ${ratio.toFixed(2)}）`);
+    else if (ratio >= 1.2) bits.push(`成交略放大（平时 ${ratio.toFixed(1)} 倍）`);
+    else bits.push(`成交平稳（平时 ${ratio.toFixed(1)} 倍）`);
   }
   if (Number.isFinite(week) && Math.abs(week) >= 5) {
     bits.push(`一周${week >= 0 ? "涨" : "跌"} ${Math.abs(week).toFixed(1)}%`);
@@ -661,6 +662,7 @@ function aShareDetailFallback(snapshot, id) {
   if (!quote) return null;
   const financials = (snapshot.aShare?.fundamentals || []).find((item) => item.code === quote.code) || {};
   const raw = { ...quote, financials };
+  raw.historicalDividendYield = getHistoricalDividendYield(raw);
   const score = aShareObserveScore(raw);
   const yieldNow = Number(raw.currentDividendYield);
   const yieldSustain = Number(raw.sustainableDividendYield);

@@ -1,6 +1,6 @@
 const { loadSnapshot, snapshotVersionKey } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { allItems, groupDefinitions, shortCompanyName, shortOrgList, money, aShareDividendStability, tickerZhLabel, tickerShortZh, usPoolItems, usQualityEligibility } = require("../../utils/answers");
+const { allItems, findItem, groupDefinitions, shortCompanyName, shortOrgList, money, aShareDividendStability, tickerZhLabel, tickerShortZh, usPoolItems, usQualityEligibility } = require("../../utils/answers");
 const { getDividendStability } = require("../../utils/dividend-stability");
 const PRODUCT = require("../../config/product");
 const {
@@ -73,6 +73,8 @@ const SHORT_TAG_MAP = {
   "601939": "国有大行",
   "601288": "国有大行",
   "601988": "国有大行",
+  "601328": "国有大行",
+  "600000": "股份银行",
   "600938": "海上油气",
   "600377": "高速公路",
   "600585": "水泥龙头",
@@ -371,6 +373,7 @@ function buildHkModule(snapshot) {
   const endedItems = items.filter((item) => item.group === "ended");
   const oneLotValues = [];
   const sponsorAgg = new Map();
+  const industryAgg = new Map();
   const bucketDefs = [
     { key: "cool", label: "冷门 (<15倍)", min: 0, max: 15, items: [] },
     { key: "warm", label: "温和 (15–100倍)", min: 15, max: 100, items: [] },
@@ -392,6 +395,18 @@ function buildHkModule(snapshot) {
     if (oversub != null && firstDay != null) {
       const targetBucket = bucketDefs.find((b) => oversub >= b.min && oversub < b.max);
       if (targetBucket) targetBucket.items.push({ firstDay, oneLot, pnl });
+    }
+    const indName = String(raw.industry || "").split(/[\/、·,，]/)[0].trim();
+    if (indName && indName !== "待整理" && firstDay != null) {
+      const indCur = industryAgg.get(indName) || { name: indName, count: 0, up: 0, sumFd: 0, sumPnl: 0, pnlCount: 0 };
+      indCur.count += 1;
+      if (firstDay > 0) indCur.up += 1;
+      indCur.sumFd += firstDay;
+      if (pnl != null) {
+        indCur.sumPnl += pnl;
+        indCur.pnlCount += 1;
+      }
+      industryAgg.set(indName, indCur);
     }
     const rawSponsors = (Array.isArray(raw.sponsorNames) && raw.sponsorNames.length)
       ? raw.sponsorNames
@@ -488,6 +503,26 @@ function buildHkModule(snapshot) {
       };
     });
 
+  const industryRows = [...industryAgg.values()]
+    .filter((entry) => entry.count >= 2)
+    .sort((a, b) => (b.count - a.count) || ((b.up / b.count) - (a.up / a.count)))
+    .slice(0, 8)
+    .map((entry) => {
+      const winPct = Math.round((entry.up / entry.count) * 100);
+      const avgFd = entry.sumFd / entry.count;
+      const avgPnl = entry.pnlCount > 0 ? Math.round(entry.sumPnl / entry.pnlCount) : null;
+      return {
+        name: entry.name.length > 6 ? entry.name.slice(0, 6) : entry.name,
+        countText: `${entry.count}只`,
+        winText: `${winPct}%`,
+        winTone: winPct >= 60 ? "up" : (winPct <= 35 ? "down" : "flat"),
+        avgFdText: signedPct(avgFd, 1),
+        fdTone: avgFd > 0 ? "up" : (avgFd < 0 ? "down" : "flat"),
+        avgPnlText: avgPnl != null ? `${avgPnl >= 0 ? "+" : "-"}HK$${Math.abs(avgPnl).toLocaleString("en-US")}` : "—",
+        pnlTone: avgPnl == null ? "flat" : (avgPnl > 0 ? "up" : (avgPnl < 0 ? "down" : "flat")),
+      };
+    });
+
   const openApply = applyList.filter((r) => !r.closed);
   const worthApply = openApply.filter((r) => r.tone === "worth");
   const answerBar = snapshot.actionsFresh === false
@@ -511,6 +546,7 @@ function buildHkModule(snapshot) {
     historyTotal: historyRowsAll.length,
     sponsorRows,
     crowdBuckets,
+    industryRows,
   };
 }
 
@@ -798,6 +834,13 @@ function medianOf(nums) {
   return valid.length % 2 ? valid[mid] : (valid[mid - 1] + valid[mid]) / 2;
 }
 
+function shortGuruPersonName(rawName) {
+  const s = String(rawName || "").trim();
+  if (!s) return "";
+  const tail = s.includes("·") ? s.split("·").pop().trim() : s.split("/")[0].trim();
+  return tail.replace(/（.*?）|\(.*?\)/g, "").slice(0, 6);
+}
+
 function buildUsGuruHolderMap(snapshot) {
   const map = new Map();
   const investors = Array.isArray(snapshot && snapshot.investors) ? snapshot.investors : [];
@@ -811,7 +854,7 @@ function buildUsGuruHolderMap(snapshot) {
       seen.add(sym);
       const cur = map.get(sym) || { count: 0, names: [] };
       cur.count += 1;
-      const shortInv = String(inv.name || "").split("·").pop().slice(0, 4);
+      const shortInv = shortGuruPersonName(inv.name);
       if (shortInv) cur.names.push(shortInv);
       map.set(sym, cur);
     }
@@ -867,6 +910,11 @@ function usStockRow(item, sparkCache = null, guruMap = null) {
   const roe = finiteOrNull(fund.roe);
   const revG = finiteOrNull(fund.revenueGrowth);
   const ocf = finiteOrNull(fund.operatingCashFlow);
+  const rawCapex = finiteOrNull(fund.capitalExpenditures);
+  const absCapex = rawCapex != null ? Math.abs(rawCapex) : null;
+  const fcf = finiteOrNull(fund.freeCashFlow) != null
+    ? finiteOrNull(fund.freeCashFlow)
+    : (ocf != null && absCapex != null ? ocf - absCapex : null);
   const cash = finiteOrNull(fund.liquidAssets != null ? fund.liquidAssets : fund.cashAndEquivalents);
   return {
     id: item.id,
@@ -890,6 +938,9 @@ function usStockRow(item, sparkCache = null, guruMap = null) {
     revGText: revG != null ? signedPct(revG, 1) : "—",
     revGTone: revG == null ? "flat" : (revG >= 15 ? "up" : (revG < 0 ? "down" : "flat")),
     ocfText: formatUsdLarge(ocf),
+    capexText: absCapex != null ? formatUsdLarge(absCapex) : "—",
+    fcfText: fcf != null ? formatUsdLarge(fcf) : "—",
+    fcfTone: fcf == null ? "flat" : (fcf > 0 ? "worth" : "down"),
     cashText: formatUsdLarge(cash),
     mcapText: formatUsdLarge(mcap),
     peNumText: pe != null && pe > 0 ? `${pe.toFixed(1)}年` : "—",
@@ -963,6 +1014,9 @@ function buildUsSevenCompare(sevenRaw) {
       gmBar: r.gmBar,
       pmRoeText: `${r.pmText} / ${r.roeText}`,
       ocfText: r.ocfText,
+      capexText: r.capexText,
+      fcfText: r.fcfText,
+      fcfTone: r.fcfTone,
       cashText: r.cashText,
       mcapText: r.mcapText,
       guruText: r.guruCount > 0 ? `${r.guruCount}家大师` : "—",
@@ -1388,9 +1442,33 @@ function withMetricBars(list, lens) {
   });
 }
 
+// 组合全量 20 只 A 股收息股池（不改动 allItems(snapshot,'a') 的精选样本边界，让「全部20只」「派息月历」「热力图」真正覆盖全部 20 只股票）。
+function aFullStockPool(snapshot) {
+  const curated = allItems(snapshot, "a");
+  const byId = new Map();
+  for (const item of curated) {
+    if (item && item.id && !(item.raw && item.raw.assetType === "fund")) {
+      byId.set(String(item.id), item);
+    }
+  }
+  for (const quote of (snapshot && snapshot.aShare && snapshot.aShare.quotes) || []) {
+    const cleanId = String((quote && quote.code) || "").replace(/\.(SH|SZ)$/i, "");
+    if (!cleanId || byId.has(cleanId)) continue;
+    const resolved = findItem(snapshot, "a", quote.code);
+    if (resolved) {
+      if (resolved.raw && !resolved.raw.historicalDividendYield) {
+        resolved.raw.historicalDividendYield = getHistoricalDividendYield(resolved.raw);
+      }
+      byId.set(cleanId, resolved);
+    }
+  }
+  return [...byId.values()];
+}
+
 // 前五只展示名字和对应分红指标，其余页签按需懒计算，首屏仅算 5 条。
 function buildAModule(snapshot) {
   const items = allItems(snapshot, "a");
+  const fullStocks = aFullStockPool(snapshot);
   const fresh = snapshot.actionsFresh !== false;
   const stableList = withMetricBars(aRankedList(items, "stable5", fresh), "stable5");
   let _yieldList = null;
@@ -1398,16 +1476,15 @@ function buildAModule(snapshot) {
   let _fund = undefined;
   let _calendar = null;
   const ensureAll = () => {
-    if (!_allPack) _allPack = aAllModule(items, fresh);
+    if (!_allPack) _allPack = aAllModule(fullStocks, fresh);
     return _allPack;
   };
   const ensureCalendar = () => {
-    if (!_calendar) _calendar = buildADividendCalendar(items);
+    if (!_calendar) _calendar = buildADividendCalendar(fullStocks);
     return _calendar;
   };
-  const stockItems = items.filter((it) => !(it.raw && it.raw.assetType === "fund"));
   const cheapNames = fresh
-    ? stockItems
+    ? fullStocks
       .filter((it) => {
         const p = yieldImpliedPlan(it.raw);
         return p && p.zone === "add";
@@ -1417,8 +1494,8 @@ function buildAModule(snapshot) {
   const answerBar = !fresh
     ? "数据待更新 · 暂不展示参考区间"
     : (cheapNames.length
-      ? `${stockItems.length} 只收息股中 ${cheapNames.length} 只处于偏便宜高息区：${cheapNames.slice(0, 3).join("、")}`
-      : `${stockItems.length} 只收息股均已算出分红回推区间，优选 5 年连续稳分红标的`);
+      ? `${fullStocks.length} 只收息股中 ${cheapNames.length} 只处于偏便宜高息区：${cheapNames.slice(0, 3).join("、")}`
+      : `${fullStocks.length} 只收息股均已算出分红回推区间，优选 5 年连续稳分红标的`);
   return {
     answerBar,
     stableList,
@@ -1900,7 +1977,28 @@ function guruHoldingName(holding) {
 // 「机构持仓」跟随原型的「共同方向/机构持仓」两个视图，数据全部来自
 // smartMoneyItems（今日答案同一份 profiles）和 buildGuruTrend（未来持仓
 // 趋势同一份季度加减仓聚合），不新起一套计算。
-function guruTrendRow(row) {
+function buildStockLinkResolver(snapshot) {
+  const usSet = new Set(((snapshot && snapshot.us && snapshot.us.stocks) || []).map((s) => String(s.symbol || "").toUpperCase()));
+  const aCodeSet = new Set();
+  const aNameMap = new Map();
+  for (const q of (snapshot && snapshot.aShare && snapshot.aShare.quotes) || []) {
+    const clean = String((q && q.code) || "").replace(/\.(SH|SZ)$/i, "").toUpperCase();
+    if (!clean) continue;
+    aCodeSet.add(clean);
+    if (q.name) aNameMap.set(String(q.name).trim(), clean);
+  }
+  return (rawTicker, displayName) => {
+    const sym = String(rawTicker || "").trim().toUpperCase().replace(/\.(SH|SZ|US)$/i, "");
+    if (sym && usSet.has(sym)) return { linkMarket: "us", linkId: sym };
+    if (sym === "GOOG" && usSet.has("GOOGL")) return { linkMarket: "us", linkId: "GOOGL" };
+    if (sym && aCodeSet.has(sym)) return { linkMarket: "a", linkId: sym };
+    const cleanDisp = String(displayName || "").replace(/（.*?）|\(.*?\)|看跌|看涨/g, "").trim();
+    if (cleanDisp && aNameMap.has(cleanDisp)) return { linkMarket: "a", linkId: aNameMap.get(cleanDisp) };
+    return { linkMarket: "", linkId: "" };
+  };
+}
+
+function guruTrendRow(row, resolveLink) {
   const counts = { up: 0, new: 0, down: 0, exit: 0 };
   for (const entry of [...row.adders, ...row.cutters]) counts[entry.type] += 1;
   const badge = [["up", "增持"], ["new", "新进"], ["down", "减持"], ["exit", "清仓"]]
@@ -1911,10 +2009,11 @@ function guruTrendRow(row) {
   const label = tickerShortZh(row.symbol || row.name, row.issuer) || tickerZhLabel(row.name || row.symbol, row.issuer) || "待更新";
   const rawSym = String(row.symbol || "").trim().toUpperCase();
   const code = /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawSym) && label.toUpperCase() !== rawSym && !label.includes(rawSym) ? rawSym : "";
-  return { key: row.symbol || row.name, label, code, tone, badge };
+  const link = typeof resolveLink === "function" ? resolveLink(rawSym, label) : { linkMarket: "", linkId: "" };
+  return { key: row.symbol || row.name, label, code, tone, badge, ...link };
 }
 
-function guruTrendRowsFrom(trend) {
+function guruTrendRowsFrom(trend, resolveLink) {
   if (!trend) return [];
   const picked = [
     ...(trend.consensusAdds || []).slice(0, 2),
@@ -1923,7 +2022,7 @@ function guruTrendRowsFrom(trend) {
   ];
   // 没有 2 家以上同向的，就诚实展示单家的加/减各一条，不硬凑「共识」。
   const rows = picked.length ? picked : [...(trend.adds || []).slice(0, 1), ...(trend.cuts || []).slice(0, 1)];
-  return rows.map(guruTrendRow);
+  return rows.map((r) => guruTrendRow(r, resolveLink));
 }
 
 function hasAdjacentGuruReports(investor) {
@@ -2012,10 +2111,11 @@ function buildGuruModule(snapshot) {
       const bPri = /berkshire|巴菲特/i.test(`${b.id} ${b.name}`) ? -1 : 0;
       return aPri - bPri;
     });
+  const resolveStockLink = buildStockLinkResolver(snapshot);
   // 增减需要前后两期可比。单期申报里的持仓不能当成新进。
   const investors = Array.isArray(snapshot.investors) ? snapshot.investors.filter(hasAdjacentGuruReports) : [];
   const trend = buildGuruTrend({ investors });
-  const trendRows = guruTrendRowsFrom(trend);
+  const trendRows = guruTrendRowsFrom(trend, resolveStockLink);
   const trendTitle = trend.reportPeriod ? `报告期截至 ${trend.reportPeriod}` : "持仓变化";
   const trendHint = trend.reportPeriod ? `${trend.investorCount}家机构的部分持仓 · 与上季度比较，披露有滞后` : "";
   const trendEmptyText = trend.reportPeriod ? "这些样本暂无可展示的持仓变化" : "暂无同一报告期可比较的持仓资料";
@@ -2048,9 +2148,11 @@ function buildGuruModule(snapshot) {
       const displayName = guruHoldingName(holding);
       const rawTicker = String(holding.ticker || holding.code || "").trim().toUpperCase();
       const code = /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(rawTicker) && displayName.toUpperCase() !== rawTicker && !displayName.includes(rawTicker) ? rawTicker : "";
+      const link = holding && holding.putCall ? { linkMarket: "", linkId: "" } : resolveStockLink(rawTicker, displayName);
       return {
         name: displayName,
         code,
+        ...link,
         weightNum: Number.isFinite(weight) ? weight : 0,
         weightText: Number.isFinite(weight) ? `${weight.toFixed(1)}%` : "—",
         weightBar: Number.isFinite(weight) ? Math.max(3, Math.round((weight / topWeight) * 100)) : 0,
@@ -2127,16 +2229,18 @@ function buildGuruModule(snapshot) {
       const sym = String(h.ticker || h.code || "").trim().toUpperCase();
       if (!sym || seenInProf.has(sym)) continue;
       seenInProf.add(sym);
+      const disp = guruHoldingName(h);
       const cur = overlapMap.get(sym) || {
         key: sym,
-        name: guruHoldingName(h),
+        name: disp,
         code: /^[A-Z0-9]{1,6}(\.[A-Z]{1,2})?$/.test(sym) ? sym : "",
+        ...resolveStockLink(sym, disp),
         count: 0,
         holders: [],
       };
       if (cur.name === cur.code) cur.code = "";
       cur.count += 1;
-      cur.holders.push(String(prof.name || "").split("·").pop().slice(0, 4));
+      cur.holders.push(shortGuruPersonName(prof.name));
       overlapMap.set(sym, cur);
     }
   }
@@ -2425,6 +2529,7 @@ Page({
     hkShowAllHistory: false,
     hkSponsorRows: [],
     hkCrowdBuckets: [],
+    hkIndustryRows: [],
     sectionAnswerBar: "",
     // 美股专属：原型的「七姐妹/热门三只/SEC公告」视图，只有 market==='us' 时渲染。
     usSubTab: "seven",
@@ -2677,6 +2782,7 @@ Page({
           hkHistoryTotal: hkModule.historyTotal || sortedHist.length,
           hkSponsorRows: hkModule.sponsorRows || [],
           hkCrowdBuckets: hkModule.crowdBuckets || [],
+          hkIndustryRows: hkModule.industryRows || [],
         });
       } else if (market === "us" && cached.usModule) {
         const usModule = cached.usModule;
@@ -3148,6 +3254,14 @@ Page({
     const id = this.data.guruInstitutionId;
     if (!id) return;
     this.openDetail(id, "section_guru");
+  },
+  openGuruStock(event) {
+    const { market, id } = event.currentTarget.dataset;
+    if (!market || !id) return;
+    track("detail_open", { market: String(market), from: "section_guru_holding" });
+    wx.navigateTo({
+      url: `/pages/detail/index?market=${encodeURIComponent(market)}&id=${encodeURIComponent(id)}`,
+    });
   },
   toggleGuruMore() {
     this.setData({ guruMoreOpen: !this.data.guruMoreOpen });

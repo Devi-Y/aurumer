@@ -267,6 +267,25 @@
         </view>
       </view>
 
+      <view wx:if="{{hkIndustryRows.length}}" class="hk-crowd-box hk-ind-box">
+        <text class="hk-sub-box-title">热门行业新股首日表现（样本≥2只）</text>
+        <view class="hk-crowd-head">
+          <text class="hk-crowd-c1">所属行业</text>
+          <text class="hk-crowd-c2">首日胜率</text>
+          <text class="hk-crowd-c2">首日均涨</text>
+          <text class="hk-crowd-c2">一手均盈</text>
+        </view>
+        <view wx:for="{{hkIndustryRows}}" wx:key="name" class="hk-crowd-row">
+          <view class="hk-crowd-c1">
+            <text class="hk-crowd-name">{{item.name}}</text>
+            <text class="hk-crowd-sub">样本 {{item.countText}}</text>
+          </view>
+          <text class="hk-crowd-c2 is-{{item.winTone}}">{{item.winText}}</text>
+          <text class="hk-crowd-c2 is-{{item.fdTone}}">{{item.avgFdText}}</text>
+          <text class="hk-crowd-c2 is-{{item.pnlTone}}">{{item.avgPnlText}}</text>
+        </view>
+      </view>
+
       <view wx:if="{{hkSponsorRows.length}}" class="hk-sponsor-box">
         <text class="hk-sub-box-title">头部保荐机构历史首日战绩（保荐≥2只）</text>
         <view wx:for="{{hkSponsorRows}}" wx:key="name" class="hk-sp-row">
@@ -417,10 +436,10 @@
 
         <view wx:if="{{usCompareDim === 'cash'}}" class="ibkr-table">
           <view class="ibkr-th">
-            <text class="ibkr-c-name">公司</text>
-            <text class="ibkr-c-mid">经营现金流</text>
-            <text class="ibkr-c-mid">现金储备</text>
-            <text class="ibkr-c-end">总市值</text>
+            <text class="ibkr-c-name">公司/账面现金</text>
+            <text class="ibkr-c-mid">经营流入</text>
+            <text class="ibkr-c-mid">资本开支</text>
+            <text class="ibkr-c-end">自由现金流</text>
           </view>
           <view
             wx:for="{{usSevenCompare.rows}}"
@@ -433,11 +452,11 @@
           >
             <view class="ibkr-c-name">
               <text class="ibkr-name">{{item.name}}</text>
-              <text class="ibkr-sub">{{item.guruText}}</text>
+              <text class="ibkr-sub">现金 {{item.cashText}}</text>
             </view>
             <text class="ibkr-c-mid">{{item.ocfText}}</text>
-            <text class="ibkr-c-mid">{{item.cashText}}</text>
-            <text class="ibkr-c-end">{{item.mcapText}}</text>
+            <text class="ibkr-c-mid">{{item.capexText}}</text>
+            <text class="ibkr-c-end is-{{item.fcfTone}}">{{item.fcfText}}</text>
           </view>
         </view>
         <text class="ibkr-foot-note">点任意一行可进入个股详情查看近 4 财年营收/净利柱图与完整依据。</text>
@@ -817,9 +836,9 @@
               <view class="code-name-line">
                 <text class="a-stock-name">{{item.name}}</text>
                 <text class="code-pill">{{item.code}}</text>
-                <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
               </view>
-              <view wx:if="{{item.annualPer10kText || (item.dataChips && item.dataChips.length)}}" class="a-chip-row">
+              <view wx:if="{{item.shortTag || item.annualPer10kText || (item.dataChips && item.dataChips.length)}}" class="a-chip-row">
+                <text wx:if="{{item.shortTag}}" class="mini-tag">{{item.shortTag}}</text>
                 <text wx:if="{{item.annualPer10kText}}" class="data-chip is-income">{{item.annualPer10kText}}</text>
                 <text wx:for="{{item.dataChips}}" wx:for-item="chip" wx:key="*this" class="data-chip">{{chip}}</text>
               </view>
@@ -1192,11 +1211,21 @@
           <text class="guru-conc-title">多机构共同重仓</text>
           <text class="guru-conc-sum">2家以上大佬同时持有</text>
         </view>
-        <view wx:for="{{guruOverlapRows}}" wx:key="key" class="guru-overlap-row">
+        <view
+          wx:for="{{guruOverlapRows}}"
+          wx:key="key"
+          class="guru-overlap-row"
+          data-market="{{item.linkMarket}}"
+          data-id="{{item.linkId}}"
+          bindtap="openGuruStock"
+          hover-class="{{item.linkId ? 'tap-active' : ''}}"
+          aria-role="{{item.linkId ? 'button' : ''}}"
+        >
           <view class="guru-hold-top">
             <view class="code-name-line guru-name-wrap">
               <text class="guru-hold-name">{{item.name}}</text>
               <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
+              <text wx:if="{{item.linkId}}" class="guru-jump-tag">看估值 ›</text>
             </view>
             <text class="guru-overlap-count">{{item.count}}家持有</text>
           </view>
@@ -1209,10 +1238,20 @@
 
       <text class="hk-picker-label">{{guruTrendTitle}}</text>
       <view wx:if="{{guruTrendRows.length}}">
-        <view wx:for="{{guruTrendRows}}" wx:key="key" class="guru-direction">
+        <view
+          wx:for="{{guruTrendRows}}"
+          wx:key="key"
+          class="guru-direction"
+          data-market="{{item.linkMarket}}"
+          data-id="{{item.linkId}}"
+          bindtap="openGuruStock"
+          hover-class="{{item.linkId ? 'tap-active' : ''}}"
+          aria-role="{{item.linkId ? 'button' : ''}}"
+        >
           <view class="code-name-line">
             <text class="guru-hold-name">{{item.label}}</text>
             <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
+            <text wx:if="{{item.linkId}}" class="guru-jump-tag">看估值 ›</text>
           </view>
           <text class="a-badge tone-{{item.tone}}">{{item.badge}}</text>
         </view>
@@ -1273,11 +1312,21 @@
             <text>{{guruHoldingsHint}}</text>
             <text>占组合</text>
           </view>
-          <view wx:for="{{guruHoldingsRowsShown}}" wx:key="name" class="guru-hold">
+          <view
+            wx:for="{{guruHoldingsRowsShown}}"
+            wx:key="name"
+            class="guru-hold"
+            data-market="{{item.linkMarket}}"
+            data-id="{{item.linkId}}"
+            bindtap="openGuruStock"
+            hover-class="{{item.linkId ? 'tap-active' : ''}}"
+            aria-role="{{item.linkId ? 'button' : ''}}"
+          >
             <view class="guru-hold-top">
               <view class="code-name-line guru-name-wrap">
                 <text class="guru-hold-name">{{item.name}}</text>
                 <text wx:if="{{item.code}}" class="code-pill">{{item.code}}</text>
+                <text wx:if="{{item.linkId}}" class="guru-jump-tag">看估值 ›</text>
               </view>
               <text class="guru-hold-move {{item.moveTone ? 'tone-' + item.moveTone : ''}}">{{item.moveText}}</text>
               <text class="guru-hold-weight">{{item.weightText}}</text>

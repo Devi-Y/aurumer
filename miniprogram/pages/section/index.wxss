@@ -4573,3 +4573,23 @@
   color: #0b7a48;
   font-weight: 740;
 }
+
+.guru-jump-tag {
+  flex: none;
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
+  background: #eff5ff;
+  color: #1d5fd1;
+  font-size: 24rpx;
+  font-weight: 680;
+}
+
+.a-row-main .a-stock-name {
+  flex: none;
+  max-width: none;
+  white-space: nowrap;
+}
+
+.ibkr-th text {
+  white-space: nowrap;
+}

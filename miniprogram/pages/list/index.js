@@ -1,6 +1,6 @@
 const { loadSnapshot } = require("../../data/store");
 const { freshnessBanner } = require("../../utils/freshness-ui");
-const { allItems, groupDefinitions, shortCompanyName, matchesGroup, aShareDividendStability } = require("../../utils/answers");
+const { allItems, groupDefinitions, shortCompanyName, shortOrgName, matchesGroup, aShareDividendStability, tickerShortZh } = require("../../utils/answers");
 const { goHome } = require("../../utils/nav");
 const { track } = require("../../utils/analytics");
 const { RESEARCH_DISCLAIMER } = require("../../utils/disclaimer");
@@ -149,7 +149,7 @@ function rowFact(item, market, shown) {
       if (shown.metricLabel && part === shown.metricLabel) return false;
       // 观察分已经作为独立的分数标签显示过。只掐掉一模一样的那个数，
       // 黄金的「国际金观察分 77」是另一个分，不能顺手带走。
-      if (shown.score != null && part === `观察分 ${shown.score}`) return false;
+      if (shown.score != null && (part === `观察分 ${shown.score}` || part === `${shown.score} 分`)) return false;
       // 光秃秃一个百分数（A股那条 one 开头的 "6.4%"）如果和右上角的对比数值
       // 是同一个值，只是小数位不同，也算说过了。
       if (shown.metricPercent != null && /^\d+(?:\.\d+)?%$/.test(part)) {
@@ -269,12 +269,27 @@ Page({
           ? Number(metricLabel.match(/[+-]?\d+(?:\.\d+)?/)[0]).toFixed(1)
           : null;
 
+        const rawBadge = market === "a" && item.raw?.assetType !== "fund"
+          ? ""
+          : (String(item.badge || "").trim() === groupTitle ? "" : item.badge);
+        const dedupBadge = rawBadge && showMetric && String(rawBadge).trim() === String(metricLabel).trim()
+          ? ""
+          : rawBadge;
+        const overlapZh = market === "guru" && item.group === "overlap"
+          ? tickerShortZh(item.code, item.name)
+          : "";
+
+        const resolvedShortName = overlapZh || item.raw?.shortName || shortCompanyName(item.name, item.code || "标的", 8);
+        const cleanCode = item.code && String(item.code).trim() !== String(resolvedShortName).trim()
+          ? item.code
+          : "";
+
         return {
           id: item.id,
           name: item.name,
-          shortName: item.raw?.shortName || shortCompanyName(item.name, item.code || "标的", 8),
-          code: item.code,
-          badge: market === "a" && item.raw?.assetType !== "fund" ? "" : (String(item.badge || "").trim() === groupTitle ? "" : item.badge),
+          shortName: resolvedShortName,
+          code: cleanCode,
+          badge: dedupBadge,
           badgeTone: market,
           badgeSentiment: badgeSentimentFor(market, item.group),
           position: index + 1,
@@ -312,7 +327,7 @@ Page({
         const sponsors = buildHkSponsorStats(snapshot).slice(0, 1);
         const extra = [
           industries.length ? `行业样本 ${industries.map((item) => `${item.name} ${item.sampleCount}只`).join(" · ")}` : "",
-          sponsors.length ? `保荐人 ${sponsors[0].name} 样本 ${sponsors[0].sampleCount}只` : "",
+          sponsors.length ? `保荐人 ${shortOrgName(sponsors[0].name, 6)} 样本 ${sponsors[0].sampleCount}只` : "",
         ].filter(Boolean).join(" · ");
         // 样本数、首日上涨率、暗盘同向率下面的新股统计卡已经画出来，页头只留卡里没有的行业/保荐人。
         groupHelp = extra || groupHelp;
@@ -443,9 +458,10 @@ Page({
       // 于是弹窗永远出不来，点一下会跳去一个不存在的详情页。
       const overlap = item?.overlap;
       if (overlap) {
+        const zhTitle = tickerShortZh(overlap.symbol, overlap.name);
         this.setData({
           holderSheet: {
-            title: `${overlap.name} · ${overlap.symbol}`,
+            title: overlap.symbol && overlap.symbol !== zhTitle ? `${zhTitle} · ${overlap.symbol}` : zhTitle,
             rows: overlap.holders.map((holder, index) => ({
               key: `holder-${index}`,
               name: holder.name,

@@ -207,33 +207,79 @@ function buildHomeTrends(snapshot) {
   return cards;
 }
 
-// 借鉴 DeepSeek / 集思录极速本地索引：涵盖 5 大市场全部标的，零网络延迟秒搜直达详情页。
+const SEARCH_ALIASES = {
+  "600036": "招行",
+  "601398": "工行 宇宙行",
+  "601939": "建行",
+  "601288": "农行",
+  "601988": "中行",
+  "601328": "交行",
+  "600000": "浦发",
+  "601166": "兴业",
+  "600900": "长电 水电",
+  "601088": "神华 煤炭",
+  "600938": "海油 中海油",
+  "600941": "移动 中移动",
+  "600028": "石化 中石化",
+  "601857": "石油 中石油",
+  "601006": "大秦",
+  "515180": "红利etf 中证红利 etf",
+  GOOGL: "google 谷歌 alphabet",
+  META: "facebook fb 脸书",
+  AAPL: "iphone 苹果",
+  MSFT: "microsoft 微软",
+  NVDA: "nvidia 英伟达 老黄",
+  AMZN: "amazon 亚马逊",
+  TSLA: "tesla 特斯拉 马斯克",
+  TSM: "tsmc 台积电",
+};
+
+// 借鉴 DeepSeek / 集思录极速本地索引：涵盖 5 大市场全部标的，去重并支持口语简称与大佬持仓反查。
 function buildSearchIndex(snapshot) {
   const rows = [];
   const seen = new Set();
   const pushItem = (market, item) => {
     if (!item || !item.id) return;
-    const key = `${market}:${item.id}`;
+    if (market === "guru" && item.group === "overlap") return;
+    const normId = market === "a"
+      ? String(item.id || "").replace(/\.(SH|SZ)$/i, "").toUpperCase()
+      : (market === "hk" ? String(item.id || "").replace(/\.HK$/i, "").toUpperCase() : String(item.id || ""));
+    const key = `${market}:${normId}`;
     if (seen.has(key)) return;
     seen.add(key);
-    const name = String(item.name || "");
-    const code = String(item.code || "");
     const raw = item.raw || {};
+    const name = String(item.name || "");
+    let code = String(item.code || "");
+    if (market === "a" && code && !/\.(SH|SZ)$/i.test(code)) {
+      code = /^6|^5/.test(code) ? `${code}.SH` : `${code}.SZ`;
+    } else if (market === "guru" && !code && raw.profile && raw.profile.org) {
+      code = String(raw.profile.org);
+    }
     let figure = "";
     if (market === "us" && Number.isFinite(Number(raw.price))) figure = `$${Number(raw.price).toFixed(2)}`;
     else if (market === "a" && Number.isFinite(Number(raw.currentPrice))) {
       figure = raw.assetType === "fund" ? `¥${Number(raw.currentPrice).toFixed(3)}` : `¥${Number(raw.currentPrice).toFixed(2)}`;
     } else if (market === "hk" && item.badge) figure = String(item.badge);
     else if (market === "guru" && raw.reportDate) figure = String(raw.reportDate).slice(0, 10);
+    const alias = SEARCH_ALIASES[normId.toUpperCase()] || "";
+    const holdingNames = market === "guru" && Array.isArray(raw.holdings)
+      ? raw.holdings.slice(0, 10).map((h) => ({
+          short: String(h.shortName || h.ticker || "").trim(),
+          hay: `${h.shortName || ""} ${h.ticker || ""} ${h.name || ""}`.toLowerCase(),
+        })).filter((h) => h.short)
+      : [];
+    const holdingHay = holdingNames.map((h) => h.hay).join(" ");
     rows.push({
       key,
       market,
       marketTag: MARKET_TAG[market] || "资料",
-      id: item.id,
+      id: market === "a" ? normId : item.id,
       name,
       code,
       figure,
-      haystack: `${name} ${code} ${MARKET_TAG[market] || ""}`.toLowerCase(),
+      holdingNames,
+      primaryHay: `${name} ${code} ${alias}`.toLowerCase(),
+      haystack: `${name} ${code} ${alias} ${holdingHay} ${MARKET_TAG[market] || ""}`.toLowerCase(),
     });
   };
   for (const item of usPoolItems(snapshot)) pushItem("us", item);
@@ -487,7 +533,15 @@ Page({
     const q = query.toLowerCase();
     const matches = (this._searchIndex || [])
       .filter((row) => row.haystack.includes(q))
-      .slice(0, 8);
+      .sort((a, b) => Number(b.primaryHay.includes(q)) - Number(a.primaryHay.includes(q)))
+      .slice(0, 8)
+      .map((row) => {
+        if (row.market === "guru" && !row.primaryHay.includes(q) && row.holdingNames.length) {
+          const hit = row.holdingNames.find((h) => h.hay.includes(q));
+          if (hit) return { ...row, figure: `重仓 ${hit.short}` };
+        }
+        return row;
+      });
     this.setData({ searchQuery: query, searchResults: matches });
   },
   clearSearch() {

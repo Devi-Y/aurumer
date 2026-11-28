@@ -2314,6 +2314,8 @@
 }
 
 .ref-plan-k {
+  flex: none;
+  white-space: nowrap;
   color: #334155;
   font-size: 27rpx;
   font-weight: 680;
@@ -2321,15 +2323,19 @@
 
 .ref-plan-right {
   display: flex;
-  align-items: baseline;
-  gap: 10rpx;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2rpx;
+  min-width: 0;
+  text-align: right;
 }
 
 .ref-plan-v {
   color: #0f172a;
-  font-size: 31rpx;
+  font-size: 30rpx;
   font-weight: 820;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .ref-plan-note {
@@ -2491,6 +2497,44 @@
 .dist-log-plan {
   color: #0b7a48;
   font-size: 26rpx;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+}
+
+.cost-mode-strip {
+  display: flex;
+  padding: 0 22rpx 14rpx;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+}
+
+.cost-mode-pills {
+  display: flex;
+  gap: 8rpx;
+}
+
+.cost-mode-pill {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #dbe6f7;
+  background: #ffffff;
+  color: #475569;
+  font-size: 24rpx;
+  font-weight: 660;
+}
+
+.cost-mode-pill.is-active {
+  border-color: #0b7a48;
+  background: #e9f9f0;
+  color: #0b7a48;
+  font-weight: 760;
+}
+
+.div-yield-badge {
+  flex: none;
+  color: #0b7a48;
+  font-size: 25rpx;
   font-weight: 780;
   font-variant-numeric: tabular-nums;
 }

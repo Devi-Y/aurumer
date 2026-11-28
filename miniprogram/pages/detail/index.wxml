@@ -232,9 +232,18 @@
         </view>
         <view wx:if="{{view.holdings.length}}" class="section-card">
           <text class="block-title">机构持仓对照</text>
-          <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
+          <view
+            wx:for="{{view.holdings}}"
+            wx:key="name"
+            class="fact-row"
+            data-market="{{item.linkMarket}}"
+            data-id="{{item.linkId}}"
+            bindtap="openHoldingStock"
+            hover-class="{{item.linkId ? 'tap-active' : ''}}"
+            aria-role="{{item.linkId ? 'button' : ''}}"
+          >
             <text>{{item.name}}</text>
-            <text>{{item.value}}</text>
+            <text>{{item.value}}{{item.linkId ? ' ›' : ''}}</text>
           </view>
         </view>
         <view wx:if="{{view.sourceLinks.length}}" class="section-card source-card">
@@ -329,6 +338,19 @@
             <text class="div-calc-pill {{dividendShares === 5000 ? 'is-active' : ''}}" data-shares="5000" bindtap="selectDividendShares" aria-role="button">5000股</text>
             <text class="div-calc-pill {{dividendShares === 10000 ? 'is-active' : ''}}" data-shares="10000" bindtap="selectDividendShares" aria-role="button">1万股</text>
           </view>
+          <view wx:if="{{dividendCalcView.costModes && dividendCalcView.costModes.length}}" class="cost-mode-strip">
+            <view class="cost-mode-pills">
+              <text
+                wx:for="{{dividendCalcView.costModes}}"
+                wx:key="id"
+                class="cost-mode-pill {{dividendCalcView.costMode === item.id ? 'is-active' : ''}}"
+                data-mode="{{item.id}}"
+                bindtap="selectDividendCostMode"
+                aria-role="button"
+              >{{item.label}}</text>
+            </view>
+            <text class="div-yield-badge">成本息率 {{dividendCalcView.entryYieldText}}</text>
+          </view>
           <view class="div-calc-result">
             <view class="div-calc-metric">
               <text class="div-calc-k">年度税前分红</text>
@@ -336,9 +358,9 @@
               <text class="div-life-tag">息覆生活 · {{dividendCalcView.lifeTag}}</text>
             </view>
             <view class="div-calc-metric">
-              <text class="div-calc-k">{{dividendCalcView.priceAsOf}} 对应市值</text>
+              <text class="div-calc-k">{{dividendCalcView.costLabel}}</text>
               <text class="div-calc-v is-sub">{{dividendCalcView.costText}}</text>
-              <text class="div-sub-tag">收息{{dividendYears || 1}}年摊薄至 {{dividendCalcView.dilutedCostText}}/股</text>
+              <text class="div-sub-tag">{{dividendCalcView.costDiffText}} · {{dividendYears || 1}}年摊薄至 {{dividendCalcView.dilutedCostText}}/股</text>
             </view>
           </view>
           <view class="drip-box">
@@ -425,9 +447,17 @@
             <text class="block-title">聪明钱大师持仓追踪</text>
             <text class="div-calc-year">{{view.holdings.length}}家机构披露持有</text>
           </view>
-          <view wx:for="{{view.holdings}}" wx:key="name" class="guru-endorse-row">
+          <view
+            wx:for="{{view.holdings}}"
+            wx:key="name"
+            class="guru-endorse-row"
+            data-id="{{item.investorId}}"
+            bindtap="openGuruInvestor"
+            hover-class="{{item.investorId ? 'tap-active' : ''}}"
+            aria-role="{{item.investorId ? 'button' : ''}}"
+          >
             <text class="guru-endorse-name">{{item.name}}</text>
-            <text class="guru-endorse-val">{{item.value}}</text>
+            <text class="guru-endorse-val">{{item.value}}{{item.investorId ? ' ›' : ''}}</text>
           </view>
         </view>
 
@@ -470,7 +500,7 @@
 
       <view wx:if="{{activeModule == 'dynamics' && view.market == 'us'}}" class="module-content">
         <text class="module-title">近期动态</text>
-        <view class="section-card">
+        <view wx:if="{{view.dynamics.eventVerified || !(view.dynamics.filingCards && view.dynamics.filingCards.length)}}" class="section-card">
           <text class="block-title">近期公司事件</text>
           <text class="analysis-body">{{view.dynamics.event}}</text>
           <text wx:if="{{view.dynamics.eventVerified}}" class="collapsed-hint">官方原文见来源；同期发生不代表涨跌原因。</text>
@@ -561,6 +591,30 @@
 
       <view wx:if="{{activeModule == 'subscribe' && view.market == 'hk'}}" class="module-content">
         <text class="module-title">申购参考</text>
+        <view wx:if="{{hkIpoCalcView}}" class="section-card div-calc-card hk-calc-card">
+          <view class="div-calc-head">
+            <text class="block-title">打新本金与回本算账</text>
+            <text class="div-calc-year">{{hkIpoCalcView.lotsText}}</text>
+          </view>
+          <view class="div-calc-pills hk-calc-pills">
+            <text class="div-calc-pill {{hkCalcMode === 'cash1' ? 'is-active' : ''}}" data-mode="cash1" bindtap="selectHkCalcMode" aria-role="button">现金1手(0息)</text>
+            <text class="div-calc-pill {{hkCalcMode === 'cash5' ? 'is-active' : ''}}" data-mode="cash5" bindtap="selectHkCalcMode" aria-role="button">现金5手</text>
+            <text class="div-calc-pill {{hkCalcMode === 'margin10' ? 'is-active' : ''}}" data-mode="margin10" bindtap="selectHkCalcMode" aria-role="button">10倍融资10手</text>
+          </view>
+          <view class="div-calc-result">
+            <view class="div-calc-metric">
+              <text class="div-calc-k">需准备本金</text>
+              <text class="div-calc-v is-sub">{{hkIpoCalcView.principalText}}</text>
+              <text class="div-sub-tag">{{hkIpoCalcView.costNote}}</text>
+            </view>
+            <view class="div-calc-metric">
+              <text class="div-calc-k">中1手回本涨幅</text>
+              <text class="div-calc-v is-blue">{{hkIpoCalcView.breakevenText}}</text>
+              <text class="div-sub-tag">涨10% {{hkIpoCalcView.up10Text}} · 跌10% {{hkIpoCalcView.down10Text}}</text>
+            </view>
+          </view>
+          <text class="div-calc-note">按公开招股入场费与常见券商费率算术试算，不预测上市涨跌。</text>
+        </view>
         <block wx:if="{{activeCharts.length}}">
           <template wx:for="{{activeCharts}}" wx:key="title" is="chart-visual" data="{{item: item}}" />
         </block>
@@ -594,9 +648,18 @@
         </block>
         <view wx:if="{{view.holdings.length}}" class="section-card">
           <text class="block-title">机构持仓对照</text>
-          <view wx:for="{{view.holdings}}" wx:key="name" class="fact-row">
+          <view
+            wx:for="{{view.holdings}}"
+            wx:key="name"
+            class="fact-row"
+            data-market="{{item.linkMarket}}"
+            data-id="{{item.linkId}}"
+            bindtap="openHoldingStock"
+            hover-class="{{item.linkId ? 'tap-active' : ''}}"
+            aria-role="{{item.linkId ? 'button' : ''}}"
+          >
             <text>{{item.name}}</text>
-            <text>{{item.value}}</text>
+            <text>{{item.value}}{{item.linkId ? ' ›' : ''}}</text>
           </view>
         </view>
         <view wx:if="{{!activeCharts.length && !view.holdings.length}}" class="module-empty">当前没有可展示的持仓明细。</view>

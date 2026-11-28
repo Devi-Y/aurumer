@@ -15,11 +15,13 @@ function loadPageExports(relPath, names) {
   return { api: context.testApi, page: context.__page };
 }
 
-test("A-share Xiji benchmark: 12-month dividend calendar, life-expense mapping, 1yr yield percentile & DRIP", () => {
+test("A-share Xiji benchmark: full 20-stock pool, 12-month calendar, cost-yield switcher, 1yr yield percentile & DRIP", () => {
   const { api: secApi } = loadPageExports("miniprogram/pages/section/index.js", [
     "buildAModule", "buildLifeSummaryLine", "formatCalendarRows",
   ]);
   const aMod = secApi.buildAModule(snapshot);
+  assert.equal(aMod.allList.length, 20, "all-20 tab genuinely covers all 20 A-share dividend stocks");
+  assert.match(aMod.answerBar, /^20 只收息股/, "answerBar reflects all 20 A-share stocks");
   const cal = aMod.calendar;
   assert.equal(cal.months.length, 12);
   assert.ok(cal.months.filter((m) => m.count > 0).length >= 6, "calendar covers multiple payout months");
@@ -28,13 +30,20 @@ test("A-share Xiji benchmark: 12-month dividend calendar, life-expense mapping, 
   assert.match(julyRows[0].cashNote, /投10万单次约领 ¥/);
   assert.match(secApi.buildLifeSummaryLine(aMod.stableList, 10), /息覆生活/);
 
-  const { api: detApi, page: detPage } = loadPageExports("miniprogram/pages/detail/index.js", ["detailView"]);
-  const item = findItem(snapshot, "a", "600900.SH");
-  const view = detApi.detailView(item, snapshot);
-  assert.ok(view.dividendCharts.some((c) => /股息率分位/.test(c.title)), "exposes 1-year yield percentile meter");
-  assert.ok(Array.isArray(view.recentDistributions) && view.recentDistributions.length >= 2, "exposes real ex-dividend log");
-  const drip10 = detPage.formatDividendCalc(view.dividendCalc, 1000, 10);
-  assert.ok(drip10.dripSharesText && drip10.yocText && drip10.lifeTag && drip10.dilutedCostText);
+  const { api: detApi, page: detPage } = loadPageExports("miniprogram/pages/detail/index.js", ["detailView", "buildPeerNav"]);
+  for (const code of ["600900.SH", "601398.SH"]) {
+    const item = findItem(snapshot, "a", code);
+    const view = detApi.detailView(item, snapshot);
+    assert.ok(view.dividendCharts.some((c) => /股息率分位/.test(c.title)), `${code} exposes 1-year yield percentile meter`);
+    assert.ok(Array.isArray(view.recentDistributions) && view.recentDistributions.length >= 1, `${code} exposes real ex-dividend log`);
+    const spotCalc = detPage.formatDividendCalc(view.dividendCalc, 1000, 10, "spot");
+    const dipCalc = detPage.formatDividendCalc(view.dividendCalc, 1000, 10, "dip12");
+    assert.ok(spotCalc.dripSharesText && spotCalc.yocText && spotCalc.lifeTag && spotCalc.dilutedCostText);
+    assert.ok(parseFloat(dipCalc.entryYieldText) > parseFloat(spotCalc.entryYieldText), "lower buy cost increases cost-basis dividend yield");
+    assert.match(dipCalc.costDiffText, /比现价少掏 ¥/);
+    const peerNav = detApi.buildPeerNav(snapshot, item);
+    assert.ok(peerNav && peerNav.indexText.endsWith("/20"), `${code} participates in 20-stock peer swipe queue`);
+  }
 });
 
 function formatRowsHelper(fn, rows, wan) {
@@ -51,6 +60,8 @@ test("HK IPO Futu/Zhangle/TradeGo benchmark: cornerstone de-noising, sponsor win
   const hkMod = secApi.buildHkModule(snapshot);
   assert.ok(hkMod.sponsorRows.length >= 3, "aggregates sponsor track records from 45 IPOs");
   assert.ok(hkMod.crowdBuckets.length >= 2, "aggregates oversubscription crowd buckets");
+  assert.ok(hkMod.industryRows.length >= 3, "aggregates industry first-day win-rate leaderboard");
+  assert.ok(hkMod.applyList.every((r) => !/股份有限$/.test(r.name)), "strips -B/-W legal tails cleanly");
   const topPnl = secApi.sortHkHistoryRows(hkMod.historyRowsAll, "pnl");
   assert.ok((topPnl[0].pnlNum ?? 0) >= (topPnl[1].pnlNum ?? 0));
 
@@ -65,17 +76,30 @@ test("HK IPO Futu/Zhangle/TradeGo benchmark: cornerstone de-noising, sponsor win
   assert.match(marginCalc.breakevenText, /\+/);
 });
 
-test("US Mag7 Futu/Eastmoney/IBKR benchmark: peer comparison matrix, 4yr F10 pillar charts & guru endorsements", () => {
-  const { api: secApi } = loadPageExports("miniprogram/pages/section/index.js", ["buildUsModule"]);
+test("US Mag7 & Smart-Money Futu/Eastmoney/IBKR benchmark: FCF vs CapEx matrix, 4yr F10 pillar charts, search & bidirectional guru links", () => {
+  const { api: secApi } = loadPageExports("miniprogram/pages/section/index.js", ["buildUsModule", "buildGuruModule"]);
   const usMod = secApi.buildUsModule(snapshot);
   assert.ok(usMod.sevenCompare && usMod.sevenCompare.rows.length === 7);
+  assert.ok(usMod.sevenCompare.rows.some((r) => r.fcfText && r.fcfText !== "—" && r.capexText !== "—"), "computes CapEx & Free Cash Flow across Mag7");
   assert.ok(usMod.sevenCompare.benchPills.length >= 3);
   assert.ok(usMod.sevenList.some((r) => r.guruChip.includes("大师重仓")));
   assert.ok(usMod.filingsFeed.length >= 5 && usMod.filingsFeed[0].formZh);
+
+  const guruMod = secApi.buildGuruModule(snapshot);
+  assert.ok(guruMod.overlapRows.some((r) => r.linkMarket === "us" && r.linkId), "guru overlap rows link to in-pool US stocks");
+  assert.ok(guruMod.overlapRows.every((r) => !/德鲁肯米$/.test(r.holdersText)), "does not chop Druckenmiller surname");
 
   const { api: detApi } = loadPageExports("miniprogram/pages/detail/index.js", ["detailView"]);
   const nvda = detApi.detailView(findItem(snapshot, "us", "NVDA"), snapshot);
   assert.ok(nvda.dynamicsCharts.some((c) => c.kind === "solid" && c.title.includes("近4财年营收阶梯")));
   assert.ok(nvda.evidenceCharts.some((c) => c.title.includes("同业基准对照")));
-  assert.ok(nvda.holdings.length >= 1, "surfaces institutional guru holdings on Mag7");
+  assert.ok(nvda.holdings.length >= 1 && nvda.holdings[0].investorId, "surfaces clickable institutional guru holdings on Mag7");
+
+  const { api: homeApi } = loadPageExports("miniprogram/pages/index/index.js", ["buildSearchIndex"]);
+  const searchIdx = homeApi.buildSearchIndex(snapshot);
+  const changjiangHits = searchIdx.filter((r) => r.name === "长江电力");
+  assert.equal(changjiangHits.length, 1, "deduplicates 600900 vs 600900.SH in home search");
+  assert.ok(searchIdx.every((r) => !String(r.id).startsWith("overlap-")), "excludes non-detail overlap rows from search");
+  assert.ok(searchIdx.some((r) => r.id === "600036" && r.haystack.includes("招行")), "supports colloquial bank aliases");
+  assert.ok(searchIdx.some((r) => r.market === "guru" && r.haystack.includes("腾讯")), "indexes guru top holdings for reverse search");
 });
